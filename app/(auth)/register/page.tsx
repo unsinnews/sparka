@@ -33,6 +33,11 @@ export default function Page() {
         type: 'error',
         description: 'Failed validating your submission!',
       });
+    } else if (state.status === 'invalid_email_format') {
+      toast({
+        type: 'error',
+        description: 'This is a private beta. Email address doesn\'t have permission to register',
+      });
     } else if (state.status === 'success') {
       toast({ type: 'success', description: 'Account created successfully!' });
 

@@ -48,8 +48,11 @@ export interface RegisterActionState {
     | 'success'
     | 'failed'
     | 'user_exists'
-    | 'invalid_data';
+    | 'invalid_data'
+    | 'invalid_email_format';
 }
+
+const EMAIL_ALLOW_LIST = process.env.EMAIL_ALLOW_LIST!
 
 export const register = async (
   _: RegisterActionState,
@@ -60,6 +63,10 @@ export const register = async (
       email: formData.get('email'),
       password: formData.get('password'),
     });
+
+    if (!EMAIL_ALLOW_LIST.split(',').includes(validatedData.email)) {
+      return { status: 'invalid_email_format' };
+    }
 
     const [user] = await getUser(validatedData.email);
 

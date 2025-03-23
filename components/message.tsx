@@ -20,6 +20,7 @@ import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
+import MultiSearch from './multi-search';
 
 const PurePreviewMessage = ({
   chatId,
@@ -179,13 +180,17 @@ const PurePreviewMessage = ({
                         />
                       ) : toolName === 'retrieve' ? (
                         <Retrieve />
+                      ) : toolName === 'webSearch' ? (
+                        <div className="mt-4">
+                          <MultiSearch result={null} args={args} />
+                        </div>
                       ) : null}
                     </div>
                   );
                 }
 
                 if (state === 'result') {
-                  const { result } = toolInvocation;
+                  const { result, args } = toolInvocation;
 
                   return (
                     <div key={toolCallId}>
@@ -210,6 +215,19 @@ const PurePreviewMessage = ({
                         />
                       ) : toolName === 'retrieve' ? (
                         <Retrieve result={result} />
+                      ) : toolName === 'webSearch' ? (
+                        <div className="mt-4">
+                          <MultiSearch
+                            result={result}
+                            args={args}
+                            // TODO: Cleanup type errors
+                            annotations={
+                              message?.annotations?.filter(
+                                (a: any) => a.type === 'query_completion',
+                              ) || []
+                            }
+                          />
+                        </div>
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}

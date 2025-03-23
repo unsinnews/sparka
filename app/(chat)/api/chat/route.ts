@@ -26,6 +26,7 @@ import { getWeather } from '@/lib/ai/tools/get-weather';
 import { retrieve } from '@/lib/ai/tools/retrieve';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
+import { webSearch } from '@/lib/ai/tools/web-search';
 
 export const maxDuration = 60;
 
@@ -96,6 +97,7 @@ export async function POST(request: Request) {
                   'updateDocument',
                   'requestSuggestions',
                   'retrieve',
+                  'webSearch',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -107,7 +109,8 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
-            retrieve
+            retrieve,
+            webSearch: webSearch({ session, dataStream }),
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {

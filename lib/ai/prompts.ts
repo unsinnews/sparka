@@ -28,6 +28,12 @@ This is a guide for using artifacts tools: \`createDocument\` and \`updateDocume
 **When NOT to use \`updateDocument\`:**
 - Immediately after creating a document
 
+** When to use \`retrieve\`:  
+- Use this for extracting information from specific URLs provided.
+
+**When NOT to use \`retrieve\`:**
+- Do not use this tool for general web searches.
+
 Do not update document right after creating it. Wait for user feedback or request to update it.
 `;
 

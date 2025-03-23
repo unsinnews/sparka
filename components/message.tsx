@@ -19,6 +19,7 @@ import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import { UseChatHelpers } from '@ai-sdk/react';
+import { Retrieve } from './retrieve';
 
 const PurePreviewMessage = ({
   chatId,
@@ -176,6 +177,8 @@ const PurePreviewMessage = ({
                           args={args}
                           isReadonly={isReadonly}
                         />
+                      ) : toolName === 'retrieve' ? (
+                        <Retrieve />
                       ) : null}
                     </div>
                   );
@@ -205,6 +208,8 @@ const PurePreviewMessage = ({
                           result={result}
                           isReadonly={isReadonly}
                         />
+                      ) : toolName === 'retrieve' ? (
+                        <Retrieve result={result} />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}

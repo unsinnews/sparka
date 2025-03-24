@@ -21,6 +21,7 @@ import { MessageReasoning } from './message-reasoning';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
 import MultiSearch from './multi-search';
+import { ToolName } from '@/lib/ai/tools/tool-name';
 
 const PurePreviewMessage = ({
   chatId,
@@ -150,7 +151,13 @@ const PurePreviewMessage = ({
 
               if (type === 'tool-invocation') {
                 const { toolInvocation } = part;
-                const { toolName, toolCallId, state } = toolInvocation;
+                const {
+                  toolName: rawToolName,
+                  toolCallId,
+                  state,
+                } = toolInvocation;
+
+                const toolName = rawToolName as ToolName;
 
                 if (state === 'call') {
                   const { args } = toolInvocation;

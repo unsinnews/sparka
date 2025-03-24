@@ -1,4 +1,5 @@
 import {
+  Tool,
   UIMessage,
   appendResponseMessages,
   createDataStreamResponse,
@@ -24,6 +25,7 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { retrieve } from '@/lib/ai/tools/retrieve';
+import type { ToolName } from '@/lib/ai/tools/tool-name';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { webSearch } from '@/lib/ai/tools/web-search';
@@ -83,35 +85,39 @@ export async function POST(request: Request) {
 
     return createDataStreamResponse({
       execute: (dataStream) => {
+        const availableTools: Record<ToolName, Tool> = {
+          getWeather,
+          createDocument: createDocument({ session, dataStream }),
+          updateDocument: updateDocument({ session, dataStream }),
+          requestSuggestions: requestSuggestions({
+            session,
+            dataStream,
+          }),
+          retrieve,
+          webSearch: webSearch({ session, dataStream }),
+        };
+
+        const activeTools: ToolName[] =
+          selectedChatModel === 'chat-model-reasoning'
+            ? []
+            : [
+                'getWeather',
+                'createDocument',
+                'updateDocument',
+                'requestSuggestions',
+                'retrieve',
+                'webSearch',
+              ];
+
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel }),
+          system: systemPrompt({ selectedChatModel, activeTools }),
           messages,
           maxSteps: 5,
-          experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
-              ? []
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                  'retrieve',
-                  'webSearch',
-                ],
+          experimental_activeTools: activeTools,
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
-            retrieve,
-            webSearch: webSearch({ session, dataStream }),
-          },
+          tools: availableTools,
           onFinish: async ({ response }) => {
             if (session.user?.id) {
               try {

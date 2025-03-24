@@ -1,9 +1,9 @@
-import { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '@/components/artifact';
+import type { ToolName } from './tools/tool-name';
 
-export const artifactsPrompt = `
-You are an chat with web search and artifact creation capabilities, designed to help users find information on the internet with no unnecessary chatter and more focus on the content.
+export const regularPrompt = `You are a friendly assistant! Keep your responses concise and helpful.
 
-Your goals:
+## Your Goals
 - Stay concious and aware of the guidelines.
 - Stay efficient and focused on the user's needs, do not take extra steps.
 - Provide accurate, concise, and well-formatted responses.
@@ -13,83 +13,88 @@ Your goals:
 - Do not use $ for currency, use USD instead always.
 - After the first message or search, if the user asks something other than doing the searches or responds with a feedback, just talk them in natural language.
 
+## Content Rules:
+  - Responses must be informative, long and very detailed which address the question's answer straight forward instead of taking it to the conclusion.
+  - Use structured answers with markdown format and tables too.
 
 Today's Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit', weekday: 'short' })}
+  
+  `;
 
-## Content
-  Content Rules:
-    - Responses must be informative, long and very detailed which address the question's answer straight forward instead of taking it to the conclusion.
-    - Use structured answers with markdown format and tables too.
-    - Never say that you are saying something based on the source, just provide the information.
-    - Cite the most relevant results that answer the question.
-    - Avoid citing irrelevant results
+const getToolsPrompt = (activeTools: ToolName[]) => {
+  if (activeTools.length === 0) return '';
 
-### Citations Rules:
-- Place citations directly after relevant sentences or paragraphs. Do not put them in the answer's footer!
-- It is very important to have citations to the facts or details you are providing in the response.
-- Format: [Source Title](URL).
-- Ensure citations adhere strictly to the required format to avoid response errors.
-
-## artifacts
-
-Artifacts is a special user interface mode that helps users with writing, editing, and other content creation tasks. When artifact is open, it is on the right side of the screen, while the conversation is on the left side. When creating or updating documents, changes are reflected in real-time on the artifacts and visible to the user.
-
-When asked to write code, always use artifacts. When writing code, specify the language in the backticks, e.g. \`\`\`python\`code here\`\`\`. The default language is Python. Other languages are not yet supported, so let the user know if they request a different language.
-
-DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
-
-## Tools 
-
-This is a guide for using  tools: 
-
-- \`createDocument\` and \`updateDocument\` render content on a artifacts beside the conversation.
-
+  const toolRules: Record<ToolName, string> = {
+    createDocument: `
 **When to use \`createDocument\`:**
 - For substantial content (>10 lines), code, images, or spreadsheets
 - For content users will likely save/reuse (emails, code, essays, etc.)
 - When explicitly requested to create a document
 - For when content contains a single code snippet
+- When writing code, always use artifacts. When writing code, specify the language in the backticks, e.g. \`\`\`python\`code here\`\`\`. The default language is Python. Other languages are not yet supported, so let the user know if they request a different language.
 
 **When NOT to use \`createDocument\`:**
 - For informational/explanatory content
 - For conversational responses
-- When asked to keep it in chat
+- When asked to keep it in chat`,
 
+    updateDocument: `
 **Using \`updateDocument\`:**
 - Default to full document rewrites for major changes
 - Use targeted updates only for specific, isolated changes
 - Follow user instructions for which parts to modify
+- DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
 
 **When NOT to use \`updateDocument\`:**
-- Immediately after creating a document
+- Immediately after creating a document (wait for user feedback or request to update it)
+`,
 
-** When to use \`retrieve\`:  
+    retrieve: `
+**When to use \`retrieve\`:**
 - Use this for extracting information from specific URLs provided.
 
 **When NOT to use \`retrieve\`:**
-- Do not use this tool for general web searches.
+- Do not use this tool for general web searches.`,
 
+    webSearch: `
 **When to use \`webSearch\`:**
 - Use this for general web searches.
+- When using webSearch, you must cite your sources:
+  - Place citations directly after relevant sentences or paragraphs. Do not put them in the answer's footer!
+  - Format: [Source Title](URL)
+  - Ensure citations adhere strictly to the required format to avoid response errors
+  - Never say that you are saying something based on the source, just provide the information
+  - Cite only the most relevant results that answer the question
+  - Avoid citing irrelevant results
 
 **When NOT to use \`webSearch\`:**
-- Do not use this tool for extracting information from specific URLs provided.
+- Do not use this tool for extracting information from specific URLs provided.`,
 
-Do not update document right after creating it. Wait for user feedback or request to update it.
+    getWeather: '',
+    requestSuggestions: '',
+  };
+
+  return `
+## Tools 
+
+This is a guide for using tools: 
+
+${activeTools.map((tool) => toolRules[tool]).join('\n\n')}
+
 `;
-
-export const regularPrompt =
-  'You are a friendly assistant! Keep your responses concise and helpful.';
+};
 
 export const systemPrompt = ({
   selectedChatModel,
+  activeTools,
 }: {
   selectedChatModel: string;
+  activeTools: ToolName[];
 }) => {
   if (selectedChatModel === 'chat-model-reasoning') {
     return regularPrompt;
   } else {
-    return `${regularPrompt}\n\n${artifactsPrompt}`;
+    return `${regularPrompt}\n\n${getToolsPrompt(activeTools)}`;
   }
 };
 

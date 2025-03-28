@@ -76,7 +76,8 @@
         "noUselessElse": "off" // Stylistic opinion
       },
       "suspicious": {
-        "noExplicitAny": "off" // We trust Vercelians to use any only when necessary
+        "noExplicitAny": "off", // We trust Vercelians to use any only when necessary
+        "noArrayIndexKey": "off" // Let's just hack some display stuff for now
       },
       "nursery": {
         "noStaticElementInteractions": "warn",

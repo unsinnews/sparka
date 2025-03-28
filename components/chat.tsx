@@ -10,7 +10,7 @@ import { fetcher, generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
-import { VisibilityType } from './visibility-selector';
+import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 
@@ -49,7 +49,7 @@ export function Chat({
     onFinish: () => {
       mutate('/api/history');
     },
-    onError: (error ) => {
+    onError: (error) => {
       console.error(error);
       toast.error('An error occured, please try again!');
     },

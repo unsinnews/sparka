@@ -18,10 +18,11 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
-import { UseChatHelpers } from '@ai-sdk/react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
-import MultiSearch from './multi-search';
-import { ToolName } from '@/lib/ai/tools/tool-name';
+import MultiSearch, { type QueryCompletion } from './multi-search';
+import type { ToolName } from '@/lib/ai/tools/tool-name';
+import ReasonSearch from './reason-search';
 
 const PurePreviewMessage = ({
   chatId,
@@ -41,7 +42,6 @@ const PurePreviewMessage = ({
   isReadonly: boolean;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
-
   return (
     <AnimatePresence>
       <motion.div
@@ -159,7 +159,7 @@ const PurePreviewMessage = ({
 
                 const toolName = rawToolName as ToolName;
 
-                if (state === 'call') {
+                if (state === 'call' || state === 'partial-call') {
                   const { args } = toolInvocation;
 
                   return (
@@ -189,8 +189,24 @@ const PurePreviewMessage = ({
                         <Retrieve />
                       ) : toolName === 'webSearch' ? (
                         <div className="mt-4">
-                          <MultiSearch result={null} args={args} />
+                          <MultiSearch
+                            result={null}
+                            args={args}
+                            annotations={
+                              (message?.annotations?.filter(
+                                (a: any) => a.type === 'query_completion',
+                              ) as QueryCompletion[]) || []
+                            }
+                          />
                         </div>
+                      ) : toolName === 'reasonSearch' ? (
+                        <ReasonSearch
+                          updates={
+                            message?.annotations
+                              ?.filter((a: any) => a.type === 'research_update')
+                              .map((a: any) => a.data) || []
+                          }
+                        />
                       ) : null}
                     </div>
                   );
@@ -227,14 +243,21 @@ const PurePreviewMessage = ({
                           <MultiSearch
                             result={result}
                             args={args}
-                            // TODO: Cleanup type errors
                             annotations={
-                              message?.annotations?.filter(
+                              (message?.annotations?.filter(
                                 (a: any) => a.type === 'query_completion',
-                              ) || []
+                              ) as QueryCompletion[]) || []
                             }
                           />
                         </div>
+                      ) : toolName === 'reasonSearch' ? (
+                        <ReasonSearch
+                          updates={
+                            message?.annotations
+                              ?.filter((a: any) => a.type === 'research_update')
+                              .map((a: any) => a.data) || []
+                          }
+                        />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}
@@ -266,6 +289,8 @@ export const PreviewMessage = memo(
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.message.id !== nextProps.message.id) return false;
     if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
+    if (!equal(prevProps.message.annotations, nextProps.message.annotations))
+      return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
 
     return true;

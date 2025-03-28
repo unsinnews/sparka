@@ -3,5 +3,6 @@ export type ToolName =
   | 'createDocument'
   | 'updateDocument'
   | 'requestSuggestions'
+  | 'reasonSearch'
   | 'retrieve'
   | 'webSearch';

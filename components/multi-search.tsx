@@ -55,7 +55,7 @@ type MultiSearchArgs = {
   searchDepth: ('basic' | 'advanced')[];
 };
 
-type QueryCompletion = {
+export type QueryCompletion = {
   type: 'query_completion';
   data: {
     query: string;

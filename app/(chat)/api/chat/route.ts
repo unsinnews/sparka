@@ -1,6 +1,6 @@
 import {
-  Tool,
-  UIMessage,
+  type Tool,
+  type UIMessage,
   appendResponseMessages,
   createDataStreamResponse,
   smoothStream,
@@ -29,6 +29,7 @@ import type { ToolName } from '@/lib/ai/tools/tool-name';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { webSearch } from '@/lib/ai/tools/web-search';
+import { createReasonSearch } from '@/lib/ai/tools/reason-search';
 
 export const maxDuration = 60;
 
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
           parts: userMessage.parts,
           attachments: userMessage.experimental_attachments ?? [],
           createdAt: new Date(),
+          annotations: userMessage.annotations,
         },
       ],
     });
@@ -93,6 +95,7 @@ export async function POST(request: Request) {
             session,
             dataStream,
           }),
+          reasonSearch: createReasonSearch({ session, dataStream }),
           retrieve,
           webSearch: webSearch({ session, dataStream }),
         };
@@ -105,6 +108,7 @@ export async function POST(request: Request) {
                 'createDocument',
                 'updateDocument',
                 'requestSuggestions',
+                'reasonSearch',
                 'retrieve',
                 'webSearch',
               ];
@@ -146,6 +150,7 @@ export async function POST(request: Request) {
                       attachments:
                         assistantMessage.experimental_attachments ?? [],
                       createdAt: new Date(),
+                      annotations: assistantMessage.annotations,
                     },
                   ],
                 });

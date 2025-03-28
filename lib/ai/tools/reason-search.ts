@@ -8,7 +8,10 @@ import { xai } from '@ai-sdk/xai';
 export const createReasonSearch = ({
   session,
   dataStream,
-}: { session: Session; dataStream: DataStreamWriter }) =>
+}: {
+  session: Session;
+  dataStream: DataStreamWriter;
+}) =>
   tool({
     description:
       'Perform a reasoned web search with multiple steps and sources.',
@@ -23,7 +26,6 @@ export const createReasonSearch = ({
       topic,
       depth,
     }: { topic: string; depth: 'basic' | 'advanced' }) => {
-      console.log('USING REASON SEARCH');
       const apiKey = process.env.TAVILY_API_KEY as string;
       const tvly = tavily({ apiKey });
       const exa = new Exa(process.env.EXA_API_KEY as string);

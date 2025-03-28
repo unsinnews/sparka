@@ -30,6 +30,7 @@ import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { webSearch } from '@/lib/ai/tools/web-search';
 import { createReasonSearch } from '@/lib/ai/tools/reason-search';
+import { AnnotationStream } from '@/lib/ai/tools/annotation-stream';
 
 export const maxDuration = 60;
 
@@ -87,17 +88,28 @@ export async function POST(request: Request) {
 
     return createDataStreamResponse({
       execute: (dataStream) => {
+        const annotationStream = new AnnotationStream(dataStream);
+
         const availableTools: Record<ToolName, Tool> = {
           getWeather,
-          createDocument: createDocument({ session, dataStream }),
-          updateDocument: updateDocument({ session, dataStream }),
+          createDocument: createDocument({
+            session,
+            dataStream: annotationStream,
+          }),
+          updateDocument: updateDocument({
+            session,
+            dataStream: annotationStream,
+          }),
           requestSuggestions: requestSuggestions({
             session,
-            dataStream,
+            dataStream: annotationStream,
           }),
-          reasonSearch: createReasonSearch({ session, dataStream }),
+          reasonSearch: createReasonSearch({
+            session,
+            dataStream: annotationStream,
+          }),
           retrieve,
-          webSearch: webSearch({ session, dataStream }),
+          webSearch: webSearch({ session, dataStream: annotationStream }),
         };
 
         const activeTools: ToolName[] =
@@ -150,7 +162,7 @@ export async function POST(request: Request) {
                       attachments:
                         assistantMessage.experimental_attachments ?? [],
                       createdAt: new Date(),
-                      annotations: assistantMessage.annotations,
+                      annotations: annotationStream.getAnnotations(),
                     },
                   ],
                 });

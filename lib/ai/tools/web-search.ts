@@ -125,8 +125,7 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
           excludeDomains: exclude_domains,
         });
 
-        // Add annotation for query completion
-        dataStream.writeMessageAnnotation({
+        const queryCompletion = {
           type: 'query_completion',
           data: {
             query,
@@ -136,7 +135,10 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
             resultsCount: data.results.length,
             imagesCount: data.images.length,
           },
-        });
+        };
+
+        // Add annotation for query completion
+        dataStream.writeMessageAnnotation(queryCompletion);
 
         return {
           query,

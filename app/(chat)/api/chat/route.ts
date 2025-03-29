@@ -139,6 +139,10 @@ export async function POST(request: Request) {
           experimental_activeTools: activeTools,
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
+          experimental_telemetry: {
+            isEnabled: true,
+            functionId: 'chat-response',
+          },
           tools: availableTools,
           onFinish: async ({ response }) => {
             if (session.user?.id) {
@@ -176,10 +180,6 @@ export async function POST(request: Request) {
                 console.error('Failed to save chat');
               }
             }
-          },
-          experimental_telemetry: {
-            isEnabled: isProductionEnvironment,
-            functionId: 'stream-text',
           },
         });
 

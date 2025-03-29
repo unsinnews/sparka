@@ -11,6 +11,9 @@ export const imageDocumentHandler = createDocumentHandler<'image'>({
       model: myProvider.imageModel('small-model'),
       prompt: `${title}\n\n${description}`,
       n: 1,
+      providerOptions: {
+        experimental_telemetry: { isEnabled: true },
+      },
     });
 
     draftContent = image.base64;
@@ -29,6 +32,9 @@ export const imageDocumentHandler = createDocumentHandler<'image'>({
       model: myProvider.imageModel('small-model'),
       prompt: description,
       n: 1,
+      providerOptions: {
+        experimental_telemetry: { isEnabled: true },
+      },
     });
 
     draftContent = image.base64;

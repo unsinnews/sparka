@@ -13,6 +13,7 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
       model: myProvider.languageModel('artifact-model'),
       system: codePrompt,
       prompt: `${title}\n\n${description}`,
+      experimental_telemetry: { isEnabled: true },
       schema: z.object({
         code: z.string(),
       }),
@@ -44,6 +45,7 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
     const { fullStream } = streamObject({
       model: myProvider.languageModel('artifact-model'),
       system: updateDocumentPrompt(document.content, 'code'),
+      experimental_telemetry: { isEnabled: true },
       prompt: description,
       schema: z.object({
         code: z.string(),

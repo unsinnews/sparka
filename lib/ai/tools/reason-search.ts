@@ -69,6 +69,7 @@ export const createReasonSearch = ({
             )
             .max(8),
         }),
+        experimental_telemetry: { isEnabled: true },
         prompt: `Create a focused research plan for the topic: "${topic}". 
                 
                 Today's date and day of the week: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -314,6 +315,7 @@ export const createReasonSearch = ({
             implications: z.array(z.string()),
             limitations: z.array(z.string()),
           }),
+          experimental_telemetry: { isEnabled: true },
           prompt: `Perform a ${step.analysis.type} analysis on the search results. ${step.analysis.description}
                     Consider all sources and their reliability.
                     Search results: ${JSON.stringify(searchResults)}`,
@@ -379,6 +381,7 @@ export const createReasonSearch = ({
             }),
           ),
         }),
+        experimental_telemetry: { isEnabled: true },
         prompt: `Analyze the research results and identify limitations, knowledge gaps, and recommended follow-up actions.
                 Consider:
                 - Quality and reliability of sources
@@ -716,6 +719,7 @@ export const createReasonSearch = ({
             ),
             remaining_uncertainties: z.array(z.string()),
           }),
+          experimental_telemetry: { isEnabled: true },
           prompt: `Synthesize all research findings, including gap analysis and follow-up research.
                     Highlight key conclusions and remaining uncertainties.
                     Stick to the types of the schema, do not add any other fields or types.

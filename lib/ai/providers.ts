@@ -13,6 +13,13 @@ import {
   titleModel,
 } from './models.test';
 
+const telemetryConfig = {
+  experimental_telemetry: {
+    isEnabled: true,
+    functionId: 'ai-chat',
+  },
+};
+
 export const myProvider = isTestEnvironment
   ? customProvider({
       languageModels: {
@@ -35,4 +42,5 @@ export const myProvider = isTestEnvironment
       imageModels: {
         'small-model': xai.image('grok-2-image'),
       },
+      ...telemetryConfig,
     });

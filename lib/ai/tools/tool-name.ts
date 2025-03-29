@@ -7,4 +7,5 @@ export type ToolName =
   | 'retrieve'
   | 'webSearch'
   | 'stockChart'
-  | 'codeInterpreter';
+  | 'codeInterpreter'
+  | 'deepResearch';

@@ -113,6 +113,17 @@ const getToolsPrompt = (activeTools: ToolName[]) => {
     // - Use 'plt.show()' for plots, and mention generated URLs for outputs
     getWeather: '',
     requestSuggestions: '',
+    deepResearch: `
+**When to use \`deepResearch\`:**
+- Use this for complex queries requiring:
+  - Multi-step research planning
+  - Parallel web and academic searches
+  - Deep analysis of findings
+  - Cross-referencing and validation
+
+**When NOT to use \`deepResearch\`:**
+- Do not use this tool for simple queries that can be answered straight away.
+`,
   };
 
   return `

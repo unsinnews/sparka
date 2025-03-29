@@ -26,13 +26,13 @@ import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { retrieve } from '@/lib/ai/tools/retrieve';
 import type { ToolName } from '@/lib/ai/tools/tool-name';
-import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 import { webSearch } from '@/lib/ai/tools/web-search';
 import { createReasonSearch } from '@/lib/ai/tools/reason-search';
 import { AnnotationStream } from '@/lib/ai/tools/annotation-stream';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
+import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 
 export const maxDuration = 60;
 
@@ -114,6 +114,7 @@ export async function POST(request: Request) {
           webSearch: webSearch({ session, dataStream: annotationStream }),
           stockChart,
           codeInterpreter,
+          deepResearch: deepResearch({ session, dataStream: annotationStream }),
         };
 
         const activeTools: ToolName[] =
@@ -129,6 +130,7 @@ export async function POST(request: Request) {
                 'webSearch',
                 'stockChart',
                 'codeInterpreter',
+                'deepResearch',
               ];
 
         const result = streamText({

@@ -15,8 +15,6 @@ export function CodeInterpreterMessage({
     icon: string;
   };
 }) {
-  console.log('result', result);
-  console.log('args', args);
   return (
     <div className="space-y-6">
       <CollapsibleSection

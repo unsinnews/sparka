@@ -18,8 +18,6 @@ export function StockChartMessage({
     interval: StockChartProps['interval'];
   };
 }) {
-  console.log('result', result);
-  console.log('args', args);
   return (
     <div className="flex flex-col gap-3 w-full mt-4">
       <Badge

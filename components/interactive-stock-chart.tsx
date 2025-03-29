@@ -52,7 +52,6 @@ const formatStockSymbol = (symbol: string) => {
   let formatted = symbol;
 
   // Remove any known suffix
-  console.log('suffixes', suffixes);
   suffixes.forEach((suffix) => {
     formatted = formatted.replace(suffix, '');
   });

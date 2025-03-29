@@ -5,4 +5,5 @@ export type ToolName =
   | 'requestSuggestions'
   | 'reasonSearch'
   | 'retrieve'
-  | 'webSearch';
+  | 'webSearch'
+  | 'stockChart';

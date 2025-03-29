@@ -84,6 +84,14 @@ const getToolsPrompt = (activeTools: ToolName[]) => {
 - Skip if question can be answered straight away
 `,
 
+    stockChart: `
+**When to use \`stockChart\`:**
+- Use this for line stock chart generation.
+
+**When NOT to use \`stockChart\`:**
+- Do not use this tool for other chart types.
+`,
+
     getWeather: '',
     requestSuggestions: '',
   };

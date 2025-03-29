@@ -23,6 +23,7 @@ import { Retrieve } from './retrieve';
 import MultiSearch, { type QueryCompletion } from './multi-search';
 import type { ToolName } from '@/lib/ai/tools/tool-name';
 import ReasonSearch from './reason-search';
+import { StockChart } from './stock-chart-message';
 
 const PurePreviewMessage = ({
   chatId,
@@ -207,6 +208,8 @@ const PurePreviewMessage = ({
                               .map((a: any) => a.data) || []
                           }
                         />
+                      ) : toolName === 'stockChart' ? (
+                        <StockChart result={null} args={args} />
                       ) : null}
                     </div>
                   );
@@ -258,6 +261,8 @@ const PurePreviewMessage = ({
                               .map((a: any) => a.data) || []
                           }
                         />
+                      ) : toolName === 'stockChart' ? (
+                        <StockChart result={result} args={args} />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}

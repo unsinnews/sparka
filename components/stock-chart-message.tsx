@@ -5,7 +5,7 @@ import InteractiveStockChart, {
   type StockChartProps,
 } from './interactive-stock-chart';
 
-export function StockChart({
+export function StockChartMessage({
   result,
   args,
 }: {
@@ -18,6 +18,8 @@ export function StockChart({
     interval: StockChartProps['interval'];
   };
 }) {
+  console.log('result', result);
+  console.log('args', args);
   return (
     <div className="flex flex-col gap-3 w-full mt-4">
       <Badge

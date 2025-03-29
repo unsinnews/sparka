@@ -23,7 +23,8 @@ import { Retrieve } from './retrieve';
 import MultiSearch, { type QueryCompletion } from './multi-search';
 import type { ToolName } from '@/lib/ai/tools/tool-name';
 import ReasonSearch from './reason-search';
-import { StockChart } from './stock-chart-message';
+import { StockChartMessage } from './stock-chart-message';
+import { CodeInterpreterMessage } from './code-interpreter-message';
 
 const PurePreviewMessage = ({
   chatId,
@@ -209,8 +210,12 @@ const PurePreviewMessage = ({
                           }
                         />
                       ) : toolName === 'stockChart' ? (
-                        <StockChart result={null} args={args} />
-                      ) : null}
+                        <StockChartMessage result={null} args={args} />
+                      ) : toolName === 'codeInterpreter' ? (
+                        <CodeInterpreterMessage result={null} args={args} />
+                      ) : (
+                        <pre>{JSON.stringify(args, null, 2)}</pre>
+                      )}
                     </div>
                   );
                 }
@@ -262,7 +267,9 @@ const PurePreviewMessage = ({
                           }
                         />
                       ) : toolName === 'stockChart' ? (
-                        <StockChart result={result} args={args} />
+                        <StockChartMessage result={result} args={args} />
+                      ) : toolName === 'codeInterpreter' ? (
+                        <CodeInterpreterMessage result={result} args={args} />
                       ) : (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       )}

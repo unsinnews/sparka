@@ -87,11 +87,30 @@ const getToolsPrompt = (activeTools: ToolName[]) => {
     stockChart: `
 **When to use \`stockChart\`:**
 - Use this for line stock chart generation.
+- Use this getting financial data of a stock.
 
 **When NOT to use \`stockChart\`:**
 - Do not use this tool for other chart types.
+- Do not use this for non-stock data.
+- Do not use this for private companies.
 `,
 
+    codeInterpreter: `
+**When to use \`codeInterpreter\`:**
+- Use this Python-only sandbox for calculations, data analysis, or gevisualizations
+- matplotlib, pandas, numpy, sympy, and yfinance are available
+- Remember to add the necessary imports for the libraries you use as they are not pre-imported
+- Include library installations (!pip install <library_name>) in the code where required
+- You can generate line, scatter or bar charts for data analysis.
+  - If you generate a line chart, you must use the 'plt.show()' function to display the chart.
+  - Be sure to select adequate 
+- Images are not allowed in the response! Do not create images.
+
+**When NOT to use \`codeInterpreter\`:**
+- Do not use this tool for other languages.
+- Do not use this tool for other chart types.
+`,
+    // - Use 'plt.show()' for plots, and mention generated URLs for outputs
     getWeather: '',
     requestSuggestions: '',
   };

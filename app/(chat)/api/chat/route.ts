@@ -32,6 +32,7 @@ import { webSearch } from '@/lib/ai/tools/web-search';
 import { createReasonSearch } from '@/lib/ai/tools/reason-search';
 import { AnnotationStream } from '@/lib/ai/tools/annotation-stream';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
+import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 
 export const maxDuration = 60;
 
@@ -112,6 +113,7 @@ export async function POST(request: Request) {
           retrieve,
           webSearch: webSearch({ session, dataStream: annotationStream }),
           stockChart,
+          codeInterpreter,
         };
 
         const activeTools: ToolName[] =
@@ -126,6 +128,7 @@ export async function POST(request: Request) {
                 'retrieve',
                 'webSearch',
                 'stockChart',
+                'codeInterpreter',
               ];
 
         const result = streamText({

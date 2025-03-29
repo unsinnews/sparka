@@ -6,4 +6,5 @@ export type ToolName =
   | 'reasonSearch'
   | 'retrieve'
   | 'webSearch'
-  | 'stockChart';
+  | 'stockChart'
+  | 'codeInterpreter';

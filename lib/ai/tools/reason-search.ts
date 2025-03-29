@@ -430,7 +430,14 @@ export const createReasonSearch = ({
         },
       });
 
-      let synthesis;
+      let synthesis: {
+        key_findings: {
+          finding: string;
+          confidence: number;
+          supporting_evidence: string[];
+        }[];
+        remaining_uncertainties: string[];
+      } | null = null;
 
       // If there are significant gaps and depth is 'advanced', perform additional research
       if (depth === 'advanced' && gapAnalysis.knowledge_gaps.length > 0) {
@@ -581,7 +588,7 @@ export const createReasonSearch = ({
                 })),
                 message: `Found ${academicResults.results.length} results`,
                 timestamp: Date.now(),
-                overwrite: query.source === 'all' ? true : false,
+                overwrite: query.source === 'all',
               },
             });
           }

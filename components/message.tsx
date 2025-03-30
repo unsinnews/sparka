@@ -21,7 +21,7 @@ import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
 import MultiSearch, { type QueryCompletion } from './multi-search';
-import type { YourToolName } from '@/lib/ai/tools/tools';
+import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 import ReasonSearch from './reason-search';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
@@ -152,18 +152,14 @@ const PurePreviewMessage = ({
               }
 
               if (type === 'tool-invocation') {
-                const { toolInvocation } = part;
-                const {
-                  toolName: rawToolName,
-                  toolCallId,
-                  state,
-                } = toolInvocation;
+                const { toolInvocation: toolInvocationRaw } = part;
+                const toolInvocation = toolInvocationRaw as YourToolInvocation;
 
-                const toolName = rawToolName as YourToolName;
-
-                if (state === 'call' || state === 'partial-call') {
-                  const { args } = toolInvocation;
-
+                if (
+                  toolInvocation.state === 'call' ||
+                  toolInvocation.state === 'partial-call'
+                ) {
+                  const { toolName, toolCallId, args } = toolInvocation;
                   return (
                     <div
                       key={toolCallId}
@@ -220,9 +216,8 @@ const PurePreviewMessage = ({
                   );
                 }
 
-                if (state === 'result') {
-                  const { result, args } = toolInvocation;
-
+                if (toolInvocation.state === 'result') {
+                  const { toolName, toolCallId, args, result } = toolInvocation;
                   return (
                     <div key={toolCallId}>
                       {toolName === 'getWeather' ? (

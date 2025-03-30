@@ -42,19 +42,9 @@ export function getTools({
   };
 }
 
-export type YourToolName =
-  | 'getWeather'
-  | 'createDocument'
-  | 'updateDocument'
-  | 'requestSuggestions'
-  | 'reasonSearch'
-  | 'retrieve'
-  | 'webSearch'
-  | 'stockChart'
-  | 'codeInterpreter'
-  | 'deepResearch';
-
 type AvailableToolsReturn = ReturnType<typeof getTools>;
+
+export type YourToolName = keyof AvailableToolsReturn;
 
 type ToolResultOf<T extends keyof AvailableToolsReturn> = Awaited<
   ReturnType<AvailableToolsReturn[T]['execute']>
@@ -63,10 +53,6 @@ type ToolResultOf<T extends keyof AvailableToolsReturn> = Awaited<
 type ToolParametersOf<T extends keyof AvailableToolsReturn> = z.infer<
   AvailableToolsReturn[T]['parameters']
 >;
-
-export type AnyToolsResult = {
-  [K in keyof AvailableToolsReturn]: ToolResultOf<K>;
-}[keyof AvailableToolsReturn];
 
 type ToolInvocationOf<T extends YourToolName> =
   | ({
@@ -82,18 +68,6 @@ type ToolInvocationOf<T extends YourToolName> =
       step?: number;
     } & ToolResult<T, ToolParametersOf<T>, ToolResultOf<T>>);
 
-type YourToolInvocation = {
+export type YourToolInvocation = {
   [K in YourToolName]: ToolInvocationOf<K>;
 }[YourToolName];
-
-const invocation: YourToolInvocation = {
-  state: 'result',
-  step: 1,
-  toolCallId: '1',
-  toolName: 'getWeather',
-  args: {
-    latitude: 1,
-    longitude: 1,
-  },
-  result: {},
-};

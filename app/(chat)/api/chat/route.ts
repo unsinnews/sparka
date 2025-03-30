@@ -1,5 +1,4 @@
 import {
-  type Tool,
   type UIMessage,
   appendResponseMessages,
   createDataStreamResponse,
@@ -20,19 +19,10 @@ import {
   getTrailingMessageId,
 } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
-import { createDocument } from '@/lib/ai/tools/create-document';
-import { updateDocument } from '@/lib/ai/tools/update-document';
-import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
-import { getWeather } from '@/lib/ai/tools/get-weather';
-import { retrieve } from '@/lib/ai/tools/retrieve';
-import type { ToolName } from '@/lib/ai/tools/tool-name';
+import type { YourToolName } from '@/lib/ai/tools/tools';
 import { myProvider } from '@/lib/ai/providers';
-import { webSearch } from '@/lib/ai/tools/web-search';
-import { createReasonSearch } from '@/lib/ai/tools/reason-search';
 import { AnnotationStream } from '@/lib/ai/tools/annotation-stream';
-import { stockChart } from '@/lib/ai/tools/stock-chart';
-import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
-import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
+import { getTools } from '@/lib/ai/tools/tools';
 
 export const maxDuration = 60;
 
@@ -92,32 +82,7 @@ export async function POST(request: Request) {
       execute: (dataStream) => {
         const annotationStream = new AnnotationStream(dataStream);
 
-        const availableTools: Record<ToolName, Tool> = {
-          getWeather,
-          createDocument: createDocument({
-            session,
-            dataStream: annotationStream,
-          }),
-          updateDocument: updateDocument({
-            session,
-            dataStream: annotationStream,
-          }),
-          requestSuggestions: requestSuggestions({
-            session,
-            dataStream: annotationStream,
-          }),
-          reasonSearch: createReasonSearch({
-            session,
-            dataStream: annotationStream,
-          }),
-          retrieve,
-          webSearch: webSearch({ session, dataStream: annotationStream }),
-          stockChart,
-          codeInterpreter,
-          deepResearch: deepResearch({ session, dataStream: annotationStream }),
-        };
-
-        const activeTools: ToolName[] =
+        const activeTools: YourToolName[] =
           selectedChatModel === 'chat-model-reasoning'
             ? []
             : [
@@ -145,8 +110,11 @@ export async function POST(request: Request) {
             isEnabled: true,
             functionId: 'chat-response',
           },
-          tools: availableTools,
-          onFinish: async ({ response }) => {
+          tools: getTools({
+            dataStream: annotationStream,
+            session,
+          }),
+          onFinish: async ({ response, toolResults }) => {
             if (session.user?.id) {
               try {
                 const assistantId = getTrailingMessageId({

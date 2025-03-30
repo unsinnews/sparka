@@ -1,5 +1,5 @@
 import type { ArtifactKind } from '@/components/artifact';
-import type { ToolName } from './tools/tool-name';
+import type { YourToolName } from './tools/tools';
 
 export const regularPrompt = `You are a friendly assistant! Keep your responses concise and helpful.
 
@@ -21,10 +21,10 @@ Today's Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month:
   
   `;
 
-const getToolsPrompt = (activeTools: ToolName[]) => {
+const getToolsPrompt = (activeTools: YourToolName[]) => {
   if (activeTools.length === 0) return '';
 
-  const toolRules: Record<ToolName, string> = {
+  const toolRules: Record<YourToolName, string> = {
     createDocument: `
 **When to use \`createDocument\`:**
 - For substantial content (>10 lines), code, images, or spreadsheets
@@ -141,7 +141,7 @@ export const systemPrompt = ({
   activeTools,
 }: {
   selectedChatModel: string;
-  activeTools: ToolName[];
+  activeTools: YourToolName[];
 }) => {
   if (selectedChatModel === 'chat-model-reasoning') {
     return regularPrompt;

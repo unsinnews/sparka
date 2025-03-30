@@ -76,6 +76,10 @@ export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
       if (isReport) {
         // TODO This should also create a title
         const report = await writeFinalReport({
+          title: 'Research Report', // TODO: This should be generated
+          description: 'Research Report', // TODO: This should be generated
+          dataStream,
+          session,
           prompt: combinedQuery,
           learnings,
           visitedUrls,
@@ -85,12 +89,13 @@ export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
         console.log('\nReport has been saved to report.md');
 
         // TODO: Replace this report return with text document streaming and saving
-        return {
-          success: true,
-          answer: report,
-          learnings,
-          visitedUrls,
-        };
+        // return {
+        //   success: true,
+        //   answer: report,
+        //   learnings,
+        //   visitedUrls,
+        // };
+        return report;
       } else {
         const answer = await writeFinalAnswer({
           prompt: combinedQuery,

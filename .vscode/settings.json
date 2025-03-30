@@ -1,4 +1,3 @@
-
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "biomejs.biome",
@@ -12,6 +11,9 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
+  // Prefer type only auto imports
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "editor.wordWrap": "on",
   "eslint.workingDirectories": [
     { "pattern": "app/*" },
     { "pattern": "packages/*" }

@@ -2,11 +2,11 @@ import { codeDocumentHandler } from '@/artifacts/code/server';
 import { imageDocumentHandler } from '@/artifacts/image/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
-import { ArtifactKind } from '@/components/artifact';
-import { DataStreamWriter } from 'ai';
-import { Document } from '../db/schema';
+import type { ArtifactKind } from '@/components/artifact';
+import type { DataStreamWriter } from 'ai';
+import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';
-import { Session } from 'next-auth';
+import type { Session } from 'next-auth';
 
 export interface SaveDocumentProps {
   id: string;
@@ -16,12 +16,18 @@ export interface SaveDocumentProps {
   userId: string;
 }
 
+export interface GenerationOptions {
+  system?: string;
+  prompt?: string;
+}
+
 export interface CreateDocumentCallbackProps {
   id: string;
   title: string;
-  description: string;
   dataStream: DataStreamWriter;
   session: Session;
+  description: string;
+  generationOptions?: GenerationOptions;
 }
 
 export interface UpdateDocumentCallbackProps {
@@ -45,13 +51,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
   return {
     kind: config.kind,
     onCreateDocument: async (args: CreateDocumentCallbackProps) => {
-      const draftContent = await config.onCreateDocument({
-        id: args.id,
-        title: args.title,
-        description: args.description,
-        dataStream: args.dataStream,
-        session: args.session,
-      });
+      const draftContent = await config.onCreateDocument(args);
 
       if (args.session?.user?.id) {
         await saveDocument({
@@ -66,12 +66,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
       return;
     },
     onUpdateDocument: async (args: UpdateDocumentCallbackProps) => {
-      const draftContent = await config.onUpdateDocument({
-        document: args.document,
-        description: args.description,
-        dataStream: args.dataStream,
-        session: args.session,
-      });
+      const draftContent = await config.onUpdateDocument(args);
 
       if (args.session?.user?.id) {
         await saveDocument({

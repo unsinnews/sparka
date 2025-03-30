@@ -1,11 +1,13 @@
 import FirecrawlApp, { type SearchResponse } from '@mendable/firecrawl-js';
-import { generateObject } from 'ai';
+import { type DataStreamWriter, generateObject } from 'ai';
 import { compact } from 'lodash-es';
 import pLimit from 'p-limit';
 import { z } from 'zod';
 
 import { getModel } from './providers';
 import { trimPrompt } from '../../trim-prompt';
+import { createDocument } from '../create-document';
+import type { Session } from 'next-auth';
 
 export const systemPrompt = () => {
   const now = new Date().toISOString();
@@ -144,10 +146,18 @@ async function processSerpResult({
 }
 
 export async function writeFinalReport({
+  title,
+  description,
+  dataStream,
+  session,
   prompt,
   learnings,
   visitedUrls,
 }: {
+  title: string;
+  description: string;
+  dataStream: DataStreamWriter;
+  session: Session;
   prompt: string;
   learnings: string[];
   visitedUrls: string[];
@@ -156,25 +166,39 @@ export async function writeFinalReport({
     .map((learning) => `<learning>\n${learning}\n</learning>`)
     .join('\n');
 
-  const res = await generateObject({
-    model: getModel(),
-    system: systemPrompt(),
-    prompt: trimPrompt(
-      `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>`,
-    ),
-    schema: z.object({
-      reportMarkdown: z
-        .string()
-        .describe('Final report on the topic in Markdown'),
-    }),
-    experimental_telemetry: {
-      isEnabled: true,
+  const urlsSection = `\n\n## Sources\n\n${visitedUrls.map((url) => `- ${url}`).join('\n')}`;
+
+  return createDocument({
+    title,
+    description,
+    dataStream,
+    session,
+    kind: 'text',
+    generationOptions: {
+      system: systemPrompt(),
+      prompt: trimPrompt(
+        `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>. Here are the sources used to generate the report:\n\n${urlsSection}`,
+      ),
     },
   });
 
+  // const res = await generateObject({
+  //   model: getModel(),
+  //   system: systemPrompt(),
+  //   prompt: trimPrompt(
+  //     `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>`,
+  //   ),
+  //   schema: z.object({
+  //     reportMarkdown: z
+  //       .string()
+  //       .describe('Final report on the topic in Markdown'),
+  //   }),
+  //   experimental_telemetry: {
+  //     isEnabled: true,
+  //   },
+  // });
+
   // Append the visited URLs section to the report
-  const urlsSection = `\n\n## Sources\n\n${visitedUrls.map((url) => `- ${url}`).join('\n')}`;
-  return res.object.reportMarkdown + urlsSection;
 }
 
 export async function writeFinalAnswer({

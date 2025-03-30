@@ -21,7 +21,7 @@ import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
 import MultiSearch, { type QueryCompletion } from './multi-search';
-import type { ToolName } from '@/lib/ai/tools/tool-name';
+import type { YourToolName } from '@/lib/ai/tools/tools';
 import ReasonSearch from './reason-search';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
@@ -159,7 +159,7 @@ const PurePreviewMessage = ({
                   state,
                 } = toolInvocation;
 
-                const toolName = rawToolName as ToolName;
+                const toolName = rawToolName as YourToolName;
 
                 if (state === 'call' || state === 'partial-call') {
                   const { args } = toolInvocation;
@@ -227,7 +227,8 @@ const PurePreviewMessage = ({
                     <div key={toolCallId}>
                       {toolName === 'getWeather' ? (
                         <Weather weatherAtLocation={result} />
-                      ) : toolName === 'createDocument' ? (
+                      ) : toolName === 'createDocument' ||
+                        toolName === 'deepResearch' ? (
                         <DocumentPreview
                           isReadonly={isReadonly}
                           result={result}

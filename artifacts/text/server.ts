@@ -43,10 +43,10 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
       model: myProvider.languageModel('artifact-model'),
       system: updateDocumentPrompt(document.content, 'text'),
       experimental_transform: smoothStream({ chunking: 'word' }),
-      providerOptions: {
-        experimental_telemetry: { isEnabled: true },
-      },
       prompt: description,
+      experimental_telemetry: {
+        isEnabled: true,
+      },
       experimental_providerMetadata: {
         openai: {
           prediction: {

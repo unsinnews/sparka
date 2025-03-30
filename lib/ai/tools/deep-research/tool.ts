@@ -1,27 +1,68 @@
 import { z } from 'zod';
 import type { Session } from 'next-auth';
 import { type DataStreamWriter, tool } from 'ai';
-import { deepResearchInternal, writeFinalAnswer } from './deep-research';
+import {
+  deepResearchInternal,
+  writeFinalAnswer,
+  writeFinalReport,
+} from './deep-research';
 
 interface DeepResearchProps {
   session: Session;
   dataStream: DataStreamWriter;
 }
 
-const BREADTH = 3;
-const DEPTH = 3;
+// TODO: Restore both to 3 or make configurable
+const BREADTH = 1;
+const DEPTH = 1;
 
 export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
   tool({
     description: 'Request suggestions for a document',
     parameters: z.object({
       query: z.string().describe('The query to research'),
+      isReport: z
+        .boolean()
+        .describe('Whether to generate a report or just an answer'),
     }),
-    execute: async ({ query }) => {
+    execute: async ({ query, isReport }) => {
+      let combinedQuery = query;
+      if (isReport) {
+        console.log(`Creating research plan...`);
+
+        // TODO: Re-enable the flow for follow-up questions
+        //         // Generate follow-up questions
+        //         const followUpQuestions = await generateFeedback({
+        //           query: query,
+        //         });
+
+        //         console.log(
+        //           '\nTo better understand your research needs, please answer these follow-up questions:',
+        //         );
+
+        //         // Collect answers to follow-up questions
+        //         const answers: string[] = [];
+        //         for (const question of followUpQuestions) {
+        //           const answer = await askQuestion(`\n${question}\nYour answer: `);
+        //           answers.push(answer);
+        //         }
+
+        //         // Combine all information for deep research
+        //         combinedQuery = `
+        // Initial Query: ${query}
+        // Follow-up Questions and Answers:
+        // ${followUpQuestions.map((q: string, i: number) => `Q: ${q}\nA: ${answers[i]}`).join('\n')}
+        // `;
+        //       }
+
+        combinedQuery = `
+        Initial Query: ${query}
+        `;
+      }
       console.log('\nStarting research...\n');
 
       const { learnings, visitedUrls } = await deepResearchInternal({
-        query,
+        query: combinedQuery,
         breadth: BREADTH,
         depth: DEPTH,
       });
@@ -30,17 +71,40 @@ export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
       console.log(
         `\n\nVisited URLs (${visitedUrls.length}):\n\n${visitedUrls.join('\n')}`,
       );
+      console.log('Writing final report...');
 
-      const answer = await writeFinalAnswer({
-        prompt: query,
-        learnings,
-      });
+      if (isReport) {
+        // TODO This should also create a title
+        const report = await writeFinalReport({
+          prompt: combinedQuery,
+          learnings,
+          visitedUrls,
+        });
 
-      return {
-        success: true,
-        answer,
-        learnings,
-        visitedUrls,
-      };
+        console.log(`\n\nFinal Report:\n\n${report}`);
+        console.log('\nReport has been saved to report.md');
+
+        // TODO: Replace this report return with text document streaming and saving
+        return {
+          success: true,
+          answer: report,
+          learnings,
+          visitedUrls,
+        };
+      } else {
+        const answer = await writeFinalAnswer({
+          prompt: combinedQuery,
+          learnings,
+        });
+
+        console.log(`\n\nFinal Answer:\n\n${answer}`);
+        console.log('\nAnswer has been saved to answer.md');
+        return {
+          success: true,
+          answer,
+          learnings,
+          visitedUrls,
+        };
+      }
     },
   });

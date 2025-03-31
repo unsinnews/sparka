@@ -23,5 +23,5 @@ export const MessageAnnotationSchema = z.discriminatedUnion('type', [
 export type MessageAnnotation = z.infer<typeof MessageAnnotationSchema>;
 
 export type YourUIMessage = Omit<UIMessage, 'annotations'> & {
-  annotations: MessageAnnotation[];
+  annotations?: MessageAnnotation[];
 };

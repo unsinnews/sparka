@@ -38,60 +38,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { XLogo } from '@phosphor-icons/react';
-
-export interface StreamUpdate {
-  id: string;
-  type: 'plan' | 'web' | 'academic' | 'analysis' | 'progress' | 'x';
-  status: 'running' | 'completed';
-  timestamp: number;
-  message: string;
-  plan?: {
-    search_queries: Array<{
-      query: string;
-      rationale: string;
-      source: 'web' | 'academic' | 'both' | 'x' | 'all';
-      priority: number;
-    }>;
-    required_analyses: Array<{
-      type: string;
-      description: string;
-      importance: number;
-    }>;
-    special_considerations: string[];
-  };
-  query?: string;
-  source?: string;
-  results?: Array<{
-    url: string;
-    title: string;
-    content: string;
-    source: 'web' | 'academic' | 'x';
-    tweetId?: string;
-  }>;
-  findings?: Array<{
-    insight: string;
-    evidence: string[];
-    confidence: number;
-  }>;
-  analysisType?: string;
-  completedSteps?: number;
-  totalSteps?: number;
-  isComplete?: boolean;
-  title?: string;
-  overwrite?: boolean;
-  advancedSteps?: number;
-  gaps?: Array<{
-    topic: string;
-    reason: string;
-    additional_queries: string[];
-  }>;
-  recommendations?: Array<{
-    action: string;
-    rationale: string;
-    priority: number;
-  }>;
-  uncertainties?: string[];
-}
+import type { StreamUpdate } from '@/lib/ai/tools/reason-search';
 
 const ResearchStep = ({
   update,

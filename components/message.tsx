@@ -25,6 +25,7 @@ import ReasonSearch from './reason-search';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import { MessageAnnotations } from './message-annotations';
 
 const PurePreviewMessage = ({
   chatId,
@@ -84,6 +85,8 @@ const PurePreviewMessage = ({
                 ))}
               </div>
             )}
+
+            <MessageAnnotations annotations={message.annotations} />
 
             {message.parts?.map((part, index) => {
               const { type } = part;
@@ -198,13 +201,8 @@ const PurePreviewMessage = ({
                           />
                         </div>
                       ) : toolName === 'reasonSearch' ? (
-                        <ReasonSearch
-                          updates={
-                            message?.annotations
-                              ?.filter((a: any) => a.type === 'research_update')
-                              .map((a: any) => a.data) || []
-                          }
-                        />
+                        // TODO: replace with `Performing research...` annimation
+                        <div>Performing research...</div>
                       ) : toolName === 'stockChart' ? (
                         <StockChartMessage result={null} args={args} />
                       ) : toolName === 'codeInterpreter' ? (
@@ -227,6 +225,7 @@ const PurePreviewMessage = ({
                         <DocumentPreview
                           isReadonly={isReadonly}
                           result={result}
+                          args={args}
                         />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolResult
@@ -254,15 +253,8 @@ const PurePreviewMessage = ({
                             }
                           />
                         </div>
-                      ) : toolName === 'reasonSearch' ? (
-                        <ReasonSearch
-                          updates={
-                            message?.annotations
-                              ?.filter((a: any) => a.type === 'research_update')
-                              .map((a: any) => a.data) || []
-                          }
-                        />
-                      ) : toolName === 'stockChart' ? (
+                      ) : toolName === 'reasonSearch' ? null : toolName === // TODO: decide how to show results other than message annotations
+                        'stockChart' ? (
                         <StockChartMessage result={result} args={args} />
                       ) : toolName === 'codeInterpreter' ? (
                         <CodeInterpreterMessage result={result} args={args} />

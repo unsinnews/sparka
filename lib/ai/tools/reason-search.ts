@@ -6,104 +6,60 @@ import type { Session } from 'next-auth';
 import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 
-// Research Plan Schemas
-export const ResearchPlanSchema = z.object({
+export const StreamUpdateSchema = z.object({
   id: z.string(),
-  type: z.literal('plan'),
+  type: z.enum(['plan', 'web', 'academic', 'analysis', 'x', 'progress']),
   status: z.enum(['running', 'completed']),
-  title: z.string(),
-  message: z.string(),
   timestamp: z.number(),
-  overwrite: z.boolean().optional(),
+  message: z.string(),
   plan: z
     .object({
-      search_queries: z
-        .array(
-          z.object({
-            query: z.string(),
-            rationale: z.string(),
-            source: z.enum(['web', 'academic', 'x', 'all']),
-            priority: z.number().min(1).max(5),
-          }),
-        )
-        .max(12),
-      required_analyses: z
-        .array(
-          z.object({
-            type: z.string(),
-            description: z.string(),
-            importance: z.number().min(1).max(5),
-          }),
-        )
-        .max(8),
+      search_queries: z.array(
+        z.object({
+          query: z.string(),
+          rationale: z.string(),
+          source: z.enum(['web', 'academic', 'both', 'x', 'all']),
+          priority: z.number(),
+        }),
+      ),
+      required_analyses: z.array(
+        z.object({
+          type: z.string(),
+          description: z.string(),
+          importance: z.number(),
+        }),
+      ),
     })
     .optional(),
-  totalSteps: z.number().optional(),
-});
-
-// Search Step Schemas
-export const SearchStepSchema = z.object({
-  id: z.string(),
-  type: z.enum(['web', 'academic', 'x']),
-  status: z.enum(['running', 'completed']),
-  title: z.string(),
   query: z.string().optional(),
-  message: z.string(),
-  timestamp: z.number(),
-  overwrite: z.boolean().optional(),
+  source: z.string().optional(),
   results: z
     .array(
       z.object({
-        source: z.enum(['web', 'academic', 'x']),
-        title: z.string(),
         url: z.string(),
+        title: z.string(),
         content: z.string(),
+        source: z.enum(['web', 'academic', 'x']),
         tweetId: z.string().optional(),
       }),
     )
     .optional(),
-});
-
-// Analysis Step Schemas
-export const AnalysisStepSchema = z.object({
-  id: z.string(),
-  type: z.literal('analysis'),
-  status: z.enum(['running', 'completed']),
-  title: z.string(),
-  analysisType: z.string(),
-  message: z.string(),
-  timestamp: z.number(),
-  overwrite: z.boolean().optional(),
   findings: z
     .array(
       z.object({
         insight: z.string(),
         evidence: z.array(z.string()),
-        confidence: z.number().min(0).max(1),
+        confidence: z.number(),
       }),
     )
     .optional(),
-});
-
-// Gap Analysis Schema
-export const GapAnalysisSchema = z.object({
-  id: z.literal('gap-analysis'),
-  type: z.literal('analysis'),
-  status: z.enum(['running', 'completed']),
-  title: z.string(),
-  analysisType: z.literal('gaps'),
-  message: z.string(),
-  timestamp: z.number(),
+  analysisType: z.string().optional(),
+  completedSteps: z.number().optional(),
+  totalSteps: z.number().optional(),
+  isComplete: z.boolean().optional(),
+  title: z.string().optional(),
   overwrite: z.boolean().optional(),
-  findings: z
-    .array(
-      z.object({
-        insight: z.string(),
-        evidence: z.array(z.string()),
-        confidence: z.number().min(0).max(1),
-      }),
-    )
-    .optional(),
+  advancedSteps: z.number().optional(),
   gaps: z
     .array(
       z.object({
@@ -118,49 +74,18 @@ export const GapAnalysisSchema = z.object({
       z.object({
         action: z.string(),
         rationale: z.string(),
-        priority: z.number().min(2).max(10),
-      }),
-    )
-    .optional(),
-  completedSteps: z.number().optional(),
-  totalSteps: z.number().optional(),
-});
-
-// Final Synthesis Schema
-export const FinalSynthesisSchema = z.object({
-  id: z.literal('final-synthesis'),
-  type: z.literal('analysis'),
-  status: z.enum(['running', 'completed']),
-  title: z.string(),
-  analysisType: z.literal('synthesis'),
-  message: z.string(),
-  timestamp: z.number(),
-  overwrite: z.boolean().optional(),
-  findings: z
-    .array(
-      z.object({
-        insight: z.string(),
-        evidence: z.array(z.string()),
-        confidence: z.number().min(0).max(1),
+        priority: z.number(),
       }),
     )
     .optional(),
   uncertainties: z.array(z.string()).optional(),
-  completedSteps: z.number().optional(),
-  totalSteps: z.number().optional(),
 });
 
-// Progress Schema
-export const ResearchProgressSchema = z.object({
-  id: z.literal('research-progress'),
-  type: z.literal('progress'),
-  status: z.literal('completed'),
-  message: z.string(),
-  completedSteps: z.number(),
-  totalSteps: z.number(),
-  isComplete: z.literal(true),
-  timestamp: z.number(),
-  overwrite: z.boolean().optional(),
+export type StreamUpdate = z.infer<typeof StreamUpdateSchema>;
+
+export const ResearchUpdateSchema = z.object({
+  type: z.enum(['research_update']),
+  data: StreamUpdateSchema,
 });
 
 export const createReasonSearch = ({
@@ -295,7 +220,7 @@ export const createReasonSearch = ({
         type: 'research_update',
         data: {
           id: stepIds.planId,
-          type: 'plan',
+          type: 'plan' as const,
           status: 'completed',
           title: 'Research Plan',
           plan: researchPlan,
@@ -316,7 +241,7 @@ export const createReasonSearch = ({
           type: 'research_update',
           data: {
             id: step.id,
-            type: step.type,
+            type: step.type as 'web' | 'academic' | 'x',
             status: 'running',
             title:
               step.type === 'web'
@@ -417,7 +342,7 @@ export const createReasonSearch = ({
           type: 'research_update',
           data: {
             id: step.id,
-            type: step.type,
+            type: step.type as 'web' | 'academic' | 'x',
             status: 'completed',
             title:
               step.type === 'web'
@@ -914,22 +839,18 @@ export const createReasonSearch = ({
       }
 
       // Final progress update
-      const finalProgress = {
-        id: 'research-progress',
-        type: 'progress' as const,
-        status: 'completed' as const,
-        message: `Research complete`,
-        completedSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
-        totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
-        isComplete: true,
-        timestamp: Date.now(),
-      };
-
       dataStream.writeMessageAnnotation({
         type: 'research_update',
         data: {
-          ...finalProgress,
+          id: 'research-progress',
+          type: 'progress' as const,
+          status: 'completed' as const,
+          message: `Research complete`,
+          completedSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
+          totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
+          isComplete: true,
           overwrite: true,
+          timestamp: Date.now(),
         },
       });
 

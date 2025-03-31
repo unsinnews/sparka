@@ -1,5 +1,5 @@
 import { generateUUID } from '@/lib/utils';
-import { type DataStreamWriter, tool } from 'ai';
+import { tool } from 'ai';
 import { z } from 'zod';
 import type { Session } from 'next-auth';
 import {
@@ -7,10 +7,11 @@ import {
   documentHandlersByArtifactKind,
   type GenerationOptions,
 } from '@/lib/artifacts/server';
+import type { AnnotationDataStreamWriter } from './annotation-stream';
 
 interface CreateDocumentProps {
   session: Session;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
 }
 
 export const createDocumentTool = ({
@@ -46,7 +47,7 @@ export async function createDocument({
   session,
   generationOptions,
 }: {
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
   kind: string;
   title: string;
   description: string;

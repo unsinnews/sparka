@@ -1,12 +1,13 @@
-import { DataStreamWriter, tool } from 'ai';
-import { Session } from 'next-auth';
+import { tool } from 'ai';
+import type { Session } from 'next-auth';
 import { z } from 'zod';
-import { getDocumentById, saveDocument } from '@/lib/db/queries';
+import { getDocumentById } from '@/lib/db/queries';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
+import type { AnnotationDataStreamWriter } from './annotation-stream';
 
 interface UpdateDocumentProps {
   session: Session;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
 }
 
 export const updateDocument = ({ session, dataStream }: UpdateDocumentProps) =>

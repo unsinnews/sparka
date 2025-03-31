@@ -7,7 +7,11 @@ import { getChatById, getMessagesByChatId } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import type { DBMessage } from '@/lib/db/schema';
-import type { Attachment, JSONValue, UIMessage } from 'ai';
+import type { Attachment, UIMessage } from 'ai';
+import type {
+  MessageAnnotation,
+  YourUIMessage,
+} from '@/lib/ai/tools/annotations';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -34,7 +38,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     id,
   });
 
-  function convertToUIMessages(messages: Array<DBMessage>): Array<UIMessage> {
+  function convertToUIMessages(
+    messages: Array<DBMessage>,
+  ): Array<YourUIMessage> {
     return messages.map((message) => ({
       id: message.id,
       parts: message.parts as UIMessage['parts'],
@@ -44,7 +50,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       createdAt: message.createdAt,
       experimental_attachments:
         (message.attachments as Array<Attachment>) ?? [],
-      annotations: message.annotations as JSONValue[],
+      annotations: message.annotations as MessageAnnotation[],
     }));
   }
 

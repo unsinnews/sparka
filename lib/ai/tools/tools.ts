@@ -1,4 +1,4 @@
-import type { DataStreamWriter, ToolCall, ToolResult } from 'ai';
+import type { ToolCall, ToolResult } from 'ai';
 import { createDocumentTool } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
@@ -11,11 +11,12 @@ import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
 import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import type { z } from 'zod';
+import type { AnnotationDataStreamWriter } from './annotation-stream';
 
 export function getTools({
   dataStream,
   session,
-}: { dataStream: DataStreamWriter; session: Session }) {
+}: { dataStream: AnnotationDataStreamWriter; session: Session }) {
   return {
     getWeather,
     createDocument: createDocumentTool({

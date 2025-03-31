@@ -13,6 +13,7 @@ import { Messages } from './messages';
 import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
+import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 
 export function Chat({
   id,
@@ -22,7 +23,7 @@ export function Chat({
   isReadonly,
 }: {
   id: string;
-  initialMessages: Array<UIMessage>;
+  initialMessages: Array<YourUIMessage>;
   selectedChatModel: string;
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;

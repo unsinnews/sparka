@@ -1,7 +1,8 @@
 import type { DataStreamWriter, JSONValue } from 'ai';
+import type { MessageAnnotation } from './annotations';
 
-export class AnnotationStream implements DataStreamWriter {
-  private annotations: JSONValue[] = [];
+export class AnnotationDataStreamWriter implements DataStreamWriter {
+  private annotations: MessageAnnotation[] = [];
   private readonly dataStream!: DataStreamWriter;
 
   constructor(dataStream: DataStreamWriter) {
@@ -33,13 +34,13 @@ export class AnnotationStream implements DataStreamWriter {
   }
 
   // Custom method to handle both dataStream and annotations
-  writeMessageAnnotation(annotation: { type: string; data: any }) {
+  writeMessageAnnotation(annotation: MessageAnnotation) {
     this.dataStream.writeMessageAnnotation(annotation);
     this.annotations.push(annotation);
   }
 
   // Getter for annotations
-  getAnnotations(): JSONValue[] {
+  getAnnotations(): MessageAnnotation[] {
     return this.annotations;
   }
 }

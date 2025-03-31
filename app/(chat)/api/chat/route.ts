@@ -21,8 +21,9 @@ import {
 import { generateTitleFromUserMessage } from '../../actions';
 import type { YourToolName } from '@/lib/ai/tools/tools';
 import { myProvider } from '@/lib/ai/providers';
-import { AnnotationStream } from '@/lib/ai/tools/annotation-stream';
+import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
 import { getTools } from '@/lib/ai/tools/tools';
+import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 
 export const maxDuration = 60;
 
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
       selectedChatModel,
     }: {
       id: string;
-      messages: Array<UIMessage>;
+      messages: Array<YourUIMessage>;
       selectedChatModel: string;
     } = await request.json();
 
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
         {
           chatId: id,
           id: userMessage.id,
-          role: 'user',
+          role: userMessage.role,
           parts: userMessage.parts,
           attachments: userMessage.experimental_attachments ?? [],
           createdAt: new Date(),
@@ -80,7 +81,7 @@ export async function POST(request: Request) {
 
     return createDataStreamResponse({
       execute: (dataStream) => {
-        const annotationStream = new AnnotationStream(dataStream);
+        const annotationStream = new AnnotationDataStreamWriter(dataStream);
 
         const activeTools: YourToolName[] =
           selectedChatModel === 'chat-model-reasoning'

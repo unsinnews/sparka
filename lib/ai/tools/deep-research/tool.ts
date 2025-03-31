@@ -1,15 +1,16 @@
 import { z } from 'zod';
 import type { Session } from 'next-auth';
-import { type DataStreamWriter, tool } from 'ai';
+import {  tool } from 'ai';
 import {
   deepResearchInternal,
   writeFinalAnswer,
   writeFinalReport,
 } from './deep-research';
+import type { AnnotationDataStreamWriter } from '../annotation-stream';
 
 interface DeepResearchProps {
   session: Session;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter
 }
 
 // TODO: Restore both to 3 or make configurable

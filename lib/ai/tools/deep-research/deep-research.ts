@@ -1,5 +1,5 @@
 import FirecrawlApp, { type SearchResponse } from '@mendable/firecrawl-js';
-import { type DataStreamWriter, generateObject } from 'ai';
+import { generateObject } from 'ai';
 import { compact } from 'lodash-es';
 import pLimit from 'p-limit';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { getModel } from './providers';
 import { trimPrompt } from '../../trim-prompt';
 import { createDocument } from '../create-document';
 import type { Session } from 'next-auth';
+import type { AnnotationDataStreamWriter } from '../annotation-stream';
 
 export const systemPrompt = () => {
   const now = new Date().toISOString();
@@ -156,7 +157,7 @@ export async function writeFinalReport({
 }: {
   title: string;
   description: string;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
   session: Session;
   prompt: string;
   learnings: string[];

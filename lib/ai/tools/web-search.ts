@@ -1,7 +1,20 @@
 import { tavily } from '@tavily/core';
 import { z } from 'zod';
-import { type DataStreamWriter, tool } from 'ai';
+import { tool } from 'ai';
 import type { Session } from 'next-auth';
+import type { AnnotationDataStreamWriter } from './annotation-stream';
+
+export const QueryCompletionSchema = z.object({
+  type: z.literal('query_completion'),
+  data: z.object({
+    query: z.string(),
+    index: z.number(),
+    total: z.number(),
+    status: z.literal('completed'),
+    resultsCount: z.number(),
+    imagesCount: z.number(),
+  }),
+});
 
 const extractDomain = (url: string): string => {
   const urlPattern = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
@@ -55,7 +68,7 @@ async function isValidImageUrl(url: string): Promise<boolean> {
 
 interface WebSearchProps {
   session: Session;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
 }
 
 export const webSearch = ({ session, dataStream }: WebSearchProps) =>
@@ -125,7 +138,7 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
           excludeDomains: exclude_domains,
         });
 
-        const queryCompletion = {
+        const queryCompletion: z.infer<typeof QueryCompletionSchema> = {
           type: 'query_completion',
           data: {
             query,

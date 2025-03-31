@@ -110,6 +110,7 @@ export async function saveMessages({
   messages: Array<DBMessage>;
 }) {
   try {
+    // TODO: add a wrapper that validates the types with zod (e.g. MessageAnnotationSchema)
     return await db.insert(message).values(messages);
   } catch (error) {
     console.error('Failed to save messages in database', error);

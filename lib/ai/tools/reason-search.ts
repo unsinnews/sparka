@@ -1,16 +1,174 @@
 import { z } from 'zod';
-import { type DataStreamWriter, generateObject, tool } from 'ai';
+import { generateObject, tool } from 'ai';
 import { tavily } from '@tavily/core';
 import Exa from 'exa-js';
 import type { Session } from 'next-auth';
 import { xai } from '@ai-sdk/xai';
+import type { AnnotationDataStreamWriter } from './annotation-stream';
+
+// Research Plan Schemas
+export const ResearchPlanSchema = z.object({
+  id: z.string(),
+  type: z.literal('plan'),
+  status: z.enum(['running', 'completed']),
+  title: z.string(),
+  message: z.string(),
+  timestamp: z.number(),
+  overwrite: z.boolean().optional(),
+  plan: z
+    .object({
+      search_queries: z
+        .array(
+          z.object({
+            query: z.string(),
+            rationale: z.string(),
+            source: z.enum(['web', 'academic', 'x', 'all']),
+            priority: z.number().min(1).max(5),
+          }),
+        )
+        .max(12),
+      required_analyses: z
+        .array(
+          z.object({
+            type: z.string(),
+            description: z.string(),
+            importance: z.number().min(1).max(5),
+          }),
+        )
+        .max(8),
+    })
+    .optional(),
+  totalSteps: z.number().optional(),
+});
+
+// Search Step Schemas
+export const SearchStepSchema = z.object({
+  id: z.string(),
+  type: z.enum(['web', 'academic', 'x']),
+  status: z.enum(['running', 'completed']),
+  title: z.string(),
+  query: z.string().optional(),
+  message: z.string(),
+  timestamp: z.number(),
+  overwrite: z.boolean().optional(),
+  results: z
+    .array(
+      z.object({
+        source: z.enum(['web', 'academic', 'x']),
+        title: z.string(),
+        url: z.string(),
+        content: z.string(),
+        tweetId: z.string().optional(),
+      }),
+    )
+    .optional(),
+});
+
+// Analysis Step Schemas
+export const AnalysisStepSchema = z.object({
+  id: z.string(),
+  type: z.literal('analysis'),
+  status: z.enum(['running', 'completed']),
+  title: z.string(),
+  analysisType: z.string(),
+  message: z.string(),
+  timestamp: z.number(),
+  overwrite: z.boolean().optional(),
+  findings: z
+    .array(
+      z.object({
+        insight: z.string(),
+        evidence: z.array(z.string()),
+        confidence: z.number().min(0).max(1),
+      }),
+    )
+    .optional(),
+});
+
+// Gap Analysis Schema
+export const GapAnalysisSchema = z.object({
+  id: z.literal('gap-analysis'),
+  type: z.literal('analysis'),
+  status: z.enum(['running', 'completed']),
+  title: z.string(),
+  analysisType: z.literal('gaps'),
+  message: z.string(),
+  timestamp: z.number(),
+  overwrite: z.boolean().optional(),
+  findings: z
+    .array(
+      z.object({
+        insight: z.string(),
+        evidence: z.array(z.string()),
+        confidence: z.number().min(0).max(1),
+      }),
+    )
+    .optional(),
+  gaps: z
+    .array(
+      z.object({
+        topic: z.string(),
+        reason: z.string(),
+        additional_queries: z.array(z.string()),
+      }),
+    )
+    .optional(),
+  recommendations: z
+    .array(
+      z.object({
+        action: z.string(),
+        rationale: z.string(),
+        priority: z.number().min(2).max(10),
+      }),
+    )
+    .optional(),
+  completedSteps: z.number().optional(),
+  totalSteps: z.number().optional(),
+});
+
+// Final Synthesis Schema
+export const FinalSynthesisSchema = z.object({
+  id: z.literal('final-synthesis'),
+  type: z.literal('analysis'),
+  status: z.enum(['running', 'completed']),
+  title: z.string(),
+  analysisType: z.literal('synthesis'),
+  message: z.string(),
+  timestamp: z.number(),
+  overwrite: z.boolean().optional(),
+  findings: z
+    .array(
+      z.object({
+        insight: z.string(),
+        evidence: z.array(z.string()),
+        confidence: z.number().min(0).max(1),
+      }),
+    )
+    .optional(),
+  uncertainties: z.array(z.string()).optional(),
+  completedSteps: z.number().optional(),
+  totalSteps: z.number().optional(),
+});
+
+// Progress Schema
+export const ResearchProgressSchema = z.object({
+  id: z.literal('research-progress'),
+  type: z.literal('progress'),
+  status: z.literal('completed'),
+  message: z.string(),
+  completedSteps: z.number(),
+  totalSteps: z.number(),
+  isComplete: z.literal(true),
+  timestamp: z.number(),
+  overwrite: z.boolean().optional(),
+});
 
 export const createReasonSearch = ({
   session,
   dataStream,
 }: {
   session: Session;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
 }) =>
   tool({
     description:

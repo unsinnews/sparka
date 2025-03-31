@@ -1,6 +1,5 @@
 'use client';
 
-import type { UIMessage } from 'ai';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
@@ -25,6 +24,7 @@ import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 import ReasonSearch from './reason-search';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
+import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 
 const PurePreviewMessage = ({
   chatId,
@@ -36,7 +36,7 @@ const PurePreviewMessage = ({
   isReadonly,
 }: {
   chatId: string;
-  message: UIMessage;
+  message: YourUIMessage;
   vote: Vote | undefined;
   isLoading: boolean;
   setMessages: UseChatHelpers['setMessages'];

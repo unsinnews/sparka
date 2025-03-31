@@ -3,10 +3,10 @@ import { imageDocumentHandler } from '@/artifacts/image/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
 import type { ArtifactKind } from '@/components/artifact';
-import type { DataStreamWriter } from 'ai';
 import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';
 import type { Session } from 'next-auth';
+import type { AnnotationDataStreamWriter } from '../ai/tools/annotation-stream';
 
 export interface SaveDocumentProps {
   id: string;
@@ -24,7 +24,7 @@ export interface GenerationOptions {
 export interface CreateDocumentCallbackProps {
   id: string;
   title: string;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
   session: Session;
   description: string;
   generationOptions?: GenerationOptions;
@@ -33,7 +33,7 @@ export interface CreateDocumentCallbackProps {
 export interface UpdateDocumentCallbackProps {
   document: Document;
   description: string;
-  dataStream: DataStreamWriter;
+  dataStream: AnnotationDataStreamWriter;
   session: Session;
 }
 

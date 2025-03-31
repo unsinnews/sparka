@@ -1,16 +1,9 @@
-import type {
-  CoreAssistantMessage,
-  CoreToolMessage,
-  Message,
-  TextStreamPart,
-  ToolInvocation,
-  ToolSet,
-  UIMessage,
-} from 'ai';
+import type { CoreAssistantMessage, CoreToolMessage, Message } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import type { DBMessage, Document } from '@/lib/db/schema';
+import type { Document } from '@/lib/db/schema';
+import type { YourUIMessage } from './ai/tools/annotations';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -137,7 +130,7 @@ export function sanitizeResponseMessages({
   );
 }
 
-export function getMostRecentUserMessage(messages: Array<UIMessage>) {
+export function getMostRecentUserMessage(messages: Array<YourUIMessage>) {
   const userMessages = messages.filter((message) => message.role === 'user');
   return userMessages.at(-1);
 }

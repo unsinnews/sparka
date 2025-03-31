@@ -1,4 +1,4 @@
-import type { Attachment, UIMessage } from 'ai';
+import type { Attachment } from 'ai';
 import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -27,6 +27,7 @@ import { sheetArtifact } from '@/artifacts/sheet/client';
 import { textArtifact } from '@/artifacts/text/client';
 import equal from 'fast-deep-equal';
 import { UseChatHelpers } from '@ai-sdk/react';
+import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 
 export const artifactDefinitions = [
   textArtifact,
@@ -74,7 +75,7 @@ function PureArtifact({
   stop: UseChatHelpers['stop'];
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-  messages: Array<UIMessage>;
+  messages: Array<YourUIMessage>;
   setMessages: UseChatHelpers['setMessages'];
   votes: Array<Vote> | undefined;
   append: UseChatHelpers['append'];

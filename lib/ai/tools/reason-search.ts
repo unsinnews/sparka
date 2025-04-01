@@ -355,7 +355,10 @@ export const createReasonSearch = ({
             query: step.query.query,
             results: searchResults[searchResults.length - 1].results.map(
               (r) => {
-                return { ...r };
+                return {
+                  ...r,
+                  source: r.source as 'web' | 'academic' | 'x',
+                };
               },
             ),
             message: `Found ${searchResults[searchResults.length - 1].results.length} results`,

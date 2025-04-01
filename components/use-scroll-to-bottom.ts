@@ -1,11 +1,11 @@
 import { useEffect, useRef, type RefObject } from 'react';
 
 export function useScrollToBottom<T extends HTMLElement>(): [
-  RefObject<T | null>,
-  RefObject<T | null>,
+  RefObject<T>,
+  RefObject<T>,
 ] {
-  const containerRef = useRef<T | null>(null);
-  const endRef = useRef<T | null>(null);
+  const containerRef = useRef<T>(null);
+  const endRef = useRef<T>(null);
   const shouldScrollRef = useRef(true);
 
   useEffect(() => {

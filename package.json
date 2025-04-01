@@ -16,7 +16,8 @@
     "db:pull": "drizzle-kit pull",
     "db:check": "drizzle-kit check",
     "db:up": "drizzle-kit up",
-    "test": "export PLAYWRIGHT=True && bunx playwright test --workers=4"
+    "test": "export PLAYWRIGHT=True && bunx playwright test --workers=4",
+    "test:types": "tsc --noEmit"
   },
   "dependencies": {
     "@ai-sdk/fireworks": "^0.2.2",

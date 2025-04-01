@@ -9,7 +9,7 @@ import { trimPrompt } from '../../trim-prompt';
 import { createDocument } from '../create-document';
 import type { Session } from 'next-auth';
 import type { AnnotationDataStreamWriter } from '../annotation-stream';
-import { webSearch } from '../sub-tools/web-search';
+import { webSearch } from '../steps/web-search';
 
 export const systemPrompt = () => {
   const now = new Date().toISOString();

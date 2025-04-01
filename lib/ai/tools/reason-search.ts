@@ -4,7 +4,9 @@ import Exa from 'exa-js';
 import type { Session } from 'next-auth';
 import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
-import { webSearch } from './sub-tools/web-search';
+import { webSearch } from './steps/web-search';
+import { xSearch } from './steps/x-search';
+import { academicSearch } from './service/academic-search';
 
 export const createReasonSearch = ({
   session,
@@ -173,130 +175,37 @@ export const createReasonSearch = ({
             completedSteps++;
           }
         } else if (step.type === 'academic') {
-          // Send running annotation for academic search
-          dataStream.writeMessageAnnotation({
-            type: 'research_update',
-            data: {
-              id: step.id,
+          const searchResult = await academicSearch({
+            query: step.query.query,
+            maxResults: Math.min(6 - step.query.priority, 5),
+            dataStream,
+            stepId: step.id,
+          });
+
+          if (!searchResult.error) {
+            searchResults.push({
               type: 'academic',
-              status: 'running',
-              title: `Searching academic papers for "${step.query.query}"`,
-              query: step.query.query,
-              message: `Searching academic sources...`,
-              timestamp: Date.now(),
-            },
-          });
-
-          const academicResults = await exa.searchAndContents(
-            step.query.query,
-            {
-              type: 'auto',
-              numResults: Math.min(6 - step.query.priority, 5),
-              category: 'research paper',
-              summary: true,
-            },
-          );
-
-          searchResults.push({
-            type: 'academic',
-            query: step.query,
-            results: academicResults.results.map((r) => ({
-              source: 'academic',
-              title: r.title || '',
-              url: r.url || '',
-              content: r.summary || '',
-            })),
-          });
-          completedSteps++;
-
-          // Send completed annotation for academic search
-          dataStream.writeMessageAnnotation({
-            type: 'research_update',
-            data: {
-              id: step.id,
-              type: 'academic',
-              status: 'completed',
-              title: `Searched academic papers for "${step.query.query}"`,
-              query: step.query.query,
-              results: academicResults.results.map((r) => ({
-                source: 'academic',
-                title: r.title || '',
-                url: r.url || '',
-                content: r.summary || '',
-              })),
-              message: `Found ${academicResults.results.length} results`,
-              timestamp: Date.now(),
-              overwrite: true,
-            },
-          });
+              query: step.query,
+              results: searchResult.results,
+            });
+            completedSteps++;
+          }
         } else if (step.type === 'x') {
-          // Send running annotation for X search
-          dataStream.writeMessageAnnotation({
-            type: 'research_update',
-            data: {
-              id: step.id,
+          const searchResult = await xSearch({
+            query: step.query.query,
+            maxResults: step.query.priority,
+            dataStream,
+            stepId: step.id,
+          });
+
+          if (!searchResult.error) {
+            searchResults.push({
               type: 'x',
-              status: 'running',
-              title: `Searching X/Twitter for "${step.query.query}"`,
-              query: step.query.query,
-              message: `Searching X/Twitter sources...`,
-              timestamp: Date.now(),
-            },
-          });
-
-          // Extract tweet ID from URL
-          const extractTweetId = (url: string): string | null => {
-            const match = url.match(
-              /(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/,
-            );
-            return match ? match[1] : null;
-          };
-
-          const xResults = await exa.searchAndContents(step.query.query, {
-            type: 'neural',
-            useAutoprompt: true,
-            numResults: step.query.priority,
-            text: true,
-            highlights: true,
-            includeDomains: ['twitter.com', 'x.com'],
-          });
-
-          // Process tweets to include tweet IDs
-          const processedTweets = xResults.results
-            .map((result) => {
-              const tweetId = extractTweetId(result.url);
-              return {
-                source: 'x' as const,
-                title: result.title || result.author || 'Tweet',
-                url: result.url,
-                content: result.text || '',
-                tweetId: tweetId || undefined,
-              };
-            })
-            .filter((tweet) => tweet.tweetId); // Only include tweets with valid IDs
-
-          searchResults.push({
-            type: 'x',
-            query: step.query,
-            results: processedTweets,
-          });
-          completedSteps++;
-
-          // Send completed annotation for X search
-          dataStream.writeMessageAnnotation({
-            type: 'research_update',
-            data: {
-              id: step.id,
-              type: 'x',
-              status: 'completed',
-              title: `Searched X/Twitter for "${step.query.query}"`,
-              query: step.query.query,
-              results: processedTweets,
-              message: `Found ${processedTweets.length} results`,
-              timestamp: Date.now(),
-              overwrite: true,
-            },
-          });
+              query: step.query,
+              results: searchResult.results,
+            });
+            completedSteps++;
+          }
         }
 
         searchIndex++;
@@ -584,12 +493,14 @@ export const createReasonSearch = ({
                 source: 'academic',
                 priority: query.priority,
               },
-              results: academicResults.results.map((r) => ({
-                source: 'academic',
-                title: r.title || '',
-                url: r.url || '',
-                content: r.summary || '',
-              })),
+              results: academicResults.results.map(
+                (r: { title?: string; url?: string; summary?: string }) => ({
+                  source: 'academic',
+                  title: r.title || '',
+                  url: r.url || '',
+                  content: r.summary || '',
+                }),
+              ),
             });
 
             // Send completed annotation for academic search

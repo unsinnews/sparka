@@ -240,28 +240,28 @@ export async function deepResearchInternal({
   depth,
   learnings = [],
   visitedUrls = [],
-  onProgress,
+  dataStream,
 }: {
   query: string;
   breadth: number;
   depth: number;
   learnings?: string[];
   visitedUrls?: string[];
-  onProgress?: (progress: ResearchProgress) => void;
+  dataStream: AnnotationDataStreamWriter;
 }): Promise<ResearchResult> {
-  const progress: ResearchProgress = {
-    currentDepth: depth,
-    totalDepth: depth,
-    currentBreadth: breadth,
-    totalBreadth: breadth,
-    totalQueries: 0,
-    completedQueries: 0,
-  };
-
-  const reportProgress = (update: Partial<ResearchProgress>) => {
-    Object.assign(progress, update);
-    onProgress?.(progress);
-  };
+  // Send initial plan status
+  dataStream.writeMessageAnnotation({
+    type: 'research_update',
+    data: {
+      id: 'research-plan-initial',
+      type: 'plan',
+      status: 'running',
+      title: 'Research Plan',
+      message: 'Creating research plan...',
+      timestamp: Date.now(),
+      overwrite: true,
+    },
+  });
 
   const serpQueries = await generateSerpQueries({
     query,
@@ -269,17 +269,51 @@ export async function deepResearchInternal({
     numQueries: breadth,
   });
 
-  reportProgress({
-    totalQueries: serpQueries.length,
-    currentQuery: serpQueries[0]?.query,
+  // Complete plan status with total steps
+  dataStream.writeMessageAnnotation({
+    type: 'research_update',
+    data: {
+      id: 'research-plan',
+      type: 'plan',
+      status: 'completed',
+      title: 'Research Plan',
+      plan: {
+        search_queries: serpQueries.map((q, i) => ({
+          query: q.query,
+          rationale: q.researchGoal,
+          source: 'web',
+          priority: 3,
+        })),
+        required_analyses: [],
+      },
+      totalSteps: serpQueries.length * (depth + 1),
+      message: 'Research plan created',
+      timestamp: Date.now(),
+      overwrite: true,
+    },
   });
 
   const limit = pLimit(ConcurrencyLimit);
+  let completedSteps = 0;
 
   const results = await Promise.all(
-    serpQueries.map((serpQuery) =>
+    serpQueries.map((serpQuery, queryIndex) =>
       limit(async () => {
         try {
+          // Send running status for search
+          dataStream.writeMessageAnnotation({
+            type: 'research_update',
+            data: {
+              id: `search-${queryIndex}`,
+              type: 'web',
+              status: 'running',
+              title: `Searching for "${serpQuery.query}"`,
+              query: serpQuery.query,
+              message: `Searching web sources...`,
+              timestamp: Date.now(),
+            },
+          });
+
           const result = await firecrawl.search(serpQuery.query, {
             timeout: 15000,
             limit: 5,
@@ -290,6 +324,29 @@ export async function deepResearchInternal({
           const newUrls = compact(result.data.map((item) => item.url));
           const newBreadth = Math.ceil(breadth / 2);
           const newDepth = depth - 1;
+
+          // Send completed status for search
+          dataStream.writeMessageAnnotation({
+            type: 'research_update',
+            data: {
+              id: `search-${queryIndex}`,
+              type: 'web',
+              status: 'completed',
+              title: `Search complete for "${serpQuery.query}"`,
+              query: serpQuery.query,
+              results: result.data.map((item) => ({
+                source: 'web',
+                title: item.title || '',
+                url: item.url || '',
+                content: item.markdown || '',
+              })),
+              message: `Found ${result.data.length} results`,
+              timestamp: Date.now(),
+              overwrite: true,
+            },
+          });
+
+          completedSteps++;
 
           const newLearnings = await processSerpResult({
             query: serpQuery.query,
@@ -303,14 +360,6 @@ export async function deepResearchInternal({
             console.log(
               `Researching deeper, breadth: ${newBreadth}, depth: ${newDepth}`,
             );
-
-            reportProgress({
-              currentDepth: newDepth,
-              currentBreadth: newBreadth,
-              completedQueries: progress.completedQueries + 1,
-              currentQuery: serpQuery.query,
-            });
-
             const nextQuery = `
             Previous research goal: ${serpQuery.researchGoal}
             Follow-up research directions: ${newLearnings.followUpQuestions.map((q) => `\n${q}`).join('')}
@@ -322,13 +371,23 @@ export async function deepResearchInternal({
               depth: newDepth,
               learnings: allLearnings,
               visitedUrls: allUrls,
-              onProgress,
+              dataStream,
             });
           } else {
-            reportProgress({
-              currentDepth: 0,
-              completedQueries: progress.completedQueries + 1,
-              currentQuery: serpQuery.query,
+            // Completed
+            dataStream.writeMessageAnnotation({
+              type: 'research_update',
+              data: {
+                id: `search-complete`,
+                type: 'progress',
+                status: 'completed',
+                message: 'Research complete',
+                completedSteps: completedSteps,
+                totalSteps: serpQueries.length * (depth + 1),
+                isComplete: true,
+                overwrite: true,
+                timestamp: Date.now(),
+              },
             });
             return {
               learnings: allLearnings,
@@ -349,6 +408,22 @@ export async function deepResearchInternal({
       }),
     ),
   );
+
+  // Send final progress update
+  dataStream.writeMessageAnnotation({
+    type: 'research_update',
+    data: {
+      id: 'research-progress',
+      type: 'progress',
+      status: 'completed',
+      message: `Research complete`,
+      completedSteps: completedSteps,
+      totalSteps: serpQueries.length * (depth + 1),
+      isComplete: true,
+      overwrite: true,
+      timestamp: Date.now(),
+    },
+  });
 
   return {
     learnings: [...new Set(results.flatMap((r) => r.learnings))],

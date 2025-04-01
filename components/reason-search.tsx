@@ -38,7 +38,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { XLogo } from '@phosphor-icons/react';
-import type { StreamUpdate } from '@/lib/ai/tools/reason-search';
+import type { StreamUpdate } from '@/lib/ai/tools/stream-updates-schema';
 
 const ResearchStep = ({
   update,

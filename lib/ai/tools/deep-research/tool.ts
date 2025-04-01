@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type { Session } from 'next-auth';
-import {  tool } from 'ai';
+import { tool } from 'ai';
 import {
   deepResearchInternal,
   writeFinalAnswer,
@@ -10,7 +10,7 @@ import type { AnnotationDataStreamWriter } from '../annotation-stream';
 
 interface DeepResearchProps {
   session: Session;
-  dataStream: AnnotationDataStreamWriter
+  dataStream: AnnotationDataStreamWriter;
 }
 
 // TODO: Restore both to 3 or make configurable
@@ -66,6 +66,7 @@ export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
         query: combinedQuery,
         breadth: BREADTH,
         depth: DEPTH,
+        dataStream,
       });
 
       console.log(`\n\nLearnings:\n\n${learnings.join('\n')}`);

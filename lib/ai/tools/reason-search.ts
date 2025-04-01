@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import { generateObject, tool } from 'ai';
-import { tavily } from '@tavily/core';
 import Exa from 'exa-js';
 import type { Session } from 'next-auth';
 import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
+import { webSearch } from './sub-tools/web-search';
 
 export const createReasonSearch = ({
   session,
@@ -27,8 +27,6 @@ export const createReasonSearch = ({
       topic,
       depth,
     }: { topic: string; depth: 'basic' | 'advanced' }) => {
-      const apiKey = process.env.TAVILY_API_KEY as string;
-      const tvly = tavily({ apiKey });
       const exa = new Exa(process.env.EXA_API_KEY as string);
 
       // Send initial plan status update (without steps count and extra details)
@@ -151,49 +149,44 @@ export const createReasonSearch = ({
 
       // Execute searches
       const searchResults = [];
-      let searchIndex = 0; // Add index tracker
+      let searchIndex = 0;
 
       for (const step of stepIds.searchSteps) {
-        // Send running annotation for this search step
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
-          data: {
-            id: step.id,
-            type: step.type as 'web' | 'academic' | 'x',
-            status: 'running',
-            title:
-              step.type === 'web'
-                ? `Searching the web for "${step.query.query}"`
-                : step.type === 'academic'
-                  ? `Searching academic papers for "${step.query.query}"`
-                  : step.type === 'x'
-                    ? `Searching X/Twitter for "${step.query.query}"`
-                    : `Analyzing ${step.query.query}`,
-            query: step.query.query,
-            message: `Searching ${step.query.source} sources...`,
-            timestamp: Date.now(),
-          },
-        });
-
         if (step.type === 'web') {
-          const webResults = await tvly.search(step.query.query, {
-            searchDepth: depth,
-            includeAnswer: true,
-            maxResults: Math.min(6 - step.query.priority, 10),
+          const searchResult = await webSearch({
+            query: step.query.query,
+            providerOptions: {
+              provider: 'tavily',
+              maxResults: Math.min(6 - step.query.priority, 10),
+              searchDepth: depth,
+            },
+            dataStream,
+            stepId: step.id,
           });
 
-          searchResults.push({
-            type: 'web',
-            query: step.query,
-            results: webResults.results.map((r) => ({
-              source: 'web',
-              title: r.title,
-              url: r.url,
-              content: r.content,
-            })),
-          });
-          completedSteps++;
+          if (!searchResult.error) {
+            searchResults.push({
+              type: 'web',
+              query: step.query,
+              results: searchResult.results,
+            });
+            completedSteps++;
+          }
         } else if (step.type === 'academic') {
+          // Send running annotation for academic search
+          dataStream.writeMessageAnnotation({
+            type: 'research_update',
+            data: {
+              id: step.id,
+              type: 'academic',
+              status: 'running',
+              title: `Searching academic papers for "${step.query.query}"`,
+              query: step.query.query,
+              message: `Searching academic sources...`,
+              timestamp: Date.now(),
+            },
+          });
+
           const academicResults = await exa.searchAndContents(
             step.query.query,
             {
@@ -215,7 +208,42 @@ export const createReasonSearch = ({
             })),
           });
           completedSteps++;
+
+          // Send completed annotation for academic search
+          dataStream.writeMessageAnnotation({
+            type: 'research_update',
+            data: {
+              id: step.id,
+              type: 'academic',
+              status: 'completed',
+              title: `Searched academic papers for "${step.query.query}"`,
+              query: step.query.query,
+              results: academicResults.results.map((r) => ({
+                source: 'academic',
+                title: r.title || '',
+                url: r.url || '',
+                content: r.summary || '',
+              })),
+              message: `Found ${academicResults.results.length} results`,
+              timestamp: Date.now(),
+              overwrite: true,
+            },
+          });
         } else if (step.type === 'x') {
+          // Send running annotation for X search
+          dataStream.writeMessageAnnotation({
+            type: 'research_update',
+            data: {
+              id: step.id,
+              type: 'x',
+              status: 'running',
+              title: `Searching X/Twitter for "${step.query.query}"`,
+              query: step.query.query,
+              message: `Searching X/Twitter sources...`,
+              timestamp: Date.now(),
+            },
+          });
+
           // Extract tweet ID from URL
           const extractTweetId = (url: string): string | null => {
             const match = url.match(
@@ -253,39 +281,25 @@ export const createReasonSearch = ({
             results: processedTweets,
           });
           completedSteps++;
+
+          // Send completed annotation for X search
+          dataStream.writeMessageAnnotation({
+            type: 'research_update',
+            data: {
+              id: step.id,
+              type: 'x',
+              status: 'completed',
+              title: `Searched X/Twitter for "${step.query.query}"`,
+              query: step.query.query,
+              results: processedTweets,
+              message: `Found ${processedTweets.length} results`,
+              timestamp: Date.now(),
+              overwrite: true,
+            },
+          });
         }
 
-        // Send completed annotation for the search step
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
-          data: {
-            id: step.id,
-            type: step.type as 'web' | 'academic' | 'x',
-            status: 'completed',
-            title:
-              step.type === 'web'
-                ? `Searched the web for "${step.query.query}"`
-                : step.type === 'academic'
-                  ? `Searched academic papers for "${step.query.query}"`
-                  : step.type === 'x'
-                    ? `Searched X/Twitter for "${step.query.query}"`
-                    : `Analysis of ${step.query.query} complete`,
-            query: step.query.query,
-            results: searchResults[searchResults.length - 1].results.map(
-              (r) => {
-                return {
-                  ...r,
-                  source: r.source as 'web' | 'academic' | 'x',
-                };
-              },
-            ),
-            message: `Found ${searchResults[searchResults.length - 1].results.length} results`,
-            timestamp: Date.now(),
-            overwrite: true,
-          },
-        });
-
-        searchIndex++; // Increment index
+        searchIndex++;
       }
 
       // Perform analyses
@@ -483,10 +497,15 @@ export const createReasonSearch = ({
           // Execute search based on source type
           if (query.source === 'web' || query.source === 'all') {
             // Execute web search
-            const webResults = await tvly.search(query.query, {
-              searchDepth: depth,
-              includeAnswer: true,
-              maxResults: 5,
+            const webResults = await webSearch({
+              query: query.query,
+              providerOptions: {
+                provider: 'tavily',
+                maxResults: 5,
+                searchDepth: depth,
+              },
+              dataStream,
+              stepId: gapSearchId,
             });
 
             // Add to search results
@@ -498,12 +517,7 @@ export const createReasonSearch = ({
                 source: 'web',
                 priority: query.priority,
               },
-              results: webResults.results.map((r) => ({
-                source: 'web',
-                title: r.title,
-                url: r.url,
-                content: r.content,
-              })),
+              results: webResults.results,
             });
 
             // Send completed annotation for web search

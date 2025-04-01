@@ -9,6 +9,7 @@ import { trimPrompt } from '../../trim-prompt';
 import { createDocument } from '../create-document';
 import type { Session } from 'next-auth';
 import type { AnnotationDataStreamWriter } from '../annotation-stream';
+import { webSearch } from '../sub-tools/web-search';
 
 export const systemPrompt = () => {
   const now = new Date().toISOString();
@@ -106,7 +107,11 @@ async function processSerpResult({
   numFollowUpQuestions = 3,
 }: {
   query: string;
-  result: SearchResponse;
+  result: {
+    data: {
+      markdown: string;
+    }[];
+  };
   numLearnings?: number;
   numFollowUpQuestions?: number;
 }) {
@@ -300,49 +305,28 @@ export async function deepResearchInternal({
     serpQueries.map((serpQuery, queryIndex) =>
       limit(async () => {
         try {
-          // Send running status for search
-          dataStream.writeMessageAnnotation({
-            type: 'research_update',
-            data: {
-              id: `search-${queryIndex}`,
-              type: 'web',
-              status: 'running',
-              title: `Searching for "${serpQuery.query}"`,
-              query: serpQuery.query,
-              message: `Searching web sources...`,
-              timestamp: Date.now(),
+          const searchResult = await webSearch({
+            query: serpQuery.query,
+            providerOptions: {
+              provider: 'firecrawl',
+              maxResults: 5,
             },
+            dataStream,
+            stepId: `search-${queryIndex}`,
           });
 
-          const result = await firecrawl.search(serpQuery.query, {
-            timeout: 15000,
-            limit: 5,
-            scrapeOptions: { formats: ['markdown'] },
-          });
-
-          // Send completed status for search
-          dataStream.writeMessageAnnotation({
-            type: 'research_update',
-            data: {
-              id: `search-${queryIndex}`,
-              type: 'web',
-              status: 'completed',
-              title: `Search complete for "${serpQuery.query}"`,
-              query: serpQuery.query,
-              results: result.data.map((item) => ({
-                source: 'web',
-                title: item.title || '',
-                url: item.url || '',
-                content: item.markdown || '',
-              })),
-              message: `Found ${result.data.length} results`,
-              timestamp: Date.now(),
-              overwrite: true,
-            },
-          });
+          if (searchResult.error) {
+            console.log(
+              `Error running query: ${serpQuery.query}: ${searchResult.error}`,
+            );
+            return {
+              learnings: [],
+              visitedUrls: [],
+            };
+          }
 
           // Collect URLs from this search
-          const newUrls = compact(result.data.map((item) => item.url));
+          const newUrls = searchResult.results.map((r) => r.url);
           const newBreadth = Math.ceil(breadth / 2);
           const newDepth = depth - 1;
 
@@ -350,7 +334,13 @@ export async function deepResearchInternal({
 
           const newLearnings = await processSerpResult({
             query: serpQuery.query,
-            result,
+            result: {
+              data: searchResult.results.map((r) => ({
+                title: r.title,
+                url: r.url,
+                markdown: r.content,
+              })),
+            },
             numFollowUpQuestions: newBreadth,
           });
           const allLearnings = [...learnings, ...newLearnings.learnings];
@@ -395,11 +385,7 @@ export async function deepResearchInternal({
             };
           }
         } catch (e: any) {
-          if (e?.message?.includes('Timeout')) {
-            console.log(`Timeout error running query: ${serpQuery.query}: `, e);
-          } else {
-            console.log(`Error running query: ${serpQuery.query}: `, e);
-          }
+          console.log(`Error running query: ${serpQuery.query}: `, e);
           return {
             learnings: [],
             visitedUrls: [],

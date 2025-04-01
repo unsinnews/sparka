@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CheckCircle } from '@phosphor-icons/react';
-import { GeistMono } from 'geist/font/mono';
 import {
   Calculator,
   Calendar,
@@ -169,7 +168,7 @@ export function CollapsibleSection({
                 borderRadius: 0,
                 borderBottomLeftRadius: '0.375rem',
                 borderBottomRightRadius: '0.375rem',
-                fontFamily: GeistMono.style.fontFamily,
+                fontFamily: 'var(--font-geist-mono)',
               }}
               showLineNumbers={true}
               lineNumberStyle={{
@@ -179,7 +178,7 @@ export function CollapsibleSection({
                 fontStyle: 'normal',
                 marginRight: '1em',
                 paddingRight: '0.5em',
-                fontFamily: GeistMono.style.fontFamily,
+                fontFamily: 'var(--font-geist-mono)',
                 minWidth: '2em',
               }}
               lineNumberContainerStyle={{
@@ -189,7 +188,7 @@ export function CollapsibleSection({
               wrapLongLines={false}
               codeTagProps={{
                 style: {
-                  fontFamily: GeistMono.style.fontFamily,
+                  fontFamily: 'var(--font-geist-mono)',
                   fontSize: '0.85em',
                   whiteSpace: 'pre',
                   overflowWrap: 'normal',

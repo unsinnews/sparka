@@ -365,20 +365,7 @@ export async function deepResearchInternal({
             });
           } else {
             // Completed
-            dataStream.writeMessageAnnotation({
-              type: 'research_update',
-              data: {
-                id: `search-complete`,
-                type: 'progress',
-                status: 'completed',
-                message: 'Research complete',
-                completedSteps: completedSteps,
-                totalSteps: serpQueries.length * (depth + 1),
-                isComplete: true,
-                overwrite: true,
-                timestamp: Date.now(),
-              },
-            });
+            console.log('Reached last level of research');
             return {
               learnings: allLearnings,
               visitedUrls: allUrls,

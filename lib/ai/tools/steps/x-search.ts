@@ -7,6 +7,8 @@ export type XSearchResult = {
   url: string;
   content: string;
   tweetId: string;
+  author?: string;
+  text?: string;
 };
 
 export type XSearchResponse = {
@@ -25,11 +27,13 @@ const extractTweetId = (url: string): string | null => {
 
 export async function xSearch({
   query,
+  type,
   maxResults = 5,
   dataStream,
   stepId,
 }: {
   query: string;
+  type: 'neural' | 'keyword';
   maxResults?: number;
   dataStream: AnnotationDataStreamWriter;
   stepId: string;

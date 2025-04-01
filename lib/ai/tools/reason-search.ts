@@ -6,7 +6,7 @@ import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import { webSearch } from './steps/web-search';
 import { xSearch } from './steps/x-search';
-import { academicSearch } from './service/academic-search';
+import { academicSearch } from './steps/academic-search';
 
 export const createReasonSearch = ({
   session,
@@ -193,6 +193,7 @@ export const createReasonSearch = ({
         } else if (step.type === 'x') {
           const searchResult = await xSearch({
             query: step.query.query,
+            type: 'keyword',
             maxResults: step.query.priority,
             dataStream,
             stepId: step.id,
@@ -414,7 +415,10 @@ export const createReasonSearch = ({
                 searchDepth: depth,
               },
               dataStream,
-              stepId: gapSearchId,
+              stepId:
+                query.source === 'all'
+                  ? `gap-search-web-${searchIndex - 3}`
+                  : gapSearchId,
             });
 
             // Add to search results
@@ -428,30 +432,6 @@ export const createReasonSearch = ({
               },
               results: webResults.results,
             });
-
-            // Send completed annotation for web search
-            dataStream.writeMessageAnnotation({
-              type: 'research_update',
-              data: {
-                id:
-                  query.source === 'all'
-                    ? `gap-search-web-${searchIndex - 3}`
-                    : gapSearchId,
-                type: 'web',
-                status: 'completed',
-                title: `Additional web search for "${query.query}"`,
-                query: query.query,
-                results: webResults.results.map((r) => ({
-                  source: 'web',
-                  title: r.title,
-                  url: r.url,
-                  content: r.content,
-                })),
-                message: `Found ${webResults.results.length} results`,
-                timestamp: Date.now(),
-                overwrite: true,
-              },
-            });
           }
 
           if (query.source === 'academic' || query.source === 'all') {
@@ -460,28 +440,11 @@ export const createReasonSearch = ({
                 ? `gap-search-academic-${searchIndex++}`
                 : gapSearchId;
 
-            // Send running annotation for academic search if it's for 'all' source
-            if (query.source === 'all') {
-              dataStream.writeMessageAnnotation({
-                type: 'research_update',
-                data: {
-                  id: academicSearchId,
-                  type: 'academic',
-                  status: 'running',
-                  title: `Additional academic search for "${query.query}"`,
-                  query: query.query,
-                  message: `Searching academic sources to fill knowledge gap: ${query.rationale}`,
-                  timestamp: Date.now(),
-                },
-              });
-            }
-
-            // Execute academic search
-            const academicResults = await exa.searchAndContents(query.query, {
-              type: 'auto',
-              numResults: 3,
-              category: 'research paper',
-              summary: true,
+            const academicSearchResult = await academicSearch({
+              query: query.query,
+              maxResults: 3,
+              dataStream,
+              stepId: academicSearchId,
             });
 
             // Add to search results
@@ -493,7 +456,7 @@ export const createReasonSearch = ({
                 source: 'academic',
                 priority: query.priority,
               },
-              results: academicResults.results.map(
+              results: academicSearchResult.results.map(
                 (r: { title?: string; url?: string; summary?: string }) => ({
                   source: 'academic',
                   title: r.title || '',
@@ -502,27 +465,6 @@ export const createReasonSearch = ({
                 }),
               ),
             });
-
-            // Send completed annotation for academic search
-            dataStream.writeMessageAnnotation({
-              type: 'research_update',
-              data: {
-                id: academicSearchId,
-                type: 'academic',
-                status: 'completed',
-                title: `Additional academic search for "${query.query}"`,
-                query: query.query,
-                results: academicResults.results.map((r) => ({
-                  source: 'academic',
-                  title: r.title || '',
-                  url: r.url || '',
-                  content: r.summary || '',
-                })),
-                message: `Found ${academicResults.results.length} results`,
-                timestamp: Date.now(),
-                overwrite: query.source === 'all',
-              },
-            });
           }
 
           if (query.source === 'x' || query.source === 'all') {
@@ -530,23 +472,6 @@ export const createReasonSearch = ({
               query.source === 'all'
                 ? `gap-search-x-${searchIndex++}`
                 : gapSearchId;
-
-            // Send running annotation for X search if it's for 'all' source
-            if (query.source === 'all') {
-              dataStream.writeMessageAnnotation({
-                type: 'research_update',
-                data: {
-                  id: xSearchId,
-                  type: 'x',
-                  status: 'running',
-                  title: `Additional X/Twitter search for "${query.query}"`,
-                  query: query.query,
-                  message: `Searching X/Twitter to fill knowledge gap: ${query.rationale}`,
-                  timestamp: Date.now(),
-                },
-              });
-            }
-
             // Extract tweet ID from URL
             const extractTweetId = (url: string): string | null => {
               const match = url.match(
@@ -555,17 +480,16 @@ export const createReasonSearch = ({
               return match ? match[1] : null;
             };
 
-            // Execute X/Twitter search
-            const xResults = await exa.searchAndContents(query.query, {
+            const xSearchResult = await xSearch({
+              query: query.query,
               type: 'keyword',
-              numResults: 5,
-              text: true,
-              highlights: true,
-              includeDomains: ['twitter.com', 'x.com'],
+              maxResults: 5,
+              dataStream,
+              stepId: xSearchId,
             });
 
             // Process tweets to include tweet IDs - properly handling undefined
-            const processedTweets = xResults.results
+            const processedTweets = xSearchResult.results
               .map((result) => {
                 const tweetId = extractTweetId(result.url);
                 if (!tweetId) return null; // Skip entries without valid tweet IDs
@@ -600,22 +524,6 @@ export const createReasonSearch = ({
                 priority: query.priority,
               },
               results: processedTweets,
-            });
-
-            // Send completed annotation for X search
-            dataStream.writeMessageAnnotation({
-              type: 'research_update',
-              data: {
-                id: xSearchId,
-                type: 'x',
-                status: 'completed',
-                title: `Additional X/Twitter search for "${query.query}"`,
-                query: query.query,
-                results: processedTweets,
-                message: `Found ${processedTweets.length} results`,
-                timestamp: Date.now(),
-                overwrite: query.source === 'all',
-              },
             });
           }
         }

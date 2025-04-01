@@ -320,11 +320,6 @@ export async function deepResearchInternal({
             scrapeOptions: { formats: ['markdown'] },
           });
 
-          // Collect URLs from this search
-          const newUrls = compact(result.data.map((item) => item.url));
-          const newBreadth = Math.ceil(breadth / 2);
-          const newDepth = depth - 1;
-
           // Send completed status for search
           dataStream.writeMessageAnnotation({
             type: 'research_update',
@@ -345,6 +340,11 @@ export async function deepResearchInternal({
               overwrite: true,
             },
           });
+
+          // Collect URLs from this search
+          const newUrls = compact(result.data.map((item) => item.url));
+          const newBreadth = Math.ceil(breadth / 2);
+          const newDepth = depth - 1;
 
           completedSteps++;
 

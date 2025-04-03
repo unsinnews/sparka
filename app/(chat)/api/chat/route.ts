@@ -33,10 +33,14 @@ export async function POST(request: Request) {
       id,
       messages,
       selectedChatModel,
+      data,
     }: {
       id: string;
       messages: Array<YourUIMessage>;
       selectedChatModel: string;
+      data: {
+        deepResearch: boolean;
+      };
     } = await request.json();
 
     const session = await auth();
@@ -45,6 +49,7 @@ export async function POST(request: Request) {
       return new Response('Unauthorized', { status: 401 });
     }
 
+    const deepResearch = data.deepResearch;
     const userMessage = getMostRecentUserMessage(messages);
 
     if (!userMessage) {
@@ -86,18 +91,20 @@ export async function POST(request: Request) {
         const activeTools: YourToolName[] =
           selectedChatModel === 'chat-model-reasoning'
             ? []
-            : [
-                'getWeather',
-                'createDocument',
-                'updateDocument',
-                'requestSuggestions',
-                'reasonSearch',
-                'retrieve',
-                'webSearch',
-                'stockChart',
-                'codeInterpreter',
-                'deepResearch',
-              ];
+            : deepResearch
+              ? ['deepResearch']
+              : [
+                  'getWeather',
+                  'createDocument',
+                  'updateDocument',
+                  'requestSuggestions',
+                  'reasonSearch',
+                  'retrieve',
+                  'webSearch',
+                  'stockChart',
+                  'codeInterpreter',
+                  'deepResearch',
+                ];
 
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),

@@ -24,6 +24,8 @@ import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import { Toggle } from './ui/toggle';
+import { SearchIcon } from 'lucide-react';
 
 function PureMultimodalInput({
   chatId,
@@ -54,6 +56,7 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const [deepResearch, setDeepResearch] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -109,6 +112,9 @@ function PureMultimodalInput({
 
     handleSubmit(undefined, {
       experimental_attachments: attachments,
+      data: {
+        deepResearch,
+      },
     });
 
     setAttachments([]);
@@ -249,8 +255,12 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+        <DeepResearchToggle
+          enabled={deepResearch}
+          setEnabled={setDeepResearch}
+        />
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
@@ -265,6 +275,24 @@ function PureMultimodalInput({
         )}
       </div>
     </div>
+  );
+}
+
+function DeepResearchToggle({
+  enabled,
+  setEnabled,
+}: { enabled: boolean; setEnabled: (enabled: boolean) => void }) {
+  return (
+    <Toggle
+      pressed={enabled}
+      onPressedChange={setEnabled}
+      variant="outline"
+      size="sm"
+      className="gap-2 rounded-md rounded-bl-lg p-[7px] h-fit border-zinc-700"
+    >
+      <SearchIcon size={14} />
+      Deep research
+    </Toggle>
   );
 }
 

@@ -3,6 +3,8 @@ import type { YourToolName } from './tools/tools';
 
 export const regularPrompt = `You are a friendly assistant! Keep your responses concise and helpful.
 
+If the request is ambiguous or unclear, ask clarifying questions. If you ask clarifying questions, don't use any tool.
+
 ## Your Goals
 - Stay concious and aware of the guidelines.
 - Stay efficient and focused on the user's needs, do not take extra steps.

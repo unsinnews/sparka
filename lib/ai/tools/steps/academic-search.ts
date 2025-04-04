@@ -15,7 +15,7 @@ export type AcademicSearchResponse = {
 
 const exa = new Exa(process.env.EXA_API_KEY as string);
 
-export async function academicSearch({
+export async function academicSearchStep({
   query,
   maxResults,
   dataStream,

@@ -4,9 +4,9 @@ import Exa from 'exa-js';
 import type { Session } from 'next-auth';
 import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
-import { webSearch } from './steps/web-search';
-import { xSearch } from './steps/x-search';
-import { academicSearch } from './steps/academic-search';
+import { webSearchStep } from './steps/web-search';
+import { xSearchStep } from './steps/x-search';
+import { academicSearchStep } from './steps/academic-search';
 
 export const createReasonSearch = ({
   session,
@@ -155,7 +155,7 @@ export const createReasonSearch = ({
 
       for (const step of stepIds.searchSteps) {
         if (step.type === 'web') {
-          const searchResult = await webSearch({
+          const searchResult = await webSearchStep({
             query: step.query.query,
             providerOptions: {
               provider: 'tavily',
@@ -175,7 +175,7 @@ export const createReasonSearch = ({
             completedSteps++;
           }
         } else if (step.type === 'academic') {
-          const searchResult = await academicSearch({
+          const searchResult = await academicSearchStep({
             query: step.query.query,
             maxResults: Math.min(6 - step.query.priority, 5),
             dataStream,
@@ -191,7 +191,7 @@ export const createReasonSearch = ({
             completedSteps++;
           }
         } else if (step.type === 'x') {
-          const searchResult = await xSearch({
+          const searchResult = await xSearchStep({
             query: step.query.query,
             type: 'keyword',
             maxResults: step.query.priority,
@@ -407,7 +407,7 @@ export const createReasonSearch = ({
           // Execute search based on source type
           if (query.source === 'web' || query.source === 'all') {
             // Execute web search
-            const webResults = await webSearch({
+            const webResults = await webSearchStep({
               query: query.query,
               providerOptions: {
                 provider: 'tavily',
@@ -440,7 +440,7 @@ export const createReasonSearch = ({
                 ? `gap-search-academic-${searchIndex++}`
                 : gapSearchId;
 
-            const academicSearchResult = await academicSearch({
+            const academicSearchResult = await academicSearchStep({
               query: query.query,
               maxResults: 3,
               dataStream,
@@ -480,7 +480,7 @@ export const createReasonSearch = ({
               return match ? match[1] : null;
             };
 
-            const xSearchResult = await xSearch({
+            const xSearchResult = await xSearchStep({
               query: query.query,
               type: 'keyword',
               maxResults: 5,

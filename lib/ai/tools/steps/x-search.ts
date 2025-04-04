@@ -25,7 +25,7 @@ const extractTweetId = (url: string): string | null => {
   return match ? match[1] : null;
 };
 
-export async function xSearch({
+export async function xSearchStep({
   query,
   type,
   maxResults = 5,

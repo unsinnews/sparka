@@ -29,7 +29,6 @@ type MappedAnalysisResult = {
 
 const ReasonSearch = ({ updates }: { updates: StreamUpdate[] }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const [selectedTab, setSelectedTab] = React.useState('web');
 
   const planUpdateFromUpdates = React.useMemo(() => {
     const planUpdates = updates.filter(
@@ -160,10 +159,6 @@ const ReasonSearch = ({ updates }: { updates: StreamUpdate[] }) => {
     };
   }, [updates]);
 
-  const xSearchesRunning = updates.some(
-    (u) => u.type === 'x' && u.status === 'running',
-  );
-
   const finalSynthesisDone = React.useMemo(() => {
     return updates.some(
       (u) => u.id === 'final-synthesis' && u.status === 'completed',
@@ -186,14 +181,7 @@ const ReasonSearch = ({ updates }: { updates: StreamUpdate[] }) => {
         isComplete={isComplete}
       />
 
-      {isComplete && (
-        <SourcesAndAnalysis
-          sourceGroups={sourceGroups}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-          xSearchesRunning={xSearchesRunning}
-        />
-      )}
+      {isComplete && <SourcesAndAnalysis sourceGroups={sourceGroups} />}
     </div>
   );
 };

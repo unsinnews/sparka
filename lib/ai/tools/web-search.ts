@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { tool } from 'ai';
 import type { Session } from 'next-auth';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
+import { webSearchStep, type SearchProviderOptions } from './steps/web-search';
 
 export const QueryCompletionSchema = z.object({
   type: z.literal('query_completion'),
@@ -76,15 +77,21 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
     description:
       'Search the web for information with multiple queries, max results and search depth.',
     parameters: z.object({
-      queries: z.array(
-        z.string().describe('Array of search queries to look up on the web.'),
-      ),
-      maxResults: z.array(
-        z
-          .number()
-          .describe('Array of maximum number of results to return per query.')
-          .default(10),
-      ),
+      search_queries: z
+        .array(
+          z.object({
+            query: z.string(),
+            rationale: z.string().describe('The rationale for the query.'),
+            // source: z.enum(['web', 'academic', 'x', 'all']),
+            priority: z
+              .number()
+              .min(1)
+              .max(5)
+              .describe('The priority of the query. Use from 2 to 4.'),
+          }),
+        )
+        .max(12),
+
       topics: z.array(
         z
           .enum(['general', 'news'])
@@ -103,55 +110,67 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
         .default([]),
     }),
     execute: async ({
-      queries,
-      maxResults,
+      search_queries,
       topics,
       searchDepth,
       exclude_domains,
     }: {
-      queries: string[];
-      maxResults: number[];
+      search_queries: { query: string; rationale: string; priority: number }[];
       topics: ('general' | 'news')[];
       searchDepth: ('basic' | 'advanced')[];
       exclude_domains?: string[];
     }) => {
-      const apiKey = process.env.TAVILY_API_KEY;
-      const tvly = tavily({ apiKey });
-      const includeImageDescriptions = true;
-
-      console.log('Queries:', queries);
-      console.log('Max Results:', maxResults);
+      console.log('Queries:', search_queries);
       console.log('Topics:', topics);
       console.log('Search Depths:', searchDepth);
       console.log('Exclude Domains:', exclude_domains);
+      console.log('Search Queries:', search_queries);
+
+      let completedSteps = 0;
+      const totalSteps = 1; // TODO: Web search is very simple for now
+      // Complete plan status
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: 'research-plan',
+          type: 'plan' as const,
+          status: 'completed',
+          title: 'Web search plan',
+          plan: {
+            search_queries: search_queries.map((query, index) => ({
+              query: query.query,
+              rationale: query.rationale,
+              source: 'web',
+              priority: query.priority,
+            })),
+            required_analyses: [],
+          },
+          totalSteps: 1,
+          message: 'Search plan created',
+          timestamp: Date.now(),
+          overwrite: true,
+        },
+      });
 
       // Execute searches in parallel
-      const searchPromises = queries.map(async (query, index) => {
-        const data = await tvly.search(query, {
-          topic: topics[index] || topics[0] || 'general',
-          days: topics[index] === 'news' ? 7 : undefined,
-          maxResults: maxResults[index] || maxResults[0] || 10,
-          searchDepth: searchDepth[index] || searchDepth[0] || 'basic',
-          includeAnswer: true,
-          includeImages: true,
-          includeImageDescriptions: includeImageDescriptions,
-          excludeDomains: exclude_domains,
-        });
-
-        const queryCompletion: z.infer<typeof QueryCompletionSchema> = {
-          type: 'query_completion',
-          data: {
-            query,
-            index,
-            total: queries.length,
-            status: 'completed',
-            resultsCount: data.results.length,
-            imagesCount: data.images.length,
+      const searchPromises = search_queries.map(async (query, index) => {
+        const data = await webSearchStep({
+          // TODO: Make compatible with other providers
+          query: query.query,
+          providerOptions: {
+            provider: 'tavily',
+            topic: topics[index] || topics[0] || 'general',
+            days: topics[index] === 'news' ? 7 : undefined,
+            maxResults: Math.min(6 - query.priority, 10),
+            searchDepth: searchDepth[index] || searchDepth[0] || 'basic',
+            includeAnswer: true,
+            includeImages: false,
+            includeImageDescriptions: false,
+            excludeDomains: exclude_domains,
           },
-        };
-
-        // Add annotation for query completion
-        dataStream.writeMessageAnnotation(queryCompletion);
+          dataStream,
+          stepId: `web-search-${index}`,
+        });
 
         return {
           query,
@@ -163,49 +182,28 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
             published_date:
               topics[index] === 'news' ? obj.published_date : undefined,
           })),
-          images: includeImageDescriptions
-            ? await Promise.all(
-                deduplicateByDomainAndUrl(data.images).map(
-                  async ({
-                    url,
-                    description,
-                  }: { url: string; description?: string }) => {
-                    const sanitizedUrl = sanitizeUrl(url);
-                    const isValid = await isValidImageUrl(sanitizedUrl);
-                    return isValid
-                      ? {
-                          url: sanitizedUrl,
-                          description: description ?? '',
-                        }
-                      : null;
-                  },
-                ),
-              ).then((results) =>
-                results.filter(
-                  (image): image is { url: string; description: string } =>
-                    image !== null &&
-                    typeof image === 'object' &&
-                    typeof image.description === 'string' &&
-                    image.description !== '',
-                ),
-              )
-            : await Promise.all(
-                deduplicateByDomainAndUrl(data.images).map(
-                  async ({ url }: { url: string }) => {
-                    const sanitizedUrl = sanitizeUrl(url);
-                    return (await isValidImageUrl(sanitizedUrl))
-                      ? sanitizedUrl
-                      : null;
-                  },
-                ),
-              ).then(
-                (results) => results.filter((url) => url !== null) as string[],
-              ),
         };
       });
+      completedSteps++;
 
       const searchResults = await Promise.all(searchPromises);
 
+      // TODO: Mark All Search Completed Annotation step
+      // Final progress update
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: 'research-progress',
+          type: 'progress' as const,
+          status: 'completed' as const,
+          message: `Research complete`,
+          completedSteps,
+          totalSteps,
+          isComplete: true,
+          overwrite: true,
+          timestamp: Date.now(),
+        },
+      });
       return {
         searches: searchResults,
       };

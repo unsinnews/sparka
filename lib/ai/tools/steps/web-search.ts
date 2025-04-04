@@ -32,7 +32,7 @@ const firecrawl = new FirecrawlApp({
   apiKey: process.env.FIRECRAWL_API_KEY ?? '',
 });
 
-export async function webSearch({
+export async function webSearchStep({
   query,
   providerOptions,
   dataStream,

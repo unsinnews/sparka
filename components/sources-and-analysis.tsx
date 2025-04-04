@@ -285,9 +285,6 @@ const EmptyState = ({
 
 export const SourcesAndAnalysis = ({
   sourceGroups,
-  selectedTab,
-  setSelectedTab,
-  xSearchesRunning,
 }: {
   sourceGroups: {
     web: SearchResultItem[];
@@ -295,10 +292,17 @@ export const SourcesAndAnalysis = ({
     x: SearchResultItem[];
     analysis: MappedAnalysisResult[];
   };
-  selectedTab: string;
-  setSelectedTab: (value: string) => void;
-  xSearchesRunning: boolean;
 }) => {
+  const initialTab =
+    sourceGroups.web.length > 0
+      ? 'web'
+      : sourceGroups.academic.length > 0
+        ? 'academic'
+        : sourceGroups.x.length > 0
+          ? 'x'
+          : 'analysis';
+  const [selectedTab, setSelectedTab] = React.useState(initialTab);
+
   if (
     sourceGroups.web.length === 0 &&
     sourceGroups.academic.length === 0 &&
@@ -312,7 +316,9 @@ export const SourcesAndAnalysis = ({
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <FileText className="h-3.5 w-3.5" />
-        <h3 className="text-sm font-medium">Sources & Analysis</h3>
+        <h3 className="text-sm font-medium">
+          {sourceGroups.analysis.length ? 'Sources & Analysis' : 'Sources'}
+        </h3>
       </div>
       <Tabs
         defaultValue="web"
@@ -609,7 +615,7 @@ export const SourcesAndAnalysis = ({
                 )}
               </div>
             ) : (
-              <EmptyState type="x" isLoading={xSearchesRunning} />
+              <EmptyState type="x" />
             )}
           </AnimatedTabContent>
           <AnimatedTabContent value="analysis" selected={selectedTab}>

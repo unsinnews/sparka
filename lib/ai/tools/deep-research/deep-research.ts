@@ -9,7 +9,7 @@ import { trimPrompt } from '../../trim-prompt';
 import { createDocument } from '../create-document';
 import type { Session } from 'next-auth';
 import type { AnnotationDataStreamWriter } from '../annotation-stream';
-import { webSearch } from '../steps/web-search';
+import { webSearchStep } from '../steps/web-search';
 
 export const systemPrompt = () => {
   const now = new Date().toISOString();
@@ -305,7 +305,7 @@ export async function deepResearchInternal({
     serpQueries.map((serpQuery, queryIndex) =>
       limit(async () => {
         try {
-          const searchResult = await webSearch({
+          const searchResult = await webSearchStep({
             query: serpQuery.query,
             providerOptions: {
               provider: 'firecrawl',

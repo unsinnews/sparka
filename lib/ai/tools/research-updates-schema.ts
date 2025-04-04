@@ -53,7 +53,8 @@ const SearchSchema = BaseStreamUpdateSchema.extend({
 const AnalysisSchema = BaseStreamUpdateSchema.extend({
   type: z.literal('analysis'),
   status: z.enum(['running', 'completed']),
-  analysisType: z.string(),
+  advancedSteps: z.number().optional(),
+  analysisType: z.string().optional(),
   completedSteps: z.number().optional(),
   totalSteps: z.number().optional(),
   isComplete: z.boolean().optional(),
@@ -107,3 +108,6 @@ export const ResearchUpdateSchema = z.object({
   type: z.enum(['research_update']),
   data: StreamUpdateSchema,
 });
+
+// Export the individual schemas for inference elsewhere
+export { SearchSchema, AnalysisSchema };

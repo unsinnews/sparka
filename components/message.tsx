@@ -19,7 +19,7 @@ import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
-import MultiSearch, { type QueryCompletion } from './multi-search';
+
 import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
@@ -189,19 +189,8 @@ const PurePreviewMessage = ({
                         />
                       ) : toolName === 'retrieve' ? (
                         <Retrieve />
-                      ) : toolName === 'webSearch' ? (
-                        <div className="mt-4">
-                          <MultiSearch
-                            result={null}
-                            args={args}
-                            annotations={
-                              (message?.annotations?.filter(
-                                (a: any) => a.type === 'query_completion',
-                              ) as QueryCompletion[]) || []
-                            }
-                          />
-                        </div>
-                      ) : toolName === 'reasonSearch' ? (
+                      ) : toolName === 'webSearch' ? null : toolName ===
+                        'reasonSearch' ? (
                         // TODO: replace with `Performing research...` annimation
                         <div>Performing research...</div>
                       ) : toolName === 'stockChart' ? (
@@ -245,21 +234,8 @@ const PurePreviewMessage = ({
                       ) : toolName === 'retrieve' ? (
                         // @ts-expect-error // TODO: fix this
                         <Retrieve result={result} />
-                      ) : toolName === 'webSearch' ? (
-                        <div className="mt-4">
-                          <MultiSearch
-                            // @ts-expect-error // TODO: fix this
-                            result={result}
-                            args={args}
-                            annotations={
-                              (message?.annotations?.filter(
-                                (a: any) => a.type === 'query_completion',
-                              ) as QueryCompletion[]) || []
-                            }
-                          />
-                        </div>
-                      ) : toolName === 'reasonSearch' ? null : toolName === // TODO: decide how to show results other than message annotations
-                        'stockChart' ? (
+                      ) : toolName === 'webSearch' ? null : toolName ===
+                        'reasonSearch' ? null : toolName === 'stockChart' ? (
                         // @ts-expect-error // TODO: fix this
                         <StockChartMessage result={result} args={args} />
                       ) : toolName === 'codeInterpreter' ? (

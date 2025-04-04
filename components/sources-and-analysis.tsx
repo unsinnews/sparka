@@ -312,6 +312,12 @@ export const SourcesAndAnalysis = ({
     return null;
   }
 
+  const sourcesAnalysesCount =
+    (sourceGroups.web.length > 0 ? 1 : 0) +
+    (sourceGroups.academic.length > 0 ? 1 : 0) +
+    (sourceGroups.x.length > 0 ? 1 : 0) +
+    (sourceGroups.analysis.length > 0 ? 1 : 0);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -326,67 +332,85 @@ export const SourcesAndAnalysis = ({
         onValueChange={setSelectedTab}
         value={selectedTab}
       >
-        <TabsList className="w-full h-10 grid grid-cols-4 bg-neutral-100/50 dark:bg-neutral-800/50 p-1 rounded-lg">
-          <TabsTrigger
-            value="web"
-            className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
-            disabled={sourceGroups.web.length === 0}
-          >
-            <div className="flex items-center gap-1.5">
-              <FileText className="h-3 w-3" />
-              <span className="hidden sm:inline">Web</span>
-              {sourceGroups.web.length > 0 && (
-                <Badge variant="secondary" className="h-4 px-1">
-                  {sourceGroups.web.length}
-                </Badge>
-              )}
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="academic"
-            className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
-            disabled={sourceGroups.academic.length === 0}
-          >
-            <div className="flex items-center gap-1.5">
-              <BookA className="h-3 w-3" />
-              <span className="hidden sm:inline">Academic</span>
-              {sourceGroups.academic.length > 0 && (
-                <Badge variant="secondary" className="h-4 px-1">
-                  {sourceGroups.academic.length}
-                </Badge>
-              )}
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="x"
-            className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
-            disabled={sourceGroups.x.length === 0}
-          >
-            <div className="flex items-center gap-1.5">
-              <XLogo className="h-3 w-3" />
-              <span className="hidden sm:inline">X</span>
-              {sourceGroups.x.length > 0 && (
-                <Badge variant="secondary" className="h-4 px-1">
-                  {sourceGroups.x.length}
-                </Badge>
-              )}
-            </div>
-          </TabsTrigger>
-          <TabsTrigger
-            value="analysis"
-            className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
-            disabled={sourceGroups.analysis.length === 0}
-          >
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3" />
-              <span className="hidden sm:inline">Analysis</span>
-              {sourceGroups.analysis.length > 0 && (
-                <Badge variant="secondary" className="h-4 px-1">
-                  {sourceGroups.analysis.length}
-                </Badge>
-              )}
-            </div>
-          </TabsTrigger>
+        <TabsList
+          className={cn(
+            'w-full h-10 grid bg-neutral-100/50 dark:bg-neutral-800/50 p-1 rounded-lg',
+            {
+              'grid-cols-4': sourcesAnalysesCount === 4,
+              'grid-cols-3': sourcesAnalysesCount === 3,
+              'grid-cols-2': sourcesAnalysesCount === 2,
+              'grid-cols-1': sourcesAnalysesCount === 1,
+            },
+          )}
+        >
+          {sourceGroups.web.length > 0 && (
+            <TabsTrigger
+              value="web"
+              className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
+              disabled={sourceGroups.web.length === 0}
+            >
+              <div className="flex items-center gap-1.5">
+                <FileText className="h-3 w-3" />
+                <span className="hidden sm:inline">Web</span>
+                {sourceGroups.web.length > 0 && (
+                  <Badge variant="secondary" className="h-4 px-1">
+                    {sourceGroups.web.length}
+                  </Badge>
+                )}
+              </div>
+            </TabsTrigger>
+          )}
+          {sourceGroups.academic.length > 0 && (
+            <TabsTrigger
+              value="academic"
+              className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
+              disabled={sourceGroups.academic.length === 0}
+            >
+              <div className="flex items-center gap-1.5">
+                <BookA className="h-3 w-3" />
+                <span className="hidden sm:inline">Academic</span>
+                {sourceGroups.academic.length > 0 && (
+                  <Badge variant="secondary" className="h-4 px-1">
+                    {sourceGroups.academic.length}
+                  </Badge>
+                )}
+              </div>
+            </TabsTrigger>
+          )}
+          {sourceGroups.x.length > 0 && (
+            <TabsTrigger
+              value="x"
+              className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
+              disabled={sourceGroups.x.length === 0}
+            >
+              <div className="flex items-center gap-1.5">
+                <XLogo className="h-3 w-3" />
+                <span className="hidden sm:inline">X</span>
+                {sourceGroups.x.length > 0 && (
+                  <Badge variant="secondary" className="h-4 px-1">
+                    {sourceGroups.x.length}
+                  </Badge>
+                )}
+              </div>
+            </TabsTrigger>
+          )}
+          {sourceGroups.analysis.length > 0 && (
+            <TabsTrigger
+              value="analysis"
+              className="h-full data-[state=active]:bg-white dark:data-[state=active]:bg-neutral-800 rounded-md"
+              disabled={sourceGroups.analysis.length === 0}
+            >
+              <div className="flex items-center gap-1.5">
+                <Sparkles className="h-3 w-3" />
+                <span className="hidden sm:inline">Analysis</span>
+                {sourceGroups.analysis.length > 0 && (
+                  <Badge variant="secondary" className="h-4 px-1">
+                    {sourceGroups.analysis.length}
+                  </Badge>
+                )}
+              </div>
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <div className="relative mt-4">

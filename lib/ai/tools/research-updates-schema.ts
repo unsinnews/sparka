@@ -34,8 +34,7 @@ const PlanSchema = BaseStreamUpdateSchema.extend({
 
 export type PlanUpdate = z.infer<typeof PlanSchema>;
 
-const SearchSchema = BaseStreamUpdateSchema.extend({
-  type: z.enum(['web', 'academic', 'x']),
+const BaseSearchSchema = BaseStreamUpdateSchema.extend({
   status: z.enum(['running', 'completed']),
   query: z.string(),
   results: z
@@ -50,11 +49,26 @@ const SearchSchema = BaseStreamUpdateSchema.extend({
     )
     .optional(),
 });
+
+export const WebSearchSchema = BaseSearchSchema.extend({
+  type: z.literal('web'),
+});
+export type WebSearchUpdate = z.infer<typeof WebSearchSchema>;
+
+export const AcademicSearchSchema = BaseSearchSchema.extend({
+  type: z.literal('academic'),
+});
+export type AcademicSearchUpdate = z.infer<typeof AcademicSearchSchema>;
+
+export const XSearchSchema = BaseSearchSchema.extend({
+  type: z.literal('x'),
+});
+export type XSearchUpdate = z.infer<typeof XSearchSchema>;
 const AnalysisSchema = BaseStreamUpdateSchema.extend({
   type: z.literal('analysis'),
   status: z.enum(['running', 'completed']),
   advancedSteps: z.number().optional(),
-  analysisType: z.string().optional(),
+  analysisType: z.string(),
   completedSteps: z.number().optional(),
   totalSteps: z.number().optional(),
   isComplete: z.boolean().optional(),
@@ -87,6 +101,9 @@ const AnalysisSchema = BaseStreamUpdateSchema.extend({
     .optional(),
   uncertainties: z.array(z.string()).optional(),
 });
+
+export type AnalysisUpdate = z.infer<typeof AnalysisSchema>;
+
 const ProgressSchema = BaseStreamUpdateSchema.extend({
   type: z.literal('progress'),
   status: z.literal('completed'),
@@ -95,9 +112,13 @@ const ProgressSchema = BaseStreamUpdateSchema.extend({
   isComplete: z.boolean(),
 });
 
+export type ProgressUpdate = z.infer<typeof ProgressSchema>;
+
 export const StreamUpdateSchema = z.discriminatedUnion('type', [
   PlanSchema,
-  SearchSchema,
+  WebSearchSchema,
+  AcademicSearchSchema,
+  XSearchSchema,
   AnalysisSchema,
   ProgressSchema,
 ]);
@@ -108,6 +129,3 @@ export const ResearchUpdateSchema = z.object({
   type: z.enum(['research_update']),
   data: StreamUpdateSchema,
 });
-
-// Export the individual schemas for inference elsewhere
-export { SearchSchema, AnalysisSchema };

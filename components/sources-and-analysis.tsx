@@ -34,28 +34,19 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { XLogo } from '@phosphor-icons/react';
-// Type-only imports
-import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 
 // Runtime imports (used with z.infer)
 import type {
-  AnalysisSchema,
-  SearchSchema,
+  AnalysisUpdate,
+  WebSearchUpdate,
 } from '@/lib/ai/tools/research-updates-schema';
-import type { z } from 'zod';
 
 // Define non-nullable item types for clarity in map callbacks
-type SearchResultItem = NonNullable<
-  z.infer<typeof SearchSchema>['results']
->[number];
-type AnalysisFindingItem = NonNullable<
-  z.infer<typeof AnalysisSchema>['findings']
->[number];
-type AnalysisGapItem = NonNullable<
-  z.infer<typeof AnalysisSchema>['gaps']
->[number];
+type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
+type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
+type AnalysisGapItem = NonNullable<AnalysisUpdate['gaps']>[number];
 type AnalysisRecommendationItem = NonNullable<
-  z.infer<typeof AnalysisSchema>['recommendations']
+  AnalysisUpdate['recommendations']
 >[number];
 
 // Define the type for the analysis results structure used in sourceGroups

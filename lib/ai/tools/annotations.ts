@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ResearchUpdateSchema } from './stream-updates-schema';
+import { ResearchUpdateSchema } from './research-updates-schema';
 import { QueryCompletionSchema } from './web-search';
 import type { UIMessage } from 'ai';
 

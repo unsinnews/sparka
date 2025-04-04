@@ -31,6 +31,9 @@ const PlanSchema = BaseStreamUpdateSchema.extend({
     .optional(),
   totalSteps: z.number().optional(),
 });
+
+export type PlanUpdate = z.infer<typeof PlanSchema>;
+
 const SearchSchema = BaseStreamUpdateSchema.extend({
   type: z.enum(['web', 'academic', 'x']),
   status: z.enum(['running', 'completed']),

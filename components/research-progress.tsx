@@ -20,18 +20,18 @@ import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 
 // Runtime imports (used with z.infer)
 import type {
-  AnalysisSchema,
-  SearchSchema,
+  AnalysisUpdate,
+  WebSearchUpdate,
+  AcademicSearchUpdate,
+  XSearchUpdate,
 } from '@/lib/ai/tools/research-updates-schema';
-import type { z } from 'zod';
 
 // Define non-nullable item types for clarity in map callbacks
-type SearchResultItem = NonNullable<
-  z.infer<typeof SearchSchema>['results']
->[number];
-type AnalysisFindingItem = NonNullable<
-  z.infer<typeof AnalysisSchema>['findings']
->[number];
+type SearchResultItem =
+  | NonNullable<WebSearchUpdate['results']>[number]
+  | NonNullable<AcademicSearchUpdate['results']>[number]
+  | NonNullable<XSearchUpdate['results']>[number];
+type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
 
 const ResearchStep = ({
   update,

@@ -397,7 +397,7 @@ const StepCarousel = ({ updates }: { updates: StreamUpdate[] }) => {
   return (
     <div
       ref={scrollContainerRef}
-      className="h-[300px] overflow-y-auto reason-search-overflow-y-scrollbar"
+      className="max-h-[300px] overflow-y-auto reason-search-overflow-y-scrollbar"
     >
       {updates.map((update) => {
         const isExpanded =

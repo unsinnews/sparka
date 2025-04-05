@@ -161,73 +161,97 @@ const ResearchStep = ({
             <div className="pl-8 pr-2 py-2 space-y-2">
               {/* Plan Details */}
               {update.type === 'plan' && update.plan && (
-                <div className="space-y-2">
-                  {update.plan.search_queries.map((query, idx) => (
-                    <motion.div
-                      // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                      key={idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="p-2 rounded-lg "
-                    >
-                      <div className="flex items-start gap-2">
-                        <Search className="h-3.5 w-3.5 text-neutral-500 mt-1" />
-                        <div>
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-medium">
-                              {query.query}
-                            </span>
-                            {query.source === 'web' && (
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px]"
-                              >
-                                web
-                              </Badge>
-                            )}
-                            {query.source === 'academic' && (
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px]"
-                              >
-                                academic
-                              </Badge>
-                            )}
-                            {query.source === 'both' && (
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px]"
-                              >
-                                web + academic
-                              </Badge>
-                            )}
-                            {query.source === 'x' && (
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px] flex items-center gap-0.5"
-                              >
-                                <XLogo className="h-2 w-2" />
-                                <span>X</span>
-                              </Badge>
-                            )}
-                            {query.source === 'all' && (
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px] flex items-center gap-0.5"
-                              >
-                                <span>all sources</span>
-                              </Badge>
-                            )}
+                <>
+                  <div className="space-y-2">
+                    {update.plan.search_queries.map((query, idx) => (
+                      <motion.div
+                        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="p-2 rounded-lg "
+                      >
+                        <div className="flex items-start gap-2">
+                          <Search className="h-3.5 w-3.5 text-neutral-500 mt-1" />
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-sm font-medium">
+                                {query.query}
+                              </span>
+                              {query.source === 'web' && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  web
+                                </Badge>
+                              )}
+                              {query.source === 'academic' && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  academic
+                                </Badge>
+                              )}
+                              {query.source === 'both' && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px]"
+                                >
+                                  web + academic
+                                </Badge>
+                              )}
+                              {query.source === 'x' && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] flex items-center gap-0.5"
+                                >
+                                  <span>X</span>
+                                </Badge>
+                              )}
+                              {query.source === 'all' && (
+                                <Badge
+                                  variant="secondary"
+                                  className="text-[10px] flex items-center gap-0.5"
+                                >
+                                  <span>all sources</span>
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-xs text-neutral-500 mt-1">
+                              {query.rationale}
+                            </p>
                           </div>
-                          <p className="text-xs text-neutral-500 mt-1">
-                            {query.rationale}
-                          </p>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                  <div className="space-y-2">
+                    {update.plan.required_analyses.map((analysis, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="p-2 rounded-lg"
+                      >
+                        <div className="flex items-start gap-2">
+                          <Sparkles className="h-3.5 w-3.5 text-neutral-500 mt-1" />
+                          <div>
+                            <p className="text-sm font-medium">
+                              {analysis.type}
+                            </p>
+                            <p className="text-xs text-neutral-500 mt-1">
+                              {analysis.description}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </>
               )}
 
               {/* Search Results: Show only when completed and results exist */}
@@ -237,40 +261,14 @@ const ResearchStep = ({
                 update.status === 'completed' &&
                 update.results && (
                   <div className="space-y-2">
-                    {update.results.map(
-                      (result: SearchResultItem, idx: number) =>
-                        result.tweetId ? (
-                          <motion.div
-                            key={idx}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="p-2"
-                          >
-                            <Tweet id={result.tweetId} />
-                          </motion.div>
-                        ) : result.source === 'web' ? (
-                          <WebToolAction
-                            key={idx}
-                            url={result.url}
-                            title={result.title}
-                            index={idx}
-                          />
-                        ) : result.source === 'academic' ? (
-                          <AcademicToolAction
-                            key={idx}
-                            url={result.url}
-                            title={result.title}
-                            index={idx}
-                          />
-                        ) : (
-                          <XToolAction
-                            key={idx}
-                            url={result.url}
-                            title={result.title}
-                            index={idx}
-                          />
-                        ),
+                    {update.type === 'web' && (
+                      <WebToolAction update={update} index={0} />
+                    )}
+                    {update.type === 'academic' && (
+                      <AcademicToolAction update={update} index={0} />
+                    )}
+                    {update.type === 'x' && (
+                      <XToolAction update={update} index={0} />
                     )}
                   </div>
                 )}

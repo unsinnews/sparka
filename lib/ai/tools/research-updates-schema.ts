@@ -1,5 +1,11 @@
 import { z } from 'zod';
 
+// There are 2 entities:
+// 1. Task
+// 2. Tool Action
+// Task can contain multiple Tool Actions, also explanations, etc.
+// Tool Action is a single action that can be completed by a tool
+
 const BaseStreamUpdateSchema = z.object({
   id: z.string(),
   timestamp: z.number(),
@@ -7,9 +13,13 @@ const BaseStreamUpdateSchema = z.object({
   title: z.string().optional(),
   overwrite: z.boolean().optional(),
 });
-const PlanSchema = BaseStreamUpdateSchema.extend({
-  type: z.literal('plan'),
+
+const TaskUpdateSchema = BaseStreamUpdateSchema.extend({
   status: z.enum(['running', 'completed']),
+});
+
+const PlanSchema = TaskUpdateSchema.extend({
+  type: z.literal('plan'),
   plan: z
     .object({
       search_queries: z.array(
@@ -34,8 +44,7 @@ const PlanSchema = BaseStreamUpdateSchema.extend({
 
 export type PlanUpdate = z.infer<typeof PlanSchema>;
 
-const BaseSearchSchema = BaseStreamUpdateSchema.extend({
-  status: z.enum(['running', 'completed']),
+const BaseSearchSchema = TaskUpdateSchema.extend({
   query: z.string(),
   results: z
     .array(
@@ -64,9 +73,8 @@ export const XSearchSchema = BaseSearchSchema.extend({
   type: z.literal('x'),
 });
 export type XSearchUpdate = z.infer<typeof XSearchSchema>;
-const AnalysisSchema = BaseStreamUpdateSchema.extend({
+const AnalysisSchema = TaskUpdateSchema.extend({
   type: z.literal('analysis'),
-  status: z.enum(['running', 'completed']),
   advancedSteps: z.number().optional(),
   analysisType: z.string(),
   completedSteps: z.number().optional(),

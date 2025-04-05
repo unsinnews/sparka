@@ -1,48 +1,13 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 // Type-only imports
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 
-import { ResearchStep } from './research-step';
-
-const ResearchSteps = ({ updates }: { updates: StreamUpdate[] }) => {
-  const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
-
-  const handleToggle = (stepId: string) => {
-    setExpandedSteps((current) => {
-      const newSet = new Set(current);
-      if (newSet.has(stepId)) {
-        newSet.delete(stepId);
-      } else {
-        newSet.add(stepId);
-      }
-      return newSet;
-    });
-  };
-
-  return (
-    <div>
-      {updates.map((update) => {
-        const isExpanded =
-          update.status === 'running' || expandedSteps.has(update.id);
-
-        return (
-          <ResearchStep
-            key={update.id}
-            id={`step-${update.id}`}
-            update={update}
-            isExpanded={isExpanded}
-            onToggle={() => handleToggle(update.id)}
-          />
-        );
-      })}
-    </div>
-  );
-};
+import { ResearchSteps } from './research-steps';
 
 export const ResearchProgress = ({
   updates,

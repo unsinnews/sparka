@@ -49,22 +49,22 @@ export const ResearchStep = ({
     <div id={id} className="group">
       <motion.div
         className={cn(
-          'flex items-center gap-2 px-2 py-1.5 rounded-lg transition-colors duration-200 hover:bg-neutral-50 dark:hover:bg-neutral-800/50',
+          'flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors duration-200 hover:bg-neutral-50 dark:hover:bg-neutral-800/50',
         )}
         layout
       >
         <div
           className={cn(
-            'flex-shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-colors duration-300',
+            'flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center transition-colors duration-300 relative z-10 border bg-neutral-50/50 dark:bg-neutral-900/50',
             update.status === 'completed'
-              ? 'bg-neutral-900 text-neutral-50 dark:bg-neutral-50 dark:text-neutral-900'
-              : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400',
+              ? 'border-neutral-900 text-neutral-900 dark:border-neutral-50 dark:text-neutral-50'
+              : 'border-neutral-400 text-neutral-500 dark:border-neutral-600 dark:text-neutral-400',
           )}
         >
           {update.status === 'running' ? (
-            <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+            <Loader2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 animate-spin" />
           ) : (
-            <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
+            <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
         </div>
 
@@ -73,27 +73,25 @@ export const ResearchStep = ({
           onClick={onToggle}
           className="flex items-center justify-between flex-1 text-left min-w-0"
         >
-          <div className="space-y-0.5 min-w-0 flex-1">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-sm font-medium truncate">
-                {update.title ||
-                  (update.type === 'plan'
-                    ? 'Research Plan'
-                    : update.type === 'x'
-                      ? 'X Search'
-                      : update.type === 'analysis'
-                        ? update.analysisType || 'Analysis'
-                        : 'Analysis')}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm font-medium truncate">
+              {update.title ||
+                (update.type === 'plan'
+                  ? 'Research Plan'
+                  : update.type === 'x'
+                    ? 'X Search'
+                    : update.type === 'analysis'
+                      ? update.analysisType || 'Analysis'
+                      : 'Analysis')}
+            </span>
+            {update.type === 'plan' && update.plan && (
+              <span className="text-xs text-neutral-500 flex-shrink-0">
+                ({update.plan.search_queries.length} queries,{' '}
+                {update.plan.required_analyses.length} analyses )
               </span>
-              {update.type === 'plan' && update.plan && (
-                <span className="text-xs text-neutral-500 flex-shrink-0">
-                  ({update.plan.search_queries.length} queries,{' '}
-                  {update.plan.required_analyses.length} analyses )
-                </span>
-              )}
-            </div>
+            )}
             {update.message && (
-              <p className="text-xs text-neutral-500 truncate">
+              <span className="text-xs text-neutral-500 truncate">
                 {isGapSearch ? (
                   <span className="flex items-center gap-1">
                     <Search className="w-3 h-3" />
@@ -102,7 +100,7 @@ export const ResearchStep = ({
                 ) : (
                   update.message
                 )}
-              </p>
+              </span>
             )}
           </div>
 

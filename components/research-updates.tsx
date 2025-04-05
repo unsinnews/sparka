@@ -6,6 +6,8 @@ import type {
   XSearchUpdate,
 } from '@/lib/ai/tools/research-updates-schema';
 
+// TODO: Make sure these components are used or remove them
+
 // Web updates component
 const WebUpdates: React.FC<{ updates: WebSearchUpdate[] }> = ({ updates }) => {
   return (

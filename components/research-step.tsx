@@ -6,6 +6,7 @@ import {
   Sparkles,
   ChevronRight,
   Loader2,
+  ChevronDown,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -101,10 +102,10 @@ export const ResearchStep = ({
               )}
             </div>
 
-            <ChevronRight
+            <ChevronDown
               className={cn(
                 'h-4 w-4 text-neutral-400 flex-shrink-0 ml-2 transition-transform',
-                isExpanded && 'rotate-90',
+                isExpanded && 'rotate-180',
               )}
             />
           </div>

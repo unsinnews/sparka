@@ -131,7 +131,7 @@ export const ResearchProgress = ({
           <ChevronDown
             className={cn(
               'h-4 w-4 text-neutral-500 transition-transform flex-shrink-0',
-              isCollapsed ? '-rotate-90' : '',
+              isCollapsed ? '' : 'rotate-180',
             )}
             aria-hidden="true"
           />

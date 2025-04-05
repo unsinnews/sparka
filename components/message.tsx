@@ -165,6 +165,7 @@ const PurePreviewMessage = ({
                   return (
                     <ResearchUpdateAnnotations
                       annotations={message.annotations}
+                      key={`research-update-annotations-${message.id}`}
                     />
                   );
                 } else if (

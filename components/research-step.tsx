@@ -47,72 +47,69 @@ export const ResearchStep = ({
 
   return (
     <div id={id} className="group">
-      <motion.div
-        className={cn(
-          'flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors duration-200 hover:bg-neutral-50 dark:hover:bg-neutral-800/50',
-        )}
-        layout
-      >
-        <div
+      <button type="button" onClick={onToggle}>
+        <motion.div
           className={cn(
-            'flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center transition-colors duration-300 relative z-10 border bg-neutral-50/50 dark:bg-neutral-900/50',
-            update.status === 'completed'
-              ? 'border-neutral-900 text-neutral-900 dark:border-neutral-50 dark:text-neutral-50'
-              : 'border-neutral-400 text-neutral-500 dark:border-neutral-600 dark:text-neutral-400',
+            'flex items-center gap-3 px-2 py-1.5 rounded-lg transition-colors duration-200 hover:bg-neutral-50 dark:hover:bg-neutral-800/50',
           )}
+          layout
         >
-          {update.status === 'running' ? (
-            <Loader2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 animate-spin" />
-          ) : (
-            <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          )}
-        </div>
-
-        <button
-          type="button"
-          onClick={onToggle}
-          className="flex items-center justify-between flex-1 text-left min-w-0"
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm font-medium truncate">
-              {update.title ||
-                (update.type === 'plan'
-                  ? 'Research Plan'
-                  : update.type === 'x'
-                    ? 'X Search'
-                    : update.type === 'analysis'
-                      ? update.analysisType || 'Analysis'
-                      : 'Analysis')}
-            </span>
-            {update.type === 'plan' && update.plan && (
-              <span className="text-xs text-neutral-500 flex-shrink-0">
-                ({update.plan.search_queries.length} queries,{' '}
-                {update.plan.required_analyses.length} analyses )
-              </span>
+          <div
+            className={cn(
+              'flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center transition-colors duration-300 relative z-10 border bg-neutral-50/50 dark:bg-neutral-900/50',
+              update.status === 'completed'
+                ? 'border-neutral-900 text-neutral-900 dark:border-neutral-50 dark:text-neutral-50'
+                : 'border-neutral-400 text-neutral-500 dark:border-neutral-600 dark:text-neutral-400',
             )}
-            {update.message && (
-              <span className="text-xs text-neutral-500 truncate">
-                {isGapSearch ? (
-                  <span className="flex items-center gap-1">
-                    <Search className="w-3 h-3" />
-                    {update.message}
-                  </span>
-                ) : (
-                  update.message
-                )}
-              </span>
+          >
+            {update.status === 'running' ? (
+              <Loader2 className="h-2.5 w-2.5 sm:h-3 sm:w-3 animate-spin" />
+            ) : (
+              <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             )}
           </div>
 
-          <ChevronRight
-            className={cn(
-              'h-4 w-4 text-neutral-400 flex-shrink-0 ml-2 transition-transform',
-              isExpanded && 'rotate-90',
-            )}
-          />
-        </button>
-      </motion.div>
+          <div className="flex items-center justify-between flex-1 text-left min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-sm font-medium truncate">
+                {update.title ||
+                  (update.type === 'plan'
+                    ? 'Research Plan'
+                    : update.type === 'x'
+                      ? 'X Search'
+                      : update.type === 'analysis'
+                        ? update.analysisType || 'Analysis'
+                        : 'Analysis')}
+              </span>
+              {update.type === 'plan' && update.plan && (
+                <span className="text-xs text-neutral-500 flex-shrink-0">
+                  ({update.plan.search_queries.length} queries,{' '}
+                  {update.plan.required_analyses.length} analyses )
+                </span>
+              )}
+              {update.message && (
+                <span className="text-xs text-neutral-500 truncate">
+                  {isGapSearch ? (
+                    <span className="flex items-center gap-1">
+                      <Search className="w-3 h-3" />
+                      {update.message}
+                    </span>
+                  ) : (
+                    update.message
+                  )}
+                </span>
+              )}
+            </div>
 
+            <ChevronRight
+              className={cn(
+                'h-4 w-4 text-neutral-400 flex-shrink-0 ml-2 transition-transform',
+                isExpanded && 'rotate-90',
+              )}
+            />
+          </div>
+        </motion.div>
+      </button>
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div

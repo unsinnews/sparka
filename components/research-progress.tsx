@@ -83,9 +83,10 @@ export const ResearchProgress = ({
 
   return (
     <div className="w-full">
-      <div
+      <button
+        type="button"
         className={cn(
-          'flex items-center justify-between py-2 px-3 rounded-lg',
+          'flex items-center justify-between py-2 px-3 rounded-lg w-full',
           isComplete && 'cursor-pointer',
           isComplete &&
             'hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors',
@@ -130,12 +131,12 @@ export const ResearchProgress = ({
           <ChevronDown
             className={cn(
               'h-4 w-4 text-neutral-500 transition-transform flex-shrink-0',
-              isCollapsed ? 'rotate-180' : '',
+              isCollapsed ? '-rotate-90' : '',
             )}
             aria-hidden="true"
           />
         )}
-      </div>
+      </button>
 
       <motion.div
         id="research-steps-content"

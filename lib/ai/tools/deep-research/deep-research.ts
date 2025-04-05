@@ -45,13 +45,6 @@ type ResearchResult = {
 // increase this if you have higher API rate limits
 const ConcurrencyLimit = 2;
 
-// Initialize Firecrawl with optional API key and optional base url
-
-const firecrawl = new FirecrawlApp({
-  apiKey: process.env.FIRECRAWL_API_KEY ?? '',
-  // apiUrl: process.env.FIRECRAWL_BASE_URL,
-});
-
 // take en user query, return a list of SERP queries
 async function generateSerpQueries({
   query,

@@ -241,8 +241,7 @@ const PurePreviewMessage = ({
                       ) : toolName === 'retrieve' ? (
                         // @ts-expect-error // TODO: fix this
                         <Retrieve result={result} />
-                      ) : toolName === 'webSearch' ? null : toolName ===
-                        'reasonSearch' ? null : toolName === 'stockChart' ? (
+                      ) : toolName === 'stockChart' ? (
                         // @ts-expect-error // TODO: fix this
                         <StockChartMessage result={result} args={args} />
                       ) : toolName === 'codeInterpreter' ? (

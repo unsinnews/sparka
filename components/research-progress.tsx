@@ -28,7 +28,7 @@ export const ResearchProgress = ({
     return Array.from(updateMap.values());
   }, [updates]);
 
-  const sortedUpdatesForCarousel = React.useMemo(() => {
+  const sortedUpdates = React.useMemo(() => {
     const filteredUpdates = dedupedUpdates.filter(
       (u) => u.id !== 'research-progress' && u.id !== 'research-plan-initial',
     );
@@ -81,6 +81,8 @@ export const ResearchProgress = ({
     };
   }, [updates, totalExpectedSteps, isComplete]);
 
+  console.log(sortedUpdates);
+
   return (
     <div className="w-full">
       <button
@@ -126,16 +128,25 @@ export const ResearchProgress = ({
             )}
             aria-label={`Research progress: ${Math.round(progress)}% complete`}
           />
+          {/* Indication of number of tasks */}
         </div>
-        {isComplete && (
-          <ChevronDown
-            className={cn(
-              'h-4 w-4 text-neutral-500 transition-transform flex-shrink-0',
-              isCollapsed ? '' : 'rotate-180',
-            )}
-            aria-hidden="true"
-          />
-        )}
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400"
+          >
+            {sortedUpdates.length} tasks
+          </Badge>
+          {isComplete && (
+            <ChevronDown
+              className={cn(
+                'h-4 w-4 text-neutral-500 transition-transform flex-shrink-0',
+                isCollapsed ? '' : 'rotate-180',
+              )}
+              aria-hidden="true"
+            />
+          )}
+        </div>
       </button>
 
       <motion.div
@@ -149,7 +160,7 @@ export const ResearchProgress = ({
         className="overflow-hidden"
       >
         <div className="pt-2">
-          <ResearchSteps updates={sortedUpdatesForCarousel} />
+          <ResearchSteps updates={sortedUpdates} />
         </div>
       </motion.div>
     </div>

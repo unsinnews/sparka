@@ -40,48 +40,8 @@ interface ApiKeyInputProps {
   description: string;
   linkText: string;
   linkUrl: string;
-  error?: string;
-}
-
-function ApiKeyInput({
-  id,
-  label,
-  placeholder,
-  description,
-  linkText,
-  linkUrl,
-  error,
-}: ApiKeyInputProps) {
-  return (
-    <div className="space-y-2">
-      <div className="flex justify-between items-center">
-        <Label htmlFor={id} className="text-sm font-medium text-foreground">
-          {label}
-        </Label>
-        <a
-          href={linkUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-accent-foreground hover:text-accent-foreground/80 underline"
-        >
-          {linkText} →
-        </a>
-      </div>
-      <div className="relative">
-        <Input
-          id={id}
-          type="password"
-          placeholder={placeholder}
-          className="pr-10 font-mono text-sm bg-background/50 border-border focus:border-ring focus:ring-ring h-9 sm:h-10"
-        />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-          <LockIcon className="h-4 w-4 text-muted-foreground" />
-        </div>
-      </div>
-      <p className="text-xs text-muted-foreground">{description}</p>
-      {error && <p className="text-xs text-destructive">{error}</p>}
-    </div>
-  );
+  control: any;
+  name: string;
 }
 
 const API_KEY_CONFIGS = [
@@ -113,6 +73,56 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+const ApiKeyInput = ({
+  id,
+  label,
+  placeholder,
+  description,
+  linkText,
+  linkUrl,
+  control,
+  name,
+}: ApiKeyInputProps) => {
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <div className="flex justify-between items-center">
+            <FormLabel className="text-sm font-medium text-foreground">
+              {label}
+            </FormLabel>
+            <a
+              href={linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-accent-foreground hover:text-accent-foreground/80 underline"
+            >
+              {linkText} →
+            </a>
+          </div>
+          <FormControl>
+            <div className="relative">
+              <Input
+                {...field}
+                type="password"
+                placeholder={placeholder}
+                className="pr-10 font-mono text-sm bg-background/50 border-border focus:border-ring focus:ring-ring h-9 sm:h-10"
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <LockIcon className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+          </FormControl>
+          <p className="text-xs text-muted-foreground">{description}</p>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+};
+
 export function ApiKeyDialog({ show, onClose, onSuccess }: ApiKeyDialogProps) {
   const [loading, setLoading] = useState(false);
 
@@ -127,16 +137,32 @@ export function ApiKeyDialog({ show, onClose, onSuccess }: ApiKeyDialogProps) {
 
   const handleApiKeySubmit = async (data: FormValues) => {
     setLoading(true);
-    const res = await fetch('/api/keys', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (res.ok) {
-      onClose(false);
-      onSuccess();
+    try {
+      const res = await fetch('/api/keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        onClose(false);
+        onSuccess();
+      } else {
+        const errorData = await res.json();
+        // Handle validation errors from the server
+        if (errorData.errors) {
+          Object.entries(errorData.errors).forEach(([field, message]) => {
+            form.setError(field as keyof FormValues, {
+              message: message as string,
+            });
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error saving API keys:', error);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -157,82 +183,25 @@ export function ApiKeyDialog({ show, onClose, onSuccess }: ApiKeyDialogProps) {
             className="space-y-4 sm:space-y-6 py-2 sm:py-4"
           >
             <div className="space-y-4">
-              <FormField
-                control={form.control}
+              <ApiKeyInput
+                id="openaiKey"
                 name="openaiKey"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex justify-between items-center">
-                      <FormLabel className="text-sm font-medium text-foreground">
-                        {API_KEY_CONFIGS[0].label}
-                      </FormLabel>
-                      <a
-                        href={API_KEY_CONFIGS[0].linkUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-accent-foreground hover:text-accent-foreground/80 underline"
-                      >
-                        {API_KEY_CONFIGS[0].linkText} →
-                      </a>
-                    </div>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder={API_KEY_CONFIGS[0].placeholder}
-                          className="pr-10 font-mono text-sm bg-background/50 border-border focus:border-ring focus:ring-ring h-9 sm:h-10"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                          <LockIcon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      </div>
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground">
-                      {API_KEY_CONFIGS[0].description}
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
+                label={API_KEY_CONFIGS[0].label}
+                placeholder={API_KEY_CONFIGS[0].placeholder}
+                description={API_KEY_CONFIGS[0].description}
+                linkText={API_KEY_CONFIGS[0].linkText}
+                linkUrl={API_KEY_CONFIGS[0].linkUrl}
                 control={form.control}
+              />
+              <ApiKeyInput
+                id="firecrawlKey"
                 name="firecrawlKey"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex justify-between items-center">
-                      <FormLabel className="text-sm font-medium text-foreground">
-                        {API_KEY_CONFIGS[1].label}
-                      </FormLabel>
-                      <a
-                        href={API_KEY_CONFIGS[1].linkUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-accent-foreground hover:text-accent-foreground/80 underline"
-                      >
-                        {API_KEY_CONFIGS[1].linkText} →
-                      </a>
-                    </div>
-                    <FormControl>
-                      <div className="relative">
-                        <Input
-                          {...field}
-                          type="password"
-                          placeholder={API_KEY_CONFIGS[1].placeholder}
-                          className="pr-10 font-mono text-sm bg-background/50 border-border focus:border-ring focus:ring-ring h-9 sm:h-10"
-                        />
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                          <LockIcon className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                      </div>
-                    </FormControl>
-                    <p className="text-xs text-muted-foreground">
-                      {API_KEY_CONFIGS[1].description}
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label={API_KEY_CONFIGS[1].label}
+                placeholder={API_KEY_CONFIGS[1].placeholder}
+                description={API_KEY_CONFIGS[1].description}
+                linkText={API_KEY_CONFIGS[1].linkText}
+                linkUrl={API_KEY_CONFIGS[1].linkUrl}
+                control={form.control}
               />
             </div>
 

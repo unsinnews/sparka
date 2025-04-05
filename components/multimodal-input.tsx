@@ -25,7 +25,7 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { Toggle } from './ui/toggle';
-import { SearchIcon } from 'lucide-react';
+import { GlobeIcon, SearchIcon } from 'lucide-react';
 
 function PureMultimodalInput({
   chatId,
@@ -57,7 +57,7 @@ function PureMultimodalInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
   const [deepResearch, setDeepResearch] = useState(false);
-
+  const [webSearch, setWebSearch] = useState(false);
   useEffect(() => {
     if (textareaRef.current) {
       adjustHeight();
@@ -114,6 +114,7 @@ function PureMultimodalInput({
       experimental_attachments: attachments,
       data: {
         deepResearch,
+        webSearch,
       },
     });
 
@@ -255,8 +256,9 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-1">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+        <WebSearchToggle enabled={webSearch} setEnabled={setWebSearch} />
         <DeepResearchToggle
           enabled={deepResearch}
           setEnabled={setDeepResearch}
@@ -278,6 +280,24 @@ function PureMultimodalInput({
   );
 }
 
+function WebSearchToggle({
+  enabled,
+  setEnabled,
+}: { enabled: boolean; setEnabled: (enabled: boolean) => void }) {
+  return (
+    <Toggle
+      pressed={enabled}
+      onPressedChange={setEnabled}
+      variant="outline"
+      size="sm"
+      className="gap-2 rounded-bl-lg p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
+    >
+      <GlobeIcon size={14} />
+      Web search
+    </Toggle>
+  );
+}
+
 function DeepResearchToggle({
   enabled,
   setEnabled,
@@ -288,7 +308,7 @@ function DeepResearchToggle({
       onPressedChange={setEnabled}
       variant="outline"
       size="sm"
-      className="gap-2 rounded-md rounded-bl-lg p-[7px] h-fit border-zinc-700"
+      className="gap-2 rounded-bl-lg p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
     >
       <SearchIcon size={14} />
       Deep research

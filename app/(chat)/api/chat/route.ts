@@ -24,6 +24,7 @@ import { myProvider } from '@/lib/ai/providers';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
 import { getTools } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import { UserList } from '@phosphor-icons/react';
 
 export const maxDuration = 60;
 
@@ -40,6 +41,7 @@ export async function POST(request: Request) {
       selectedChatModel: string;
       data: {
         deepResearch: boolean;
+        webSearch: boolean;
       };
     } = await request.json();
 
@@ -50,6 +52,8 @@ export async function POST(request: Request) {
     }
 
     const deepResearch = data.deepResearch;
+    const webSearch = data.webSearch;
+
     const userMessage = getMostRecentUserMessage(messages);
 
     if (!userMessage) {
@@ -84,6 +88,18 @@ export async function POST(request: Request) {
       ],
     });
 
+    // Add context of user selection to the user message
+    // TODO: Consider doing this in the system prompt instead
+    if (userMessage.parts[0].type === 'text') {
+      if (deepResearch) {
+        userMessage.content = `${userMessage.content} (use deepResearch)`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (use deepResearch)`;
+      } else if (webSearch) {
+        userMessage.content = `${userMessage.content} (use webSearch)`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (use webSearch)`;
+      }
+    }
+
     return createDataStreamResponse({
       execute: (dataStream) => {
         const annotationStream = new AnnotationDataStreamWriter(dataStream);
@@ -93,18 +109,20 @@ export async function POST(request: Request) {
             ? []
             : deepResearch
               ? ['deepResearch']
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                  'reasonSearch',
-                  'retrieve',
-                  'webSearch',
-                  'stockChart',
-                  'codeInterpreter',
-                  'deepResearch',
-                ];
+              : webSearch
+                ? ['webSearch']
+                : [
+                    'getWeather',
+                    'createDocument',
+                    'updateDocument',
+                    'requestSuggestions',
+                    'reasonSearch',
+                    'retrieve',
+                    'webSearch',
+                    'stockChart',
+                    'codeInterpreter',
+                    'deepResearch',
+                  ];
 
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),

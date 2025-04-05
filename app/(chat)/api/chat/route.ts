@@ -24,11 +24,18 @@ import { myProvider } from '@/lib/ai/providers';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
 import { getTools } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
-import { UserList } from '@phosphor-icons/react';
+import type { NextRequest } from 'next/server';
 
 export const maxDuration = 60;
 
-export async function POST(request: Request) {
+function validateApiKeys(request: NextRequest) {
+  const openaiKey = request.cookies.get('openai-key')?.value;
+  const firecrawlKey = request.cookies.get('firecrawl-key')?.value;
+
+  return !!openaiKey && !!firecrawlKey;
+}
+
+export async function POST(request: NextRequest) {
   try {
     const {
       id,
@@ -46,6 +53,15 @@ export async function POST(request: Request) {
     } = await request.json();
 
     const session = await auth();
+
+    const validApiKeys = validateApiKeys(request);
+    // Add API key validation
+    if (!validApiKeys) {
+      return Response.json(
+        { error: 'API keys are required but not provided' },
+        { status: 401 },
+      );
+    }
 
     if (!session || !session.user || !session.user.id) {
       return new Response('Unauthorized', { status: 401 });

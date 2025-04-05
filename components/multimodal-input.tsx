@@ -25,7 +25,13 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { Toggle } from './ui/toggle';
-import { GlobeIcon, SearchIcon } from 'lucide-react';
+import {
+  CheckCircleIcon,
+  GlobeIcon,
+  SearchIcon,
+  XCircleIcon,
+} from 'lucide-react';
+import { ApiKeyDialog } from './api-key-dialog';
 
 function PureMultimodalInput({
   chatId,
@@ -58,11 +64,33 @@ function PureMultimodalInput({
   const { width } = useWindowSize();
   const [deepResearch, setDeepResearch] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
+  const [showApiKeyPrompt, setShowApiKeyPrompt] = useState(false);
+  const [hasKeys, setHasKeys] = useState(false);
+
   useEffect(() => {
     if (textareaRef.current) {
       adjustHeight();
     }
   }, []);
+
+  const enableApiKeys = true; // process.env.NEXT_PUBLIC_ENABLE_API_KEYS === 'true';
+
+  const effectiveHasKeys = hasKeys;
+
+  // Check for keys using the consolidated endpoint
+  useEffect(() => {
+    const checkKeys = async () => {
+      const res = await fetch('/api/keys');
+      const data = await res.json();
+      setHasKeys(data.keysPresent);
+      if (!data.keysPresent && enableApiKeys) {
+        setShowApiKeyPrompt(true);
+      } else {
+        setShowApiKeyPrompt(false);
+      }
+    };
+    checkKeys();
+  }, [enableApiKeys]);
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -107,7 +135,27 @@ function PureMultimodalInput({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
 
+  const handleRemoveKeys = async () => {
+    if (!window.confirm('Are you sure you want to remove your API keys?'))
+      return;
+    try {
+      const res = await fetch('/api/keys', {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setHasKeys(false);
+      }
+    } catch (error) {
+      console.error('Error removing keys:', error);
+    }
+  };
   const submitForm = useCallback(() => {
+    if (enableApiKeys && !effectiveHasKeys) {
+      // Re-open the API key modal if keys are missing
+      setShowApiKeyPrompt(true);
+      return;
+    }
+
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
     handleSubmit(undefined, {
@@ -256,13 +304,43 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-1">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
         <WebSearchToggle enabled={webSearch} setEnabled={setWebSearch} />
         <DeepResearchToggle
           enabled={deepResearch}
           setEnabled={setDeepResearch}
         />
+        {/* API Keys Status */}
+        <button
+          type="button"
+          onClick={
+            enableApiKeys
+              ? effectiveHasKeys
+                ? handleRemoveKeys
+                : () => setShowApiKeyPrompt(true)
+              : undefined
+          }
+          className="flex items-center gap-1"
+        >
+          {enableApiKeys ? (
+            effectiveHasKeys ? (
+              <>
+                <CheckCircleIcon size={16} className="text-green-500" />
+                <span className="text-xs text-green-600">
+                  API keys configured
+                </span>
+              </>
+            ) : (
+              <>
+                <XCircleIcon size={16} className="text-red-500" />
+                <span className="text-xs text-red-600">API keys missing</span>
+              </>
+            )
+          ) : (
+            <span className="text-xs text-green-600">Using .env API keys</span>
+          )}
+        </button>
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
@@ -276,6 +354,17 @@ function PureMultimodalInput({
           />
         )}
       </div>
+      {/* Conditionally render API key dialog only if enabled */}
+      {enableApiKeys && (
+        <ApiKeyDialog
+          show={showApiKeyPrompt}
+          onClose={setShowApiKeyPrompt}
+          onSuccess={() => {
+            setShowApiKeyPrompt(false);
+            setHasKeys(true);
+          }}
+        />
+      )}
     </div>
   );
 }

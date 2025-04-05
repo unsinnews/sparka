@@ -24,7 +24,10 @@ import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
-import { MessageAnnotations } from './message-annotations';
+import {
+  MessageAnnotationsFooter,
+  ResearchUpdateAnnotations,
+} from './message-annotations';
 
 const PurePreviewMessage = ({
   chatId,
@@ -84,8 +87,6 @@ const PurePreviewMessage = ({
                 ))}
               </div>
             )}
-
-            <MessageAnnotations annotations={message.annotations} />
 
             {message.parts?.map((part, index) => {
               const { type } = part;
@@ -158,6 +159,15 @@ const PurePreviewMessage = ({
                 const toolInvocation = toolInvocationRaw as YourToolInvocation;
 
                 if (
+                  toolInvocation.toolName === 'webSearch' ||
+                  toolInvocation.toolName === 'reasonSearch'
+                ) {
+                  return (
+                    <ResearchUpdateAnnotations
+                      annotations={message.annotations}
+                    />
+                  );
+                } else if (
                   toolInvocation.state === 'call' ||
                   toolInvocation.state === 'partial-call'
                 ) {
@@ -189,10 +199,6 @@ const PurePreviewMessage = ({
                         />
                       ) : toolName === 'retrieve' ? (
                         <Retrieve />
-                      ) : toolName === 'webSearch' ? null : toolName ===
-                        'reasonSearch' ? (
-                        // TODO: replace with `Performing research...` annimation
-                        <div>Performing research...</div>
                       ) : toolName === 'stockChart' ? (
                         <StockChartMessage result={null} args={args} />
                       ) : toolName === 'codeInterpreter' ? (
@@ -249,7 +255,6 @@ const PurePreviewMessage = ({
                 }
               }
             })}
-
             {!isReadonly && (
               <MessageActions
                 key={`action-${message.id}`}
@@ -259,6 +264,7 @@ const PurePreviewMessage = ({
                 isLoading={isLoading}
               />
             )}
+            <MessageAnnotationsFooter annotations={message.annotations} />
           </div>
         </div>
       </motion.div>

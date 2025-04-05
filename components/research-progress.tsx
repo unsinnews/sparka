@@ -26,6 +26,12 @@ import type {
   XSearchUpdate,
 } from '@/lib/ai/tools/research-updates-schema';
 
+import {
+  WebToolAction,
+  AcademicToolAction,
+  XToolAction,
+} from '@/components/tool-actions';
+
 // Define non-nullable item types for clarity in map callbacks
 type SearchResultItem =
   | NonNullable<WebSearchUpdate['results']>[number]
@@ -163,7 +169,7 @@ const ResearchStep = ({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="p-2 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
+                      className="p-2 rounded-lg "
                     >
                       <div className="flex items-start gap-2">
                         <Search className="h-3.5 w-3.5 text-neutral-500 mt-1" />
@@ -243,60 +249,38 @@ const ResearchStep = ({
                           >
                             <Tweet id={result.tweetId} />
                           </motion.div>
-                        ) : (
-                          <motion.a
+                        ) : result.source === 'web' ? (
+                          <WebToolAction
                             key={idx}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            href={result.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-start gap-2 p-2 rounded-lg bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
-                          >
-                            <div className="flex-shrink-0 mt-1">
-                              <img
-                                src={`https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`}
-                                alt=""
-                                className="w-4 h-4"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.style.display = 'none';
-                                  target.nextElementSibling?.classList.remove(
-                                    'hidden',
-                                  );
-                                }}
-                              />
-                              <div className="hidden">
-                                {result.source === 'web' ? (
-                                  <FileText className="h-4 w-4 text-neutral-500" />
-                                ) : result.source === 'academic' ? (
-                                  <BookA className="h-4 w-4 text-neutral-500" />
-                                ) : (
-                                  <XLogo className="h-4 w-4 text-neutral-500" />
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <h4 className="text-sm font-medium leading-tight">
-                                {result.title}
-                              </h4>
-                              <p className="text-xs text-neutral-500 mt-1 line-clamp-2">
-                                {result.content}
-                              </p>
-                            </div>
-                          </motion.a>
+                            url={result.url}
+                            title={result.title}
+                            index={idx}
+                          />
+                        ) : result.source === 'academic' ? (
+                          <AcademicToolAction
+                            key={idx}
+                            url={result.url}
+                            title={result.title}
+                            index={idx}
+                          />
+                        ) : (
+                          <XToolAction
+                            key={idx}
+                            url={result.url}
+                            title={result.title}
+                            index={idx}
+                          />
                         ),
                     )}
                   </div>
                 )}
 
-              {/* Search Loading State: Show only when running */}
+              {/* Search Loading State */}
               {(update.type === 'web' ||
                 update.type === 'academic' ||
                 update.type === 'x') &&
                 update.status === 'running' && (
-                  <div className="p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-black">
+                  <div className="py-2">
                     <div className="flex items-center gap-3">
                       <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
                       <p className="text-xs text-neutral-500">
@@ -322,7 +306,7 @@ const ResearchStep = ({
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.05 }}
-                          className="p-2 rounded-lg bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
+                          className="py-1.5"
                         >
                           <div className="flex items-start gap-3">
                             <div className="flex-shrink-0 mt-1.5">
@@ -370,7 +354,6 @@ const ResearchStep = ({
 
 const StepCarousel = ({ updates }: { updates: StreamUpdate[] }) => {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleToggle = (stepId: string) => {
     setExpandedSteps((current) => {
@@ -384,21 +367,8 @@ const StepCarousel = ({ updates }: { updates: StreamUpdate[] }) => {
     });
   };
 
-  useEffect(() => {
-    const runningStep = updates.find((update) => update.status === 'running');
-    if (runningStep) {
-      const stepElement = document.getElementById(`step-${runningStep.id}`);
-      if (stepElement && scrollContainerRef.current) {
-        stepElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
-    }
-  }, [updates]);
-
   return (
-    <div
-      ref={scrollContainerRef}
-      className="max-h-[300px] overflow-y-auto reason-search-overflow-y-scrollbar"
-    >
+    <div>
       {updates.map((update) => {
         const isExpanded =
           update.status === 'running' || expandedSteps.has(update.id);
@@ -490,10 +460,10 @@ export const ResearchProgress = ({
   }, [updates, totalExpectedSteps, isComplete]);
 
   return (
-    <Card className="w-full shadow-none hover:shadow-none">
+    <div className="w-full">
       <div
         className={cn(
-          'flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 rounded-xl',
+          'flex items-center justify-between py-2',
           isComplete && 'cursor-pointer',
           isComplete &&
             'hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors',
@@ -555,10 +525,10 @@ export const ResearchProgress = ({
         transition={{ duration: 0.2 }}
         className="overflow-hidden"
       >
-        <CardContent className="px-2 sm:px-4 pt-2 sm:pt-4">
+        <div className="pt-2">
           <StepCarousel updates={sortedUpdatesForCarousel} />
-        </CardContent>
+        </div>
       </motion.div>
-    </Card>
+    </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FileText, BookA } from 'lucide-react';
 import { XLogo } from '@phosphor-icons/react';
 import {
@@ -7,7 +7,6 @@ import {
   ToolActionContent,
 } from './tool-action';
 import { Tweet } from 'react-tweet';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import {
   Tooltip,
   TooltipContent,
@@ -25,122 +24,90 @@ interface BaseToolActionProps {
   index?: number;
 }
 
-// Web tool action with full update object
+// Web tool action for a single result
 export const WebToolAction = ({
-  update,
-  index = 0,
+  result,
 }: BaseToolActionProps & {
-  update: WebSearchUpdate;
+  result: NonNullable<WebSearchUpdate['results']>[number];
 }) => {
-  if (!update.results || update.results.length === 0) return null;
+  if (!result) return null;
+
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`;
 
   return (
-    <div className="space-y-2">
-      {update.results.map((result, idx) => {
-        const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`;
-
-        return (
-          <ToolActionContainer key={idx} href={result.url} index={index + idx}>
-            <ToolActionKind
-              icon={<FileText className="h-4 w-4 text-foreground/80" />}
-              name="Reading Web"
-            />
-            <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
-          </ToolActionContainer>
-        );
-      })}
-    </div>
+    <ToolActionContainer href={result.url}>
+      <ToolActionKind
+        icon={<FileText className="h-4 w-4 text-foreground/80" />}
+        name="Reading Web"
+      />
+      <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
+    </ToolActionContainer>
   );
 };
 
-// Academic tool action with full update object
+// Academic tool action for a single result
 export const AcademicToolAction = ({
-  update,
-  index = 0,
+  result,
 }: BaseToolActionProps & {
-  update: AcademicSearchUpdate;
+  result: NonNullable<WebSearchUpdate['results']>[number];
 }) => {
-  if (!update.results || update.results.length === 0) return null;
+  if (!result) return null;
+
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`;
 
   return (
-    <div className="space-y-2">
-      {update.results.map((result, idx) => {
-        const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`;
-
-        return (
-          <ToolActionContainer key={idx} href={result.url} index={index + idx}>
-            <ToolActionKind
-              icon={<BookA className="h-4 w-4 text-foreground/80" />}
-              name="Reading Academic"
-            />
-            <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
-          </ToolActionContainer>
-        );
-      })}
-    </div>
+    <ToolActionContainer href={result.url}>
+      <ToolActionKind
+        icon={<BookA className="h-4 w-4 text-foreground/80" />}
+        name="Reading Academic"
+      />
+      <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
+    </ToolActionContainer>
   );
 };
 
-// X tool action with full update object and tweet display on hover/click
+// X tool action for a single result with tweet display on hover/click
 export const XToolAction = ({
-  update,
-  index = 0,
+  result,
 }: BaseToolActionProps & {
-  update: XSearchUpdate;
+  result: NonNullable<XSearchUpdate['results']>[number];
 }) => {
-  if (!update.results || update.results.length === 0) return null;
+  if (!result) return null;
 
-  return (
-    <TooltipProvider>
-      <div className="space-y-2">
-        {update.results.map((result, idx) => {
-          const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`;
+  const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`;
 
-          // If there's a tweetId, wrap in a tooltip
-          if (result.tweetId) {
-            return (
-              <Tooltip key={idx}>
-                <TooltipTrigger asChild>
-                  <ToolActionContainer
-                    href={result.url}
-                    index={index + idx}
-                    className="cursor-pointer"
-                  >
-                    <ToolActionKind
-                      icon={<XLogo className="h-4 w-4 text-foreground/80" />}
-                      name="Reading X"
-                    />
-                    <ToolActionContent
-                      title={result.title}
-                      faviconUrl={faviconUrl}
-                    />
-                  </ToolActionContainer>
-                </TooltipTrigger>
-                <TooltipContent className="w-80 p-0" sideOffset={5}>
-                  <div className="p-2">
-                    <Tweet id={result.tweetId} />
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            );
-          }
-
-          // Regular X link without tweet
-          return (
-            <ToolActionContainer
-              key={idx}
-              href={result.url}
-              index={index + idx}
-            >
+  // If there's a tweetId, wrap in a tooltip
+  if (result.tweetId) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <ToolActionContainer href={result.url} className="cursor-pointer">
               <ToolActionKind
                 icon={<XLogo className="h-4 w-4 text-foreground/80" />}
                 name="Reading X"
               />
               <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
             </ToolActionContainer>
-          );
-        })}
-      </div>
-    </TooltipProvider>
+          </TooltipTrigger>
+          <TooltipContent className="w-80 p-0" sideOffset={5}>
+            <div className="p-2">
+              <Tweet id={result.tweetId} />
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  // Regular X link without tweet
+  return (
+    <ToolActionContainer href={result.url}>
+      <ToolActionKind
+        icon={<XLogo className="h-4 w-4 text-foreground/80" />}
+        name="Reading X"
+      />
+      <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
+    </ToolActionContainer>
   );
 };

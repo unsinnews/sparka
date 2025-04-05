@@ -39,7 +39,7 @@ const ToolActionContent = React.forwardRef<
       className={cn('flex items-center gap-2', className)}
       {...props}
     >
-      <h4 className="text-sm leading-tight text-muted-foreground/80 truncate">
+      <h4 className="text-sm leading-tight text-muted-foreground/80 truncate max-w-[200px] sm:max-w-[300px]">
         {title}
       </h4>
       {faviconUrl && (
@@ -66,9 +66,8 @@ const ToolActionContainer = React.forwardRef<
     href: string;
     children: React.ReactNode;
     className?: string;
-    index?: number;
   }
->(({ href, children, className, index = 0, ...props }, ref) => {
+>(({ href, children, className, ...props }, ref) => {
   return (
     <motion.a
       ref={ref}
@@ -77,7 +76,7 @@ const ToolActionContainer = React.forwardRef<
       rel="noopener noreferrer"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      transition={{ delay: 0.05 }}
       className={cn(
         'flex w-fit justify-start px-2.5 py-1 flex-row items-center gap-3 bg-muted/50 border rounded-full hover:bg-accent/20 transition-colors',
         className,

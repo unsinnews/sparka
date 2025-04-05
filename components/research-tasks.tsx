@@ -1,8 +1,8 @@
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import React, { useState } from 'react';
-import { ResearchStep } from './research-step';
+import { ResearchTask } from './research-task';
 
-export const ResearchSteps = ({ updates }: { updates: StreamUpdate[] }) => {
+export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
 
   const handleToggle = (stepId: string) => {
@@ -25,7 +25,7 @@ export const ResearchSteps = ({ updates }: { updates: StreamUpdate[] }) => {
 
         return (
           <div key={update.id} className="relative">
-            <ResearchStep
+            <ResearchTask
               id={`step-${update.id}`}
               update={update}
               isExpanded={isExpanded}

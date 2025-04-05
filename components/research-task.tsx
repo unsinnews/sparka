@@ -4,7 +4,6 @@ import {
   FileText,
   BookA,
   Sparkles,
-  ChevronRight,
   Loader2,
   ChevronDown,
 } from 'lucide-react';
@@ -22,7 +21,7 @@ import {
 
 type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
 
-export const ResearchStep = ({
+export const ResearchTask = ({
   update,
   isExpanded,
   onToggle,
@@ -59,7 +58,7 @@ export const ResearchStep = ({
             className={cn(
               'flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center transition-colors duration-300 relative z-10 border bg-neutral-50/50 dark:bg-neutral-900/50',
               update.status === 'completed'
-                ? 'border-neutral-900 text-neutral-900 dark:border-neutral-50 dark:text-neutral-50'
+                ? 'border-neutral-900 text-neutral-900 dark:border-neutral-100 dark:text-neutral-50'
                 : 'border-neutral-400 text-neutral-500 dark:border-neutral-600 dark:text-neutral-400',
             )}
           >

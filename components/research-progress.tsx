@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 // Type-only imports
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 
-import { ResearchSteps } from './research-steps';
+import { ResearchTasks } from './research-tasks';
 
 export const ResearchProgress = ({
   updates,
@@ -80,8 +80,6 @@ export const ResearchProgress = ({
       showRunningIndicators: !isComplete && running > 0,
     };
   }, [updates, totalExpectedSteps, isComplete]);
-
-  console.log(sortedUpdates);
 
   return (
     <div className="w-full">
@@ -160,7 +158,7 @@ export const ResearchProgress = ({
         className="overflow-hidden"
       >
         <div className="pt-2">
-          <ResearchSteps updates={sortedUpdates} />
+          <ResearchTasks updates={sortedUpdates} />
         </div>
       </motion.div>
     </div>

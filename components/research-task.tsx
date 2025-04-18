@@ -13,7 +13,11 @@ import { XLogo } from '@phosphor-icons/react';
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import type { AnalysisUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { AcademicToolAction, XToolAction } from '@/components/tool-actions';
-import { WebSourceBadge } from './source-badge';
+import {
+  AcademicSourceBadge,
+  WebSourceBadge,
+  XSourceBadge,
+} from './source-badge';
 
 type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
 
@@ -240,14 +244,14 @@ export const ResearchTask = ({
                       ))}
                     {update.type === 'academic' &&
                       update.results.map((result, idx) => (
-                        <AcademicToolAction
+                        <AcademicSourceBadge
                           key={`academic-result-${idx}`}
                           result={result}
                         />
                       ))}
                     {update.type === 'x' &&
                       update.results.map((result, idx) => (
-                        <XToolAction key={`x-result-${idx}`} result={result} />
+                        <XSourceBadge key={`x-result-${idx}`} result={result} />
                       ))}
                   </div>
                 )}

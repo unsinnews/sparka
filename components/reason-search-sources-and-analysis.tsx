@@ -10,6 +10,11 @@ import type {
 
 // Define non-nullable item types for clarity in map callbacks
 export type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
+export type AcademicSearchResultItem = NonNullable<
+  AcademicSearchUpdate['results']
+>[number];
+export type XSearchResultItem = NonNullable<XSearchUpdate['results']>[number];
+
 type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
 type AnalysisGapItem = NonNullable<AnalysisUpdate['gaps']>[number];
 type AnalysisRecommendationItem = NonNullable<

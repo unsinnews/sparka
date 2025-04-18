@@ -9,7 +9,7 @@
 
 
 ### Frontend
-[ ] Annotations for search should be less granular, just a list of sites (like perplexity)
+[x] Annotations for search should be less granular, just a list of sites (like perplexity)
 
 
 ### System

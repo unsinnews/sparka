@@ -1,6 +1,7 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Favicon } from './favicon';
 
 // ToolActionKind component
 const ToolActionKind = React.forwardRef<
@@ -43,10 +44,8 @@ const ToolActionContent = React.forwardRef<
         {title}
       </h4>
       {faviconUrl && (
-        <img
-          src={faviconUrl}
-          alt=""
-          className="w-4 h-4"
+        <Favicon
+          url={faviconUrl}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.style.display = 'none';

@@ -1,4 +1,3 @@
-import React from 'react';
 import { FileText, BookA } from 'lucide-react';
 import { XLogo } from '@phosphor-icons/react';
 import {
@@ -10,14 +9,13 @@ import { Tweet } from 'react-tweet';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type {
   WebSearchUpdate,
-  AcademicSearchUpdate,
   XSearchUpdate,
 } from '@/lib/ai/tools/research-updates-schema';
+import { getFaviconUrl } from '@/lib/url-utils';
 
 // Base interface for all tool actions
 interface BaseToolActionProps {
@@ -53,7 +51,7 @@ export const AcademicToolAction = ({
 }) => {
   if (!result) return null;
 
-  const faviconUrl = `https://www.google.com/s2/favicons?domain=${new URL(result.url).hostname}&sz=128`;
+  const faviconUrl = getFaviconUrl(result);
 
   return (
     <ToolActionContainer href={result.url}>
@@ -79,24 +77,22 @@ export const XToolAction = ({
   // If there's a tweetId, wrap in a tooltip
   if (result.tweetId) {
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <ToolActionContainer href={result.url} className="cursor-pointer">
-              <ToolActionKind
-                icon={<XLogo className="h-4 w-4 text-foreground/80" />}
-                name="Reading X"
-              />
-              <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
-            </ToolActionContainer>
-          </TooltipTrigger>
-          <TooltipContent className="w-80 p-0" sideOffset={5}>
-            <div className="p-2">
-              <Tweet id={result.tweetId} />
-            </div>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <ToolActionContainer href={result.url} className="cursor-pointer">
+            <ToolActionKind
+              icon={<XLogo className="h-4 w-4 text-foreground/80" />}
+              name="Reading X"
+            />
+            <ToolActionContent title={result.title} faviconUrl={faviconUrl} />
+          </ToolActionContainer>
+        </TooltipTrigger>
+        <TooltipContent className="w-80 p-0" sideOffset={5}>
+          <div className="p-2">
+            <Tweet id={result.tweetId} />
+          </div>
+        </TooltipContent>
+      </Tooltip>
     );
   }
 

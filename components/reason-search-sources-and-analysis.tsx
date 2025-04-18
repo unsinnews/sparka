@@ -9,7 +9,7 @@ import type {
 } from '@/lib/ai/tools/research-updates-schema';
 
 // Define non-nullable item types for clarity in map callbacks
-type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
+export type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
 type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
 type AnalysisGapItem = NonNullable<AnalysisUpdate['gaps']>[number];
 type AnalysisRecommendationItem = NonNullable<

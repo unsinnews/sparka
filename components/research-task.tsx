@@ -12,12 +12,8 @@ import { cn } from '@/lib/utils';
 import { XLogo } from '@phosphor-icons/react';
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import type { AnalysisUpdate } from '@/lib/ai/tools/research-updates-schema';
-
-import {
-  WebToolAction,
-  AcademicToolAction,
-  XToolAction,
-} from '@/components/tool-actions';
+import { AcademicToolAction, XToolAction } from '@/components/tool-actions';
+import { WebSourceBadge } from './source-badge';
 
 type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
 
@@ -234,10 +230,10 @@ export const ResearchTask = ({
                 update.type === 'x') &&
                 update.status === 'completed' &&
                 update.results && (
-                  <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
                     {update.type === 'web' &&
                       update.results.map((result, idx) => (
-                        <WebToolAction
+                        <WebSourceBadge
                           key={`web-result-${idx}`}
                           result={result}
                         />

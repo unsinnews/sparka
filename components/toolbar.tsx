@@ -11,7 +11,7 @@ import {
 import {
   type Dispatch,
   memo,
-  ReactNode,
+  type ReactNode,
   type SetStateAction,
   useEffect,
   useRef,
@@ -27,9 +27,9 @@ import {
 } from '@/components/ui/tooltip';
 
 import { ArrowUpIcon, StopIcon, SummarizeIcon } from './icons';
-import { artifactDefinitions, ArtifactKind } from './artifact';
-import { ArtifactToolbarItem } from './create-artifact';
-import { UseChatHelpers } from '@ai-sdk/react';
+import { artifactDefinitions, type ArtifactKind } from './artifact';
+import type { ArtifactToolbarItem } from './create-artifact';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 type ToolProps = {
   description: string;
@@ -183,58 +183,56 @@ const ReadingLevelSelector = ({
         </motion.div>
       ))}
 
-      <TooltipProvider>
-        <Tooltip open={!isAnimating}>
-          <TooltipTrigger asChild>
-            <motion.div
-              className={cx(
-                'absolute bg-background p-3 border rounded-full flex flex-row items-center',
-                {
-                  'bg-primary text-primary-foreground': currentLevel !== 2,
-                  'bg-background text-foreground': currentLevel === 2,
-                },
-              )}
-              style={{ y }}
-              drag="y"
-              dragElastic={0}
-              dragMomentum={false}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ duration: 0.1 }}
-              dragConstraints={{ top: -dragConstraints, bottom: 0 }}
-              onDragStart={() => {
-                setHasUserSelectedLevel(false);
-              }}
-              onDragEnd={() => {
-                if (currentLevel === 2) {
-                  setSelectedTool(null);
-                } else {
-                  setHasUserSelectedLevel(true);
-                }
-              }}
-              onClick={() => {
-                if (currentLevel !== 2 && hasUserSelectedLevel) {
-                  append({
-                    role: 'user',
-                    content: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`,
-                  });
+      <Tooltip open={!isAnimating}>
+        <TooltipTrigger asChild>
+          <motion.div
+            className={cx(
+              'absolute bg-background p-3 border rounded-full flex flex-row items-center',
+              {
+                'bg-primary text-primary-foreground': currentLevel !== 2,
+                'bg-background text-foreground': currentLevel === 2,
+              },
+            )}
+            style={{ y }}
+            drag="y"
+            dragElastic={0}
+            dragMomentum={false}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.1 }}
+            dragConstraints={{ top: -dragConstraints, bottom: 0 }}
+            onDragStart={() => {
+              setHasUserSelectedLevel(false);
+            }}
+            onDragEnd={() => {
+              if (currentLevel === 2) {
+                setSelectedTool(null);
+              } else {
+                setHasUserSelectedLevel(true);
+              }
+            }}
+            onClick={() => {
+              if (currentLevel !== 2 && hasUserSelectedLevel) {
+                append({
+                  role: 'user',
+                  content: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`,
+                });
 
-                  setSelectedTool(null);
-                }
-              }}
-            >
-              {currentLevel === 2 ? <SummarizeIcon /> : <ArrowUpIcon />}
-            </motion.div>
-          </TooltipTrigger>
-          <TooltipContent
-            side="left"
-            sideOffset={16}
-            className="bg-foreground text-background text-sm rounded-2xl p-3 px-4"
+                setSelectedTool(null);
+              }
+            }}
           >
-            {LEVELS[currentLevel]}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+            {currentLevel === 2 ? <SummarizeIcon /> : <ArrowUpIcon />}
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent
+          side="left"
+          sideOffset={16}
+          className="bg-foreground text-background text-sm rounded-2xl p-3 px-4"
+        >
+          {LEVELS[currentLevel]}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 };

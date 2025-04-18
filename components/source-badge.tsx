@@ -12,9 +12,7 @@ import type {
   XSearchResultItem,
   AcademicSearchResultItem,
 } from '@/components/reason-search-sources-and-analysis';
-import { Book } from 'lucide-react';
-import { TwitterIcon } from 'lucide-react';
-import { X, XLogo } from '@phosphor-icons/react';
+import { XLogo } from '@phosphor-icons/react';
 import { Tweet } from 'react-tweet';
 
 export function WebSourceBadge({ result }: { result: SearchResultItem }) {
@@ -27,7 +25,7 @@ export function WebSourceBadge({ result }: { result: SearchResultItem }) {
             className="text-[10px] gap-1 max-w-[200px] truncate text-xs"
           >
             <Favicon url={getFaviconUrl(result)} className="w-3 h-3" />
-            <span>{getDomainFromUrl(result.url)}</span>
+            <span className="italic">{getDomainFromUrl(result.url)}</span>
             <span className="text-xs text-muted-foreground">
               {result.title}
             </span>
@@ -40,6 +38,7 @@ export function WebSourceBadge({ result }: { result: SearchResultItem }) {
           <p className="font-semibold ">{result.title}</p>
         </div>
         <p className="text-xs text-muted-foreground ">{result.url}</p>
+        <p className="text-xs text-muted-foreground ">{result.content}</p>
       </TooltipContent>
     </Tooltip>
   );
@@ -59,7 +58,7 @@ export function AcademicSourceBadge({
             className="text-[10px] gap-1 max-w-[200px] truncate text-xs"
           >
             <Favicon url={getFaviconUrl(result)} className="w-3 h-3" />
-            <span>{getDomainFromUrl(result.url)}</span>
+            <span className="italic">{getDomainFromUrl(result.url)}</span>
             <span className="text-xs text-muted-foreground">
               {result.title}
             </span>
@@ -74,9 +73,7 @@ export function AcademicSourceBadge({
           />
           <p className="font-semibold">{result.title}</p>
         </div>
-        {result.url && (
-          <p className="text-xs text-muted-foreground ">{result.url}</p>
-        )}
+        <p className="text-xs text-muted-foreground ">{result.content}</p>
       </TooltipContent>
     </Tooltip>
   );

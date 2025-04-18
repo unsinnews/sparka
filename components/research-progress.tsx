@@ -133,7 +133,7 @@ export const ResearchProgress = ({
             variant="secondary"
             className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400"
           >
-            {sortedUpdates.length} tasks
+            {sortedUpdates.length} task{sortedUpdates.length === 1 ? '' : 's'}
           </Badge>
           {isComplete && (
             <ChevronDown

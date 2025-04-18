@@ -20,6 +20,11 @@ type SearchResult = {
   results: (XSearchResult | AcademicSearchResult | WebSearchResult)[];
 };
 
+const MAX_QUERIES_BREATH = 5;
+const MAX_ANALYSES = 5;
+const MAX_KNOWLEDGE_GAPS = 3;
+const MAX_KNOWLEDGE_GAPS_QUERIES_BREATH = 2;
+
 export const createReasonSearch = ({
   session,
   dataStream,
@@ -88,8 +93,8 @@ export const createReasonSearch = ({
                 Today's date and day of the week: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
         
                 Keep the plan concise but comprehensive, with:
-                - 4-12 targeted search queries (each can use web, academic, x (Twitter), or all sources)
-                - 2-8 key analyses to perform
+                - 2-${MAX_QUERIES_BREATH} targeted search queries (each can use web, academic, x (Twitter), or all sources)
+                - 2-${MAX_ANALYSES} key analyses to perform
                 - Prioritize the most important aspects to investigate
                 
                 Available sources:
@@ -232,7 +237,6 @@ export const createReasonSearch = ({
         analysisIndex++; // Increment index
       }
 
-      // TODO: 1. Make initial search less results / queries
       // TODO: 2. Make post analysis search optional and based on initial results
 
       // After all analyses are complete, send running state for gap analysis
@@ -266,14 +270,21 @@ export const createReasonSearch = ({
             z.object({
               topic: z.string(),
               reason: z.string(),
-              additional_queries: z.array(z.string()),
+              additional_queries: z.array(
+                z.object({
+                  query: z.string(),
+                  rationale: z.string(),
+                  source: z.enum(['web', 'academic', 'x', 'all']),
+                  priority: z.number().min(1).max(5),
+                }),
+              ),
             }),
           ),
           recommended_followup: z.array(
             z.object({
               action: z.string(),
               rationale: z.string(),
-              priority: z.number().min(2).max(10),
+              priority: z.number().min(2).max(4),
             }),
           ),
         }),
@@ -285,8 +296,8 @@ export const createReasonSearch = ({
                 - Areas needing deeper investigation
                 - Potential biases or conflicts
                 - Severity should be between 2 and 10
-                - Knowledge gaps should be between 2 and 10
-                - Do not keep the numbers too low or high, make them reasonable in between
+                - Knowledge gaps should be between 0 and ${MAX_KNOWLEDGE_GAPS}
+                - Each knowledge gap should have between 1 and ${MAX_KNOWLEDGE_GAPS_QUERIES_BREATH} additional queries
                 
                 When suggesting additional_queries for knowledge gaps, keep in mind these will be used to search:
                 - Web sources
@@ -306,6 +317,7 @@ export const createReasonSearch = ({
       });
 
       // Send gap analysis update
+      // TODO: This annotation should be converted to a standardized format (title, description) or array of such objects
       dataStream.writeMessageAnnotation({
         type: 'research_update',
         data: {
@@ -319,7 +331,11 @@ export const createReasonSearch = ({
             evidence: l.potential_solutions,
             confidence: (6 - l.severity) / 5,
           })),
-          gaps: gapAnalysis.knowledge_gaps,
+          gaps: gapAnalysis.knowledge_gaps.map((g) => ({
+            topic: g.topic,
+            reason: g.reason,
+            additional_queries: g.additional_queries.map((q) => q.query),
+          })),
           recommendations: gapAnalysis.recommended_followup,
           message: `Identified ${gapAnalysis.limitations.length} limitations and ${gapAnalysis.knowledge_gaps.length} knowledge gaps`,
           timestamp: Date.now(),
@@ -341,30 +357,8 @@ export const createReasonSearch = ({
       // If there are significant gaps and depth is 'advanced', perform additional research
       if (depth === 'advanced' && gapAnalysis.knowledge_gaps.length > 0) {
         // For important gaps, create 'all' source queries to be comprehensive
-        const additionalQueries = gapAnalysis.knowledge_gaps.flatMap((gap) =>
-          gap.additional_queries.map((query, idx) => {
-            // For critical gaps, use 'all' sources for the first query
-            // Distribute others across different source types for efficiency
-            const sourceTypes = ['web', 'academic', 'x', 'all'] as const;
-            let source: 'web' | 'academic' | 'x' | 'all';
-
-            // Use 'all' for the first query of each gap, then rotate through specific sources
-            if (idx === 0) {
-              source = 'all';
-            } else {
-              source = sourceTypes[idx % (sourceTypes.length - 1)] as
-                | 'web'
-                | 'academic'
-                | 'x';
-            }
-
-            return {
-              query,
-              rationale: gap.reason,
-              source,
-              priority: 3,
-            };
-          }),
+        const additionalQueries = gapAnalysis.knowledge_gaps.flatMap(
+          (gap) => gap.additional_queries,
         );
 
         // Execute additional searches for gaps

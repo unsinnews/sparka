@@ -38,7 +38,9 @@ export function WebSourceBadge({ result }: { result: SearchResultItem }) {
           <p className="font-semibold ">{result.title}</p>
         </div>
         <p className="text-xs text-muted-foreground ">{result.url}</p>
-        <p className="text-xs text-muted-foreground ">{result.content}</p>
+        <p className="text-xs text-muted-foreground line-clamp-5 ">
+          {result.content}
+        </p>
       </TooltipContent>
     </Tooltip>
   );
@@ -73,7 +75,9 @@ export function AcademicSourceBadge({
           />
           <p className="font-semibold">{result.title}</p>
         </div>
-        <p className="text-xs text-muted-foreground ">{result.content}</p>
+        <p className="text-xs text-muted-foreground line-clamp-5 ">
+          {result.content}
+        </p>
       </TooltipContent>
     </Tooltip>
   );

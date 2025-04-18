@@ -4,9 +4,21 @@ import Exa from 'exa-js';
 import type { Session } from 'next-auth';
 import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
-import { webSearchStep } from './steps/web-search';
-import { xSearchStep } from './steps/x-search';
-import { academicSearchStep } from './steps/academic-search';
+import { webSearchStep, type WebSearchResult } from './steps/web-search';
+import { xSearchStep, type XSearchResult } from './steps/x-search';
+import {
+  academicSearchStep,
+  type AcademicSearchResult,
+} from './steps/academic-search';
+
+type SearchResult = {
+  type: 'web' | 'academic' | 'x' | 'all';
+  query: {
+    query: string;
+    rationale: string;
+  };
+  results: (XSearchResult | AcademicSearchResult | WebSearchResult)[];
+};
 
 export const createReasonSearch = ({
   session,
@@ -150,66 +162,19 @@ export const createReasonSearch = ({
       });
 
       // Execute searches
-      const searchResults = [];
-      let searchIndex = 0;
+      const searchResults: SearchResult[] = [];
 
-      for (const step of stepIds.searchSteps) {
-        if (step.type === 'web') {
-          const searchResult = await webSearchStep({
-            query: step.query.query,
-            providerOptions: {
-              provider: 'tavily',
-              maxResults: Math.min(6 - step.query.priority, 10),
-              searchDepth: depth,
-            },
-            dataStream,
-            stepId: step.id,
-          });
+      const searchQueryConfigs = stepIds.searchSteps.map((step) => step.query);
 
-          if (!searchResult.error) {
-            searchResults.push({
-              type: 'web',
-              query: step.query,
-              results: searchResult.results,
-            });
-            completedSteps++;
-          }
-        } else if (step.type === 'academic') {
-          const searchResult = await academicSearchStep({
-            query: step.query.query,
-            maxResults: Math.min(6 - step.query.priority, 5),
-            dataStream,
-            stepId: step.id,
-          });
-
-          if (!searchResult.error) {
-            searchResults.push({
-              type: 'academic',
-              query: step.query,
-              results: searchResult.results,
-            });
-            completedSteps++;
-          }
-        } else if (step.type === 'x') {
-          const searchResult = await xSearchStep({
-            query: step.query.query,
-            type: 'keyword',
-            maxResults: step.query.priority,
-            dataStream,
-            stepId: step.id,
-          });
-
-          if (!searchResult.error) {
-            searchResults.push({
-              type: 'x',
-              query: step.query,
-              results: searchResult.results,
-            });
-            completedSteps++;
-          }
-        }
-
-        searchIndex++;
+      for (const searchQueryConfig of searchQueryConfigs) {
+        const results = await searchStep({
+          searchQueryConfig,
+          completedSteps,
+          dataStream,
+          depth, // TODO: Depth should be a provider config
+        });
+        searchResults.push(...results);
+        completedSteps++;
       }
 
       // Perform analyses
@@ -266,6 +231,9 @@ export const createReasonSearch = ({
 
         analysisIndex++; // Increment index
       }
+
+      // TODO: 1. Make initial search less results / queries
+      // TODO: 2. Make post analysis search optional and based on initial results
 
       // After all analyses are complete, send running state for gap analysis
       dataStream.writeMessageAnnotation({
@@ -400,134 +368,17 @@ export const createReasonSearch = ({
         );
 
         // Execute additional searches for gaps
-        for (const query of additionalQueries) {
+        for (const queryConfig of additionalQueries) {
           // Generate a unique ID for this gap search
-          const gapSearchId = `gap-search-${searchIndex++}`;
-
-          // Execute search based on source type
-          if (query.source === 'web' || query.source === 'all') {
-            // Execute web search
-            const webResults = await webSearchStep({
-              query: query.query,
-              providerOptions: {
-                provider: 'tavily',
-                maxResults: 5,
-                searchDepth: depth,
-              },
-              dataStream,
-              stepId:
-                query.source === 'all'
-                  ? `gap-search-web-${searchIndex - 3}`
-                  : gapSearchId,
-            });
-
-            // Add to search results
-            searchResults.push({
-              type: 'web',
-              query: {
-                query: query.query,
-                rationale: query.rationale,
-                source: 'web',
-                priority: query.priority,
-              },
-              results: webResults.results,
-            });
-          }
-
-          if (query.source === 'academic' || query.source === 'all') {
-            const academicSearchId =
-              query.source === 'all'
-                ? `gap-search-academic-${searchIndex++}`
-                : gapSearchId;
-
-            const academicSearchResult = await academicSearchStep({
-              query: query.query,
-              maxResults: 3,
-              dataStream,
-              stepId: academicSearchId,
-            });
-
-            // Add to search results
-            searchResults.push({
-              type: 'academic',
-              query: {
-                query: query.query,
-                rationale: query.rationale,
-                source: 'academic',
-                priority: query.priority,
-              },
-              results: academicSearchResult.results.map(
-                (r: { title?: string; url?: string; summary?: string }) => ({
-                  source: 'academic',
-                  title: r.title || '',
-                  url: r.url || '',
-                  content: r.summary || '',
-                }),
-              ),
-            });
-          }
-
-          if (query.source === 'x' || query.source === 'all') {
-            const xSearchId =
-              query.source === 'all'
-                ? `gap-search-x-${searchIndex++}`
-                : gapSearchId;
-            // Extract tweet ID from URL
-            const extractTweetId = (url: string): string | null => {
-              const match = url.match(
-                /(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/,
-              );
-              return match ? match[1] : null;
-            };
-
-            const xSearchResult = await xSearchStep({
-              query: query.query,
-              type: 'keyword',
-              maxResults: 5,
-              dataStream,
-              stepId: xSearchId,
-            });
-
-            // Process tweets to include tweet IDs - properly handling undefined
-            const processedTweets = xSearchResult.results
-              .map((result) => {
-                const tweetId = extractTweetId(result.url);
-                if (!tweetId) return null; // Skip entries without valid tweet IDs
-
-                return {
-                  source: 'x' as const,
-                  title: result.title || result.author || 'Tweet',
-                  url: result.url,
-                  content: result.text || '',
-                  tweetId, // Now it's definitely string, not undefined
-                };
-              })
-              .filter(
-                (
-                  tweet,
-                ): tweet is {
-                  source: 'x';
-                  title: string;
-                  url: string;
-                  content: string;
-                  tweetId: string;
-                } => tweet !== null,
-              );
-
-            // Add to search results
-            searchResults.push({
-              type: 'x',
-              query: {
-                query: query.query,
-                rationale: query.rationale,
-                source: 'x',
-                priority: query.priority,
-              },
-              results: processedTweets,
-            });
-          }
+          const results = await searchStep({
+            searchQueryConfig: queryConfig,
+            completedSteps,
+            dataStream,
+            depth, // TODO: Depth should be a provider config
+          });
+          searchResults.push(...results);
+          completedSteps++;
         }
-
         // Send running state for final synthesis
         dataStream.writeMessageAnnotation({
           type: 'research_update',
@@ -615,3 +466,77 @@ export const createReasonSearch = ({
       };
     },
   });
+
+async function searchStep({
+  searchQueryConfig,
+  completedSteps,
+  dataStream,
+  depth,
+}: {
+  searchQueryConfig: {
+    query: string;
+    rationale: string;
+    source: 'web' | 'academic' | 'x' | 'all';
+    priority: number;
+  };
+  completedSteps: number;
+  dataStream: AnnotationDataStreamWriter;
+  depth: 'basic' | 'advanced';
+}) {
+  const source = searchQueryConfig.source;
+  const searchResults: SearchResult[] = [];
+  if (source === 'web' || source === 'all') {
+    const searchResult = await webSearchStep({
+      query: searchQueryConfig.query,
+      providerOptions: {
+        provider: 'tavily',
+        maxResults: Math.min(6 - searchQueryConfig.priority, 10),
+        searchDepth: depth,
+      },
+      dataStream,
+      stepId: `step-${completedSteps}-web-search`,
+    });
+    if (searchResult && !searchResult.error) {
+      searchResults.push({
+        type: 'web',
+        query: searchQueryConfig,
+        results: searchResult.results,
+      });
+    }
+  }
+
+  if (source === 'academic' || source === 'all') {
+    const searchResult = await academicSearchStep({
+      query: searchQueryConfig.query,
+      maxResults: Math.min(6 - searchQueryConfig.priority, 5),
+      dataStream,
+      stepId: `step-${completedSteps}-academic-search`,
+    });
+    if (searchResult && !searchResult.error) {
+      searchResults.push({
+        type: 'academic',
+        query: searchQueryConfig,
+        results: searchResult.results,
+      });
+    }
+  }
+
+  if (source === 'x' || source === 'all') {
+    const searchResult = await xSearchStep({
+      query: searchQueryConfig.query,
+      type: 'keyword',
+      maxResults: searchQueryConfig.priority, // Consider adjusting priority logic if needed
+      dataStream,
+      stepId: `step-${completedSteps}-x-search`,
+    });
+    if (searchResult && !searchResult.error) {
+      searchResults.push({
+        type: 'x',
+        query: searchQueryConfig,
+        results: searchResult.results,
+      });
+    }
+  }
+
+  return searchResults;
+}

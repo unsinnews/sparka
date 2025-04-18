@@ -14,7 +14,7 @@ export type SearchProviderOptions =
       maxResults?: number;
     } & SearchParams);
 
-export type SearchResult = {
+export type WebSearchResult = {
   source: 'web';
   title: string;
   url: string;
@@ -22,7 +22,7 @@ export type SearchResult = {
 };
 
 export type WebSearchResponse = {
-  results: SearchResult[];
+  results: WebSearchResult[];
   error?: string;
 };
 
@@ -58,7 +58,7 @@ export async function webSearchStep({
       },
     });
 
-    let results: SearchResult[] = [];
+    let results: WebSearchResult[] = [];
 
     if (providerOptions.provider === 'tavily') {
       const response = await tvly.search(query, {

@@ -14,12 +14,12 @@ interface DeepResearchProps {
 }
 
 // TODO: Restore both to 3 or make configurable
-const BREADTH = 1;
-const DEPTH = 1;
+const BREADTH = 2;
+const DEPTH = 2;
 
 export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
   tool({
-    description: 'Request suggestions for a document',
+    description: 'Perform deep research on a topic',
     parameters: z.object({
       query: z.string().describe('The query to research'),
       isReport: z

@@ -160,7 +160,8 @@ const PurePreviewMessage = ({
 
                 if (
                   toolInvocation.toolName === 'webSearch' ||
-                  toolInvocation.toolName === 'reasonSearch'
+                  toolInvocation.toolName === 'reasonSearch' ||
+                  toolInvocation.toolName === 'deepResearch'
                 ) {
                   return (
                     <ResearchUpdateAnnotations

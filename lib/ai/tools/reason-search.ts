@@ -303,9 +303,7 @@ export const createReasonSearch = ({
                 - Web sources
                 - Academic papers
                 - X/Twitter for social media perspectives and real-time information
-                
-                Design your additional_queries to work well across these different source types.
-                
+                              
                 Research results: ${JSON.stringify(searchResults)}
                 Analysis findings: ${JSON.stringify(
                   stepIds.analysisSteps.map((step) => ({
@@ -345,19 +343,16 @@ export const createReasonSearch = ({
         },
       });
 
-      let synthesis: {
-        key_findings: {
-          finding: string;
-          confidence: number;
-          supporting_evidence: string[];
-        }[];
-        remaining_uncertainties: string[];
-      } | null = null;
-
+      let additionalQueries: {
+        query: string;
+        rationale: string;
+        source: 'web' | 'academic' | 'x' | 'all';
+        priority: number;
+      }[] = [];
       // If there are significant gaps and depth is 'advanced', perform additional research
       if (depth === 'advanced' && gapAnalysis.knowledge_gaps.length > 0) {
         // For important gaps, create 'all' source queries to be comprehensive
-        const additionalQueries = gapAnalysis.knowledge_gaps.flatMap(
+        additionalQueries = gapAnalysis.knowledge_gaps.flatMap(
           (gap) => gap.additional_queries,
         );
 
@@ -386,56 +381,59 @@ export const createReasonSearch = ({
             timestamp: Date.now(),
           },
         });
+      }
 
-        // Perform final synthesis of all findings
-        const { object: finalSynthesis } = await generateObject({
-          model: xai('grok-beta'),
-          temperature: 0,
-          schema: z.object({
-            key_findings: z.array(
-              z.object({
-                finding: z.string(),
-                confidence: z.number().min(0).max(1),
-                supporting_evidence: z.array(z.string()),
-              }),
-            ),
-            remaining_uncertainties: z.array(z.string()),
-          }),
-          experimental_telemetry: { isEnabled: true },
-          prompt: `Synthesize all research findings, including gap analysis and follow-up research.
+      // Perform final synthesis of all findings
+      const { object: finalSynthesis } = await generateObject({
+        model: xai('grok-beta'),
+        temperature: 0,
+        schema: z.object({
+          key_findings: z.array(
+            z.object({
+              finding: z.string(),
+              confidence: z.number().min(0).max(1),
+              supporting_evidence: z.array(z.string()),
+            }),
+          ),
+          remaining_uncertainties: z.array(z.string()),
+        }),
+        experimental_telemetry: { isEnabled: true },
+        prompt: `Synthesize all research findings, including gap analysis and follow-up research.
                     Highlight key conclusions and remaining uncertainties.
                     Stick to the types of the schema, do not add any other fields or types.
                     
-                    Original results: ${JSON.stringify(searchResults)}
-                    Gap analysis: ${JSON.stringify(gapAnalysis)}
-                    Additional findings: ${JSON.stringify(additionalQueries)}`,
-        });
+                    Original queries: 
+                    ${JSON.stringify(searchQueryConfigs)}
+                    Gap analysis: 
+                    ${JSON.stringify(gapAnalysis)}
+                    Additional queries:
+                    ${JSON.stringify(additionalQueries)}
+                    Results: 
+                    ${JSON.stringify(searchResults)}`,
+      });
 
-        synthesis = finalSynthesis;
-
-        // Send final synthesis update
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
-          data: {
-            id: 'final-synthesis',
-            type: 'analysis',
-            status: 'completed',
-            title: 'Final Research Synthesis',
-            analysisType: 'synthesis',
-            findings: finalSynthesis.key_findings.map((f) => ({
-              insight: f.finding,
-              evidence: f.supporting_evidence,
-              confidence: f.confidence,
-            })),
-            uncertainties: finalSynthesis.remaining_uncertainties,
-            message: `Synthesized ${finalSynthesis.key_findings.length} key findings`,
-            timestamp: Date.now(),
-            overwrite: true,
-            completedSteps: totalSteps + (depth === 'advanced' ? 2 : 1) - 1,
-            totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
-          },
-        });
-      }
+      // Send final synthesis update
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: 'final-synthesis',
+          type: 'analysis',
+          status: 'completed',
+          title: 'Final Research Synthesis',
+          analysisType: 'synthesis',
+          findings: finalSynthesis.key_findings.map((f) => ({
+            insight: f.finding,
+            evidence: f.supporting_evidence,
+            confidence: f.confidence,
+          })),
+          uncertainties: finalSynthesis.remaining_uncertainties,
+          message: `Synthesized ${finalSynthesis.key_findings.length} key findings`,
+          timestamp: Date.now(),
+          overwrite: true,
+          completedSteps: totalSteps + (depth === 'advanced' ? 2 : 1) - 1,
+          totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
+        },
+      });
 
       // Final progress update
       dataStream.writeMessageAnnotation({
@@ -456,7 +454,7 @@ export const createReasonSearch = ({
       return {
         plan: researchPlan,
         results: searchResults,
-        synthesis: synthesis,
+        synthesis: finalSynthesis,
       };
     },
   });

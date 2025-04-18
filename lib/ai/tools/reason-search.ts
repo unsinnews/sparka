@@ -237,8 +237,6 @@ export const createReasonSearch = ({
         analysisIndex++; // Increment index
       }
 
-      // TODO: 2. Make post analysis search optional and based on initial results
-
       // After all analyses are complete, send running state for gap analysis
       dataStream.writeMessageAnnotation({
         type: 'research_update',
@@ -288,6 +286,9 @@ export const createReasonSearch = ({
             }),
           ),
         }),
+        providerOptions: {
+          experimental_telemetry: { isEnabled: true },
+        },
         experimental_telemetry: { isEnabled: true },
         prompt: `Analyze the research results and identify limitations, knowledge gaps, and recommended follow-up actions.
                 Consider:
@@ -296,9 +297,9 @@ export const createReasonSearch = ({
                 - Areas needing deeper investigation
                 - Potential biases or conflicts
                 - Severity should be between 2 and 10
-                - Knowledge gaps should be between 0 and ${MAX_KNOWLEDGE_GAPS}
+                - Knowledge gaps should be between 0 and ${MAX_KNOWLEDGE_GAPS}. It's ok to have 0 knowledge gaps if the research is complete.
                 - Each knowledge gap should have between 1 and ${MAX_KNOWLEDGE_GAPS_QUERIES_BREATH} additional queries
-                
+
                 When suggesting additional_queries for knowledge gaps, keep in mind these will be used to search:
                 - Web sources
                 - Academic papers
@@ -397,7 +398,11 @@ export const createReasonSearch = ({
           ),
           remaining_uncertainties: z.array(z.string()),
         }),
+        providerOptions: {
+          experimental_telemetry: { isEnabled: true },
+        },
         experimental_telemetry: { isEnabled: true },
+        // TODO: This prompt will have to change if we take an arbitrary number of steps
         prompt: `Synthesize all research findings, including gap analysis and follow-up research.
                     Highlight key conclusions and remaining uncertainties.
                     Stick to the types of the schema, do not add any other fields or types.

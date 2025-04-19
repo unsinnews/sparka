@@ -28,6 +28,9 @@ export const ResearchProgress = ({
   totalExpectedSteps: number;
   isComplete: boolean;
 }) => {
+  // TODO: Implement open when it starts running
+  const [isOpen, setIsOpen] = React.useState(false);
+
   const dedupedUpdates = React.useMemo(() => {
     const updateMap = new Map<string, StreamUpdate>();
     updates.forEach((u) => updateMap.set(u.id, u));
@@ -88,7 +91,7 @@ export const ResearchProgress = ({
   }, [updates, totalExpectedSteps, isComplete]);
 
   return (
-    <Sheet>
+    <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <div
           role="button"
@@ -107,9 +110,9 @@ export const ResearchProgress = ({
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-medium">
-                {isComplete ? 'Research Complete' : 'Research Progress'}
+                {isComplete ? 'Research Complete' : 'Research in Progress'}
               </h3>
-              {isComplete ? (
+              {/* {isComplete ? (
                 <Badge
                   variant="secondary"
                   className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
@@ -125,16 +128,16 @@ export const ResearchProgress = ({
                     In Progress ({completedSteps}/{totalSteps})
                   </Badge>
                 )
-              )}
+              )} */}
             </div>
-            <Progress
+            {/* <Progress
               value={progress}
               className={cn(
                 'h-1 w-24 sm:w-32',
                 showRunningIndicators && 'animate-pulse',
               )}
               aria-label={`Research progress: ${Math.round(progress)}% complete`}
-            />
+            /> */}
           </div>
           <div className="flex items-center gap-2">
             <Badge

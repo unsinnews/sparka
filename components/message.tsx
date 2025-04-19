@@ -206,9 +206,9 @@ const PurePreviewMessage = ({
                         <StockChartMessage result={null} args={args} />
                       ) : toolName === 'codeInterpreter' ? (
                         <CodeInterpreterMessage result={null} args={args} />
-                      ) : (
-                        <pre>{JSON.stringify(args, null, 2)}</pre>
-                      )}
+                      ) : toolName !== 'deepResearch' ? (
+                        <pre>{JSON.stringify(result, null, 2)}</pre>
+                      ) : null}
                     </div>
                   );
                 }
@@ -249,9 +249,9 @@ const PurePreviewMessage = ({
                       ) : toolName === 'codeInterpreter' ? (
                         // @ts-expect-error // TODO: fix this
                         <CodeInterpreterMessage result={result} args={args} />
-                      ) : (
+                      ) : toolName !== 'deepResearch' ? (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
-                      )}
+                      ) : null}
                     </div>
                   );
                 }

@@ -58,7 +58,7 @@ function PureMultimodalInput({
   const { width } = useWindowSize();
   const [deepResearch, setDeepResearch] = useState(false);
   const [webSearch, setWebSearch] = useState(false);
-
+  console.log({ deepResearch, webSearch });
   useEffect(() => {
     if (textareaRef.current) {
       adjustHeight();

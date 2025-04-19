@@ -43,10 +43,10 @@ type ResearchResult = {
 };
 
 // increase this if you have higher API rate limits
-const ConcurrencyLimit = 2;
+const ConcurrencyLimit = 1; // TODO: Create limits per service
 
 // take en user query, return a list of SERP queries
-async function generateSerpQueries({
+async function generateNextStepQueries({
   query,
   numQueries = 3,
   learnings,
@@ -80,6 +80,16 @@ async function generateSerpQueries({
           }),
         )
         .describe(`List of SERP queries, max of ${numQueries}`),
+      thoughts: z.object({
+        header: z
+          .string()
+          .describe(
+            'A title for the step of researching this queries and analyses',
+          ),
+        body: z
+          .string()
+          .describe('Describe what you are going to do in this step'),
+      }),
     }),
     experimental_telemetry: {
       isEnabled: true,
@@ -90,7 +100,10 @@ async function generateSerpQueries({
     res.object.queries,
   );
 
-  return res.object.queries.slice(0, numQueries);
+  return {
+    queries: res.object.queries.slice(0, numQueries),
+    thoughts: res.object.thoughts,
+  };
 }
 
 async function processSerpResult({
@@ -238,6 +251,7 @@ export async function deepResearchInternal({
   learnings = [],
   visitedUrls = [],
   dataStream,
+  completedSteps = 0,
 }: {
   query: string;
   breadth: number;
@@ -245,136 +259,190 @@ export async function deepResearchInternal({
   learnings?: string[];
   visitedUrls?: string[];
   dataStream: AnnotationDataStreamWriter;
+  completedSteps?: number;
 }): Promise<ResearchResult> {
   // Send initial plan status
-  dataStream.writeMessageAnnotation({
-    type: 'research_update',
-    data: {
-      id: 'research-plan-initial',
-      type: 'plan',
-      status: 'running',
-      title: 'Research Plan',
-      message: 'Creating research plan...',
-      timestamp: Date.now(),
-      overwrite: true,
-    },
-  });
+  // dataStream.writeMessageAnnotation({
+  //   type: 'research_update',
+  //   data: {
+  //     id: 'research-plan-initial',
+  //     type: 'plan',
+  //     status: 'running',
+  //     title: 'Research Plan',
+  //     message: 'Creating research plan...',
+  //     timestamp: Date.now(),
+  //     overwrite: true,
+  //   },
+  // });
 
-  const serpQueries = await generateSerpQueries({
+  const { queries: serpQueries, thoughts } = await generateNextStepQueries({
     query,
     learnings,
     numQueries: breadth,
   });
 
-  // Complete plan status with total steps
   dataStream.writeMessageAnnotation({
     type: 'research_update',
     data: {
-      id: 'research-plan',
-      type: 'plan',
+      id: `step-${completedSteps}-initial-thoughts`, // unique id for the initial state
       status: 'completed',
-      title: 'Research Plan',
-      plan: {
-        search_queries: serpQueries.map((q, i) => ({
-          query: q.query,
-          rationale: q.researchGoal,
-          source: 'web',
-          priority: 3,
-        })),
-        required_analyses: [],
-      },
-      totalSteps: serpQueries.length * (depth + 1),
-      message: 'Research plan created',
+      type: 'thoughts',
+      title: 'Initial Thoughts',
+      message: 'Creating initial thoughts...',
       timestamp: Date.now(),
       overwrite: true,
+      thoughtItems: [
+        {
+          header: thoughts.header,
+          body: thoughts.body,
+        },
+      ],
     },
   });
+  completedSteps++;
+
+  // Complete plan status with total steps
+  // dataStream.writeMessageAnnotation({
+  //   type: 'research_update',
+  //   data: {
+  //     id: 'research-plan',
+  //     type: 'plan',
+  //     status: 'completed',
+  //     title: 'Research Plan',
+  //     plan: {
+  //       search_queries: serpQueries.map((q, i) => ({
+  //         query: q.query,
+  //         rationale: q.researchGoal,
+  //         source: 'web',
+  //         priority: 3,
+  //       })),
+  //       required_analyses: [],
+  //     },
+  //     totalSteps: serpQueries.length * (depth + 1),
+  //     message: 'Research plan created',
+  //     timestamp: Date.now(),
+  //     overwrite: true,
+  //   },
+  // });
 
   const limit = pLimit(ConcurrencyLimit);
-  let completedSteps = 0;
 
-  const results = await Promise.all(
-    serpQueries.map((serpQuery, queryIndex) =>
-      limit(async () => {
-        try {
-          const searchResult = await webSearchStep({
-            query: serpQuery.query,
-            providerOptions: {
-              provider: 'firecrawl',
-              maxResults: 5,
-            },
-            dataStream,
-            stepId: `search-${queryIndex}`,
-          });
-
-          if (searchResult.error) {
-            console.log(
-              `Error running query: ${serpQuery.query}: ${searchResult.error}`,
-            );
-            return {
-              learnings: [],
-              visitedUrls: [],
-            };
-          }
-
-          // Collect URLs from this search
-          const newUrls = searchResult.results.map((r) => r.url);
-          const newBreadth = Math.ceil(breadth / 2);
-          const newDepth = depth - 1;
-
-          completedSteps++;
-
-          const newLearnings = await processSerpResult({
-            query: serpQuery.query,
-            result: {
-              data: searchResult.results.map((r) => ({
-                title: r.title,
-                url: r.url,
-                markdown: r.content,
-              })),
-            },
-            numFollowUpQuestions: newBreadth,
-          });
-          const allLearnings = [...learnings, ...newLearnings.learnings];
-          const allUrls = [...visitedUrls, ...newUrls];
-
-          if (newDepth > 0) {
-            console.log(
-              `Researching deeper, breadth: ${newBreadth}, depth: ${newDepth}`,
-            );
-            const nextQuery = `
-            Previous research goal: ${serpQuery.researchGoal}
-            Follow-up research directions: ${newLearnings.followUpQuestions.map((q) => `\n${q}`).join('')}
-          `.trim();
-
-            return deepResearchInternal({
-              query: nextQuery,
-              breadth: newBreadth,
-              depth: newDepth,
-              learnings: allLearnings,
-              visitedUrls: allUrls,
-              dataStream,
-            });
-          } else {
-            // Completed
-            console.log('Reached last level of research');
-            return {
-              learnings: allLearnings,
-              visitedUrls: allUrls,
-            };
-          }
-        } catch (e: any) {
-          console.log(`Error running query: ${serpQuery.query}: `, e);
-          return {
-            learnings: [],
-            visitedUrls: [],
-          };
-        }
-      }),
-    ),
+  // Step 1: Perform all initial web searches in parallel
+  const searchResultsPromises = serpQueries.map((serpQuery, queryIndex) =>
+    limit(async () => {
+      try {
+        const searchResult = await webSearchStep({
+          query: serpQuery.query,
+          providerOptions: {
+            provider: 'firecrawl',
+            maxResults: 5,
+          },
+          dataStream,
+          stepId: `search-${queryIndex}`,
+        });
+        return { serpQuery, searchResult, queryIndex }; // Return query info along with result
+      } catch (e: any) {
+        console.log(
+          `Error during webSearchStep for query: ${serpQuery.query}: `,
+          e,
+        );
+        return {
+          serpQuery,
+          searchResult: {
+            error: e.message || 'Unknown error during web search',
+            results: [],
+          },
+          queryIndex,
+        };
+      }
+    }),
   );
 
-  // Send final progress update
+  const searchResultsWithData = await Promise.all(searchResultsPromises);
+
+  // Step 2: Process results and recurse sequentially
+  const aggregatedLearnings: string[] = [...learnings];
+  const aggregatedUrls: string[] = [...visitedUrls];
+  const recursiveResults: ResearchResult[] = []; // Store results from deeper dives
+
+  for (const { serpQuery, searchResult } of searchResultsWithData) {
+    try {
+      if (searchResult.error) {
+        console.log(
+          `Skipping processing due to error in query: ${serpQuery.query}: ${searchResult.error}`,
+        );
+        continue; // Skip processing for this query if search failed
+      }
+
+      // Collect URLs from this search
+      const newUrls = searchResult.results.map((r) => r.url);
+      aggregatedUrls.push(...newUrls); // Add URLs from this search
+
+      const newBreadth = Math.ceil(breadth / 2);
+      const newDepth = depth - 1;
+
+      completedSteps++; // Increment step count after successful search
+
+      const processedResult = await processSerpResult({
+        query: serpQuery.query,
+        result: {
+          data: searchResult.results.map((r) => ({
+            title: r.title,
+            url: r.url,
+            markdown: r.content,
+          })),
+        },
+        numFollowUpQuestions: newBreadth,
+      });
+
+      aggregatedLearnings.push(...processedResult.learnings); // Add learnings from this result
+
+      if (newDepth > 0) {
+        console.log(
+          `Researching deeper for "${serpQuery.query}", breadth: ${newBreadth}, depth: ${newDepth}`,
+        );
+        const nextQuery = `
+          Previous research goal: ${serpQuery.researchGoal}
+          Follow-up research directions: ${processedResult.followUpQuestions.map((q) => `\\n${q}`).join('')}
+        `.trim();
+
+        // Await the recursive call directly, making this part sequential
+        const deeperResult = await deepResearchInternal({
+          query: nextQuery,
+          breadth: newBreadth,
+          depth: newDepth,
+          // Pass only the *currently aggregated* learnings and URLs for the deeper dive
+          // This prevents re-processing learnings from parallel branches in the deeper dive
+          learnings: [...aggregatedLearnings],
+          visitedUrls: [...aggregatedUrls],
+          dataStream,
+          completedSteps, // Pass the updated completedSteps
+        });
+        recursiveResults.push(deeperResult); // Store result from this deeper dive
+        // Update completedSteps based on the recursive call's progress (if it returns it - currently it doesn't directly)
+        // Note: The current progress reporting might need adjustment for this sequential recursion
+      } else {
+        // Completed this branch
+        console.log(`Reached last level of research for "${serpQuery.query}"`);
+        // Learnings and URLs already added to aggregated lists
+      }
+    } catch (e: any) {
+      console.log(`Error processing result for query: ${serpQuery.query}: `, e);
+      // Decide how to handle processing errors, e.g., continue to next query
+    }
+  }
+
+  // Combine results from this level and all deeper dives
+  const finalLearnings = [
+    ...aggregatedLearnings,
+    ...recursiveResults.flatMap((r) => r.learnings),
+  ];
+  const finalUrls = [
+    ...aggregatedUrls,
+    ...recursiveResults.flatMap((r) => r.visitedUrls),
+  ];
+
+  // Send final progress update (might need adjustment based on sequential steps)
   dataStream.writeMessageAnnotation({
     type: 'research_update',
     data: {
@@ -391,7 +459,7 @@ export async function deepResearchInternal({
   });
 
   return {
-    learnings: [...new Set(results.flatMap((r) => r.learnings))],
-    visitedUrls: [...new Set(results.flatMap((r) => r.visitedUrls))],
+    learnings: [...new Set(finalLearnings)],
+    visitedUrls: [...new Set(finalUrls)],
   };
 }

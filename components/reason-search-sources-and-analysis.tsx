@@ -34,7 +34,8 @@ type ReasonSearchSourcesAndAnalysisProps = {
   isComplete?: boolean;
 };
 
-export const ReasonSearchSourcesAndAnalysis = ({
+// TODO: Remove analyses from here
+export const DeepResearchSourcesAndAnalysis = ({
   updates,
   isComplete = true,
 }: ReasonSearchSourcesAndAnalysisProps) => {

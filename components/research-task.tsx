@@ -39,6 +39,7 @@ export const ResearchTask = ({
     progress: Loader2,
     analysis: Sparkles,
     'gap-search': Search,
+    thoughts: Sparkles,
     x: XLogo,
   } as const;
 
@@ -325,6 +326,22 @@ export const ResearchTask = ({
                     )}
                   </div>
                 )}
+
+              {/* {Thoughts} */}
+              {update.type === 'thoughts' && (
+                <div className="space-y-2">
+                  {update.thoughtItems.map((thought, idx) => (
+                    <div className="space-y-2" key={idx}>
+                      <p className="text-base font-medium">
+                        {thought.header || 'Thought'}
+                      </p>
+                      <p className="text-sm text-foreground font-light">
+                        {thought.body}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         )}

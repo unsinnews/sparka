@@ -1,6 +1,7 @@
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import React, { useState } from 'react';
 import { ResearchTask } from './research-task';
+import { ResearchTask2 } from './research-task-2';
 
 export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
@@ -25,7 +26,7 @@ export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
 
         return (
           <div key={update.id} className="relative">
-            <ResearchTask
+            <ResearchTask2
               id={`step-${update.id}`}
               update={update}
               isExpanded={isExpanded}

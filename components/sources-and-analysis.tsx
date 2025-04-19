@@ -134,13 +134,14 @@ const SourcesList = ({
                 )}
               </div>
             </div>
-            <div>
+            <div className="flex flex-col gap-1">
               <h4 className="text-sm font-medium leading-tight">
                 {source.title}
               </h4>
-              <p className="text-xs text-neutral-500 mt-1 line-clamp-2">
+              {/* // TODO: Consider showing contnet of sources. It's overflowing container */}
+              {/* <p className="text-xs text-neutral-500 mt-1 line-clamp-2 break-words">
                 {source.content}
-              </p>
+              </p> */}
             </div>
           </div>
         </a>

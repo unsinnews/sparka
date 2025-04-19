@@ -25,7 +25,7 @@ import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import {
-  MessageAnnotationsFooter,
+  SourcesAnnotations,
   ResearchUpdateAnnotations,
 } from './message-annotations';
 
@@ -88,6 +88,18 @@ const PurePreviewMessage = ({
               </div>
             )}
 
+            {message.annotations && (
+              <>
+                <ResearchUpdateAnnotations
+                  annotations={message.annotations}
+                  key={`research-update-annotations-${message.id}`}
+                />
+                <SourcesAnnotations
+                  annotations={message.annotations}
+                  key={`sources-annotations-${message.id}`}
+                />
+              </>
+            )}
             {message.parts?.map((part, index) => {
               const { type } = part;
               const key = `message-${message.id}-part-${index}`;
@@ -159,17 +171,6 @@ const PurePreviewMessage = ({
                 const toolInvocation = toolInvocationRaw as YourToolInvocation;
 
                 if (
-                  toolInvocation.toolName === 'webSearch' ||
-                  toolInvocation.toolName === 'reasonSearch' ||
-                  toolInvocation.toolName === 'deepResearch'
-                ) {
-                  return (
-                    <ResearchUpdateAnnotations
-                      annotations={message.annotations}
-                      key={`research-update-annotations-${message.id}`}
-                    />
-                  );
-                } else if (
                   toolInvocation.state === 'call' ||
                   toolInvocation.state === 'partial-call'
                 ) {
@@ -265,7 +266,6 @@ const PurePreviewMessage = ({
                 isLoading={isLoading}
               />
             )}
-            <MessageAnnotationsFooter annotations={message.annotations} />
           </div>
         </div>
       </motion.div>

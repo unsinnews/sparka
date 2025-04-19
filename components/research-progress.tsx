@@ -1,5 +1,15 @@
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ArrowUpRight, ChevronDown } from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -12,14 +22,10 @@ import { ResearchTasks } from './research-tasks';
 export const ResearchProgress = ({
   updates,
   totalExpectedSteps,
-  isCollapsed,
-  setIsCollapsed,
   isComplete,
 }: {
   updates: StreamUpdate[];
   totalExpectedSteps: number;
-  isCollapsed: boolean;
-  setIsCollapsed: (value: boolean) => void;
   isComplete: boolean;
 }) => {
   const dedupedUpdates = React.useMemo(() => {
@@ -82,85 +88,79 @@ export const ResearchProgress = ({
   }, [updates, totalExpectedSteps, isComplete]);
 
   return (
-    <div className="w-full">
-      <button
-        type="button"
-        className={cn(
-          'flex items-center justify-between py-2 px-3 rounded-lg w-full',
-          isComplete && 'cursor-pointer',
-          isComplete &&
+    <Sheet>
+      <SheetTrigger asChild>
+        <div
+          role="button"
+          tabIndex={0}
+          className={cn(
+            'flex items-center justify-between py-2 px-3 rounded-lg w-full cursor-pointer',
             'hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors',
-        )}
-        onClick={() => isComplete && setIsCollapsed(!isCollapsed)}
-        aria-expanded={!isCollapsed}
-        aria-controls="research-steps-content"
-      >
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-medium">
-              {isComplete ? 'Research Complete' : 'Research Progress'}
-            </h3>
-            {isComplete ? (
-              <Badge
-                variant="secondary"
-                className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-              >
-                Complete
-              </Badge>
-            ) : (
-              showRunningIndicators && (
+          )}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              // Programmatically click the trigger or handle open state
+              // This might need adjustment depending on how SheetTrigger handles keyboard events
+            }
+          }}
+        >
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-medium">
+                {isComplete ? 'Research Complete' : 'Research Progress'}
+              </h3>
+              {isComplete ? (
                 <Badge
                   variant="secondary"
-                  className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                  className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
                 >
-                  In Progress ({completedSteps}/{totalSteps})
+                  Complete
                 </Badge>
-              )
-            )}
-          </div>
-          <Progress
-            value={progress}
-            className={cn(
-              'h-1 w-24 sm:w-32',
-              showRunningIndicators && 'animate-pulse',
-            )}
-            aria-label={`Research progress: ${Math.round(progress)}% complete`}
-          />
-          {/* Indication of number of tasks */}
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge
-            variant="secondary"
-            className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400"
-          >
-            {sortedUpdates.length} task{sortedUpdates.length === 1 ? '' : 's'}
-          </Badge>
-          {isComplete && (
-            <ChevronDown
-              className={cn(
-                'h-4 w-4 text-neutral-500 transition-transform flex-shrink-0',
-                isCollapsed ? '' : 'rotate-180',
+              ) : (
+                showRunningIndicators && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
+                  >
+                    In Progress ({completedSteps}/{totalSteps})
+                  </Badge>
+                )
               )}
+            </div>
+            <Progress
+              value={progress}
+              className={cn(
+                'h-1 w-24 sm:w-32',
+                showRunningIndicators && 'animate-pulse',
+              )}
+              aria-label={`Research progress: ${Math.round(progress)}% complete`}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="secondary"
+              className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400"
+            >
+              {sortedUpdates.length} task{sortedUpdates.length === 1 ? '' : 's'}
+            </Badge>
+            <ArrowUpRight
+              className="h-4 w-4 text-neutral-500 flex-shrink-0"
               aria-hidden="true"
             />
-          )}
+          </div>
         </div>
-      </button>
-
-      <motion.div
-        id="research-steps-content"
-        initial={false}
-        animate={{
-          height: isCollapsed ? 0 : 'auto',
-          opacity: isCollapsed ? 0 : 1,
-        }}
-        transition={{ duration: 0.2 }}
-        className="overflow-hidden"
-      >
-        <div className="pt-2">
+      </SheetTrigger>
+      <SheetContent className="overflow-y-auto sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>Research Tasks</SheetTitle>
+          <SheetDescription>
+            Detailed breakdown of research steps.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="py-6">
           <ResearchTasks updates={sortedUpdates} />
         </div>
-      </motion.div>
-    </div>
+      </SheetContent>
+    </Sheet>
   );
 };

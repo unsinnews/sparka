@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
       return new Response('Unauthorized', { status: 401 });
     }
 
+    console.log('Data: ', data);
     const deepResearch = data.deepResearch;
     const webSearch = data.webSearch;
 
@@ -92,13 +93,18 @@ export async function POST(request: NextRequest) {
     // TODO: Consider doing this in the system prompt instead
     if (userMessage.parts[0].type === 'text') {
       if (deepResearch) {
-        userMessage.content = `${userMessage.content} (use deepResearch)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (use deepResearch)`;
+        userMessage.content = `${userMessage.content} (I want to perform a deep research)`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a deep research)`;
       } else if (webSearch) {
-        userMessage.content = `${userMessage.content} (use webSearch)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (use webSearch)`;
+        userMessage.content = `${userMessage.content} (I want to perform a web search)`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a web search)`;
       }
     }
+
+    console.log('Selected options: ', {
+      deepResearch,
+      webSearch,
+    });
 
     return createDataStreamResponse({
       execute: (dataStream) => {
@@ -191,6 +197,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    console.error(error);
     return new Response('An error occurred while processing your request!', {
       status: 404,
     });

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { generateObject, tool } from 'ai';
 import Exa from 'exa-js';
 import type { Session } from 'next-auth';
+import { openai } from '@ai-sdk/openai';
 import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import { webSearchStep, type WebSearchResult } from './steps/web-search';
@@ -64,7 +65,7 @@ export const createReasonSearch = ({
 
       // Now generate the research plan
       const { object: researchPlan } = await generateObject({
-        model: xai('grok-beta'),
+        model: openai('gpt-4o'),
         temperature: 0,
         schema: z.object({
           search_queries: z
@@ -86,6 +87,16 @@ export const createReasonSearch = ({
               }),
             )
             .max(8),
+          initialThought: z.object({
+            header: z
+              .string()
+              .describe(
+                'A title for the step of researching this queries and analyses',
+              ),
+            body: z
+              .string()
+              .describe('Describe what you are going to do in this step'),
+          }),
         }),
         experimental_telemetry: { isEnabled: true },
         prompt: `Create a focused research plan for the topic: "${topic}". 
@@ -109,6 +120,25 @@ export const createReasonSearch = ({
                 
                 Consider different angles and potential controversies, but maintain focus on the core aspects.
                 Ensure the total number of steps (searches + analyses) does not exceed 20.`,
+      });
+
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: `step-0-initial-thoughts`, // unique id for the initial state
+          status: 'completed',
+          type: 'thoughts',
+          title: 'Initial Thoughts',
+          message: 'Creating initial thoughts...',
+          timestamp: Date.now(),
+          overwrite: true,
+          thoughtItems: [
+            {
+              header: researchPlan.initialThought.header,
+              body: researchPlan.initialThought.body,
+            },
+          ],
+        },
       });
 
       // Generate IDs for all steps based on the plan
@@ -200,7 +230,7 @@ export const createReasonSearch = ({
         });
 
         const { object: analysisResult } = await generateObject({
-          model: xai('grok-beta'),
+          model: openai('gpt-4o'),
           temperature: 0.5,
           schema: z.object({
             findings: z.array(
@@ -253,7 +283,7 @@ export const createReasonSearch = ({
 
       // After all analyses are complete, analyze limitations and gaps
       const { object: gapAnalysis } = await generateObject({
-        model: xai('grok-beta'),
+        model: openai('gpt-4o'),
         temperature: 0,
         schema: z.object({
           limitations: z.array(
@@ -386,7 +416,7 @@ export const createReasonSearch = ({
 
       // Perform final synthesis of all findings
       const { object: finalSynthesis } = await generateObject({
-        model: xai('grok-beta'),
+        model: openai('gpt-4o'),
         temperature: 0,
         schema: z.object({
           key_findings: z.array(

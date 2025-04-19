@@ -8,15 +8,11 @@ import { ResearchProgress } from './research-progress';
 
 type ReasonSearchResearchProgressProps = {
   updates: StreamUpdate[];
-  onCollapseChange?: (isCollapsed: boolean) => void;
 };
 
 export const ReasonSearchResearchProgress = ({
   updates,
-  onCollapseChange,
 }: ReasonSearchResearchProgressProps) => {
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
-
   const planUpdateFromUpdates = React.useMemo(() => {
     const planUpdates = updates.filter(
       (u): u is PlanUpdate => u.type === 'plan',
@@ -102,29 +98,10 @@ export const ReasonSearchResearchProgress = ({
     );
   }, [updates]);
 
-  const finalSynthesisDone = React.useMemo(() => {
-    return updates.some(
-      (u) => u.id === 'final-synthesis' && u.status === 'completed',
-    );
-  }, [updates]);
-
-  useEffect(() => {
-    if (finalSynthesisDone) {
-      setIsCollapsed(true);
-    }
-  }, [finalSynthesisDone]);
-
-  const handleCollapseChange = (newIsCollapsed: boolean) => {
-    setIsCollapsed(newIsCollapsed);
-    onCollapseChange?.(newIsCollapsed);
-  };
-
   return (
     <ResearchProgress
       updates={updates}
       totalExpectedSteps={totalExpectedSteps}
-      isCollapsed={isCollapsed}
-      setIsCollapsed={handleCollapseChange}
       isComplete={isComplete}
     />
   );

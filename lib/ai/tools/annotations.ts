@@ -5,7 +5,7 @@ import type { UIMessage } from 'ai';
 
 export const MessageAnnotationSchema = z.discriminatedUnion('type', [
   ResearchUpdateSchema,
-  QueryCompletionSchema,
+  QueryCompletionSchema, // TODO: Remove this
 ]);
 
 export type MessageAnnotation = z.infer<typeof MessageAnnotationSchema>;

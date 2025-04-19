@@ -122,6 +122,18 @@ const ProgressSchema = BaseStreamUpdateSchema.extend({
 
 export type ProgressUpdate = z.infer<typeof ProgressSchema>;
 
+const ThoughtItemSchema = z.object({
+  header: z.string(),
+  body: z.string(),
+});
+
+const ThoughtsSchema = TaskUpdateSchema.extend({
+  type: z.literal('thoughts'),
+  thoughtItems: z.array(ThoughtItemSchema),
+});
+
+export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
+
 export const StreamUpdateSchema = z.discriminatedUnion('type', [
   PlanSchema,
   WebSearchSchema,
@@ -129,6 +141,7 @@ export const StreamUpdateSchema = z.discriminatedUnion('type', [
   XSearchSchema,
   AnalysisSchema,
   ProgressSchema,
+  ThoughtsSchema,
 ]);
 
 export type StreamUpdate = z.infer<typeof StreamUpdateSchema>;

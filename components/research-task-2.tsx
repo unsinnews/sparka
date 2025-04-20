@@ -59,7 +59,7 @@ export const ResearchTask2 = ({
   return (
     <div id={id} className="group">
       <div className="flex items-center gap-2">
-        <Icon className="w-4 h-4 text-neutral-500" />
+        {/* <Icon className="w-4 h-4 text-neutral-500" /> */}
         <p className="text-sm font-medium">{updateName[update.type]}</p>
       </div>
 

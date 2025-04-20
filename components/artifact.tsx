@@ -26,7 +26,7 @@ import { codeArtifact } from '@/artifacts/code/client';
 import { sheetArtifact } from '@/artifacts/sheet/client';
 import { textArtifact } from '@/artifacts/text/client';
 import equal from 'fast-deep-equal';
-import { UseChatHelpers } from '@ai-sdk/react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 
 export const artifactDefinitions = [
@@ -57,6 +57,8 @@ function PureArtifact({
   input,
   setInput,
   handleSubmit,
+  data,
+  setData,
   status,
   stop,
   attachments,
@@ -80,6 +82,16 @@ function PureArtifact({
   votes: Array<Vote> | undefined;
   append: UseChatHelpers['append'];
   handleSubmit: UseChatHelpers['handleSubmit'];
+  data: {
+    deepResearch: boolean;
+    webSearch: boolean;
+  };
+  setData: Dispatch<
+    SetStateAction<{
+      deepResearch: boolean;
+      webSearch: boolean;
+    }>
+  >;
   reload: UseChatHelpers['reload'];
   isReadonly: boolean;
 }) {
@@ -328,6 +340,8 @@ function PureArtifact({
                     input={input}
                     setInput={setInput}
                     handleSubmit={handleSubmit}
+                    data={data}
+                    setData={setData}
                     status={status}
                     stop={stop}
                     attachments={attachments}
@@ -504,6 +518,7 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (prevProps.input !== nextProps.input) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
+  if (prevProps.data !== nextProps.data) return false;
 
   return true;
 });

@@ -122,6 +122,8 @@ export function Chat({
         stop={stop}
         attachments={attachments}
         setAttachments={setAttachments}
+        data={data}
+        setData={setData}
         append={append}
         messages={messages as YourUIMessage[]}
         setMessages={setMessages}

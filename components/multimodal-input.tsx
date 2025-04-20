@@ -35,6 +35,8 @@ function PureMultimodalInput({
   stop,
   attachments,
   setAttachments,
+  data,
+  setData,
   messages,
   setMessages,
   append,
@@ -48,6 +50,16 @@ function PureMultimodalInput({
   stop: () => void;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
+  data: {
+    deepResearch: boolean;
+    webSearch: boolean;
+  };
+  setData: Dispatch<
+    SetStateAction<{
+      deepResearch: boolean;
+      webSearch: boolean;
+    }>
+  >;
   messages: Array<YourUIMessage>;
   setMessages: UseChatHelpers['setMessages'];
   append: UseChatHelpers['append'];
@@ -56,9 +68,7 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
-  const [deepResearch, setDeepResearch] = useState(false);
-  const [webSearch, setWebSearch] = useState(false);
-  console.log({ deepResearch, webSearch });
+  console.log({ data });
   useEffect(() => {
     if (textareaRef.current) {
       adjustHeight();
@@ -113,16 +123,18 @@ function PureMultimodalInput({
 
     handleSubmit(undefined, {
       experimental_attachments: attachments,
-      data: {
-        deepResearch,
-        webSearch,
-      },
+      data,
     });
 
     setAttachments([]);
     setLocalStorageInput('');
     resetHeight();
+    setData({
+      deepResearch: false,
+      webSearch: false,
+    });
 
+    // TODO: Is it needed to refocus every time this function is called?
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
@@ -130,9 +142,11 @@ function PureMultimodalInput({
     attachments,
     handleSubmit,
     setAttachments,
+    setData,
     setLocalStorageInput,
     width,
     chatId,
+    data,
   ]);
 
   const uploadFile = async (file: File) => {
@@ -259,10 +273,13 @@ function PureMultimodalInput({
 
       <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-        <WebSearchToggle enabled={webSearch} setEnabled={setWebSearch} />
+        <WebSearchToggle
+          enabled={data.webSearch}
+          setEnabled={(enabled) => setData({ ...data, webSearch: enabled })}
+        />
         <DeepResearchToggle
-          enabled={deepResearch}
-          setEnabled={setDeepResearch}
+          enabled={data.deepResearch}
+          setEnabled={(enabled) => setData({ ...data, deepResearch: enabled })}
         />
       </div>
 
@@ -323,7 +340,7 @@ export const MultimodalInput = memo(
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.status !== nextProps.status) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-
+    if (prevProps.data !== nextProps.data) return false;
     return true;
   },
 );
@@ -405,5 +422,6 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
     return false;
   if (prevProps.input !== nextProps.input) return false;
+  if (prevProps.submitForm !== nextProps.submitForm) return false;
   return true;
 });

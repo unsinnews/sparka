@@ -51,7 +51,6 @@ export async function POST(request: NextRequest) {
       return new Response('Unauthorized', { status: 401 });
     }
 
-    console.log('Data: ', data);
     const deepResearch = data.deepResearch;
     const webSearch = data.webSearch;
 
@@ -100,11 +99,6 @@ export async function POST(request: NextRequest) {
         userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a web search)`;
       }
     }
-
-    console.log('Selected options: ', {
-      deepResearch,
-      webSearch,
-    });
 
     return createDataStreamResponse({
       execute: (dataStream) => {

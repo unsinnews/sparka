@@ -153,7 +153,7 @@ export const ResearchProgress = ({
           </div>
         </div>
       </SheetTrigger>
-      <SheetContent className="overflow-y-auto sm:max-w-lg">
+      <SheetContent className="overflow-y-auto sm:max-w-xl" skipOverlay>
         <SheetHeader>
           <SheetTitle>Research Tasks</SheetTitle>
           <SheetDescription>

@@ -65,7 +65,7 @@ async function generateNextStepQueries({
         ? `Here are some learnings from previous research, use them to generate more specific queries: ${learnings.join(
             '\n',
           )}`
-        : ''
+        : 'There are no learnings from previous research yet.'
     }`,
     schema: z.object({
       queries: z
@@ -80,16 +80,34 @@ async function generateNextStepQueries({
           }),
         )
         .describe(`List of SERP queries, max of ${numQueries}`),
-      thoughts: z.object({
-        header: z
-          .string()
-          .describe(
-            'A title for the step of researching this queries and analyses',
-          ),
-        body: z
-          .string()
-          .describe('Describe what you are going to do in this step'),
-      }),
+      reflectionThoguhts: z
+        .object({
+          header: z.string().describe('A title for the step. Max 6 words'),
+          body: z
+            .string()
+            .describe(
+              'Describe what you are going to do in this step. Max 50 words',
+            ),
+        })
+        .describe(
+          'Based on the information you have, reflect on what will happen in this step',
+        ),
+      nextStepThoughts: z
+        .object({
+          header: z
+            .string()
+            .describe(
+              'A title for the next step of research. Max 6 words. Example: "Next: Bla bla bla", "Later, Bla bla bla", etc.',
+            ),
+          body: z
+            .string()
+            .describe(
+              'Describe what you are going to do in the next step. Max 50 words',
+            ),
+        })
+        .describe(
+          'Based on the information you have describe what will happen in the next step',
+        ),
     }),
     experimental_telemetry: {
       isEnabled: true,
@@ -102,7 +120,7 @@ async function generateNextStepQueries({
 
   return {
     queries: res.object.queries.slice(0, numQueries),
-    thoughts: res.object.thoughts,
+    thoughts: [res.object.reflectionThoguhts, res.object.nextStepThoughts],
   };
 }
 
@@ -291,12 +309,7 @@ export async function deepResearchInternal({
       message: 'Creating initial thoughts...',
       timestamp: Date.now(),
       overwrite: true,
-      thoughtItems: [
-        {
-          header: thoughts.header,
-          body: thoughts.body,
-        },
-      ],
+      thoughtItems: thoughts,
     },
   });
   completedSteps++;
@@ -328,6 +341,22 @@ export async function deepResearchInternal({
   const limit = pLimit(ConcurrencyLimit);
 
   // Step 1: Perform all initial web searches in parallel
+
+  // TODO: Running Web Search and Web search updates should be in the same annotation step when searches run in parallel.
+
+  dataStream.writeMessageAnnotation({
+    type: 'research_update',
+    data: {
+      id: `step-${completedSteps}-web-search`,
+      type: 'web',
+      status: 'running',
+      title: `Searching for "${query}"`,
+      query,
+      message: `Searching web sources...`,
+      timestamp: Date.now(),
+    },
+  });
+
   const searchResultsPromises = serpQueries.map((serpQuery, queryIndex) =>
     limit(async () => {
       try {
@@ -338,7 +367,8 @@ export async function deepResearchInternal({
             maxResults: 5,
           },
           dataStream,
-          stepId: `search-${queryIndex}`,
+          stepId: `step-${completedSteps}-search-${queryIndex}`,
+          annotate: false,
         });
         return { serpQuery, searchResult, queryIndex }; // Return query info along with result
       } catch (e: any) {
@@ -364,6 +394,38 @@ export async function deepResearchInternal({
   const aggregatedLearnings: string[] = [...learnings];
   const aggregatedUrls: string[] = [...visitedUrls];
   const recursiveResults: ResearchResult[] = []; // Store results from deeper dives
+
+  const successfulResults = searchResultsWithData.filter(
+    ({ searchResult, serpQuery }) => {
+      if (searchResult.error) {
+        console.log(
+          `Skipping processing due to error in query: ${serpQuery.query}: ${searchResult.error}`,
+        );
+        return false;
+      }
+      return true;
+    },
+  );
+  dataStream.writeMessageAnnotation({
+    type: 'research_update',
+    data: {
+      id: `step-${completedSteps}-web-search`,
+      type: 'web',
+      status: 'completed',
+      title: `Web Search Complete`,
+      query,
+      message: `Web search complete`,
+      timestamp: Date.now(),
+      results: successfulResults.flatMap(({ serpQuery, searchResult }) =>
+        searchResult.results.map((r) => ({
+          title: serpQuery.query,
+          source: 'web',
+          url: r.url,
+          content: r.content,
+        })),
+      ),
+    },
+  });
 
   for (const { serpQuery, searchResult } of searchResultsWithData) {
     try {

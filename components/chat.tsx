@@ -63,6 +63,13 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+  const [data, setData] = useState<{
+    deepResearch: boolean;
+    webSearch: boolean;
+  }>({
+    deepResearch: false,
+    webSearch: false,
+  });
 
   return (
     <>
@@ -91,6 +98,8 @@ export function Chat({
               chatId={id}
               input={input}
               setInput={setInput}
+              data={data}
+              setData={setData}
               handleSubmit={handleSubmit}
               status={status}
               stop={stop}

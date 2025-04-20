@@ -37,26 +37,30 @@ export async function webSearchStep({
   providerOptions,
   dataStream,
   stepId,
+  annotate = true,
 }: {
   query: string;
   dataStream: AnnotationDataStreamWriter;
   stepId: string;
   providerOptions: SearchProviderOptions;
+  annotate?: boolean;
 }): Promise<WebSearchResponse> {
   try {
     // Send running status
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'running',
-        title: `Searching for "${query}"`,
-        query,
-        message: `Searching web sources...`,
-        timestamp: Date.now(),
-      },
-    });
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'running',
+          title: `Searching for "${query}"`,
+          query,
+          message: `Searching web sources...`,
+          timestamp: Date.now(),
+        },
+      });
+    }
 
     let results: WebSearchResult[] = [];
 
@@ -91,20 +95,22 @@ export async function webSearchStep({
     }
 
     // Send completed status
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'completed',
-        title: `Search complete for "${query}"`,
-        query,
-        results,
-        message: `Found ${results.length} results`,
-        timestamp: Date.now(),
-        overwrite: true,
-      },
-    });
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'completed',
+          title: `Search complete for "${query}"`,
+          query,
+          results,
+          message: `Found ${results.length} results`,
+          timestamp: Date.now(),
+          overwrite: true,
+        },
+      });
+    }
 
     return { results };
   } catch (error: any) {

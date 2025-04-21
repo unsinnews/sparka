@@ -1,7 +1,7 @@
 'use client';
 
 import cx from 'classnames';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';

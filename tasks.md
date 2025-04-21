@@ -4,7 +4,6 @@
 [ ] Unify Deep research and reasonSearch
 [ ] Add manus-like plan as a document
 
-
 [x] Create a button to Deep Research
 
 

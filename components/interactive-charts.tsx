@@ -1,8 +1,9 @@
 import React from 'react';
-import ReactECharts, { type EChartsOption } from 'echarts-for-react';
+import ReactECharts from 'echarts-for-react/lib/index';
+import type { EChartsOption } from 'echarts-for-react/lib/types';
 import { Card } from '@/components/ui/card';
 import { useTheme } from 'next-themes';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 const CHART_COLORS = [
   '#22c55e', // green

@@ -8,7 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ArrowUpRight, ChevronDown } from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';

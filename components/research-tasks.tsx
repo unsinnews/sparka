@@ -78,7 +78,7 @@ export const StepWrapper = ({ status, children }: StepWrapperProps) => {
   );
 };
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 export const StepStatus = ({ status }: { status: ItemStatus }) => {
   switch (status) {

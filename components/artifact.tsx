@@ -1,6 +1,6 @@
 import type { Attachment } from 'ai';
 import { formatDistance } from 'date-fns';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   type Dispatch,
   memo,

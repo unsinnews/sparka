@@ -93,7 +93,7 @@ export function XSourceBadge({ result }: { result: XSearchResultItem }) {
         <Link href={url} target="_blank" rel="noopener noreferrer">
           <Badge
             variant="secondary"
-            className="text-[10px] gap-1 max-w-[200px] truncate text-xs"
+            className="gap-1 max-w-[200px] truncate text-xs"
           >
             <XLogo className="w-3 h-3 flex-shrink-0" />
             <span>{result.title}</span>

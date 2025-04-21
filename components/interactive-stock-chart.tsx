@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import ReactECharts, { type EChartsOption } from 'echarts-for-react';
+import ReactECharts from 'echarts-for-react/lib/index';
+import type { EChartsOption } from 'echarts-for-react/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { useTheme } from 'next-themes';
 import { cn } from '@/lib/utils';

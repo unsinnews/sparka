@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { XLogo } from '@phosphor-icons/react';
+import { XLogo } from '@phosphor-icons/react/XLogo';
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import type { AnalysisUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { AcademicToolAction, XToolAction } from '@/components/tool-actions';

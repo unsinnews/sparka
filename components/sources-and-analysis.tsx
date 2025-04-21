@@ -33,7 +33,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { XLogo } from '@phosphor-icons/react';
+import { XLogo } from '@phosphor-icons/react/XLogo';
 
 // Runtime imports (used with z.infer)
 import type {

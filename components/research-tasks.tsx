@@ -1,6 +1,5 @@
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import React, { useState, type ReactNode } from 'react';
-import { ResearchTask } from './research-task';
 import { ResearchTask2 } from './research-task-2';
 
 export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {

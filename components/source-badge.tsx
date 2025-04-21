@@ -12,7 +12,7 @@ import type {
   XSearchResultItem,
   AcademicSearchResultItem,
 } from '@/components/reason-search-sources-and-analysis';
-import { XLogo } from '@phosphor-icons/react';
+import { XLogo } from '@phosphor-icons/react/XLogo';
 import { Tweet } from 'react-tweet';
 
 export function WebSourceBadge({ result }: { result: SearchResultItem }) {

@@ -1,5 +1,5 @@
 import { FileText, BookA } from 'lucide-react';
-import { XLogo } from '@phosphor-icons/react';
+import { XLogo } from '@phosphor-icons/react/XLogo';
 import {
   ToolActionContainer,
   ToolActionKind,

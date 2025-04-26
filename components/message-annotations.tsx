@@ -17,9 +17,15 @@ export const SourcesAnnotations = ({
 
   if (researchUpdates.length === 0) return null;
 
+  const researchCompleted = researchUpdates.find(
+    (u) => u.type === 'progress' && u.status === 'completed',
+  );
+
+  if (!researchCompleted) return null;
+
   const webSearchUpdates = researchUpdates
     .filter<WebSearchUpdate>((u) => u.type === 'web')
-    .filter((u) => u.status === 'completed' && u.results)
+    .filter((u) => u.results)
     .flatMap((u) => u.results)
     .filter((u) => u !== undefined);
 

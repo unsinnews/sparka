@@ -9,7 +9,16 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { motion } from 'motion/react';
-import { ArrowUpRight, ChevronDown } from 'lucide-react';
+import {
+  ArrowUpRight,
+  ChevronDown,
+  ChevronUp,
+  Expand,
+  Maximize,
+  Maximize2,
+  Minimize2,
+  Shrink,
+} from 'lucide-react';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -18,6 +27,19 @@ import { cn } from '@/lib/utils';
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 
 import { ResearchTasks } from './research-tasks';
+import { ResearchTask2 } from './research-task-2';
+
+// Add the updateName mapping (consider moving to a shared util later)
+const updateName = {
+  plan: 'Research Plan',
+  web: 'Web Search',
+  academic: 'Academic Search',
+  progress: 'Progress',
+  analysis: 'Analysis',
+  'gap-search': 'Gap Search',
+  thoughts: 'Thoughts',
+  x: 'X Search',
+} as const;
 
 export const ResearchProgress = ({
   updates,
@@ -28,9 +50,8 @@ export const ResearchProgress = ({
   totalExpectedSteps: number;
   isComplete: boolean;
 }) => {
-  // TODO: Implement open when it starts running
-  const [isOpen, setIsOpen] = React.useState(false);
-
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  console.log('updates', updates);
   const dedupedUpdates = React.useMemo(() => {
     const updateMap = new Map<string, StreamUpdate>();
     updates.forEach((u) => updateMap.set(u.id, u));
@@ -60,11 +81,7 @@ export const ResearchProgress = ({
     const stepsById = new Map<string, StreamUpdate>();
     updates.forEach((u) => stepsById.set(u.id, u));
 
-    const excludedIds = new Set([
-      'research-plan',
-      'research-progress',
-      'research-plan-initial',
-    ]);
+    const excludedIds = new Set(['research-plan', 'research-plan-initial']);
 
     const relevantUpdates = Array.from(stepsById.values()).filter(
       (u) => !excludedIds.has(u.id),
@@ -90,80 +107,100 @@ export const ResearchProgress = ({
     };
   }, [updates, totalExpectedSteps, isComplete]);
 
+  const lastUpdate =
+    sortedUpdates.length > 0 ? sortedUpdates[sortedUpdates.length - 1] : null;
+
+  const sourceCount = React.useMemo(() => {
+    return dedupedUpdates
+      .filter(
+        (u) => u.type === 'web' || u.type === 'academic' || u.type === 'x',
+      )
+      .reduce((acc, u) => acc + (u.results?.length || 0), 0);
+  }, [dedupedUpdates]);
+
+  // TODO: First update is not showing
+  const lastUpdateTitle = !lastUpdate
+    ? 'Researching'
+    : isComplete
+      ? `Research Complete`
+      : lastUpdate.title || updateName[lastUpdate.type];
+
+  const timeSpent = React.useMemo(() => {
+    if (isComplete) {
+      const completedUpdate = dedupedUpdates.find(
+        (u) => u.id === 'research-progress' && u.status === 'completed',
+      );
+      return completedUpdate?.timestamp
+        ? Math.floor(
+            (completedUpdate.timestamp - dedupedUpdates[0].timestamp) / 1000,
+          )
+        : 0;
+    }
+    return 0;
+  }, [dedupedUpdates, isComplete]);
+
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <div
-          role="button"
-          tabIndex={0}
-          className={cn(
-            'flex items-center justify-between py-2 px-3 rounded-lg w-full cursor-pointer',
-            'hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors',
-          )}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              // Programmatically click the trigger or handle open state
-              // This might need adjustment depending on how SheetTrigger handles keyboard events
-            }
-          }}
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-medium">
-                {isComplete ? 'Research Complete' : 'Research in Progress'}
-              </h3>
-              {/* {isComplete ? (
-                <Badge
-                  variant="secondary"
-                  className="bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"
-                >
-                  Complete
-                </Badge>
-              ) : (
-                showRunningIndicators && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400"
-                  >
-                    In Progress ({completedSteps}/{totalSteps})
-                  </Badge>
-                )
-              )} */}
-            </div>
-            {/* <Progress
-              value={progress}
-              className={cn(
-                'h-1 w-24 sm:w-32',
-                showRunningIndicators && 'animate-pulse',
-              )}
-              aria-label={`Research progress: ${Math.round(progress)}% complete`}
-            /> */}
-          </div>
+    <div className="border rounded-lg p-1 bg-card shadow-sm">
+      <div
+        role="button"
+        tabIndex={0}
+        className={cn(
+          'flex items-center justify-between py-2 px-3 rounded-lg w-full cursor-pointer',
+          'hover:bg-accent hover:text-accent-foreground transition-colors',
+        )}
+        onClick={() => setIsExpanded(!isExpanded)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setIsExpanded(!isExpanded);
+            e.preventDefault();
+          }
+        }}
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2">
-            <Badge
-              variant="secondary"
-              className="bg-neutral-50 dark:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400"
-            >
-              {sortedUpdates.length} task{sortedUpdates.length === 1 ? '' : 's'}
-            </Badge>
-            <ArrowUpRight
-              className="h-4 w-4 text-neutral-500 flex-shrink-0"
+            <h3 className="text-sm font-medium">
+              {!isExpanded && lastUpdate && lastUpdateTitle}
+            </h3>
+            {isComplete && !isExpanded && (
+              <span className="text-xs text-muted-foreground">{`Researched for ${timeSpent} seconds, ${sourceCount} sources`}</span>
+            )}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">
+            {sortedUpdates.length} task{sortedUpdates.length === 1 ? '' : 's'}
+          </Badge>
+          {isExpanded ? (
+            <Minimize2
+              className="h-4 w-4 text-muted-foreground flex-shrink-0"
               aria-hidden="true"
             />
-          </div>
+          ) : (
+            <Maximize2
+              className="h-4 w-4 text-muted-foreground flex-shrink-0"
+              aria-hidden="true"
+            />
+          )}
         </div>
-      </SheetTrigger>
-      <SheetContent className="overflow-y-auto sm:max-w-xl" skipOverlay>
-        <SheetHeader>
-          <SheetTitle>Research Tasks</SheetTitle>
-          <SheetDescription>
-            Detailed breakdown of research steps.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="py-6">
+      </div>
+
+      {isExpanded ? (
+        <div className="pt-2 pb-1 px-1">
           <ResearchTasks updates={sortedUpdates} />
         </div>
-      </SheetContent>
-    </Sheet>
+      ) : (
+        lastUpdate &&
+        !isComplete && (
+          <div className="px-4 pt-1 pb-3">
+            <ResearchTask2
+              update={lastUpdate}
+              id={`last-task-${lastUpdate.id}`}
+              isExpanded={false}
+              onToggle={() => {}}
+            />
+          </div>
+        )
+      )}
+    </div>
   );
 };

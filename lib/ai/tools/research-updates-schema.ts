@@ -46,6 +46,7 @@ export type PlanUpdate = z.infer<typeof PlanSchema>;
 
 const BaseSearchSchema = TaskUpdateSchema.extend({
   query: z.string(),
+  subqueries: z.array(z.string()).optional(),
   results: z
     .array(
       z.object({

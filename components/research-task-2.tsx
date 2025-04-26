@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   FileText,
@@ -6,6 +6,7 @@ import {
   Sparkles,
   Loader2,
   ChevronDown,
+  SearchIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -166,6 +167,25 @@ export const ResearchTask2 = ({
               </div>
             </>
           )}
+
+          {(update.type === 'web' ||
+            update.type === 'x' ||
+            update.type === 'academic') &&
+            update.subqueries && (
+              <div className="flex flex-wrap gap-2">
+                {update.subqueries.map((query, idx) => (
+                  <Badge
+                    key={`search-query-${idx}`}
+                    variant="outline"
+                    className="flex items-center gap-1 bg-muted "
+                  >
+                    <SearchIcon className="w-3.5 h-3.5" />
+                    {/* // TODO: Make this max w more responsive or accomodate long text in another manner */}
+                    <span className="truncate max-w-[300px]">{query}</span>
+                  </Badge>
+                ))}
+              </div>
+            )}
 
           {/* Search Results: Show only when completed and results exist */}
           {(update.type === 'web' ||

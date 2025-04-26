@@ -2,6 +2,9 @@ import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import React, { useState, type ReactNode } from 'react';
 import { ResearchTask2 } from './research-task-2';
 
+import { motion } from 'motion/react';
+import { cn } from '@/lib/utils';
+
 export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
 
@@ -24,7 +27,11 @@ export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
           update.status === 'running' || expandedSteps.has(update.id);
 
         return (
-          <StepWrapper key={update.id} status={'COMPLETED'}>
+          <StepWrapper
+            key={update.id}
+            status={'COMPLETED'}
+            isLast={index === updates.length - 1}
+          >
             <ResearchTask2
               id={`step-${update.id}`}
               update={update}
@@ -49,9 +56,10 @@ export type ItemStatus =
 export type StepWrapperProps = {
   status: ItemStatus;
   children: ReactNode;
+  isLast: boolean;
 };
 
-export const StepWrapper = ({ status, children }: StepWrapperProps) => {
+export const StepWrapper = ({ status, children, isLast }: StepWrapperProps) => {
   return (
     <div className="flex w-full flex-row items-stretch justify-start gap-2">
       <div className="flex min-h-full shrink-0 flex-col items-center justify-start px-2">
@@ -60,7 +68,10 @@ export const StepWrapper = ({ status, children }: StepWrapperProps) => {
           <StepStatus status={status} />
         </div>
         <motion.div
-          className="border-border min-h-full w-[1px] flex-1 border-l border-dashed"
+          className={cn(
+            'border-border min-h-full w-[1px] flex-1 border-l border-dashed',
+            isLast && 'hidden',
+          )}
           initial={{ height: 0 }}
           animate={{ height: '100%' }}
           transition={{ duration: 0.5 }}
@@ -77,8 +88,6 @@ export const StepWrapper = ({ status, children }: StepWrapperProps) => {
     </div>
   );
 };
-
-import { motion } from 'motion/react';
 
 export const StepStatus = ({ status }: { status: ItemStatus }) => {
   switch (status) {

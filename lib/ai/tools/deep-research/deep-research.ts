@@ -350,8 +350,9 @@ export async function deepResearchInternal({
       id: `step-${completedSteps}-web-search`,
       type: 'web',
       status: 'running',
-      title: `Searching for "${query}"`,
+      title: `Web Search`, // TODO: Include a summary of this step
       query,
+      subqueries: serpQueries.map((q) => q.query),
       message: `Searching web sources...`,
       timestamp: Date.now(),
     },
@@ -412,8 +413,9 @@ export async function deepResearchInternal({
       id: `step-${completedSteps}-web-search`,
       type: 'web',
       status: 'completed',
-      title: `Web Search Complete`,
+      title: `Web Search`,
       query,
+      subqueries: serpQueries.map((q) => q.query),
       message: `Web search complete`,
       timestamp: Date.now(),
       results: successfulResults.flatMap(({ serpQuery, searchResult }) =>
@@ -445,6 +447,7 @@ export async function deepResearchInternal({
 
       completedSteps++; // Increment step count after successful search
 
+      // TODO: Add an annotation after this step
       const processedResult = await processSerpResult({
         query: serpQuery.query,
         result: {
@@ -463,6 +466,7 @@ export async function deepResearchInternal({
         console.log(
           `Researching deeper for "${serpQuery.query}", breadth: ${newBreadth}, depth: ${newDepth}`,
         );
+        // TODO: Maybe we should do a single follow up question
         const nextQuery = `
           Previous research goal: ${serpQuery.researchGoal}
           Follow-up research directions: ${processedResult.followUpQuestions.map((q) => `\\n${q}`).join('')}
@@ -487,6 +491,21 @@ export async function deepResearchInternal({
         // Completed this branch
         console.log(`Reached last level of research for "${serpQuery.query}"`);
         // Learnings and URLs already added to aggregated lists
+        // Send final progress update (might need adjustment based on sequential steps)
+        dataStream.writeMessageAnnotation({
+          type: 'research_update',
+          data: {
+            id: 'research-progress',
+            type: 'progress',
+            status: 'completed',
+            message: `Research complete`,
+            completedSteps: completedSteps,
+            totalSteps: serpQueries.length * (depth + 1),
+            isComplete: true,
+            overwrite: true,
+            timestamp: Date.now(),
+          },
+        });
       }
     } catch (e: any) {
       console.log(`Error processing result for query: ${serpQuery.query}: `, e);
@@ -503,22 +522,6 @@ export async function deepResearchInternal({
     ...aggregatedUrls,
     ...recursiveResults.flatMap((r) => r.visitedUrls),
   ];
-
-  // Send final progress update (might need adjustment based on sequential steps)
-  dataStream.writeMessageAnnotation({
-    type: 'research_update',
-    data: {
-      id: 'research-progress',
-      type: 'progress',
-      status: 'completed',
-      message: `Research complete`,
-      completedSteps: completedSteps,
-      totalSteps: serpQueries.length * (depth + 1),
-      isComplete: true,
-      overwrite: true,
-      timestamp: Date.now(),
-    },
-  });
 
   return {
     learnings: [...new Set(finalLearnings)],

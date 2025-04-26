@@ -20,28 +20,31 @@ export async function academicSearchStep({
   maxResults,
   dataStream,
   stepId,
+  annotate = true,
 }: {
   query: string;
   maxResults: number;
   dataStream: AnnotationDataStreamWriter;
   stepId: string;
+  annotate?: boolean;
 }): Promise<AcademicSearchResponse> {
   try {
     // Send running annotation
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'running',
-        title: `Searching academic papers for "${query}"`,
-        query,
-        subqueries: [query],
-        message: `Searching academic sources...`,
-        timestamp: Date.now(),
-      },
-    });
-
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'running',
+          title: `Searching academic papers for "${query}"`,
+          query,
+          subqueries: [query],
+          message: `Searching academic sources...`,
+          timestamp: Date.now(),
+        },
+      });
+    }
     const academicResults = await exa.searchAndContents(query, {
       type: 'auto',
       numResults: maxResults,
@@ -57,21 +60,23 @@ export async function academicSearchStep({
     }));
 
     // Send completed annotation
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'completed',
-        title: `Searched academic papers for "${query}"`,
-        query,
-        subqueries: [query],
-        results,
-        message: `Found ${results.length} results`,
-        timestamp: Date.now(),
-        overwrite: true,
-      },
-    });
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'completed',
+          title: `Searched academic papers for "${query}"`,
+          query,
+          subqueries: [query],
+          results,
+          message: `Found ${results.length} results`,
+          timestamp: Date.now(),
+          overwrite: true,
+        },
+      });
+    }
 
     return { results };
   } catch (error) {
@@ -79,20 +84,22 @@ export async function academicSearchStep({
       error instanceof Error ? error.message : 'Unknown error occurred';
 
     // Send error annotation
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'completed',
-        title: `Error searching academic papers for "${query}"`,
-        query,
-        subqueries: [query],
-        message: `Error: ${errorMessage}`,
-        timestamp: Date.now(),
-        overwrite: true,
-      },
-    });
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'completed',
+          title: `Error searching academic papers for "${query}"`,
+          query,
+          subqueries: [query],
+          message: `Error: ${errorMessage}`,
+          timestamp: Date.now(),
+          overwrite: true,
+        },
+      });
+    }
 
     return { results: [], error: errorMessage };
   }

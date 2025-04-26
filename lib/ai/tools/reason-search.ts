@@ -12,7 +12,7 @@ import {
 } from './steps/academic-search';
 
 type SearchResult = {
-  type: 'web' | 'academic' | 'x' | 'all';
+  type: 'web' | 'academic' | 'x';
   query: {
     query: string;
     rationale: string;
@@ -72,7 +72,7 @@ export const createReasonSearch = ({
               z.object({
                 query: z.string(),
                 rationale: z.string(),
-                source: z.enum(['web', 'academic', 'x', 'all']),
+                source: z.enum(['web', 'academic', 'x']),
                 priority: z.number().min(1).max(5),
               }),
             )
@@ -111,7 +111,6 @@ export const createReasonSearch = ({
                 - "web": General web search
                 - "academic": Academic papers and research
                 - "x": X/Twitter posts and discussions
-                - "all": Use all source types (web, academic, and X/Twitter)
                 
                 Do not use floating numbers, use whole numbers only in the priority field!!
                 Do not keep the numbers too low or high, make them reasonable in between.
@@ -144,19 +143,12 @@ export const createReasonSearch = ({
       const generateStepIds = (plan: typeof researchPlan) => {
         // Generate an array of search steps.
         const searchSteps = plan.search_queries.flatMap((query, index) => {
-          if (query.source === 'all') {
-            return [
-              { id: `search-web-${index}`, type: 'web', query },
-              { id: `search-academic-${index}`, type: 'academic', query },
-              { id: `search-x-${index}`, type: 'x', query },
-            ];
-          }
-          if (query.source === 'x') {
-            return [{ id: `search-x-${index}`, type: 'x', query }];
-          }
-          const searchType = query.source === 'academic' ? 'academic' : 'web';
           return [
-            { id: `search-${searchType}-${index}`, type: searchType, query },
+            {
+              id: `search-${query.source}-${index}`,
+              type: query.source,
+              query,
+            },
           ];
         });
 
@@ -184,6 +176,23 @@ export const createReasonSearch = ({
 
       const searchQueryConfigs = stepIds.searchSteps.map((step) => step.query);
 
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: `step-${completedSteps}-additional-queries`,
+          type: 'web',
+          status: 'running',
+          message: 'Searching for additional queries...',
+          timestamp: Date.now(),
+          query: 'Searching additional queries',
+          subqueries: searchQueryConfigs.map(
+            (q) => `${q.source !== 'web' ? `${q.source}: ` : ''}${q.query}`,
+          ),
+          title: 'Additional Queries',
+          overwrite: true,
+        },
+      });
+
       for (const searchQueryConfig of searchQueryConfigs) {
         const results = await searchStep({
           searchQueryConfig,
@@ -192,8 +201,25 @@ export const createReasonSearch = ({
           depth, // TODO: Depth should be a provider config
         });
         searchResults.push(...results);
-        completedSteps++;
       }
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: `step-${completedSteps}-additional-queries`,
+          type: 'web',
+          status: 'completed',
+          message: 'Searched additional queries',
+          timestamp: Date.now(),
+          query: 'Searched additional queries',
+          subqueries: searchQueryConfigs.map(
+            (q) => `${q.source !== 'web' ? `${q.source}: ` : ''}${q.query}`,
+          ),
+          results: searchResults.flatMap((r) => r.results),
+          title: 'Additional Queries',
+          overwrite: true,
+        },
+      });
+      completedSteps++;
 
       // Perform analyses
       let analysisIndex = 0; // Add index tracker
@@ -297,7 +323,7 @@ export const createReasonSearch = ({
                 z.object({
                   query: z.string(),
                   rationale: z.string(),
-                  source: z.enum(['web', 'academic', 'x', 'all']),
+                  source: z.enum(['web', 'academic', 'x']),
                   priority: z.number().min(1).max(5),
                 }),
               ),
@@ -378,6 +404,24 @@ export const createReasonSearch = ({
           (gap) => gap.additional_queries,
         );
 
+        dataStream.writeMessageAnnotation({
+          type: 'research_update',
+          data: {
+            id: `step-${completedSteps}-additional-queries`,
+            type: 'web',
+            status: 'running',
+            message: 'Searching for additional queries...',
+            timestamp: Date.now(),
+            query: 'Searching additional queries',
+            subqueries: additionalQueries.map(
+              (q) => `${q.source !== 'web' ? `${q.source}: ` : ''}${q.query}`,
+            ),
+            title: 'Additional Queries',
+            overwrite: true,
+          },
+        });
+
+        const additionalSearchResults: SearchResult[] = [];
         // Execute additional searches for gaps
         for (const queryConfig of additionalQueries) {
           // Generate a unique ID for this gap search
@@ -387,9 +431,28 @@ export const createReasonSearch = ({
             dataStream,
             depth, // TODO: Depth should be a provider config
           });
-          searchResults.push(...results);
-          completedSteps++;
+          additionalSearchResults.push(...results);
         }
+        dataStream.writeMessageAnnotation({
+          type: 'research_update',
+          data: {
+            id: `step-${completedSteps}-additional-queries`,
+            type: 'web',
+            status: 'completed',
+            message: 'Searched additional queries',
+            timestamp: Date.now(),
+            query: 'Searched additional queries',
+            subqueries: additionalQueries.map(
+              (q) => `${q.source !== 'web' ? `${q.source}: ` : ''}${q.query}`,
+            ),
+            results: additionalSearchResults.flatMap((r) => r.results),
+            title: 'Additional Queries',
+            overwrite: true,
+          },
+        });
+        completedSteps++;
+        searchResults.push(...additionalSearchResults);
+
         // Send running state for final synthesis
         dataStream.writeMessageAnnotation({
           type: 'research_update',
@@ -519,6 +582,7 @@ async function searchStep({
       },
       dataStream,
       stepId: `step-${completedSteps}-web-search`,
+      annotate: false,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({
@@ -535,6 +599,7 @@ async function searchStep({
       maxResults: Math.min(6 - searchQueryConfig.priority, 5),
       dataStream,
       stepId: `step-${completedSteps}-academic-search`,
+      annotate: false,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({
@@ -552,6 +617,7 @@ async function searchStep({
       maxResults: searchQueryConfig.priority, // Consider adjusting priority logic if needed
       dataStream,
       stepId: `step-${completedSteps}-x-search`,
+      annotate: false,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({

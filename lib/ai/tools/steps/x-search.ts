@@ -31,28 +31,32 @@ export async function xSearchStep({
   maxResults = 5,
   dataStream,
   stepId,
+  annotate = true,
 }: {
   query: string;
   type: 'neural' | 'keyword';
   maxResults?: number;
   dataStream: AnnotationDataStreamWriter;
   stepId: string;
+  annotate?: boolean;
 }): Promise<XSearchResponse> {
   try {
     // Send running status
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'running',
-        title: `Searching X/Twitter for "${query}"`,
-        query,
-        subqueries: [query],
-        message: `Searching X/Twitter sources...`,
-        timestamp: Date.now(),
-      },
-    });
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'running',
+          title: `Searching X/Twitter for "${query}"`,
+          query,
+          subqueries: [query],
+          message: `Searching X/Twitter sources...`,
+          timestamp: Date.now(),
+        },
+      });
+    }
 
     const xResults = await exa.searchAndContents(query, {
       type: 'neural',
@@ -80,41 +84,45 @@ export async function xSearchStep({
       .filter((tweet): tweet is XSearchResult => tweet !== null);
 
     // Send completed status
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'completed',
-        title: `Searched X/Twitter for "${query}"`,
-        query,
-        subqueries: [query],
-        results: processedTweets,
-        message: `Found ${processedTweets.length} results`,
-        timestamp: Date.now(),
-        overwrite: true,
-      },
-    });
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'completed',
+          title: `Searched X/Twitter for "${query}"`,
+          query,
+          subqueries: [query],
+          results: processedTweets,
+          message: `Found ${processedTweets.length} results`,
+          timestamp: Date.now(),
+          overwrite: true,
+        },
+      });
+    }
 
     return { results: processedTweets };
   } catch (error: any) {
     const errorMessage = error?.message || 'Unknown error occurred';
 
     // Send error status
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'completed',
-        title: `Search failed for "${query}"`,
-        query,
-        subqueries: [query],
-        message: `Error: ${errorMessage}`,
-        timestamp: Date.now(),
-        overwrite: true,
-      },
-    });
+    if (annotate) {
+      dataStream.writeMessageAnnotation({
+        type: 'research_update',
+        data: {
+          id: stepId,
+          type: 'web',
+          status: 'completed',
+          title: `Search failed for "${query}"`,
+          query,
+          subqueries: [query],
+          message: `Error: ${errorMessage}`,
+          timestamp: Date.now(),
+          overwrite: true,
+        },
+      });
+    }
 
     return {
       results: [],

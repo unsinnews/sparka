@@ -87,7 +87,6 @@ export const ResearchTask = ({
               ))}
             </div>
           )}
-          size
           {/* Search Results: Show only when completed and results exist */}
           {update.type === 'web' &&
             update.status === 'completed' &&

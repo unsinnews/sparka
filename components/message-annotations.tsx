@@ -23,7 +23,12 @@ export const SourcesAnnotations = ({
     .flatMap((u) => u.results)
     .filter((u) => u !== undefined);
 
-  return <Sources sources={webSearchUpdates} />;
+  const deduppedSources = webSearchUpdates.filter(
+    (source, index, self) =>
+      index === self.findIndex((t) => t.url === source.url),
+  );
+
+  return <Sources sources={deduppedSources} />;
 };
 
 export const ResearchUpdateAnnotations = ({

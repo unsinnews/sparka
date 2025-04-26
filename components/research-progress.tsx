@@ -110,6 +110,12 @@ export const ResearchProgress = ({
   const lastUpdate =
     sortedUpdates.length > 0 ? sortedUpdates[sortedUpdates.length - 1] : null;
 
+  const searchCount = React.useMemo(() => {
+    return dedupedUpdates.filter(
+      (u) => u.type === 'web' || u.type === 'academic' || u.type === 'x',
+    ).length;
+  }, [dedupedUpdates]);
+
   const sourceCount = React.useMemo(() => {
     return dedupedUpdates
       .filter(
@@ -162,7 +168,7 @@ export const ResearchProgress = ({
               {!isExpanded && lastUpdate && lastUpdateTitle}
             </h3>
             {isComplete && !isExpanded && (
-              <span className="text-xs text-muted-foreground">{`Researched for ${timeSpent} seconds, ${sourceCount} sources`}</span>
+              <span className="text-xs text-muted-foreground">{`Researched for ${timeSpent} seconds, ${searchCount} searches, ${sourceCount} sources`}</span>
             )}
           </div>
         </div>

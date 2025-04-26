@@ -44,7 +44,7 @@ export async function xSearchStep({
       type: 'research_update',
       data: {
         id: stepId,
-        type: 'x',
+        type: 'web',
         status: 'running',
         title: `Searching X/Twitter for "${query}"`,
         query,
@@ -83,7 +83,7 @@ export async function xSearchStep({
       type: 'research_update',
       data: {
         id: stepId,
-        type: 'x',
+        type: 'web',
         status: 'completed',
         title: `Searched X/Twitter for "${query}"`,
         query,
@@ -103,7 +103,7 @@ export async function xSearchStep({
       type: 'research_update',
       data: {
         id: stepId,
-        type: 'x',
+        type: 'web',
         status: 'completed',
         title: `Search failed for "${query}"`,
         query,

@@ -32,7 +32,7 @@ export async function academicSearchStep({
       type: 'research_update',
       data: {
         id: stepId,
-        type: 'academic',
+        type: 'web',
         status: 'running',
         title: `Searching academic papers for "${query}"`,
         query,
@@ -60,7 +60,7 @@ export async function academicSearchStep({
       type: 'research_update',
       data: {
         id: stepId,
-        type: 'academic',
+        type: 'web',
         status: 'completed',
         title: `Searched academic papers for "${query}"`,
         query,
@@ -81,7 +81,7 @@ export async function academicSearchStep({
       type: 'research_update',
       data: {
         id: stepId,
-        type: 'academic',
+        type: 'web',
         status: 'completed',
         title: `Error searching academic papers for "${query}"`,
         query,

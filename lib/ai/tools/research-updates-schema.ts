@@ -54,7 +54,7 @@ const BaseSearchSchema = TaskUpdateSchema.extend({
         title: z.string(),
         content: z.string(),
         source: z.enum(['web', 'academic', 'x']),
-        tweetId: z.string().optional(),
+        // tweetId: z.string().optional(),
       }),
     )
     .optional(),
@@ -138,8 +138,8 @@ export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
 export const StreamUpdateSchema = z.discriminatedUnion('type', [
   PlanSchema,
   WebSearchSchema,
-  AcademicSearchSchema,
-  XSearchSchema,
+  // AcademicSearchSchema,
+  // XSearchSchema,
   AnalysisSchema,
   ProgressSchema,
   ThoughtsSchema,

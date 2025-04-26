@@ -89,16 +89,10 @@ const PurePreviewMessage = ({
             )}
 
             {message.annotations && (
-              <>
-                <ResearchUpdateAnnotations
-                  annotations={message.annotations}
-                  key={`research-update-annotations-${message.id}`}
-                />
-                <SourcesAnnotations
-                  annotations={message.annotations}
-                  key={`sources-annotations-${message.id}`}
-                />
-              </>
+              <ResearchUpdateAnnotations
+                annotations={message.annotations}
+                key={`research-update-annotations-${message.id}`}
+              />
             )}
             {message.parts?.map((part, index) => {
               const { type } = part;
@@ -257,6 +251,14 @@ const PurePreviewMessage = ({
                 }
               }
             })}
+
+            {message.annotations && (
+              <SourcesAnnotations
+                annotations={message.annotations}
+                key={`sources-annotations-${message.id}`}
+              />
+            )}
+
             {!isReadonly && (
               <MessageActions
                 key={`action-${message.id}`}

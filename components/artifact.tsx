@@ -28,6 +28,7 @@ import { textArtifact } from '@/artifacts/text/client';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 
 export const artifactDefinitions = [
   textArtifact,
@@ -82,16 +83,8 @@ function PureArtifact({
   votes: Array<Vote> | undefined;
   append: UseChatHelpers['append'];
   handleSubmit: UseChatHelpers['handleSubmit'];
-  data: {
-    deepResearch: boolean;
-    webSearch: boolean;
-  };
-  setData: Dispatch<
-    SetStateAction<{
-      deepResearch: boolean;
-      webSearch: boolean;
-    }>
-  >;
+  data: ChatRequestData;
+  setData: Dispatch<SetStateAction<ChatRequestData>>;
   reload: UseChatHelpers['reload'];
   isReadonly: boolean;
 }) {

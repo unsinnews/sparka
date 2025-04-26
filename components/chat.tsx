@@ -1,6 +1,6 @@
 'use client';
 
-import type { Attachment, UIMessage } from 'ai';
+import type { Attachment } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
@@ -14,6 +14,7 @@ import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 
 export function Chat({
   id,
@@ -63,10 +64,7 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-  const [data, setData] = useState<{
-    deepResearch: boolean;
-    webSearch: boolean;
-  }>({
+  const [data, setData] = useState<ChatRequestData>({
     deepResearch: false,
     webSearch: false,
   });

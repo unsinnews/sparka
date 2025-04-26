@@ -25,7 +25,8 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { Toggle } from './ui/toggle';
-import { GlobeIcon, SearchIcon } from 'lucide-react';
+import { GlobeIcon, Telescope } from 'lucide-react';
+import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 
 function PureMultimodalInput({
   chatId,
@@ -50,16 +51,8 @@ function PureMultimodalInput({
   stop: () => void;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-  data: {
-    deepResearch: boolean;
-    webSearch: boolean;
-  };
-  setData: Dispatch<
-    SetStateAction<{
-      deepResearch: boolean;
-      webSearch: boolean;
-    }>
-  >;
+  data: ChatRequestData;
+  setData: Dispatch<SetStateAction<ChatRequestData>>;
   messages: Array<YourUIMessage>;
   setMessages: UseChatHelpers['setMessages'];
   append: UseChatHelpers['append'];
@@ -328,7 +321,7 @@ function DeepResearchToggle({
       size="sm"
       className="gap-2 rounded-bl-lg p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
     >
-      <SearchIcon size={14} />
+      <Telescope size={14} />
       Deep research
     </Toggle>
   );

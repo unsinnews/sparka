@@ -1,5 +1,4 @@
 import {
-  type UIMessage,
   appendResponseMessages,
   createDataStreamResponse,
   smoothStream,
@@ -28,6 +27,11 @@ import type { NextRequest } from 'next/server';
 
 export const maxDuration = 60;
 
+export type ChatRequestData = {
+  deepResearch: boolean;
+  webSearch: boolean;
+};
+
 export async function POST(request: NextRequest) {
   try {
     const {
@@ -39,10 +43,7 @@ export async function POST(request: NextRequest) {
       id: string;
       messages: Array<YourUIMessage>;
       selectedChatModel: string;
-      data: {
-        deepResearch: boolean;
-        webSearch: boolean;
-      };
+      data: ChatRequestData;
     } = await request.json();
 
     const session = await auth();

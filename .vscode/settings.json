@@ -14,6 +14,9 @@
   // Prefer type only auto imports
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   "editor.wordWrap": "on",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit"
+  },
   "eslint.workingDirectories": [
     { "pattern": "app/*" },
     { "pattern": "packages/*" }

@@ -13,7 +13,6 @@ const updateName = {
   web: 'Web Search',
   academic: 'Academic Search',
   progress: 'Progress',
-  analysis: 'Analysis',
   'gap-search': 'Gap Search',
   thoughts: 'Thoughts',
   x: 'X Search',

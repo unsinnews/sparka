@@ -1,11 +1,5 @@
 import { z } from 'zod';
 
-// There are 2 entities:
-// 1. Task
-// 2. Tool Action
-// Task can contain multiple Tool Actions, also explanations, etc.
-// Tool Action is a single action that can be completed by a tool
-
 const BaseStreamUpdateSchema = z.object({
   id: z.string(),
   timestamp: z.number(),
@@ -39,44 +33,7 @@ export const WebSearchSchema = BaseSearchSchema.extend({
 });
 export type WebSearchUpdate = z.infer<typeof WebSearchSchema>;
 
-const AnalysisSchema = TaskUpdateSchema.extend({
-  type: z.literal('analysis'),
-  advancedSteps: z.number().optional(),
-  analysisType: z.string(),
-  completedSteps: z.number().optional(),
-  totalSteps: z.number().optional(),
-  isComplete: z.boolean().optional(),
-  findings: z
-    .array(
-      z.object({
-        insight: z.string(),
-        evidence: z.array(z.string()),
-        confidence: z.number(),
-      }),
-    )
-    .optional(),
-  gaps: z
-    .array(
-      z.object({
-        topic: z.string(),
-        reason: z.string(),
-        additional_queries: z.array(z.string()),
-      }),
-    )
-    .optional(),
-  recommendations: z
-    .array(
-      z.object({
-        action: z.string(),
-        rationale: z.string(),
-        priority: z.number(),
-      }),
-    )
-    .optional(),
-  uncertainties: z.array(z.string()).optional(),
-});
-
-export type AnalysisUpdate = z.infer<typeof AnalysisSchema>;
+export type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
 
 const ProgressSchema = BaseStreamUpdateSchema.extend({
   type: z.literal('progress'),
@@ -101,11 +58,7 @@ const ThoughtsSchema = TaskUpdateSchema.extend({
 export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
 
 export const StreamUpdateSchema = z.discriminatedUnion('type', [
-  // PlanSchema,
   WebSearchSchema,
-  // AcademicSearchSchema,
-  // XSearchSchema,
-  AnalysisSchema,
   ProgressSchema,
   ThoughtsSchema,
 ]);

@@ -18,31 +18,9 @@ import {
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { FaviconGroup } from './favicon-group';
 
-// Runtime imports (used with z.infer)
-import type {
-  AnalysisUpdate,
-  WebSearchUpdate,
-} from '@/lib/ai/tools/research-updates-schema';
+import type { SearchResultItem } from '@/lib/ai/tools/research-updates-schema';
 import { Favicon } from './favicon';
 import { getFaviconUrl } from '@/lib/url-utils';
-
-// Define non-nullable item types for clarity in map callbacks
-type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
-type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
-type AnalysisGapItem = NonNullable<AnalysisUpdate['gaps']>[number];
-type AnalysisRecommendationItem = NonNullable<
-  AnalysisUpdate['recommendations']
->[number];
-
-// Define the type for the analysis results structure used in sourceGroups
-// Arrays here match the optional arrays in AnalysisSchema
-type MappedAnalysisResult = {
-  type: string;
-  findings: AnalysisFindingItem[] | undefined;
-  gaps: AnalysisGapItem[] | undefined;
-  recommendations: AnalysisRecommendationItem[] | undefined;
-  uncertainties: string[] | undefined;
-};
 
 const SourcesList = ({
   sources,

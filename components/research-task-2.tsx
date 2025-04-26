@@ -1,33 +1,22 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   Search,
   FileText,
   BookA,
   Sparkles,
   Loader2,
-  ChevronDown,
   SearchIcon,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
 import { XLogo } from '@phosphor-icons/react/XLogo';
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
-import type { AnalysisUpdate } from '@/lib/ai/tools/research-updates-schema';
-import { AcademicToolAction, XToolAction } from '@/components/tool-actions';
-import {
-  AcademicSourceBadge,
-  WebSourceBadge,
-  XSourceBadge,
-} from './source-badge';
-
-type AnalysisFindingItem = NonNullable<AnalysisUpdate['findings']>[number];
+import { WebSourceBadge } from './source-badge';
 
 const updateName = {
   plan: 'Research Plan',
   web: 'Web Search',
   academic: 'Academic Search',
   progress: 'Progress',
-  analysis: 'Analysis',
   'gap-search': 'Gap Search',
   thoughts: 'Thoughts',
   x: 'X Search',
@@ -37,7 +26,6 @@ const icons = {
   web: FileText,
   academic: BookA,
   progress: Loader2,
-  analysis: Sparkles,
   'gap-search': Search,
   thoughts: Sparkles,
   x: XLogo,
@@ -92,14 +80,14 @@ export const ResearchTask2 = ({
                   variant="outline"
                   className="flex items-center gap-1 bg-muted "
                 >
-                  <SearchIcon className="w-3.5 h-3.5" />
-                  {/* // TODO: Make this max w more responsive or accomodate long text in another manner */}
+                  <SearchIcon className="size-3.5" />
+                  {/* // TODO: Make this sizewresponsive or accomodate long text in another manner */}
                   <span className="truncate max-w-[300px]">{query}</span>
                 </Badge>
               ))}
             </div>
           )}
-
+          size
           {/* Search Results: Show only when completed and results exist */}
           {update.type === 'web' &&
             update.status === 'completed' &&
@@ -111,68 +99,15 @@ export const ResearchTask2 = ({
                   ))}
               </div>
             )}
-
           {/* Search Loading State */}
           {update.type === 'web' && update.status === 'running' && (
             <div className="py-2">
               <div className="flex items-center gap-3">
-                <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
-                <p className="text-xs text-neutral-500">Searching the web...</p>
+                <Loader2 className="size-4 text-neutral-500 animate-spin" />
+                <p className="text-xsize-neutral-500">Searching the web...</p>
               </div>
             </div>
           )}
-
-          {/* Analysis Results: Show only when completed and findings exist */}
-          {update.type === 'analysis' &&
-            update.status === 'completed' &&
-            update.findings && (
-              <div className="space-y-2">
-                {update.findings.map(
-                  (finding: AnalysisFindingItem, idx: number) => (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className="py-1.5"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-1.5">
-                          <div
-                            className={cn(
-                              'w-1.5 h-1.5 rounded-full',
-                              finding.confidence > 0.7
-                                ? 'bg-neutral-900 dark:bg-neutral-50'
-                                : 'bg-neutral-400 dark:bg-neutral-600',
-                            )}
-                          />
-                        </div>
-                        <div className="space-y-2 flex-1">
-                          <p className="text-sm font-medium">
-                            {finding.insight}
-                          </p>
-                          {finding.evidence.length > 0 && (
-                            <div className="pl-4 border-l-2 border-neutral-200 dark:border-neutral-700 space-y-1.5">
-                              {finding.evidence.map(
-                                (evidence: string, i: number) => (
-                                  <p
-                                    key={i}
-                                    className="text-xs text-neutral-500"
-                                  >
-                                    {evidence}
-                                  </p>
-                                ),
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ),
-                )}
-              </div>
-            )}
-
           {/* {Thoughts} */}
           {update.type === 'thoughts' && (
             <div className="space-y-2">

@@ -3,7 +3,6 @@ import { generateObject, tool } from 'ai';
 import Exa from 'exa-js';
 import type { Session } from 'next-auth';
 import { openai } from '@ai-sdk/openai';
-import { xai } from '@ai-sdk/xai';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import { webSearchStep, type WebSearchResult } from './steps/web-search';
 import { xSearchStep, type XSearchResult } from './steps/x-search';
@@ -204,11 +203,16 @@ export const createReasonSearch = ({
           type: 'research_update',
           data: {
             id: step.id,
-            type: 'analysis',
+            type: 'thoughts',
             status: 'running',
             title: `Analyzing ${step.analysis.type}`,
-            analysisType: step.analysis.type,
             message: `Analyzing ${step.analysis.type}...`,
+            thoughtItems: [
+              {
+                header: `Analyzing ${step.analysis.type}`,
+                body: `Analyzing ${step.analysis.description}...`,
+              },
+            ],
             timestamp: Date.now(),
           },
         });
@@ -217,11 +221,10 @@ export const createReasonSearch = ({
           model: openai('gpt-4o'),
           temperature: 0.5,
           schema: z.object({
-            findings: z.array(
+            insights: z.array(
               z.object({
-                insight: z.string(),
-                evidence: z.array(z.string()),
-                confidence: z.number().min(0).max(1),
+                header: z.string().describe('A title for the insight'),
+                body: z.string().describe('The insight description  '),
               }),
             ),
             implications: z.array(z.string()),
@@ -237,13 +240,15 @@ export const createReasonSearch = ({
           type: 'research_update',
           data: {
             id: step.id,
-            type: 'analysis',
+            type: 'thoughts',
             status: 'completed',
             title: `Analysis of ${step.analysis.type} complete`,
-            analysisType: step.analysis.type,
-            findings: analysisResult.findings,
             message: `Analysis complete`,
             timestamp: Date.now(),
+            thoughtItems: analysisResult.insights.map((insight) => ({
+              header: insight.header,
+              body: insight.body,
+            })),
             overwrite: true,
           },
         });
@@ -256,12 +261,17 @@ export const createReasonSearch = ({
         type: 'research_update',
         data: {
           id: 'gap-analysis',
-          type: 'analysis',
+          type: 'thoughts',
           status: 'running',
           title: 'Research Gaps and Limitations',
-          analysisType: 'gaps',
           message: 'Analyzing research gaps and limitations...',
           timestamp: Date.now(),
+          thoughtItems: [
+            {
+              header: 'Research Gaps and Limitations',
+              body: 'Analyzing research gaps and limitations...',
+            },
+          ],
         },
       });
 
@@ -273,7 +283,8 @@ export const createReasonSearch = ({
           limitations: z.array(
             z.object({
               type: z.string(),
-              description: z.string(),
+              header: z.string().describe('A title for the limitation'),
+              description: z.string().describe('The limitation description'),
               severity: z.number().min(2).max(10),
               potential_solutions: z.array(z.string()),
             }),
@@ -335,26 +346,22 @@ export const createReasonSearch = ({
         type: 'research_update',
         data: {
           id: 'gap-analysis',
-          type: 'analysis',
+          type: 'thoughts',
           status: 'completed',
           title: 'Research Gaps and Limitations',
-          analysisType: 'gaps',
-          findings: gapAnalysis.limitations.map((l) => ({
-            insight: l.description,
-            evidence: l.potential_solutions,
-            confidence: (6 - l.severity) / 5,
-          })),
-          gaps: gapAnalysis.knowledge_gaps.map((g) => ({
-            topic: g.topic,
-            reason: g.reason,
-            additional_queries: g.additional_queries.map((q) => q.query),
-          })),
-          recommendations: gapAnalysis.recommended_followup,
           message: `Identified ${gapAnalysis.limitations.length} limitations and ${gapAnalysis.knowledge_gaps.length} knowledge gaps`,
+          thoughtItems: [
+            {
+              header: 'Research Gaps and Limitations',
+              body: `Identified ${gapAnalysis.limitations.length} limitations and ${gapAnalysis.knowledge_gaps.length} knowledge gaps`,
+            },
+            ...gapAnalysis.limitations.map((l) => ({
+              header: `Analyzing Limitations: ${l.header}`,
+              body: l.description,
+            })),
+          ],
           timestamp: Date.now(),
           overwrite: true,
-          completedSteps: completedSteps + 1,
-          totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
         },
       });
 
@@ -388,12 +395,17 @@ export const createReasonSearch = ({
           type: 'research_update',
           data: {
             id: 'final-synthesis',
-            type: 'analysis',
+            type: 'thoughts',
             status: 'running',
             title: 'Final Research Synthesis',
-            analysisType: 'synthesis',
             message: 'Synthesizing all research findings...',
             timestamp: Date.now(),
+            thoughtItems: [
+              {
+                header: 'Final Research Synthesis',
+                body: 'Synthesizing all research findings...',
+              },
+            ],
           },
         });
       }
@@ -436,21 +448,22 @@ export const createReasonSearch = ({
         type: 'research_update',
         data: {
           id: 'final-synthesis',
-          type: 'analysis',
+          type: 'thoughts',
           status: 'completed',
           title: 'Final Research Synthesis',
-          analysisType: 'synthesis',
-          findings: finalSynthesis.key_findings.map((f) => ({
-            insight: f.finding,
-            evidence: f.supporting_evidence,
-            confidence: f.confidence,
-          })),
-          uncertainties: finalSynthesis.remaining_uncertainties,
           message: `Synthesized ${finalSynthesis.key_findings.length} key findings`,
+          thoughtItems: [
+            ...finalSynthesis.key_findings.map((f) => ({
+              header: f.finding,
+              body: f.supporting_evidence.join(', '),
+            })),
+            ...finalSynthesis.remaining_uncertainties.map((u) => ({
+              header: 'Remaining Uncertainties',
+              body: u,
+            })),
+          ],
           timestamp: Date.now(),
           overwrite: true,
-          completedSteps: totalSteps + (depth === 'advanced' ? 2 : 1) - 1,
-          totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
         },
       });
 
@@ -459,8 +472,8 @@ export const createReasonSearch = ({
         type: 'research_update',
         data: {
           id: 'research-progress',
-          type: 'progress' as const,
-          status: 'completed' as const,
+          type: 'progress',
+          status: 'completed',
           message: `Research complete`,
           completedSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
           totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
@@ -505,7 +518,7 @@ async function searchStep({
         searchDepth: depth,
       },
       dataStream,
-      stepId: `step-${completedSteps}-web-search`,
+      stepId: `step-$completedSteps-web-search`,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({
@@ -521,7 +534,7 @@ async function searchStep({
       query: searchQueryConfig.query,
       maxResults: Math.min(6 - searchQueryConfig.priority, 5),
       dataStream,
-      stepId: `step-${completedSteps}-academic-search`,
+      stepId: `step-$completedSteps-academic-search`,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({
@@ -538,7 +551,7 @@ async function searchStep({
       type: 'keyword',
       maxResults: searchQueryConfig.priority, // Consider adjusting priority logic if needed
       dataStream,
-      stepId: `step-${completedSteps}-x-search`,
+      stepId: `step-$completedSteps-x-search`,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({

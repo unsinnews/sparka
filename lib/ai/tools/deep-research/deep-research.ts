@@ -1,4 +1,3 @@
-import FirecrawlApp, { type SearchResponse } from '@mendable/firecrawl-js';
 import { generateObject } from 'ai';
 import { compact } from 'lodash-es';
 import pLimit from 'p-limit';
@@ -501,7 +500,6 @@ export async function deepResearchInternal({
             message: `Research complete`,
             completedSteps: completedSteps,
             totalSteps: serpQueries.length * (depth + 1),
-            isComplete: true,
             overwrite: true,
             timestamp: Date.now(),
           },

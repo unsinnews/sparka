@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+// TODO: Simplify. Is title / message / override needed?
 const BaseStreamUpdateSchema = z.object({
   id: z.string(),
   timestamp: z.number(),
@@ -40,7 +41,6 @@ const ProgressSchema = BaseStreamUpdateSchema.extend({
   status: z.union([z.literal('completed'), z.literal('started')]),
   completedSteps: z.number().optional(),
   totalSteps: z.number().optional(),
-  isComplete: z.boolean().optional(),
 });
 
 export type ProgressUpdate = z.infer<typeof ProgressSchema>;

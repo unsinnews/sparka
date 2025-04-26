@@ -1,9 +1,8 @@
-import { tavily } from '@tavily/core';
 import { z } from 'zod';
 import { tool } from 'ai';
 import type { Session } from 'next-auth';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
-import { webSearchStep, type SearchProviderOptions } from './steps/web-search';
+import { webSearchStep } from './steps/web-search';
 
 export const QueryCompletionSchema = z.object({
   type: z.literal('query_completion'),
@@ -190,19 +189,17 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
 
       const searchResults = await Promise.all(searchPromises);
 
-      // TODO: Mark All Search Completed Annotation step
       // Final progress update
       dataStream.writeMessageAnnotation({
         type: 'research_update',
         data: {
           id: 'research-progress',
-          type: 'progress' as const,
-          status: 'completed' as const,
+          type: 'progress',
+          status: 'completed',
           title: 'Done',
           message: `Research complete`,
           completedSteps,
           totalSteps,
-          isComplete: true,
           overwrite: true,
           timestamp: Date.now(),
         },

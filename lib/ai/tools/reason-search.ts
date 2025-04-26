@@ -139,10 +139,8 @@ export const createReasonSearch = ({
         },
       });
 
-      // Generate IDs for all steps based on the plan
-      const generateStepIds = (plan: typeof researchPlan) => {
-        // Generate an array of search steps.
-        const searchSteps = plan.search_queries.flatMap((query, index) => {
+      const searchSteps = researchPlan.search_queries.flatMap(
+        (query, index) => {
           return [
             {
               id: `search-${query.source}-${index}`,
@@ -150,31 +148,15 @@ export const createReasonSearch = ({
               query,
             },
           ];
-        });
-
-        // Generate an array of analysis steps.
-        const analysisSteps = plan.required_analyses.map((analysis, index) => ({
-          id: `analysis-${index}`,
-          type: 'analysis',
-          analysis,
-        }));
-
-        return {
-          planId: 'research-plan',
-          searchSteps,
-          analysisSteps,
-        };
-      };
-
-      const stepIds = generateStepIds(researchPlan);
+        },
+      );
       let completedSteps = 0;
-      const totalSteps =
-        stepIds.searchSteps.length + stepIds.analysisSteps.length;
+      const totalSteps = searchSteps.length;
 
       // Execute searches
       const searchResults: SearchResult[] = [];
 
-      const searchQueryConfigs = stepIds.searchSteps.map((step) => step.query);
+      const searchQueryConfigs = searchSteps.map((step) => step.query);
 
       dataStream.writeMessageAnnotation({
         type: 'research_update',
@@ -220,67 +202,6 @@ export const createReasonSearch = ({
         },
       });
       completedSteps++;
-
-      // Perform analyses
-      let analysisIndex = 0; // Add index tracker
-
-      for (const step of stepIds.analysisSteps) {
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
-          data: {
-            id: step.id,
-            type: 'thoughts',
-            status: 'running',
-            title: `Analyzing ${step.analysis.type}`,
-            message: `Analyzing ${step.analysis.type}...`,
-            thoughtItems: [
-              {
-                header: `Analyzing ${step.analysis.type}`,
-                body: `Analyzing ${step.analysis.description}...`,
-              },
-            ],
-            timestamp: Date.now(),
-          },
-        });
-
-        const { object: analysisResult } = await generateObject({
-          model: openai('gpt-4o'),
-          temperature: 0.5,
-          schema: z.object({
-            insights: z.array(
-              z.object({
-                header: z.string().describe('A title for the insight'),
-                body: z.string().describe('The insight description  '),
-              }),
-            ),
-            implications: z.array(z.string()),
-            limitations: z.array(z.string()),
-          }),
-          experimental_telemetry: { isEnabled: true },
-          prompt: `Perform a ${step.analysis.type} analysis on the search results. ${step.analysis.description}
-                    Consider all sources and their reliability.
-                    Search results: ${JSON.stringify(searchResults)}`,
-        });
-
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
-          data: {
-            id: step.id,
-            type: 'thoughts',
-            status: 'completed',
-            title: `Analysis of ${step.analysis.type} complete`,
-            message: `Analysis complete`,
-            timestamp: Date.now(),
-            thoughtItems: analysisResult.insights.map((insight) => ({
-              header: insight.header,
-              body: insight.body,
-            })),
-            overwrite: true,
-          },
-        });
-
-        analysisIndex++; // Increment index
-      }
 
       // After all analyses are complete, send running state for gap analysis
       dataStream.writeMessageAnnotation({
@@ -357,17 +278,10 @@ export const createReasonSearch = ({
                 - X/Twitter for social media perspectives and real-time information
                               
                 Research results: ${JSON.stringify(searchResults)}
-                Analysis findings: ${JSON.stringify(
-                  stepIds.analysisSteps.map((step) => ({
-                    type: step.analysis.type,
-                    description: step.analysis.description,
-                    importance: step.analysis.importance,
-                  })),
-                )}`,
+            `,
       });
 
       // Send gap analysis update
-      // TODO: This annotation should be converted to a standardized format (title, description) or array of such objects
       dataStream.writeMessageAnnotation({
         type: 'research_update',
         data: {
@@ -540,7 +454,6 @@ export const createReasonSearch = ({
           message: `Research complete`,
           completedSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
           totalSteps: totalSteps + (depth === 'advanced' ? 2 : 1),
-          isComplete: true,
           overwrite: true,
           timestamp: Date.now(),
         },

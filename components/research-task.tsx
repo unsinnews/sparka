@@ -10,11 +10,7 @@ import {
 import { cn } from '@/lib/utils';
 import { XLogo } from '@phosphor-icons/react/XLogo';
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
-import {
-  AcademicSourceBadge,
-  WebSourceBadge,
-  XSourceBadge,
-} from './source-badge';
+import { WebSourceBadge } from './source-badge';
 
 export const ResearchTask = ({
   update,
@@ -127,17 +123,6 @@ export const ResearchTask = ({
                           result={result}
                         />
                       ))}
-                    {update.type === 'academic' &&
-                      update.results.map((result, idx) => (
-                        <AcademicSourceBadge
-                          key={`academic-result-${idx}`}
-                          result={result}
-                        />
-                      ))}
-                    {update.type === 'x' &&
-                      update.results.map((result, idx) => (
-                        <XSourceBadge key={`x-result-${idx}`} result={result} />
-                      ))}
                   </div>
                 )}
 
@@ -147,11 +132,7 @@ export const ResearchTask = ({
                   <div className="flex items-center gap-3">
                     <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
                     <p className="text-xs text-neutral-500">
-                      {update.type === 'x'
-                        ? 'Searching X...'
-                        : update.type === 'web'
-                          ? 'Searching the web...'
-                          : 'Searching academic sources...'}
+                      Searching the web...
                     </p>
                   </div>
                 </div>

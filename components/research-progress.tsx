@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 
 import { ResearchTasks } from './research-tasks';
-import { ResearchTask2 } from './research-task-2';
+import { ResearchTask } from './research-task';
 
 // Add the updateName mapping (consider moving to a shared util later)
 const updateName = {
@@ -122,7 +122,7 @@ export const ResearchProgress = ({
         lastUpdate &&
         !isComplete && (
           <div className="px-4 pt-1 pb-3">
-            <ResearchTask2
+            <ResearchTask
               update={lastUpdate}
               id={`last-task-${lastUpdate.id}`}
               isExpanded={false}

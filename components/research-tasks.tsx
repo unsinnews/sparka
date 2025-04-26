@@ -1,6 +1,6 @@
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
 import React, { useState, type ReactNode } from 'react';
-import { ResearchTask2 } from './research-task-2';
+import { ResearchTask } from './research-task';
 
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -32,7 +32,7 @@ export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
             status={'COMPLETED'}
             isLast={index === updates.length - 1}
           >
-            <ResearchTask2
+            <ResearchTask
               id={`step-${update.id}`}
               update={update}
               isExpanded={isExpanded}

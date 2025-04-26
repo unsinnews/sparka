@@ -34,6 +34,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import { XLogo } from '@phosphor-icons/react/XLogo';
+import { FaviconGroup } from './favicon-group';
 
 // Runtime imports (used with z.infer)
 import type {
@@ -466,10 +467,18 @@ export const SourcesAndAnalysis = ({
                       }
                       className="flex items-center justify-center gap-2 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
                     >
-                      <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-500 transition-colors" />
+                      <FaviconGroup
+                        sources={sourceGroups.web.map((s) => ({
+                          url: s.url,
+                          title: s.title,
+                        }))}
+                        maxVisible={3}
+                        className="mr-1.5"
+                      />
                       <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300">
-                        Show {sourceGroups.web.length - 3} More Sources
+                        {sourceGroups.web.length} Ssources
                       </span>
+                      <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-500 transition-colors" />
                     </button>
                   )}
                 </div>
@@ -541,8 +550,16 @@ export const SourcesAndAnalysis = ({
                       className="flex items-center justify-center gap-2 p-2.5 rounded-lg border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group"
                     >
                       <ArrowRight className="w-3.5 h-3.5 text-neutral-400 group-hover:text-neutral-500 transition-colors" />
+                      <FaviconGroup
+                        sources={sourceGroups.academic.map((s) => ({
+                          url: s.url,
+                          title: s.title,
+                        }))}
+                        maxVisible={3}
+                        className="mr-1.5"
+                      />
                       <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300">
-                        Show {sourceGroups.academic.length - 3} More Sources
+                        Sources
                       </span>
                     </button>
                   )}
@@ -622,8 +639,16 @@ export const SourcesAndAnalysis = ({
                         className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors group shadow-sm"
                       >
                         <XLogo className="h-3.5 w-3.5 text-neutral-400 group-hover:text-neutral-500" />
+                        <FaviconGroup
+                          sources={sourceGroups.x.map((s) => ({
+                            url: s.url,
+                            title: s.title,
+                          }))}
+                          maxVisible={3}
+                          className="mr-1.5"
+                        />
                         <span className="text-xs text-neutral-600 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-300">
-                          Show all {sourceGroups.x.length} X posts
+                          X posts
                         </span>
                       </button>
                     </div>

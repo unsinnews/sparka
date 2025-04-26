@@ -33,25 +33,22 @@ const icons = {
 
 export const ResearchTask = ({
   update,
-  isExpanded,
-  onToggle,
-  id,
+  minimal,
 }: {
   update: StreamUpdate;
-  isExpanded: boolean;
-  onToggle: () => void;
-  id: string;
+  minimal: boolean;
 }) => {
   const isGapSearch = update.id.startsWith('gap-search');
   const Icon = isGapSearch ? icons['gap-search'] : icons[update.type];
 
   return (
-    <div id={id} className="group">
-      <div className="flex items-center gap-2">
-        {/* <Icon className="w-4 h-4 text-neutral-500" /> */}
-        <p className="text-sm font-medium">{updateName[update.type]}</p>
-      </div>
-
+    <div className="group">
+      {!minimal && (
+        <div className="flex items-center gap-2">
+          {/* <Icon className="w-4 h-4 text-neutral-500" /> */}
+          <p className="text-sm font-medium">{updateName[update.type]}</p>
+        </div>
+      )}
       <motion.div
         initial={{ height: 0, opacity: 0 }}
         animate={{

@@ -122,12 +122,7 @@ export const ResearchProgress = ({
         lastUpdate &&
         !isComplete && (
           <div className="px-4 pt-1 pb-3">
-            <ResearchTask
-              update={lastUpdate}
-              id={`last-task-${lastUpdate.id}`}
-              isExpanded={false}
-              onToggle={() => {}}
-            />
+            <ResearchTask update={lastUpdate} minimal={true} />
           </div>
         )
       )}

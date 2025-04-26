@@ -23,21 +23,13 @@ export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
   return (
     <div className="relative">
       {updates.map((update, index) => {
-        const isExpanded =
-          update.status === 'running' || expandedSteps.has(update.id);
-
         return (
           <StepWrapper
             key={update.id}
             status={'COMPLETED'}
             isLast={index === updates.length - 1}
           >
-            <ResearchTask
-              id={`step-${update.id}`}
-              update={update}
-              isExpanded={isExpanded}
-              onToggle={() => handleToggle(update.id)}
-            />
+            <ResearchTask update={update} minimal={false} />
           </StepWrapper>
         );
       })}

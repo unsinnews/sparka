@@ -48,7 +48,6 @@ export const createReasonSearch = ({
     }: { topic: string; depth: 'basic' | 'advanced' }) => {
       const exa = new Exa(process.env.EXA_API_KEY as string);
 
-      // Send initial plan status update (without steps count and extra details)
       dataStream.writeMessageAnnotation({
         type: 'research_update',
         data: {

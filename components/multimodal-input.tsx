@@ -25,7 +25,7 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { Toggle } from './ui/toggle';
-import { GlobeIcon, Telescope } from 'lucide-react';
+import { GlobeIcon, Lightbulb, Telescope } from 'lucide-react';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 
 function PureMultimodalInput({
@@ -125,6 +125,7 @@ function PureMultimodalInput({
     setData({
       deepResearch: false,
       webSearch: false,
+      reason: false,
     });
 
     // TODO: Is it needed to refocus every time this function is called?
@@ -270,6 +271,10 @@ function PureMultimodalInput({
           enabled={data.webSearch}
           setEnabled={(enabled) => setData({ ...data, webSearch: enabled })}
         />
+        <ReasonSearchToggle
+          enabled={data.reason}
+          setEnabled={(enabled) => setData({ ...data, reason: enabled })}
+        />
         <DeepResearchToggle
           enabled={data.deepResearch}
           setEnabled={(enabled) => setData({ ...data, deepResearch: enabled })}
@@ -323,6 +328,24 @@ function DeepResearchToggle({
     >
       <Telescope size={14} />
       Deep research
+    </Toggle>
+  );
+}
+
+function ReasonSearchToggle({
+  enabled,
+  setEnabled,
+}: { enabled: boolean; setEnabled: (enabled: boolean) => void }) {
+  return (
+    <Toggle
+      pressed={enabled}
+      onPressedChange={setEnabled}
+      variant="outline"
+      size="sm"
+      className="gap-2 rounded-bl-lg p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
+    >
+      <Lightbulb size={14} />
+      Reason
     </Toggle>
   );
 }

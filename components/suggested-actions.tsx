@@ -60,8 +60,9 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
                 },
                 {
                   data: {
-                    deepResearch: true,
-                    webSearch: true,
+                    deepResearch: false,
+                    webSearch: false,
+                    reason: false,
                   },
                 },
               );

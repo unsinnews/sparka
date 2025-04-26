@@ -67,6 +67,7 @@ export function Chat({
   const [data, setData] = useState<ChatRequestData>({
     deepResearch: false,
     webSearch: false,
+    reason: false,
   });
 
   return (

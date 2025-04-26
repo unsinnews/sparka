@@ -29,6 +29,7 @@ export const maxDuration = 60;
 
 export type ChatRequestData = {
   deepResearch: boolean;
+  reason: boolean;
   webSearch: boolean;
 };
 
@@ -54,6 +55,7 @@ export async function POST(request: NextRequest) {
 
     const deepResearch = data.deepResearch;
     const webSearch = data.webSearch;
+    const reason = data.reason;
 
     const userMessage = getMostRecentUserMessage(messages);
 
@@ -98,6 +100,9 @@ export async function POST(request: NextRequest) {
       } else if (webSearch) {
         userMessage.content = `${userMessage.content} (I want to perform a web search)`;
         userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a web search)`;
+      } else if (reason) {
+        userMessage.content = `${userMessage.content} (I want to perform a reason search)`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a reason search)`;
       }
     }
 
@@ -108,22 +113,24 @@ export async function POST(request: NextRequest) {
         const activeTools: YourToolName[] =
           selectedChatModel === 'chat-model-reasoning'
             ? []
-            : deepResearch
-              ? ['deepResearch']
-              : webSearch
-                ? ['webSearch']
-                : [
-                    'getWeather',
-                    'createDocument',
-                    'updateDocument',
-                    'requestSuggestions',
-                    'reasonSearch',
-                    'retrieve',
-                    'webSearch',
-                    'stockChart',
-                    'codeInterpreter',
-                    'deepResearch',
-                  ];
+            : reason
+              ? ['reasonSearch']
+              : deepResearch
+                ? ['deepResearch']
+                : webSearch
+                  ? ['webSearch']
+                  : [
+                      'getWeather',
+                      'createDocument',
+                      'updateDocument',
+                      'requestSuggestions',
+                      'reasonSearch',
+                      'retrieve',
+                      'webSearch',
+                      'stockChart',
+                      'codeInterpreter',
+                      'deepResearch',
+                    ];
 
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),

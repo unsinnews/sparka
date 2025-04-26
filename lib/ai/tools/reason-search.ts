@@ -423,6 +423,12 @@ export const createReasonSearch = ({
             }),
           ),
           remaining_uncertainties: z.array(z.string()),
+          insights: z.array(
+            z.object({
+              header: z.string().describe('A title for the insight'),
+              body: z.string().describe('The insight description  '),
+            }),
+          ),
         }),
         providerOptions: {
           experimental_telemetry: { isEnabled: true },
@@ -451,17 +457,11 @@ export const createReasonSearch = ({
           type: 'thoughts',
           status: 'completed',
           title: 'Final Research Synthesis',
-          message: `Synthesized ${finalSynthesis.key_findings.length} key findings`,
-          thoughtItems: [
-            ...finalSynthesis.key_findings.map((f) => ({
-              header: f.finding,
-              body: f.supporting_evidence.join(', '),
-            })),
-            ...finalSynthesis.remaining_uncertainties.map((u) => ({
-              header: 'Remaining Uncertainties',
-              body: u,
-            })),
-          ],
+          message: `Synthesized ${finalSynthesis.insights.length} insights`,
+          thoughtItems: finalSynthesis.insights.map((insight) => ({
+            header: insight.header,
+            body: insight.body,
+          })),
           timestamp: Date.now(),
           overwrite: true,
         },
@@ -518,7 +518,7 @@ async function searchStep({
         searchDepth: depth,
       },
       dataStream,
-      stepId: `step-$completedSteps-web-search`,
+      stepId: `step-${completedSteps}-web-search`,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({
@@ -534,7 +534,7 @@ async function searchStep({
       query: searchQueryConfig.query,
       maxResults: Math.min(6 - searchQueryConfig.priority, 5),
       dataStream,
-      stepId: `step-$completedSteps-academic-search`,
+      stepId: `step-${completedSteps}-academic-search`,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({
@@ -551,7 +551,7 @@ async function searchStep({
       type: 'keyword',
       maxResults: searchQueryConfig.priority, // Consider adjusting priority logic if needed
       dataStream,
-      stepId: `step-$completedSteps-x-search`,
+      stepId: `step-${completedSteps}-x-search`,
     });
     if (searchResult && !searchResult.error) {
       searchResults.push({

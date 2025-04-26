@@ -163,7 +163,7 @@ export const ResearchProgress = ({
         }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row  sm:items-center gap-2">
             <h3 className="text-sm font-medium">
               {!isExpanded && lastUpdate && lastUpdateTitle}
             </h3>
@@ -173,9 +173,6 @@ export const ResearchProgress = ({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">
-            {sortedUpdates.length} task{sortedUpdates.length === 1 ? '' : 's'}
-          </Badge>
           {isExpanded ? (
             <Minimize2
               className="h-4 w-4 text-muted-foreground flex-shrink-0"

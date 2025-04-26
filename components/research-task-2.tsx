@@ -84,113 +84,24 @@ export const ResearchTask2 = ({
         }}
       >
         <div className="pl-8 pr-2 py-2 space-y-2">
-          {/* Plan Details */}
-          {update.type === 'plan' && update.plan && (
-            <>
-              <div className="space-y-2">
-                {update.plan.search_queries.map((query, idx) => (
-                  <motion.div
-                    // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 }}
-                    className="p-2 rounded-lg "
-                  >
-                    <div className="flex items-start gap-2">
-                      <Search className="h-3.5 w-3.5 text-neutral-500 mt-1" />
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-medium">
-                            {query.query}
-                          </span>
-                          {query.source === 'web' && (
-                            <Badge variant="secondary" className="text-[10px]">
-                              web
-                            </Badge>
-                          )}
-                          {query.source === 'academic' && (
-                            <Badge variant="secondary" className="text-[10px]">
-                              academic
-                            </Badge>
-                          )}
-                          {query.source === 'both' && (
-                            <Badge variant="secondary" className="text-[10px]">
-                              web + academic
-                            </Badge>
-                          )}
-                          {query.source === 'x' && (
-                            <Badge
-                              variant="secondary"
-                              className="text-[10px] flex items-center gap-0.5"
-                            >
-                              <span>X</span>
-                            </Badge>
-                          )}
-                          {query.source === 'all' && (
-                            <Badge
-                              variant="secondary"
-                              className="text-[10px] flex items-center gap-0.5"
-                            >
-                              <span>all sources</span>
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-neutral-500 mt-1">
-                          {query.rationale}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {update.plan.required_analyses.map((analysis, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.05 }}
-                    className="p-2 rounded-lg"
-                  >
-                    <div className="flex items-start gap-2">
-                      <Sparkles className="h-3.5 w-3.5 text-neutral-500 mt-1" />
-                      <div>
-                        <p className="text-sm font-medium">{analysis.type}</p>
-                        <p className="text-xs text-neutral-500 mt-1">
-                          {analysis.description}
-                        </p>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            </>
+          {update.type === 'web' && update.subqueries && (
+            <div className="flex flex-wrap gap-2">
+              {update.subqueries.map((query, idx) => (
+                <Badge
+                  key={`search-query-${idx}`}
+                  variant="outline"
+                  className="flex items-center gap-1 bg-muted "
+                >
+                  <SearchIcon className="w-3.5 h-3.5" />
+                  {/* // TODO: Make this max w more responsive or accomodate long text in another manner */}
+                  <span className="truncate max-w-[300px]">{query}</span>
+                </Badge>
+              ))}
+            </div>
           )}
 
-          {(update.type === 'web' ||
-            update.type === 'x' ||
-            update.type === 'academic') &&
-            update.subqueries && (
-              <div className="flex flex-wrap gap-2">
-                {update.subqueries.map((query, idx) => (
-                  <Badge
-                    key={`search-query-${idx}`}
-                    variant="outline"
-                    className="flex items-center gap-1 bg-muted "
-                  >
-                    <SearchIcon className="w-3.5 h-3.5" />
-                    {/* // TODO: Make this max w more responsive or accomodate long text in another manner */}
-                    <span className="truncate max-w-[300px]">{query}</span>
-                  </Badge>
-                ))}
-              </div>
-            )}
-
           {/* Search Results: Show only when completed and results exist */}
-          {(update.type === 'web' ||
-            update.type === 'academic' ||
-            update.type === 'x') &&
+          {update.type === 'web' &&
             update.status === 'completed' &&
             update.results && (
               <div className="flex flex-wrap gap-2">
@@ -198,38 +109,18 @@ export const ResearchTask2 = ({
                   update.results.map((result, idx) => (
                     <WebSourceBadge key={`web-result-${idx}`} result={result} />
                   ))}
-                {update.type === 'academic' &&
-                  update.results.map((result, idx) => (
-                    <AcademicSourceBadge
-                      key={`academic-result-${idx}`}
-                      result={result}
-                    />
-                  ))}
-                {update.type === 'x' &&
-                  update.results.map((result, idx) => (
-                    <XSourceBadge key={`x-result-${idx}`} result={result} />
-                  ))}
               </div>
             )}
 
           {/* Search Loading State */}
-          {(update.type === 'web' ||
-            update.type === 'academic' ||
-            update.type === 'x') &&
-            update.status === 'running' && (
-              <div className="py-2">
-                <div className="flex items-center gap-3">
-                  <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
-                  <p className="text-xs text-neutral-500">
-                    {update.type === 'x'
-                      ? 'Searching X...'
-                      : update.type === 'web'
-                        ? 'Searching the web...'
-                        : 'Searching academic sources...'}
-                  </p>
-                </div>
+          {update.type === 'web' && update.status === 'running' && (
+            <div className="py-2">
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
+                <p className="text-xs text-neutral-500">Searching the web...</p>
               </div>
-            )}
+            </div>
+          )}
 
           {/* Analysis Results: Show only when completed and findings exist */}
           {update.type === 'analysis' &&

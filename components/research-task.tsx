@@ -73,21 +73,8 @@ export const ResearchTask = ({
           <div className="flex items-center justify-between flex-1 text-left min-w-0">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-sm font-medium truncate">
-                {update.title ||
-                  (update.type === 'plan'
-                    ? 'Research Plan'
-                    : update.type === 'x'
-                      ? 'X Search'
-                      : update.type === 'analysis'
-                        ? update.analysisType || 'Analysis'
-                        : 'Analysis')}
+                {update.title}
               </span>
-              {update.type === 'plan' && update.plan && (
-                <span className="text-xs text-neutral-500 flex-shrink-0">
-                  ({update.plan.search_queries.length} queries,{' '}
-                  {update.plan.required_analyses.length} analyses )
-                </span>
-              )}
               {update.message && (
                 <span className="text-xs text-neutral-500 truncate">
                   {isGapSearch ? (
@@ -134,105 +121,8 @@ export const ResearchTask = ({
             className="overflow-hidden"
           >
             <div className="pl-8 pr-2 py-2 space-y-2">
-              {/* Plan Details */}
-              {update.type === 'plan' && update.plan && (
-                <>
-                  <div className="space-y-2">
-                    {update.plan.search_queries.map((query, idx) => (
-                      <motion.div
-                        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                        key={idx}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 }}
-                        className="p-2 rounded-lg "
-                      >
-                        <div className="flex items-start gap-2">
-                          <Search className="h-3.5 w-3.5 text-neutral-500 mt-1" />
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-medium">
-                                {query.query}
-                              </span>
-                              {query.source === 'web' && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px]"
-                                >
-                                  web
-                                </Badge>
-                              )}
-                              {query.source === 'academic' && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px]"
-                                >
-                                  academic
-                                </Badge>
-                              )}
-                              {query.source === 'both' && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px]"
-                                >
-                                  web + academic
-                                </Badge>
-                              )}
-                              {query.source === 'x' && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px] flex items-center gap-0.5"
-                                >
-                                  <span>X</span>
-                                </Badge>
-                              )}
-                              {query.source === 'all' && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[10px] flex items-center gap-0.5"
-                                >
-                                  <span>all sources</span>
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-xs text-neutral-500 mt-1">
-                              {query.rationale}
-                            </p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                  <div className="space-y-2">
-                    {update.plan.required_analyses.map((analysis, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.05 }}
-                        className="p-2 rounded-lg"
-                      >
-                        <div className="flex items-start gap-2">
-                          <Sparkles className="h-3.5 w-3.5 text-neutral-500 mt-1" />
-                          <div>
-                            <p className="text-sm font-medium">
-                              {analysis.type}
-                            </p>
-                            <p className="text-xs text-neutral-500 mt-1">
-                              {analysis.description}
-                            </p>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </>
-              )}
-
               {/* Search Results: Show only when completed and results exist */}
-              {(update.type === 'web' ||
-                update.type === 'academic' ||
-                update.type === 'x') &&
+              {update.type === 'web' &&
                 update.status === 'completed' &&
                 update.results && (
                   <div className="flex flex-wrap gap-2">
@@ -258,23 +148,20 @@ export const ResearchTask = ({
                 )}
 
               {/* Search Loading State */}
-              {(update.type === 'web' ||
-                update.type === 'academic' ||
-                update.type === 'x') &&
-                update.status === 'running' && (
-                  <div className="py-2">
-                    <div className="flex items-center gap-3">
-                      <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
-                      <p className="text-xs text-neutral-500">
-                        {update.type === 'x'
-                          ? 'Searching X...'
-                          : update.type === 'web'
-                            ? 'Searching the web...'
-                            : 'Searching academic sources...'}
-                      </p>
-                    </div>
+              {update.type === 'web' && update.status === 'running' && (
+                <div className="py-2">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
+                    <p className="text-xs text-neutral-500">
+                      {update.type === 'x'
+                        ? 'Searching X...'
+                        : update.type === 'web'
+                          ? 'Searching the web...'
+                          : 'Searching academic sources...'}
+                    </p>
                   </div>
-                )}
+                </div>
+              )}
 
               {/* Analysis Results: Show only when completed and findings exist */}
               {update.type === 'analysis' &&

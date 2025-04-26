@@ -54,10 +54,10 @@ export const createReasonSearch = ({
         type: 'research_update',
         data: {
           id: 'research-plan-initial', // unique id for the initial state
-          type: 'plan',
-          status: 'running',
-          title: 'Research Plan',
-          message: 'Creating research plan...',
+          type: 'progress',
+          status: 'started',
+          title: 'Starting Research',
+          message: 'Starting research...',
           timestamp: Date.now(),
           overwrite: true,
         },
@@ -179,22 +179,6 @@ export const createReasonSearch = ({
       let completedSteps = 0;
       const totalSteps =
         stepIds.searchSteps.length + stepIds.analysisSteps.length;
-
-      // Complete plan status
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
-        data: {
-          id: stepIds.planId,
-          type: 'plan' as const,
-          status: 'completed',
-          title: 'Research Plan',
-          plan: researchPlan,
-          totalSteps: totalSteps,
-          message: 'Research plan created',
-          timestamp: Date.now(),
-          overwrite: true,
-        },
-      });
 
       // Execute searches
       const searchResults: SearchResult[] = [];

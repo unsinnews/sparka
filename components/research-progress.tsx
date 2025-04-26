@@ -1,27 +1,5 @@
-import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { motion } from 'motion/react';
-import {
-  ArrowUpRight,
-  ChevronDown,
-  ChevronUp,
-  Expand,
-  Maximize,
-  Maximize2,
-  Minimize2,
-  Shrink,
-} from 'lucide-react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 // Type-only imports
 import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
@@ -51,7 +29,6 @@ export const ResearchProgress = ({
   isComplete: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
-  console.log('updates', updates);
   const dedupedUpdates = React.useMemo(() => {
     const updateMap = new Map<string, StreamUpdate>();
     updates.forEach((u) => updateMap.set(u.id, u));
@@ -59,68 +36,19 @@ export const ResearchProgress = ({
   }, [updates]);
 
   const sortedUpdates = React.useMemo(() => {
-    const filteredUpdates = dedupedUpdates.filter(
-      (u) => u.id !== 'research-progress' && u.id !== 'research-plan-initial',
-    );
-
-    const plan = filteredUpdates.find((u) => u.type === 'plan');
-    const others = filteredUpdates
-      .filter((u) => u.type !== 'plan')
-      .sort((a, b) => a.timestamp - b.timestamp);
-
-    return plan ? [plan, ...others] : others;
+    return dedupedUpdates.sort((a, b) => a.timestamp - b.timestamp);
   }, [dedupedUpdates]);
-
-  const {
-    completedSteps,
-    runningSteps,
-    totalSteps,
-    progress,
-    showRunningIndicators,
-  } = React.useMemo(() => {
-    const stepsById = new Map<string, StreamUpdate>();
-    updates.forEach((u) => stepsById.set(u.id, u));
-
-    const excludedIds = new Set(['research-plan', 'research-plan-initial']);
-
-    const relevantUpdates = Array.from(stepsById.values()).filter(
-      (u) => !excludedIds.has(u.id),
-    );
-
-    const completed = relevantUpdates.filter(
-      (u) => u.status === 'completed',
-    ).length;
-    const running = relevantUpdates.filter(
-      (u) => u.status === 'running',
-    ).length;
-
-    const total = totalExpectedSteps;
-    const currentProgress =
-      total === 0 ? 0 : Math.min(100, (completed / total) * 100);
-
-    return {
-      completedSteps: completed,
-      runningSteps: running,
-      totalSteps: total,
-      progress: isComplete ? 100 : currentProgress,
-      showRunningIndicators: !isComplete && running > 0,
-    };
-  }, [updates, totalExpectedSteps, isComplete]);
 
   const lastUpdate =
     sortedUpdates.length > 0 ? sortedUpdates[sortedUpdates.length - 1] : null;
 
   const searchCount = React.useMemo(() => {
-    return dedupedUpdates.filter(
-      (u) => u.type === 'web' || u.type === 'academic' || u.type === 'x',
-    ).length;
+    return dedupedUpdates.filter((u) => u.type === 'web').length;
   }, [dedupedUpdates]);
 
   const sourceCount = React.useMemo(() => {
     return dedupedUpdates
-      .filter(
-        (u) => u.type === 'web' || u.type === 'academic' || u.type === 'x',
-      )
+      .filter((u) => u.type === 'web')
       .reduce((acc, u) => acc + (u.results?.length || 0), 0);
   }, [dedupedUpdates]);
 
@@ -175,12 +103,12 @@ export const ResearchProgress = ({
         <div className="flex items-center gap-2">
           {isExpanded ? (
             <Minimize2
-              className="h-4 w-4 text-muted-foreground flex-shrink-0"
+              className="size-4 text-muted-foreground shrink-0"
               aria-hidden="true"
             />
           ) : (
             <Maximize2
-              className="h-4 w-4 text-muted-foreground flex-shrink-0"
+              className="size-4 text-muted-foreground shrink-0"
               aria-hidden="true"
             />
           )}

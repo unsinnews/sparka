@@ -108,17 +108,23 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
         .array(z.string())
         .describe('A list of domains to exclude from all search results.')
         .default([]),
+      thoughts: z.object({
+        header: z.string().describe('Search plan title.'),
+        body: z.string().describe('Explanation of the search plan.'),
+      }),
     }),
     execute: async ({
       search_queries,
       topics,
       searchDepth,
       exclude_domains,
+      thoughts,
     }: {
       search_queries: { query: string; rationale: string; priority: number }[];
       topics: ('general' | 'news')[];
       searchDepth: ('basic' | 'advanced')[];
       exclude_domains?: string[];
+      thoughts: { header: string; body: string };
     }) => {
       console.log('Queries:', search_queries);
       console.log('Topics:', topics);
@@ -133,22 +139,18 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
         type: 'research_update',
         data: {
           id: 'research-plan',
-          type: 'plan' as const,
+          type: 'thoughts',
           status: 'completed',
           title: 'Web search plan',
-          plan: {
-            search_queries: search_queries.map((query, index) => ({
-              query: query.query,
-              rationale: query.rationale,
-              source: 'web',
-              priority: query.priority,
-            })),
-            required_analyses: [],
-          },
-          totalSteps: 1,
           message: 'Search plan created',
           timestamp: Date.now(),
           overwrite: true,
+          thoughtItems: [
+            {
+              header: thoughts.header,
+              body: thoughts.body,
+            },
+          ],
         },
       });
 
@@ -196,6 +198,7 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
           id: 'research-progress',
           type: 'progress' as const,
           status: 'completed' as const,
+          title: 'Done',
           message: `Research complete`,
           completedSteps,
           totalSteps,

@@ -18,32 +18,6 @@ const TaskUpdateSchema = BaseStreamUpdateSchema.extend({
   status: z.enum(['running', 'completed']),
 });
 
-const PlanSchema = TaskUpdateSchema.extend({
-  type: z.literal('plan'),
-  plan: z
-    .object({
-      search_queries: z.array(
-        z.object({
-          query: z.string(),
-          rationale: z.string(),
-          source: z.enum(['web', 'academic', 'both', 'x', 'all']),
-          priority: z.number(),
-        }),
-      ),
-      required_analyses: z.array(
-        z.object({
-          type: z.string(),
-          description: z.string(),
-          importance: z.number(),
-        }),
-      ),
-    })
-    .optional(),
-  totalSteps: z.number().optional(),
-});
-
-export type PlanUpdate = z.infer<typeof PlanSchema>;
-
 const BaseSearchSchema = TaskUpdateSchema.extend({
   query: z.string(),
   subqueries: z.array(z.string()).optional(),
@@ -65,15 +39,6 @@ export const WebSearchSchema = BaseSearchSchema.extend({
 });
 export type WebSearchUpdate = z.infer<typeof WebSearchSchema>;
 
-export const AcademicSearchSchema = BaseSearchSchema.extend({
-  type: z.literal('academic'),
-});
-export type AcademicSearchUpdate = z.infer<typeof AcademicSearchSchema>;
-
-export const XSearchSchema = BaseSearchSchema.extend({
-  type: z.literal('x'),
-});
-export type XSearchUpdate = z.infer<typeof XSearchSchema>;
 const AnalysisSchema = TaskUpdateSchema.extend({
   type: z.literal('analysis'),
   advancedSteps: z.number().optional(),
@@ -115,10 +80,10 @@ export type AnalysisUpdate = z.infer<typeof AnalysisSchema>;
 
 const ProgressSchema = BaseStreamUpdateSchema.extend({
   type: z.literal('progress'),
-  status: z.literal('completed'),
-  completedSteps: z.number(),
-  totalSteps: z.number(),
-  isComplete: z.boolean(),
+  status: z.union([z.literal('completed'), z.literal('started')]),
+  completedSteps: z.number().optional(),
+  totalSteps: z.number().optional(),
+  isComplete: z.boolean().optional(),
 });
 
 export type ProgressUpdate = z.infer<typeof ProgressSchema>;
@@ -136,7 +101,7 @@ const ThoughtsSchema = TaskUpdateSchema.extend({
 export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
 
 export const StreamUpdateSchema = z.discriminatedUnion('type', [
-  PlanSchema,
+  // PlanSchema,
   WebSearchSchema,
   // AcademicSearchSchema,
   // XSearchSchema,

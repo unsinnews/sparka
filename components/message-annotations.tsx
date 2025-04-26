@@ -1,23 +1,29 @@
 import type { MessageAnnotation } from '@/lib/ai/tools/annotations';
-import { DeepResearchSourcesAndAnalysis } from './reason-search-sources-and-analysis';
 import { ReasonSearchResearchProgress } from './reason-search-research-progress';
+import type {
+  StreamUpdate,
+  WebSearchUpdate,
+} from '@/lib/ai/tools/research-updates-schema';
+import { Sources } from './sources';
 
 export const SourcesAnnotations = ({
   annotations,
 }: { annotations?: MessageAnnotation[] }) => {
   if (!annotations) return null;
 
-  const researchUpdates = annotations.filter(
-    (a) => a.type === 'research_update',
-  );
+  const researchUpdates: StreamUpdate[] = annotations
+    .filter((a) => a.type === 'research_update')
+    .map((a) => a.data);
 
   if (researchUpdates.length === 0) return null;
 
-  return (
-    <DeepResearchSourcesAndAnalysis
-      updates={researchUpdates.map((a) => a.data)}
-    />
-  );
+  const webSearchUpdates = researchUpdates
+    .filter<WebSearchUpdate>((u) => u.type === 'web')
+    .filter((u) => u.status === 'completed' && u.results)
+    .flatMap((u) => u.results)
+    .filter((u) => u !== undefined);
+
+  return <Sources sources={webSearchUpdates} />;
 };
 
 export const ResearchUpdateAnnotations = ({

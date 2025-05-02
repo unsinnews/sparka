@@ -9,7 +9,7 @@ export function SecureKeysDisclaimer() {
         Secure API Key Setup
       </h3>
       <p className="text-xs text-muted-foreground">
-        To perform research, you'll need to provide your API keys. These keys
+        To perform research, you&apos;ll need to provide your API keys. These keys
         are stored securely using HTTP-only cookies and are never exposed to
         client-side JavaScript.
       </p>

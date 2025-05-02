@@ -246,8 +246,9 @@ const PurePreviewMessage = ({
                       ) : toolName === 'codeInterpreter' ? (
                         // @ts-expect-error // TODO: fix this
                         <CodeInterpreterMessage result={result} args={args} />
-                      ) : toolName !== 'deepResearch' &&
-                        toolName !== 'reasonSearch' &&
+                      ) : 
+                      toolName !== 'reasonSearch' &&
+                      // toolName !== 'deepResearch' &&
                         toolName !== 'webSearch' ? (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       ) : null}

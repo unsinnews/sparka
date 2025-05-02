@@ -50,6 +50,20 @@
       "when": 1742984796881,
       "tag": "0006_broken_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1746192816307,
+      "tag": "0007_redundant_vector",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1746193522435,
+      "tag": "0008_cloudy_saracen",
+      "breakpoints": true
     }
   ]
 }

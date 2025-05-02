@@ -1,8 +1,7 @@
-import { compare } from 'bcrypt-ts';
 import NextAuth, { type User, type Session } from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
+import Google from 'next-auth/providers/google';
 
-import { getUser } from '@/lib/db/queries';
+import { getUser, createUser } from '@/lib/db/queries';
 
 import { authConfig } from './auth.config';
 
@@ -18,24 +17,56 @@ export const {
 } = NextAuth({
   ...authConfig,
   providers: [
-    Credentials({
-      credentials: {},
-      async authorize({ email, password }: any) {
-        const users = await getUser(email);
-        if (users.length === 0) return null;
-        // biome-ignore lint: Forbidden non-null assertion.
-        const passwordsMatch = await compare(password, users[0].password!);
-        if (!passwordsMatch) return null;
-        return users[0] as any;
-      },
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
+    async signIn({ user, account, profile }) {
+      if (!account || !profile || !user?.email) {
+        console.log(
+          'Auth provider details missing (account, profile, or user email).',
+        );
+        return false;
       }
 
+      const { email, name, image } = user;
+
+      try {
+        const existingUserArray = await getUser(email);
+
+        if (existingUserArray.length === 0) {
+          await createUser({
+            email,
+            name: name ?? null,
+            image: image ?? null,
+          });
+          console.log(`Created new user: ${email}`);
+        } else {
+          console.log(`User already exists: ${email}`);
+        }
+        return true;
+      } catch (error) {
+        console.error('Error during signIn DB operations:', error);
+        return false;
+      }
+    },
+    async jwt({ token, user, account, profile }) {
+      if (user?.email) {
+        try {
+          const dbUserArray = await getUser(user.email);
+          if (dbUserArray.length > 0) {
+            token.id = dbUserArray[0].id;
+          } else {
+            console.error(
+              `User not found in DB during jwt callback: ${user.email}`,
+            );
+          }
+        } catch (error) {
+          console.error('Error fetching user during jwt callback:', error);
+        }
+      }
       return token;
     },
     async session({
@@ -43,12 +74,13 @@ export const {
       token,
     }: {
       session: ExtendedSession;
-      token: any;
+      token: { id?: string; [key: string]: any };
     }) {
-      if (session.user) {
-        session.user.id = token.id as string;
+      if (session.user && token.id) {
+        session.user.id = token.id;
+      } else if (!token.id) {
+        console.error('Token ID missing in session callback');
       }
-
       return session;
     },
   },

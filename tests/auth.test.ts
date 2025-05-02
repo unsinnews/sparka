@@ -1,6 +1,6 @@
 import { generateId } from 'ai';
 import { getUnixTime } from 'date-fns';
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
@@ -16,7 +16,7 @@ class AuthPage {
   }
 
   async gotoRegister() {
-    await this.page.goto('/register');
+    await this.page.goto('/login');
     await expect(this.page.getByRole('heading')).toContainText('Sign Up');
   }
 
@@ -73,5 +73,13 @@ test.describe
       await page.waitForURL('/');
       await expect(page).toHaveURL('/');
       await expect(page.getByPlaceholder('Send a message...')).toBeVisible();
+    });
+
+    test('can register new user', async ({ page }) => {
+      const testEmail = `test-${generateId(8)}@test.com`;
+      await authPage.gotoLogin();
+      await authPage.register(testEmail, testPassword);
+      await expect(page).toHaveURL('/');
+      await authPage.expectToastToContain('Account created successfully!');
     });
   });

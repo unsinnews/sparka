@@ -12,16 +12,18 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnChat = nextUrl.pathname.startsWith('/');
-      const isOnRegister = nextUrl.pathname.startsWith('/register');
-      const isOnLogin = nextUrl.pathname.startsWith('/login');
+      const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
 
-      if (isLoggedIn && (isOnLogin || isOnRegister)) {
-        return Response.redirect(new URL('/', nextUrl as unknown as URL));
+      // Allow any API routes for authentication to pass through
+      if (isApiAuthRoute) {
+        return true;
       }
 
-      if (isOnRegister || isOnLogin) {
-        return true; // Always allow access to register and login pages
+      const isOnChat = nextUrl.pathname.startsWith('/');
+      const isOnLoginPage = nextUrl.pathname.startsWith('/login');
+
+      if (isLoggedIn && isOnLoginPage) {
+        return Response.redirect(new URL('/', nextUrl as unknown as URL));
       }
 
       if (isOnChat) {

@@ -14,3 +14,8 @@
 ### System
 [x] Get rid of API keys, just use the backend keys
 [ ] TBD Create limits per accounts with a few credits
+
+
+
+## Auth
+[ ] Add "Deployment" redirect URI

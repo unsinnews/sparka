@@ -1,17 +1,19 @@
 <a href="https://chat.vercel.ai/">
   <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png">
-  <h1 align="center">Next.js AI Chatbot</h1>
+  <h1 align="center">Parlagen</h1>
 </a>
 
 <p align="center">
-  An Open-Source AI Chatbot Template Built With Next.js and the AI SDK by Vercel.
+  Batteries included Next.js AI Chatbot template.
 </p>
 
 <p align="center">
   <a href="#features"><strong>Features</strong></a> ·
   <a href="#model-providers"><strong>Model Providers</strong></a> ·
   <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a>
+  <a href="#running-locally"><strong>Running locally</strong></a> ·
+  <a href="#core-philosophy"><strong>Core Philosophy</strong></a> ·
+  <a href="#inspiration"><strong>Inspiration</strong></a>
 </p>
 <br/>
 
@@ -41,7 +43,7 @@ This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat m
 
 You can deploy your own version of the Next.js AI Chatbot to Vercel with one click:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot&env=AUTH_SECRET&envDescription=Generate%20a%20random%20secret%20to%20use%20for%20authentication&envLink=https%3A%2F%2Fgenerate-secret.vercel.app%2F32&project-name=my-awesome-chatbot&repository-name=my-awesome-chatbot&demo-title=AI%20Chatbot&demo-description=An%20Open-Source%20AI%20Chatbot%20Template%20Built%20With%20Next.js%20and%20the%20AI%20SDK%20by%20Vercel&demo-url=https%3A%2F%2Fchat.vercel.ai&products=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22grok%22%2C%22integrationSlug%22%3A%22xai%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22api-key%22%2C%22integrationSlug%22%3A%22groq%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%2C%7B%22type%22%3A%22blob%22%7D%5D)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot&env=AUTH_SECRET&envDescription=Generate%20a%20random%20secret%20to%20use%20for%20authentication&envLink=https%3A%2F%2Fgenerate-secret.vercel.app%2F32&project-name=parlagen-chatbot&repository-name=parlagen-chatbot&demo-title=Parlagen%20AI%20Chatbot&demo-description=A%20Batteries-Included%20Next.js%20AI%20Chatbot%20Template&products=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22grok%22%2C%22integrationSlug%22%3A%22xai%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22api-key%22%2C%22integrationSlug%22%3A%22groq%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%2C%7B%22type%22%3A%22blob%22%7D%5D)
 
 ## Running locally
 
@@ -61,6 +63,16 @@ pnpm dev
 Your app template should now be running on [localhost:3000](http://localhost:3000/).
 
 
+## Core Philosophy
+
+The primary goal of Parlagen is to provide a robust platform for experimenting with the latest AI models and features as they become available. It's designed to be a launchpad for your own AI chat applications, offering a comprehensive set of features out-of-the-box while remaining easy to customize and extend.
+
+## Inspiration
+
+Parlagen draws inspiration from these excellent projects:
+
+- [vercel/ai-chatbot](https://github.com/vercel/ai-chatbot/)
+- [zaidmukaddam/scira](https://github.com/zaidmukaddam/scira/)
+
 ## Principles
 - Simplicity for iteration speed: This keeps things flexible, avoids over-engineering, and makes the interface less overwhelming.
--

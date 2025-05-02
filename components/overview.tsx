@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import Link from 'next/link';
 
 import { MessageIcon, VercelIcon } from './icons';
+import { config } from '@/lib/config';
 
 export const Overview = () => {
   return (
@@ -23,7 +24,7 @@ export const Overview = () => {
           This is an{' '}
           <Link
             className="font-medium underline underline-offset-4"
-            href="https://github.com/vercel/ai-chatbot"
+            href={config.githubUrl}
             target="_blank"
           >
             open source

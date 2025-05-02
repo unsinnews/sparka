@@ -3,8 +3,6 @@ import {
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from 'ai';
-import { groq } from '@ai-sdk/groq';
-import { xai } from '@ai-sdk/xai';
 import { openai } from '@ai-sdk/openai';
 import { isTestEnvironment } from '../constants';
 import {
@@ -13,11 +11,11 @@ import {
   reasoningModel,
   titleModel,
 } from './models.test';
-
+import { config } from '../config';
 const telemetryConfig = {
   experimental_telemetry: {
     isEnabled: true,
-    functionId: 'ai-chat',
+    functionId: config.appPrefix,
   },
 };
 

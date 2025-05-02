@@ -21,9 +21,14 @@ export const authConfig = {
 
       const isOnChat = nextUrl.pathname.startsWith('/');
       const isOnLoginPage = nextUrl.pathname.startsWith('/login');
+      const isOnRegisterPage = nextUrl.pathname.startsWith('/register');
 
-      if (isLoggedIn && isOnLoginPage) {
+      if (isLoggedIn && (isOnLoginPage || isOnRegisterPage)) {
         return Response.redirect(new URL('/', nextUrl as unknown as URL));
+      }
+
+      if (isOnRegisterPage || isOnLoginPage) {
+        return true;
       }
 
       if (isOnChat) {

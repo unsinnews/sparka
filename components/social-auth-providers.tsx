@@ -1,8 +1,10 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { signIn } from 'next-auth/react';
 import { GoogleLogo } from '@phosphor-icons/react';
 
-export function SocialAuthProvidersButtons() {
+export function SocialAuthProviders() {
   return (
     <div>
       <Button

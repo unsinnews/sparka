@@ -59,7 +59,7 @@ Your app template should now be running on [localhost:3000](http://localhost:300
 
 ## Core Philosophy
 
-The primary goal of Parlagen is to provide a robust platform for experimenting with the latest AI models and features as they become available. It's designed to be a launchpad for your own AI chat applications, offering a comprehensive set of features out-of-the-box while remaining easy to customize and extend.
+The primary goal of Parlagen is to provide a robust platform for use the latest AI models and features as they become available. It's also a template for your own AI chat applications, offering a comprehensive set of features out-of-the-box while remaining easy to customize and extend.
 
 ## Inspiration
 

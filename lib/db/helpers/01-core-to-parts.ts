@@ -3,13 +3,46 @@ import postgres from 'postgres';
 import {
   chat,
   message,
-  messageDeprecated,
   vote,
-  voteDeprecated,
 } from '../schema';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { inArray } from 'drizzle-orm';
 import { appendResponseMessages, UIMessage } from 'ai';
+
+  import { boolean, json, pgTable, primaryKey, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+
+// DEPRECATED: The following schema is deprecated and will be removed in the future.
+// Read the migration guide at https://github.com/vercel/ai-chatbot/blob/main/docs/04-migrate-to-parts.md
+export const voteDeprecated = pgTable(
+  'Vote',
+  {
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id),
+    messageId: uuid('messageId')
+      .notNull()
+      .references(() => messageDeprecated.id),
+    isUpvoted: boolean('isUpvoted').notNull(),
+  },
+  (table) => {
+    return {
+      pk: primaryKey({ columns: [table.chatId, table.messageId] }),
+    };
+  },
+);
+
+// DEPRECATED: The following schema is deprecated and will be removed in the future.
+// Read the migration guide at https://github.com/vercel/ai-chatbot/blob/main/docs/04-migrate-to-parts.md
+export const messageDeprecated = pgTable('Message', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  chatId: uuid('chatId')
+    .notNull()
+    .references(() => chat.id),
+  role: varchar('role').notNull(),
+  content: json('content').notNull(),
+  createdAt: timestamp('createdAt').notNull(),
+});
+
 
 config({
   path: '.env.local',

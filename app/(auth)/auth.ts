@@ -1,7 +1,7 @@
 import NextAuth, { type User, type Session } from 'next-auth';
 import Google from 'next-auth/providers/google';
 
-import { getUser, createUser } from '@/lib/db/queries';
+import { getUserByEmail, createUser } from '@/lib/db/queries';
 
 import { authConfig } from './auth.config';
 
@@ -34,7 +34,7 @@ export const {
       const { email, name, image } = user;
 
       try {
-        const existingUserArray = await getUser(email);
+        const existingUserArray = await getUserByEmail(email);
 
         if (existingUserArray.length === 0) {
           await createUser({
@@ -55,7 +55,7 @@ export const {
     async jwt({ token, user, account, profile }) {
       if (user?.email) {
         try {
-          const dbUserArray = await getUser(user.email);
+          const dbUserArray = await getUserByEmail(user.email);
           if (dbUserArray.length > 0) {
             token.id = dbUserArray[0].id;
           } else {

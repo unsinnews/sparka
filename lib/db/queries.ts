@@ -1,5 +1,5 @@
 import 'server-only';
-import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, gte, inArray, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
@@ -24,7 +24,7 @@ import type { ArtifactKind } from '@/components/artifact';
 const client = postgres(process.env.POSTGRES_URL!);
 const db = drizzle(client);
 
-export async function getUser(email: string): Promise<Array<User>> {
+export async function getUserByEmail(email: string): Promise<Array<User>> {
   try {
     return await db.select().from(user).where(eq(user.email, email));
   } catch (error) {
@@ -357,3 +357,24 @@ export async function updateChatVisiblityById({
     throw error;
   }
 }
+
+export async function getUserById({ userId }: { userId: string }): Promise<User | undefined> {
+  const users = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+  return users[0];
+}
+
+export async function updateUserCredits({
+  userId,
+  creditsChange,
+}: {
+  userId: string;
+  creditsChange: number;
+}): Promise<void> {
+  await db
+    .update(user)
+    .set({
+      credits: sql`${user.credits} + ${creditsChange}`,
+    })
+    .where(eq(user.id, userId));
+}
+ 

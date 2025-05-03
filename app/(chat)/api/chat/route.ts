@@ -11,6 +11,8 @@ import {
   getChatById,
   saveChat,
   saveMessages,
+  getUserById,
+  updateUserCredits,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -51,6 +53,17 @@ export async function POST(request: NextRequest) {
 
     if (!session || !session.user || !session.user.id) {
       return new Response('Unauthorized', { status: 401 });
+    }
+
+    const user = await getUserById({ userId: session.user.id });
+
+    if (!user) {
+      return new Response('User not found', { status: 404 });
+    }
+
+    const messageCost = 1;
+    if (user.credits < messageCost) {
+      return new Response('Insufficient credits', { status: 402 });
     }
 
     const deepResearch = data.deepResearch;
@@ -180,8 +193,14 @@ export async function POST(request: NextRequest) {
                     },
                   ],
                 });
+
+                await updateUserCredits({
+                  userId: session.user.id,
+                  creditsChange: -messageCost,
+                });
+
               } catch (_) {
-                console.error('Failed to save chat');
+                console.error('Failed to save chat or deduct credits');
               }
             }
           },

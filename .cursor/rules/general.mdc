@@ -5,3 +5,15 @@ alwaysApply: true
 ---
 ## Repo Context
 - The package manager is bun
+- Vercel AI SDK for AI framework and frontend-backend interactions
+- Next.js with server actions
+- ORM is Drizzle with the schema at `lib/db/schema.ts`
+- DB queries and mutations are at `lib/db/queries.ts`
+
+
+## App structure
+- People interact with the AI through the `app/(chat)/api/chat/route.ts` by sending a message. It responds by creating a new message.
+
+
+## Styling
+- Few comments. Only to explain thigns not described by the code.

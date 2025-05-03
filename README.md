@@ -69,4 +69,5 @@ Parlagen draws inspiration from these excellent projects:
 - [zaidmukaddam/scira](https://github.com/zaidmukaddam/scira/)
 
 ## Principles
-- Simplicity for iteration speed: This keeps things flexible, avoids over-engineering, and makes the interface less overwhelming.
+- Simplicity for the user: The interface should be simple and easy to use.
+- Lean code that is easy to maintain and extend.

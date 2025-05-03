@@ -15,6 +15,7 @@ import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import { trpc } from '@/trpc/react';
 
 export function Chat({
   id,
@@ -30,6 +31,7 @@ export function Chat({
   isReadonly: boolean;
 }) {
   const { mutate } = useSWRConfig();
+  const utils = trpc.useUtils();
 
   const {
     messages,
@@ -50,6 +52,7 @@ export function Chat({
     generateId: generateUUID,
     onFinish: () => {
       mutate('/api/history');
+      utils.credits.getAvailableCredits.invalidate();
     },
     onError: (error) => {
       console.error(error);

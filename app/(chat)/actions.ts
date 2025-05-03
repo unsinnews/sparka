@@ -6,10 +6,12 @@ import { cookies } from 'next/headers';
 import {
   deleteMessagesByChatIdAfterTimestamp,
   getMessageById,
+  getUserById,
   updateChatVisiblityById,
 } from '@/lib/db/queries';
 import { VisibilityType } from '@/components/visibility-selector';
 import { myProvider } from '@/lib/ai/providers';
+import { auth } from '../(auth)/auth';
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();
@@ -53,3 +55,4 @@ export async function updateChatVisibility({
 }) {
   await updateChatVisiblityById({ chatId, visibility });
 }
+

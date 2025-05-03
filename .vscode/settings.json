@@ -19,7 +19,8 @@
   },
   "eslint.workingDirectories": [
     { "pattern": "app/*" },
-    { "pattern": "packages/*" }
+    { "pattern": "packages/*" },
+    { "pattern": "trpc/*" }
   ],
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"

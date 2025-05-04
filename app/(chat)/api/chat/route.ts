@@ -23,9 +23,12 @@ import { generateTitleFromUserMessage } from '../../actions';
 import type { YourToolName } from '@/lib/ai/tools/tools';
 import { myProvider } from '@/lib/ai/providers';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
-import { getTools } from '@/lib/ai/tools/tools';
+import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import { determineActiveTools } from '@/lib/ai/tools/utils';
 import type { NextRequest } from 'next/server';
+import { modelCosts } from '@/lib/config/credits';
+import type { AvailableModels } from '@/lib/ai/providers';
 
 export const maxDuration = 60;
 
@@ -40,14 +43,16 @@ export async function POST(request: NextRequest) {
     const {
       id,
       messages,
-      selectedChatModel,
+      selectedChatModel: tmpSelectedChatModel,
       data,
     }: {
       id: string;
       messages: Array<YourUIMessage>;
-      selectedChatModel: string;
+      selectedChatModel: AvailableModels;
       data: ChatRequestData;
     } = await request.json();
+
+    const selectedChatModel = 'gpt-4o';
 
     const session = await auth();
 
@@ -61,9 +66,12 @@ export async function POST(request: NextRequest) {
       return new Response('User not found', { status: 404 });
     }
 
-    const messageCost = 1;
-    if (user.credits < messageCost) {
-      return new Response('Insufficient credits', { status: 402 });
+    const baseModelCost = modelCosts[selectedChatModel] ?? 1;
+
+    if (user.credits < baseModelCost) {
+      return new Response('Insufficient credits for selected model', {
+        status: 402,
+      });
     }
 
     const deepResearch = data.deepResearch;
@@ -103,47 +111,37 @@ export async function POST(request: NextRequest) {
         },
       ],
     });
+    let explicitlyRequestedTool: YourToolName | null = null;
+    if (deepResearch) explicitlyRequestedTool = 'deepResearch';
+    else if (reason) explicitlyRequestedTool = 'reasonSearch';
+    else if (webSearch) explicitlyRequestedTool = 'webSearch';
+
+    let activeTools: YourToolName[];
+    try {
+      activeTools = determineActiveTools({
+        userCredits: user.credits,
+        selectedChatModel,
+        explicitlyRequestedTool,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        return new Response(error.message, { status: 402 });
+      }
+      return new Response('Error determining available tools', { status: 500 });
+    }
 
     // Add context of user selection to the user message
     // TODO: Consider doing this in the system prompt instead
     if (userMessage.parts[0].type === 'text') {
-      if (deepResearch) {
-        userMessage.content = `${userMessage.content} (I want to perform a deep research)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a deep research)`;
-      } else if (webSearch) {
-        userMessage.content = `${userMessage.content} (I want to perform a web search)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a web search)`;
-      } else if (reason) {
-        userMessage.content = `${userMessage.content} (I want to perform a reason search)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a reason search)`;
+      if (explicitlyRequestedTool) {
+        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
       }
     }
 
     return createDataStreamResponse({
       execute: (dataStream) => {
         const annotationStream = new AnnotationDataStreamWriter(dataStream);
-
-        const activeTools: YourToolName[] =
-          selectedChatModel === 'chat-model-reasoning'
-            ? []
-            : reason
-              ? ['reasonSearch']
-              : deepResearch
-                ? ['deepResearch']
-                : webSearch
-                  ? ['webSearch']
-                  : [
-                      'getWeather',
-                      'createDocument',
-                      'updateDocument',
-                      'requestSuggestions',
-                      'reasonSearch',
-                      'retrieve',
-                      'webSearch',
-                      'stockChart',
-                      'codeInterpreter',
-                      'deepResearch',
-                    ];
 
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
@@ -161,7 +159,13 @@ export async function POST(request: NextRequest) {
             dataStream: annotationStream,
             session,
           }),
-          onFinish: async ({ response, toolResults }) => {
+          onFinish: async ({ response, toolResults, toolCalls }) => {
+            // TODO: Create a better cost calculation
+            const totalCost =
+              toolCalls.reduce((acc, toolCall) => {
+                return acc + toolsDefinitions[toolCall.toolName].cost;
+              }, 0) + baseModelCost;
+
             if (session.user?.id) {
               try {
                 const assistantId = getTrailingMessageId({
@@ -196,9 +200,8 @@ export async function POST(request: NextRequest) {
 
                 await updateUserCredits({
                   userId: session.user.id,
-                  creditsChange: -messageCost,
+                  creditsChange: -totalCost,
                 });
-
               } catch (_) {
                 console.error('Failed to save chat or deduct credits');
               }

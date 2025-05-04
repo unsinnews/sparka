@@ -90,6 +90,12 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
           }),
         )
         .max(12),
+      thinking: z
+        .object({
+          header: z.string().describe('Search plan title.'),
+          body: z.string().describe('Explanation of the search plan.'),
+        })
+        .describe('The thinking process of the search plan.'),
 
       topics: z.array(
         z
@@ -107,23 +113,19 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
         .array(z.string())
         .describe('A list of domains to exclude from all search results.')
         .default([]),
-      thoughts: z.object({
-        header: z.string().describe('Search plan title.'),
-        body: z.string().describe('Explanation of the search plan.'),
-      }),
     }),
     execute: async ({
       search_queries,
       topics,
       searchDepth,
       exclude_domains,
-      thoughts,
+      thinking,
     }: {
       search_queries: { query: string; rationale: string; priority: number }[];
       topics: ('general' | 'news')[];
       searchDepth: ('basic' | 'advanced')[];
       exclude_domains?: string[];
-      thoughts: { header: string; body: string };
+      thinking: { header: string; body: string };
     }) => {
       console.log('Queries:', search_queries);
       console.log('Topics:', topics);
@@ -146,8 +148,8 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
           overwrite: true,
           thoughtItems: [
             {
-              header: thoughts.header,
-              body: thoughts.body,
+              header: thinking.header,
+              body: thinking.body,
             },
           ],
         },

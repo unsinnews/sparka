@@ -72,3 +72,66 @@ type ToolInvocationOf<T extends YourToolName> =
 export type YourToolInvocation = {
   [K in YourToolName]: ToolInvocationOf<K>;
 }[YourToolName];
+
+type ToolDefinition = {
+  name: string;
+  description: string;
+  cost: number;
+};
+
+export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
+  getWeather: {
+    name: 'getWeather',
+    description: 'Get the weather in a specific location',
+    cost: 1,
+  },
+  createDocument: {
+    name: 'createDocument',
+    description: 'Create a new document',
+    cost: 5,
+  },
+  updateDocument: {
+    name: 'updateDocument',
+    description: 'Update a document',
+    cost: 5,
+  },
+  requestSuggestions: {
+    name: 'requestSuggestions',
+    description: 'Request suggestions for a document',
+    cost: 1,
+  },
+  reasonSearch: {
+    name: 'reasonSearch',
+    description: 'Search for a reason',
+    cost: 50,
+  },
+  retrieve: {
+    name: 'retrieve',
+    description: 'Retrieve information from the web',
+    cost: 1,
+  },
+  webSearch: {
+    name: 'webSearch',
+    description: 'Search the web',
+    cost: 3,
+  },
+  stockChart: {
+    name: 'stockChart',
+    description: 'Get the stock chart for a specific stock',
+    cost: 1,
+  },
+  codeInterpreter: {
+    name: 'codeInterpreter',
+    description: 'Interpret code in a virtual environment',
+    cost: 10,
+  },
+  deepResearch: {
+    name: 'deepResearch',
+    description: 'Research a topic',
+    cost: 100,
+  },
+};
+
+export const allTools: YourToolName[] = Object.keys(
+  toolsDefinitions,
+) as YourToolName[];

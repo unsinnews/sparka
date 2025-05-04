@@ -11,13 +11,36 @@ import {
   reasoningModel,
   titleModel,
 } from './models.test';
-import { config } from '../config';
+import { siteConfig } from '../config';
 const telemetryConfig = {
   experimental_telemetry: {
     isEnabled: true,
-    functionId: config.appPrefix,
+    functionId: siteConfig.appPrefix,
   },
 };
+
+export const models = {
+  'gpt-4o': {
+    provider: openai('gpt-4o'),
+    text: true,
+    tools: true,
+    image: false,
+  },
+  'dall-e-3': {
+    provider: openai.image('dall-e-3'),
+    text: false,
+    tools: false,
+    image: true,
+  },
+  'gpt-o1-preview': {
+    provider: openai('gpt-o1-preview'),
+    text: true,
+    tools: true,
+    image: false,
+  },
+};
+
+export type AvailableModels = keyof typeof models;
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -30,16 +53,17 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': openai('gpt-4o'),
+        'gpt-4o': models['gpt-4o'].provider,
+        'chat-model': models['gpt-4o'].provider,
         'chat-model-reasoning': wrapLanguageModel({
-          model: openai('gpt-4o'),
+          model: models['gpt-4o'].provider,
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': openai('gpt-4o'),
-        'artifact-model': openai('gpt-4o'),
+        'title-model': models['gpt-4o'].provider,
+        'artifact-model': models['gpt-4o'].provider,
       },
       imageModels: {
-        'small-model': openai.image('dall-e-3'),
+        'small-model': models['dall-e-3'].provider,
       },
       ...telemetryConfig,
     });

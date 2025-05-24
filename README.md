@@ -10,7 +10,6 @@
 <p align="center">
   <a href="#features"><strong>Features</strong></a> ·
   <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#deploy-your-own"><strong>Deploy Your Own</strong></a> ·
   <a href="#running-locally"><strong>Running locally</strong></a> ·
   <a href="#core-philosophy"><strong>Core Philosophy</strong></a> ·
   <a href="#inspiration"><strong>Inspiration</strong></a>
@@ -39,11 +38,6 @@
 
 This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat model. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
 
-## Deploy Your Own
-
-You can deploy your own version of the Next.js AI Chatbot to Vercel with one click:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fai-chatbot&env=AUTH_SECRET&envDescription=Generate%20a%20random%20secret%20to%20use%20for%20authentication&envLink=https%3A%2F%2Fgenerate-secret.vercel.app%2F32&project-name=parlagen-chatbot&repository-name=parlagen-chatbot&demo-title=Parlagen%20AI%20Chatbot&demo-description=A%20Batteries-Included%20Next.js%20AI%20Chatbot%20Template&products=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22grok%22%2C%22integrationSlug%22%3A%22xai%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22ai%22%2C%22productSlug%22%3A%22api-key%22%2C%22integrationSlug%22%3A%22groq%22%7D%2C%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%2C%7B%22type%22%3A%22blob%22%7D%5D)
 
 ## Running locally
 
@@ -56,8 +50,8 @@ You will need to use the environment variables [defined in `.env.example`](.env.
 3. Download your environment variables: `vercel env pull`
 
 ```bash
-pnpm install
-pnpm dev
+bun install
+bun dev
 ```
 
 Your app template should now be running on [localhost:3000](http://localhost:3000/).
@@ -65,7 +59,7 @@ Your app template should now be running on [localhost:3000](http://localhost:300
 
 ## Core Philosophy
 
-The primary goal of Parlagen is to provide a robust platform for experimenting with the latest AI models and features as they become available. It's designed to be a launchpad for your own AI chat applications, offering a comprehensive set of features out-of-the-box while remaining easy to customize and extend.
+The primary goal of Parlagen is to provide a robust platform for use the latest AI models and features as they become available. It's also a template for your own AI chat applications, offering a comprehensive set of features out-of-the-box while remaining easy to customize and extend.
 
 ## Inspiration
 
@@ -75,4 +69,5 @@ Parlagen draws inspiration from these excellent projects:
 - [zaidmukaddam/scira](https://github.com/zaidmukaddam/scira/)
 
 ## Principles
-- Simplicity for iteration speed: This keeps things flexible, avoids over-engineering, and makes the interface less overwhelming.
+- Simplicity for the user: The interface should be simple and easy to use.
+- Lean code that is easy to maintain and extend.

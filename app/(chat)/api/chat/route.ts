@@ -11,6 +11,7 @@ import {
   getChatById,
   saveChat,
   saveMessages,
+  getUserById,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -21,9 +22,13 @@ import { generateTitleFromUserMessage } from '../../actions';
 import type { YourToolName } from '@/lib/ai/tools/tools';
 import { myProvider } from '@/lib/ai/providers';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
-import { getTools } from '@/lib/ai/tools/tools';
+import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { NextRequest } from 'next/server';
+import { determineStepTools } from '@/lib/credits/credits-utils';
+import { modelCosts } from '@/lib/ai/modelCosts';
+import type { AvailableModels } from '@/lib/ai/providers';
+import { reserveCreditsWithCleanup } from '@/lib/credits/credit-reservation';
 
 export const maxDuration = 60;
 
@@ -38,19 +43,27 @@ export async function POST(request: NextRequest) {
     const {
       id,
       messages,
-      selectedChatModel,
+      selectedChatModel: tmpSelectedChatModel,
       data,
     }: {
       id: string;
       messages: Array<YourUIMessage>;
-      selectedChatModel: string;
+      selectedChatModel: AvailableModels;
       data: ChatRequestData;
     } = await request.json();
+
+    const selectedChatModel = 'gpt-4o';
 
     const session = await auth();
 
     if (!session || !session.user || !session.user.id) {
       return new Response('Unauthorized', { status: 401 });
+    }
+
+    const user = await getUserById({ userId: session.user.id });
+
+    if (!user) {
+      return new Response('User not found', { status: 404 });
     }
 
     const deepResearch = data.deepResearch;
@@ -90,114 +103,148 @@ export async function POST(request: NextRequest) {
         },
       ],
     });
+    let explicitlyRequestedTool: YourToolName | null = null;
+    if (deepResearch) explicitlyRequestedTool = 'deepResearch';
+    else if (reason) explicitlyRequestedTool = 'reasonSearch';
+    else if (webSearch) explicitlyRequestedTool = 'webSearch';
 
-    // Add context of user selection to the user message
-    // TODO: Consider doing this in the system prompt instead
-    if (userMessage.parts[0].type === 'text') {
-      if (deepResearch) {
-        userMessage.content = `${userMessage.content} (I want to perform a deep research)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a deep research)`;
-      } else if (webSearch) {
-        userMessage.content = `${userMessage.content} (I want to perform a web search)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a web search)`;
-      } else if (reason) {
-        userMessage.content = `${userMessage.content} (I want to perform a reason search)`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to perform a reason search)`;
-      }
+    const baseModelCost = modelCosts[selectedChatModel] ?? 1;
+
+    const reservedCredits = await reserveCreditsWithCleanup(
+      session.user.id,
+      baseModelCost,
+      5,
+    );
+
+    if (!reservedCredits.success) {
+      return new Response(reservedCredits.error, {
+        status: 402,
+      });
     }
 
-    return createDataStreamResponse({
-      execute: (dataStream) => {
-        const annotationStream = new AnnotationDataStreamWriter(dataStream);
+    // Now we know reservedCredits.success is true
+    const { reservation } = reservedCredits;
 
-        const activeTools: YourToolName[] =
-          selectedChatModel === 'chat-model-reasoning'
-            ? []
-            : reason
-              ? ['reasonSearch']
-              : deepResearch
-                ? ['deepResearch']
-                : webSearch
-                  ? ['webSearch']
-                  : [
-                      'getWeather',
-                      'createDocument',
-                      'updateDocument',
-                      'requestSuggestions',
-                      'reasonSearch',
-                      'retrieve',
-                      'webSearch',
-                      'stockChart',
-                      'codeInterpreter',
-                      'deepResearch',
-                    ];
-
-        const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, activeTools }),
-          messages,
-          maxSteps: 5,
-          experimental_activeTools: activeTools,
-          experimental_transform: smoothStream({ chunking: 'word' }),
-          experimental_generateMessageId: generateUUID,
-          experimental_telemetry: {
-            isEnabled: true,
-            functionId: 'chat-response',
-          },
-          tools: getTools({
-            dataStream: annotationStream,
-            session,
-          }),
-          onFinish: async ({ response, toolResults }) => {
-            if (session.user?.id) {
-              try {
-                const assistantId = getTrailingMessageId({
-                  messages: response.messages.filter(
-                    (message) => message.role === 'assistant',
-                  ),
-                });
-
-                if (!assistantId) {
-                  throw new Error('No assistant message found!');
-                }
-
-                const [, assistantMessage] = appendResponseMessages({
-                  messages: [userMessage],
-                  responseMessages: response.messages,
-                });
-
-                await saveMessages({
-                  messages: [
-                    {
-                      id: assistantId,
-                      chatId: id,
-                      role: assistantMessage.role,
-                      parts: assistantMessage.parts,
-                      attachments:
-                        assistantMessage.experimental_attachments ?? [],
-                      createdAt: new Date(),
-                      annotations: annotationStream.getAnnotations(),
-                    },
-                  ],
-                });
-              } catch (_) {
-                console.error('Failed to save chat');
-              }
-            }
-          },
-        });
-
-        result.consumeStream();
-
-        result.mergeIntoDataStream(dataStream, {
-          sendReasoning: true,
-        });
-      },
-      onError: (error) => {
-        console.error(error);
-        return 'Oops, an error occured!';
-      },
+    const toolsResult = determineStepTools({
+      toolBudget: reservation.budget - baseModelCost,
+      explicitlyRequestedTool,
     });
+
+    if (!toolsResult.success) {
+      await reservation.cleanup();
+      return new Response(toolsResult.error || 'Cannot determine tools', {
+        status: 402,
+      });
+    }
+
+    const activeTools = toolsResult.activeTools;
+
+    // Ensure cleanup on any unhandled errors
+    try {
+      // Add context of user selection to the user message
+      // TODO: Consider doing this in the system prompt instead
+      if (userMessage.parts[0].type === 'text') {
+        if (explicitlyRequestedTool) {
+          userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
+          userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
+        }
+      }
+
+      return createDataStreamResponse({
+        execute: (dataStream) => {
+          const annotationStream = new AnnotationDataStreamWriter(dataStream);
+
+          const result = streamText({
+            model: myProvider.languageModel(selectedChatModel),
+            system: systemPrompt({ selectedChatModel, activeTools }),
+            messages,
+            maxSteps: 5,
+            experimental_activeTools: activeTools,
+            experimental_transform: smoothStream({ chunking: 'word' }),
+            experimental_generateMessageId: generateUUID,
+            experimental_telemetry: {
+              isEnabled: true,
+              functionId: 'chat-response',
+            },
+            tools: getTools({
+              dataStream: annotationStream,
+              session,
+            }),
+
+            onFinish: async ({ response, toolResults, toolCalls, steps }) => {
+              const actualCost =
+                baseModelCost +
+                steps
+                  .flatMap((step) => step.toolResults)
+                  .reduce((acc, toolResult) => {
+                    return acc + toolsDefinitions[toolResult.toolName].cost;
+                  }, 0);
+
+              if (session.user?.id) {
+                try {
+                  const assistantId = getTrailingMessageId({
+                    messages: response.messages.filter(
+                      (message) => message.role === 'assistant',
+                    ),
+                  });
+
+                  if (!assistantId) {
+                    throw new Error('No assistant message found!');
+                  }
+
+                  const [, assistantMessage] = appendResponseMessages({
+                    messages: [userMessage],
+                    responseMessages: response.messages,
+                  });
+
+                  await saveMessages({
+                    messages: [
+                      {
+                        id: assistantId,
+                        chatId: id,
+                        role: assistantMessage.role,
+                        parts: assistantMessage.parts,
+                        attachments:
+                          assistantMessage.experimental_attachments ?? [],
+                        createdAt: new Date(),
+                        annotations: annotationStream.getAnnotations(),
+                      },
+                    ],
+                  });
+
+                  // Finalize credit usage: deduct actual cost, release reservation
+                  await reservation.finalize(actualCost);
+                } catch (error) {
+                  console.error(
+                    'Failed to save chat or finalize credits:',
+                    error,
+                  );
+                  // Still release the reservation on error
+                  await reservation.cleanup();
+                }
+              }
+            },
+          });
+
+          result.consumeStream();
+
+          result.mergeIntoDataStream(dataStream, {
+            sendReasoning: true,
+          });
+        },
+        onError: (error) => {
+          console.error(error);
+          // Release reserved credits on error (fire and forget)
+          if (session.user?.id) {
+            reservation.cleanup();
+          }
+          return 'Oops, an error occured!';
+        },
+      });
+    } catch (error) {
+      await reservation.cleanup();
+      throw error;
+    }
   } catch (error) {
     console.error(error);
     return new Response('An error occurred while processing your request!', {

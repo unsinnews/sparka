@@ -1,4 +1,4 @@
-import { config } from '@/lib/config';
+import { siteConfig } from '@/lib/config';
 import { KeyIcon } from 'lucide-react';
 
 export function SecureKeysDisclaimer() {
@@ -9,9 +9,9 @@ export function SecureKeysDisclaimer() {
         Secure API Key Setup
       </h3>
       <p className="text-xs text-muted-foreground">
-        To perform research, you'll need to provide your API keys. These keys
-        are stored securely using HTTP-only cookies and are never exposed to
-        client-side JavaScript.
+        To perform research, you&apos;ll need to provide your API keys. These
+        keys are stored securely using HTTP-only cookies and are never exposed
+        to client-side JavaScript.
       </p>
       <div className="mt-3 flex flex-col space-y-2 text-xs">
         <div className="text-muted-foreground">
@@ -22,7 +22,7 @@ export function SecureKeysDisclaimer() {
             API key management.
           </p>
           <a
-            href={config.githubUrl}
+            href={siteConfig.githubUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center mt-1 text-muted-foreground hover:text-foreground transition-colors"

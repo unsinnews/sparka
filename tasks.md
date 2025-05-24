@@ -5,6 +5,7 @@
 [ ] Add manus-like plan as a document
 
 [x] Create a button to Deep Research
+[ ] Refactor Model, providers, modelCosts so that it's easier to add new models
 
 
 ### Frontend
@@ -13,9 +14,10 @@
 
 ### System
 [x] Get rid of API keys, just use the backend keys
-[ ] TBD Create limits per accounts with a few credits
+[x] TBD Create limits per accounts with a few credits
+[ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
 
 
 
 ## Auth
-[ ] Add "Deployment" redirect URI
+[ ] Add "Deployment" redirect URI 

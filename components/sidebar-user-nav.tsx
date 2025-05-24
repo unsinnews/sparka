@@ -1,5 +1,5 @@
 'use client';
-import { ChevronUp } from 'lucide-react';
+import { ChevronUp, Coins } from 'lucide-react';
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut } from 'next-auth/react';
@@ -17,24 +17,34 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { trpc } from '@/trpc/react';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
+
+  const { data } = trpc.credits.getAvailableCredits.useQuery();
+  const credits = data?.totalCredits;
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10 justify-start">
               <Image
                 src={`https://avatar.vercel.sh/${user.email}`}
                 alt={user.email ?? 'User Avatar'}
                 width={24}
                 height={24}
-                className="rounded-full"
+                className="rounded-full mr-2"
               />
-              <span className="truncate">{user?.email}</span>
+              <span className="truncate flex-1">{user?.email}</span>
+              {credits !== null && (
+                <div className="flex items-center text-muted-foreground mr-2">
+                  <Coins className="w-4 h-4 mr-1" />
+                  <span>{credits}</span>
+                </div>
+              )}
               <ChevronUp className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -42,6 +52,10 @@ export function SidebarUserNav({ user }: { user: User }) {
             side="top"
             className="w-[--radix-popper-anchor-width]"
           >
+            <DropdownMenuItem disabled>
+              Credits: {credits ?? 'Loading...'}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer"
               onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}

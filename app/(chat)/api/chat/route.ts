@@ -26,7 +26,7 @@ import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { NextRequest } from 'next/server';
 import { determineStepTools } from '@/lib/credits/credits-utils';
-import { modelCosts } from '@/lib/config/modelCosts';
+import { modelCosts } from '@/lib/ai/modelCosts';
 import type { AvailableModels } from '@/lib/ai/providers';
 import { reserveCreditsWithCleanup } from '@/lib/credits/credit-reservation';
 

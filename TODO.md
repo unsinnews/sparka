@@ -15,9 +15,10 @@
 ### System
 [x] Get rid of API keys, just use the backend keys
 [x] TBD Create limits per accounts with a few credits
+[ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
 
 
 
 ## Auth
-[ ] Add "Deployment" redirect URI 
+[x] Add "Deployment" redirect URI 

@@ -23,7 +23,7 @@ export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
 
   const { data } = trpc.credits.getAvailableCredits.useQuery();
-  const credits = data?.credits;
+  const credits = data?.totalCredits;
 
   return (
     <SidebarMenu>

@@ -12,7 +12,6 @@ import {
   saveChat,
   saveMessages,
   getUserById,
-  updateUserCredits,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -25,10 +24,11 @@ import { myProvider } from '@/lib/ai/providers';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
 import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
-import { determineActiveTools } from '@/lib/ai/tools/utils';
 import type { NextRequest } from 'next/server';
-import { modelCosts } from '@/lib/config/credits';
+import { determineStepTools } from '@/lib/credits/credits-utils';
+import { modelCosts } from '@/lib/config/modelCosts';
 import type { AvailableModels } from '@/lib/ai/providers';
+import { reserveCreditsWithCleanup } from '@/lib/credits/credit-reservation';
 
 export const maxDuration = 60;
 
@@ -64,14 +64,6 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return new Response('User not found', { status: 404 });
-    }
-
-    const baseModelCost = modelCosts[selectedChatModel] ?? 1;
-
-    if (user.credits < baseModelCost) {
-      return new Response('Insufficient credits for selected model', {
-        status: 402,
-      });
     }
 
     const deepResearch = data.deepResearch;
@@ -116,110 +108,143 @@ export async function POST(request: NextRequest) {
     else if (reason) explicitlyRequestedTool = 'reasonSearch';
     else if (webSearch) explicitlyRequestedTool = 'webSearch';
 
-    let activeTools: YourToolName[];
-    try {
-      activeTools = determineActiveTools({
-        userCredits: user.credits,
-        selectedChatModel,
-        explicitlyRequestedTool,
+    const baseModelCost = modelCosts[selectedChatModel] ?? 1;
+
+    const reservedCredits = await reserveCreditsWithCleanup(
+      session.user.id,
+      baseModelCost,
+      5,
+    );
+
+    if (!reservedCredits.success) {
+      return new Response(reservedCredits.error, {
+        status: 402,
       });
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        return new Response(error.message, { status: 402 });
-      }
-      return new Response('Error determining available tools', { status: 500 });
     }
 
-    // Add context of user selection to the user message
-    // TODO: Consider doing this in the system prompt instead
-    if (userMessage.parts[0].type === 'text') {
-      if (explicitlyRequestedTool) {
-        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
-      }
-    }
+    // Now we know reservedCredits.success is true
+    const { reservation } = reservedCredits;
 
-    return createDataStreamResponse({
-      execute: (dataStream) => {
-        const annotationStream = new AnnotationDataStreamWriter(dataStream);
-
-        const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, activeTools }),
-          messages,
-          maxSteps: 5,
-          experimental_activeTools: activeTools,
-          experimental_transform: smoothStream({ chunking: 'word' }),
-          experimental_generateMessageId: generateUUID,
-          experimental_telemetry: {
-            isEnabled: true,
-            functionId: 'chat-response',
-          },
-          tools: getTools({
-            dataStream: annotationStream,
-            session,
-          }),
-          onFinish: async ({ response, toolResults, toolCalls }) => {
-            // TODO: Create a better cost calculation
-            const totalCost =
-              toolCalls.reduce((acc, toolCall) => {
-                return acc + toolsDefinitions[toolCall.toolName].cost;
-              }, 0) + baseModelCost;
-
-            if (session.user?.id) {
-              try {
-                const assistantId = getTrailingMessageId({
-                  messages: response.messages.filter(
-                    (message) => message.role === 'assistant',
-                  ),
-                });
-
-                if (!assistantId) {
-                  throw new Error('No assistant message found!');
-                }
-
-                const [, assistantMessage] = appendResponseMessages({
-                  messages: [userMessage],
-                  responseMessages: response.messages,
-                });
-
-                await saveMessages({
-                  messages: [
-                    {
-                      id: assistantId,
-                      chatId: id,
-                      role: assistantMessage.role,
-                      parts: assistantMessage.parts,
-                      attachments:
-                        assistantMessage.experimental_attachments ?? [],
-                      createdAt: new Date(),
-                      annotations: annotationStream.getAnnotations(),
-                    },
-                  ],
-                });
-
-                await updateUserCredits({
-                  userId: session.user.id,
-                  creditsChange: -totalCost,
-                });
-              } catch (_) {
-                console.error('Failed to save chat or deduct credits');
-              }
-            }
-          },
-        });
-
-        result.consumeStream();
-
-        result.mergeIntoDataStream(dataStream, {
-          sendReasoning: true,
-        });
-      },
-      onError: (error) => {
-        console.error(error);
-        return 'Oops, an error occured!';
-      },
+    const toolsResult = determineStepTools({
+      toolBudget: reservation.budget - baseModelCost,
+      explicitlyRequestedTool,
     });
+
+    if (!toolsResult.success) {
+      await reservation.cleanup();
+      return new Response(toolsResult.error || 'Cannot determine tools', {
+        status: 402,
+      });
+    }
+
+    const activeTools = toolsResult.activeTools;
+
+    // Ensure cleanup on any unhandled errors
+    try {
+      // Add context of user selection to the user message
+      // TODO: Consider doing this in the system prompt instead
+      if (userMessage.parts[0].type === 'text') {
+        if (explicitlyRequestedTool) {
+          userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
+          userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
+        }
+      }
+
+      return createDataStreamResponse({
+        execute: (dataStream) => {
+          const annotationStream = new AnnotationDataStreamWriter(dataStream);
+
+          const result = streamText({
+            model: myProvider.languageModel(selectedChatModel),
+            system: systemPrompt({ selectedChatModel, activeTools }),
+            messages,
+            maxSteps: 5,
+            experimental_activeTools: activeTools,
+            experimental_transform: smoothStream({ chunking: 'word' }),
+            experimental_generateMessageId: generateUUID,
+            experimental_telemetry: {
+              isEnabled: true,
+              functionId: 'chat-response',
+            },
+            tools: getTools({
+              dataStream: annotationStream,
+              session,
+            }),
+
+            onFinish: async ({ response, toolResults, toolCalls, steps }) => {
+              const actualCost =
+                baseModelCost +
+                steps
+                  .flatMap((step) => step.toolResults)
+                  .reduce((acc, toolResult) => {
+                    return acc + toolsDefinitions[toolResult.toolName].cost;
+                  }, 0);
+
+              if (session.user?.id) {
+                try {
+                  const assistantId = getTrailingMessageId({
+                    messages: response.messages.filter(
+                      (message) => message.role === 'assistant',
+                    ),
+                  });
+
+                  if (!assistantId) {
+                    throw new Error('No assistant message found!');
+                  }
+
+                  const [, assistantMessage] = appendResponseMessages({
+                    messages: [userMessage],
+                    responseMessages: response.messages,
+                  });
+
+                  await saveMessages({
+                    messages: [
+                      {
+                        id: assistantId,
+                        chatId: id,
+                        role: assistantMessage.role,
+                        parts: assistantMessage.parts,
+                        attachments:
+                          assistantMessage.experimental_attachments ?? [],
+                        createdAt: new Date(),
+                        annotations: annotationStream.getAnnotations(),
+                      },
+                    ],
+                  });
+
+                  // Finalize credit usage: deduct actual cost, release reservation
+                  await reservation.finalize(actualCost);
+                } catch (error) {
+                  console.error(
+                    'Failed to save chat or finalize credits:',
+                    error,
+                  );
+                  // Still release the reservation on error
+                  await reservation.cleanup();
+                }
+              }
+            },
+          });
+
+          result.consumeStream();
+
+          result.mergeIntoDataStream(dataStream, {
+            sendReasoning: true,
+          });
+        },
+        onError: (error) => {
+          console.error(error);
+          // Release reserved credits on error (fire and forget)
+          if (session.user?.id) {
+            reservation.cleanup();
+          }
+          return 'Oops, an error occured!';
+        },
+      });
+    } catch (error) {
+      await reservation.cleanup();
+      throw error;
+    }
   } catch (error) {
     console.error(error);
     return new Response('An error occurred while processing your request!', {

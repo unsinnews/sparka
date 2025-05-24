@@ -1,6 +1,7 @@
 import { models, type AvailableModels } from '@/lib/ai/providers';
 import { allTools, type YourToolName } from '@/lib/ai/tools/tools';
-import { filterAffordableTools, modelCosts } from '@/lib/config/credits';
+import { filterAffordableTools } from '@/lib/credits/credits-utils';
+import { modelCosts } from '@/lib/config/modelCosts';
 
 type DetermineActiveToolsParams = {
   userCredits: number;

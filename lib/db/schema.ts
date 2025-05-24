@@ -9,7 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
-  integer
+  integer,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -18,6 +18,7 @@ export const user = pgTable('User', {
   name: varchar('name', { length: 64 }),
   image: varchar('image', { length: 256 }),
   credits: integer('credits').notNull().default(100),
+  reservedCredits: integer('reservedCredits').notNull().default(0),
 });
 
 export type User = InferSelectModel<typeof user>;

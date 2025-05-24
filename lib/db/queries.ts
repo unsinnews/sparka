@@ -1,7 +1,5 @@
 import 'server-only';
-import { and, asc, desc, eq, gt, gte, inArray, sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
+import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
 
 import {
   user,
@@ -15,14 +13,7 @@ import {
   type DBMessage,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
-
-// Optionally, if not using email/pass login, you can
-// use the Drizzle adapter for Auth.js / NextAuth
-// https://authjs.dev/reference/adapter/drizzle
-
-// biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
-const db = drizzle(client);
+import { db } from './client';
 
 export async function getUserByEmail(email: string): Promise<Array<User>> {
   try {
@@ -358,23 +349,13 @@ export async function updateChatVisiblityById({
   }
 }
 
-export async function getUserById({ userId }: { userId: string }): Promise<User | undefined> {
-  const users = await db.select().from(user).where(eq(user.id, userId)).limit(1);
+export async function getUserById({
+  userId,
+}: { userId: string }): Promise<User | undefined> {
+  const users = await db
+    .select()
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
   return users[0];
 }
-
-export async function updateUserCredits({
-  userId,
-  creditsChange,
-}: {
-  userId: string;
-  creditsChange: number;
-}): Promise<void> {
-  await db
-    .update(user)
-    .set({
-      credits: sql`${user.credits} + ${creditsChange}`,
-    })
-    .where(eq(user.id, userId));
-}
- 

@@ -102,7 +102,7 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
   },
   reasonSearch: {
     name: 'reasonSearch',
-    description: 'Search for a reason',
+    description: 'Search with reasoning',
     cost: 50,
   },
   retrieve: {

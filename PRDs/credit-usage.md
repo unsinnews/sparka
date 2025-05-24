@@ -53,4 +53,3 @@ Implement a dynamic credit system where the cost of a user interaction depends o
 ## 4. Open Questions
 
 - What are the exact costs for each model and tool? (Needs definition)
-- How to handle potential race conditions if multiple requests deplete credits simultaneously? (Consider database transactions or optimistic locking for `updateUserCredits`). 

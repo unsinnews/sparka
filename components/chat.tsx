@@ -56,7 +56,7 @@ export function Chat({
     },
     onError: (error) => {
       console.error(error);
-      toast.error('An error occured, please try again!');
+      toast.error(error.message ?? 'An error occured, please try again!');
     },
   });
 

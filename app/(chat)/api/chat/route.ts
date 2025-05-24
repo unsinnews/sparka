@@ -20,14 +20,15 @@ import {
 } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
 import type { YourToolName } from '@/lib/ai/tools/tools';
-import { myProvider } from '@/lib/ai/providers';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
 import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { NextRequest } from 'next/server';
-import { determineStepTools } from '@/lib/credits/credits-utils';
-import { modelCosts } from '@/lib/ai/modelCosts';
-import type { AvailableModels } from '@/lib/ai/providers';
+import {
+  determineStepTools,
+  getBaseModelCost,
+} from '@/lib/credits/credits-utils';
+import { getModelProvider, type AvailableModels } from '@/lib/ai/providers';
 import { reserveCreditsWithCleanup } from '@/lib/credits/credit-reservation';
 
 export const maxDuration = 60;
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
     const {
       id,
       messages,
-      selectedChatModel: tmpSelectedChatModel,
+      selectedChatModel,
       data,
     }: {
       id: string;
@@ -51,8 +52,6 @@ export async function POST(request: NextRequest) {
       selectedChatModel: AvailableModels;
       data: ChatRequestData;
     } = await request.json();
-
-    const selectedChatModel = 'gpt-4o';
 
     const session = await auth();
 
@@ -108,8 +107,7 @@ export async function POST(request: NextRequest) {
     else if (reason) explicitlyRequestedTool = 'reasonSearch';
     else if (webSearch) explicitlyRequestedTool = 'webSearch';
 
-    const baseModelCost = modelCosts[selectedChatModel] ?? 1;
-
+    const baseModelCost = getBaseModelCost(selectedChatModel);
     const reservedCredits = await reserveCreditsWithCleanup(
       session.user.id,
       baseModelCost,
@@ -155,8 +153,8 @@ export async function POST(request: NextRequest) {
           const annotationStream = new AnnotationDataStreamWriter(dataStream);
 
           const result = streamText({
-            model: myProvider.languageModel(selectedChatModel),
-            system: systemPrompt({ selectedChatModel, activeTools }),
+            model: getModelProvider(selectedChatModel),
+            system: systemPrompt({ activeTools }),
             messages,
             maxSteps: 5,
             experimental_activeTools: activeTools,

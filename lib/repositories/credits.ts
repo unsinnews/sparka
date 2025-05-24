@@ -27,25 +27,32 @@ export async function getUserCreditsInfo({ userId }: { userId: string }) {
 export async function reserveAvailableCredits({
   userId,
   maxAmount,
+  minAmount,
 }: {
   userId: string;
   maxAmount: number;
-}): Promise<{
-  success: boolean;
-  reservedAmount: number;
-  availableCredits?: number;
-}> {
+  minAmount: number;
+}): Promise<
+  | {
+      success: true;
+      reservedAmount: number;
+    }
+  | {
+      success: false;
+      error: string;
+    }
+> {
   try {
     const userInfo = await getUserCreditsInfo({ userId });
     if (!userInfo) {
-      return { success: false, reservedAmount: 0 };
+      return { success: false, error: 'User not found' };
     }
 
     const availableCredits = userInfo.availableCredits;
     const amountToReserve = Math.min(maxAmount, availableCredits);
 
-    if (amountToReserve <= 0) {
-      return { success: false, reservedAmount: 0 };
+    if (amountToReserve < minAmount) {
+      return { success: false, error: 'Insufficient credits' };
     }
 
     const result = await db
@@ -65,17 +72,16 @@ export async function reserveAvailableCredits({
       });
 
     if (result.length === 0) {
-      return { success: false, reservedAmount: 0 };
+      return { success: false, error: 'Failed to reserve credits' };
     }
 
     return {
       success: true,
       reservedAmount: amountToReserve,
-      availableCredits: result[0].credits - result[0].reservedCredits,
     };
   } catch (error) {
     console.error('Failed to reserve available credits:', error);
-    return { success: false, reservedAmount: 0 };
+    return { success: false, error: 'Failed to reserve credits' };
   }
 }
 

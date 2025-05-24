@@ -1,3 +1,5 @@
+import { allModels } from '../ai/all-models';
+import type { AvailableModels } from '../ai/providers';
 import {
   type YourToolName,
   toolsDefinitions,
@@ -38,27 +40,38 @@ export async function reserveCredits({
   userId: string;
   baseModelCost: number;
   maxSteps?: number;
-}): Promise<{
-  success: boolean;
-  budget: number;
-  error?: string;
-}> {
+}): Promise<
+  | {
+      success: true;
+      budget: number;
+    }
+  | {
+      success: false;
+      error: string;
+    }
+> {
   const maxToolCost = getMaxToolCost(allTools);
   const totalBudget = baseModelCost + maxToolCost * maxSteps;
 
   const reservation = await reserveAvailableCredits({
     userId,
     maxAmount: totalBudget,
+    minAmount: baseModelCost,
   });
 
-  if (!reservation.success || reservation.reservedAmount === 0) {
+  if (!reservation.success) {
     return {
       success: false,
-      budget: 0,
-      error: 'Insufficient credits for any request',
+      error: reservation.error,
     };
   }
 
+  if (reservation.reservedAmount < baseModelCost) {
+    return {
+      success: false,
+      error: 'Insufficient credits for the selected model',
+    };
+  }
   return {
     success: true,
     budget: reservation.reservedAmount,
@@ -98,4 +111,21 @@ export function determineStepTools({
       ? [explicitlyRequestedTool]
       : affordableTools,
   };
+}
+
+export function getBaseModelCost(modelId: AvailableModels) {
+  const model = allModels.find((model) => model.id === modelId);
+
+  if (!model?.pricing) {
+    return 10; // fallback for models without pricing
+  }
+
+  const { inputMTok, outputMTok } = model.pricing;
+
+  // Formula: Weighted average assuming typical 1:3 input:output ratio
+  // This gives more weight to output since models typically generate more output
+  const weightedCost = inputMTok * 0.25 + outputMTok * 0.75;
+
+  // Scale to reasonable credit units (adjust multiplier as needed)
+  return Math.ceil(weightedCost);
 }

@@ -1,5 +1,6 @@
-import { createCallerFactory, createTRPCRouter } from "@/trpc/init";
-import { creditsRouter } from "./credits.router";
+import { createCallerFactory, createTRPCRouter } from '@/trpc/init';
+import { creditsRouter } from './credits.router';
+import { modelsRouter } from './models.router';
 
 /**
  * This is the primary router for your server.
@@ -9,6 +10,7 @@ import { creditsRouter } from "./credits.router";
 
 export const appRouter = createTRPCRouter({
   credits: creditsRouter,
+  models: modelsRouter,
 });
 
 // export type definition of API

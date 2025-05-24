@@ -10,10 +10,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { chatModels } from '@/lib/ai/models';
+import { trpc } from '@/trpc/react';
 import { cn } from '@/lib/utils';
 
 import { CheckCircleFillIcon, ChevronDownIcon } from './icons';
+
+interface Model {
+  id: string;
+  name: string;
+}
 
 export function ModelSelector({
   selectedModelId,
@@ -25,9 +30,13 @@ export function ModelSelector({
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
 
+  const { data: chatModels = [], isLoading } =
+    trpc.models.getAvailableModels.useQuery();
+
   const selectedChatModel = useMemo(
-    () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
-    [optimisticModelId],
+    () =>
+      chatModels.find((chatModel: Model) => chatModel.id === optimisticModelId),
+    [optimisticModelId, chatModels],
   );
 
   return (
@@ -43,13 +52,14 @@ export function ModelSelector({
           data-testid="model-selector"
           variant="outline"
           className="md:px-2 md:h-[34px]"
+          disabled={isLoading}
         >
-          {selectedChatModel?.name}
+          {isLoading ? 'Loading...' : selectedChatModel?.name}
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-[300px]">
-        {chatModels.map((chatModel) => {
+        {chatModels.map((chatModel: Model) => {
           const { id } = chatModel;
 
           return (
@@ -71,13 +81,7 @@ export function ModelSelector({
                 type="button"
                 className="gap-4 group/item flex flex-row justify-between items-center w-full"
               >
-                <div className="flex flex-col gap-1 items-start">
-                  <div>{chatModel.name}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {chatModel.description}
-                  </div>
-                </div>
-
+                <div>{chatModel.name}</div>
                 <div className="text-foreground dark:text-foreground opacity-0 group-data-[active=true]/item:opacity-100">
                   <CheckCircleFillIcon />
                 </div>

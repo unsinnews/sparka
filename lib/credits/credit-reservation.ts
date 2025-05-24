@@ -54,13 +54,13 @@ export async function reserveCreditsWithCleanup(
 
   if (result.success) {
     return {
-      success: true as const,
+      success: true,
       reservation: new CreditReservation(userId, result.budget),
     };
   }
 
   return {
-    success: false as const,
+    success: false,
     error: result.error || 'Credit reservation failed',
   };
 }

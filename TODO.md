@@ -6,10 +6,13 @@
 
 [x] Create a button to Deep Research
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
+[ ] Propagate model selection to deep research / reason tools (and create new selectables for them)
 
 
 ### Frontend
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)
+[ ] Migrate to TRPC with Tanstack Query
+[ ] Get model from cache in model selector while loading
 
 
 ### System

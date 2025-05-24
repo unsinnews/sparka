@@ -4,6 +4,8 @@ import {
   wrapLanguageModel,
 } from 'ai';
 import { openai } from '@ai-sdk/openai';
+import { anthropic } from '@ai-sdk/anthropic';
+import { xai } from '@ai-sdk/xai';
 import { isTestEnvironment } from '../constants';
 import {
   artifactModel,
@@ -12,6 +14,7 @@ import {
   titleModel,
 } from './models.test';
 import { siteConfig } from '../config';
+import { allModels } from './all-models';
 const telemetryConfig = {
   experimental_telemetry: {
     isEnabled: true,
@@ -40,7 +43,7 @@ export const models = {
   },
 };
 
-export type AvailableModels = keyof typeof models;
+export type AvailableModels = (typeof allModels)[number]['id'];
 
 export const myProvider = isTestEnvironment
   ? customProvider({
@@ -67,3 +70,22 @@ export const myProvider = isTestEnvironment
       },
       ...telemetryConfig,
     });
+
+export const getModelProvider = (modelId: AvailableModels) => {
+  const model = allModels.find((model) => model.id === modelId);
+  if (!model) {
+    throw new Error(`Model ${modelId} not found`);
+  }
+
+  const modelIdWithoutProvider = model.specification.modelId.split('/')[1];
+  switch (model.specification.provider) {
+    case 'openai':
+      return openai(modelIdWithoutProvider);
+    case 'anthropic':
+      return anthropic(modelIdWithoutProvider);
+    case 'xai':
+      return xai(modelIdWithoutProvider);
+    default:
+      throw new Error(`Provider ${model.specification.provider} not supported`);
+  }
+};

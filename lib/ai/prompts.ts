@@ -139,17 +139,11 @@ ${activeTools.map((tool) => toolRules[tool]).join('\n\n')}
 };
 
 export const systemPrompt = ({
-  selectedChatModel,
   activeTools,
 }: {
-  selectedChatModel: string;
   activeTools: YourToolName[];
 }) => {
-  if (selectedChatModel === 'chat-model-reasoning') {
-    return regularPrompt;
-  } else {
-    return `${regularPrompt}\n\n${getToolsPrompt(activeTools)}`;
-  }
+  return `${regularPrompt}\n\n${getToolsPrompt(activeTools)}`;
 };
 
 export const codePrompt = `

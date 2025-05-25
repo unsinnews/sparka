@@ -62,49 +62,50 @@ export function MessageEditor({
   }, [setMode]);
 
   return (
-    <div ref={containerRef} className="flex flex-col gap-2 w-full">
-      <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-        <MultimodalInput
-          chatId={chatId}
-          input={input}
-          setInput={setInput}
-          status={isSubmitting ? 'submitted' : 'ready'}
-          stop={stop}
-          attachments={attachments}
-          setAttachments={setAttachments}
-          data={data}
-          setData={setData}
-          messages={[]}
-          setMessages={chatHelpers.setMessages}
-          append={chatHelpers.append}
-          handleSubmit={async (event, options) => {
-            setIsSubmitting(true);
+    <div
+      ref={containerRef}
+      className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl"
+    >
+      <MultimodalInput
+        chatId={chatId}
+        input={input}
+        setInput={setInput}
+        status={isSubmitting ? 'submitted' : 'ready'}
+        stop={stop}
+        attachments={attachments}
+        setAttachments={setAttachments}
+        data={data}
+        setData={setData}
+        messages={[]}
+        setMessages={chatHelpers.setMessages}
+        append={chatHelpers.append}
+        handleSubmit={async (event, options) => {
+          setIsSubmitting(true);
 
-            await deleteTrailingMessages({
-              id: message.id,
-            });
+          await deleteTrailingMessages({
+            id: message.id,
+          });
 
-            // chatHelpers.setInput(input);
-            chatHelpers.setMessages((messages) => {
-              const index = messages.findIndex((m) => m.id === message.id);
-              return [...messages.slice(0, index)];
-            });
-            setMode('view');
+          // chatHelpers.setInput(input);
+          chatHelpers.setMessages((messages) => {
+            const index = messages.findIndex((m) => m.id === message.id);
+            return [...messages.slice(0, index)];
+          });
+          setMode('view');
 
-            // Let MultimodalInput handle the actual submission
-            chatHelpers.append(
-              {
-                content: input,
-                role: 'user',
-                experimental_attachments: attachments,
-                parts: [{ type: 'text', text: input }],
-              },
-              options,
-            );
-          }}
-          isEditMode={true}
-        />
-      </div>
+          // Let MultimodalInput handle the actual submission
+          chatHelpers.append(
+            {
+              content: input,
+              role: 'user',
+              experimental_attachments: attachments,
+              parts: [{ type: 'text', text: input }],
+            },
+            options,
+          );
+        }}
+        isEditMode={true}
+      />
     </div>
   );
 }

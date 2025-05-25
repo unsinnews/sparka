@@ -15,6 +15,8 @@
 [ ] Get model from cache in model selector while loading
 [x] Edit message should have multimodal input box (instead of only Send and Cancel)
 [ ] Attachments should be removable
+[ ] Improve multimodal input styles for long text, borders, roundness,
+
 
 ### System
 [x] Get rid of API keys, just use the backend keys

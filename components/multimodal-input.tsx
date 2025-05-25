@@ -244,7 +244,7 @@ function PureMultimodalInput({
         value={input}
         onChange={handleInput}
         className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
+          'min-h-[24px] max-h-[calc(75dvh)] resize-none rounded-2xl overflow-hidden !text-base bg-muted pb-12 dark:border-zinc-700',
           className,
         )}
         rows={2}
@@ -266,7 +266,7 @@ function PureMultimodalInput({
         }}
       />
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2">
+      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2 bg-muted">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
         <WebSearchToggle
           enabled={data.webSearch}

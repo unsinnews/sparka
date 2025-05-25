@@ -12,8 +12,7 @@ interface ArtifactMessagesProps {
   status: UseChatHelpers['status'];
   votes: Array<Vote> | undefined;
   messages: Array<YourUIMessage>;
-  setMessages: UseChatHelpers['setMessages'];
-  reload: UseChatHelpers['reload'];
+  chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   artifactStatus: UIArtifact['status'];
 }
@@ -23,8 +22,7 @@ function PureArtifactMessages({
   status,
   votes,
   messages,
-  setMessages,
-  reload,
+  chatHelpers,
   isReadonly,
 }: ArtifactMessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
@@ -46,8 +44,7 @@ function PureArtifactMessages({
               ? votes.find((vote) => vote.messageId === message.id)
               : undefined
           }
-          setMessages={setMessages}
-          reload={reload}
+          chatHelpers={chatHelpers}
           isReadonly={isReadonly}
         />
       ))}
@@ -74,6 +71,7 @@ function areEqual(
   if (prevProps.status && nextProps.status) return false;
   if (prevProps.messages.length !== nextProps.messages.length) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
+  if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
 
   return true;
 }

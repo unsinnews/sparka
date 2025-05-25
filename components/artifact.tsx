@@ -55,37 +55,25 @@ export interface UIArtifact {
 
 function PureArtifact({
   chatId,
-  input,
-  setInput,
-  handleSubmit,
   data,
   setData,
-  status,
-  stop,
   attachments,
   setAttachments,
-  append,
   messages,
-  setMessages,
-  reload,
+  chatHelpers,
   votes,
   isReadonly,
 }: {
   chatId: string;
-  input: string;
-  setInput: UseChatHelpers['setInput'];
-  status: UseChatHelpers['status'];
-  stop: UseChatHelpers['stop'];
+
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<YourUIMessage>;
-  setMessages: UseChatHelpers['setMessages'];
   votes: Array<Vote> | undefined;
-  append: UseChatHelpers['append'];
-  handleSubmit: UseChatHelpers['handleSubmit'];
+
   data: ChatRequestData;
   setData: Dispatch<SetStateAction<ChatRequestData>>;
-  reload: UseChatHelpers['reload'];
+  chatHelpers: UseChatHelpers;
   isReadonly: boolean;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
@@ -318,11 +306,10 @@ function PureArtifact({
               <div className="flex flex-col h-full justify-between items-center gap-4">
                 <ArtifactMessages
                   chatId={chatId}
-                  status={status}
+                  status={chatHelpers.status}
                   votes={votes}
                   messages={messages}
-                  setMessages={setMessages}
-                  reload={reload}
+                  chatHelpers={chatHelpers}
                   isReadonly={isReadonly}
                   artifactStatus={artifact.status}
                 />
@@ -330,19 +317,19 @@ function PureArtifact({
                 <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
                   <MultimodalInput
                     chatId={chatId}
-                    input={input}
-                    setInput={setInput}
-                    handleSubmit={handleSubmit}
+                    input={chatHelpers.input}
+                    setInput={chatHelpers.setInput}
+                    handleSubmit={chatHelpers.handleSubmit}
                     data={data}
                     setData={setData}
-                    status={status}
-                    stop={stop}
+                    status={chatHelpers.status}
+                    stop={chatHelpers.stop}
                     attachments={attachments}
                     setAttachments={setAttachments}
                     messages={messages}
-                    append={append}
+                    append={chatHelpers.append}
                     className="bg-background dark:bg-muted"
-                    setMessages={setMessages}
+                    setMessages={chatHelpers.setMessages}
                   />
                 </form>
               </div>
@@ -480,10 +467,10 @@ function PureArtifact({
                   <Toolbar
                     isToolbarVisible={isToolbarVisible}
                     setIsToolbarVisible={setIsToolbarVisible}
-                    append={append}
-                    status={status}
-                    stop={stop}
-                    setMessages={setMessages}
+                    append={chatHelpers.append}
+                    status={chatHelpers.status}
+                    stop={chatHelpers.stop}
+                    setMessages={chatHelpers.setMessages}
                     artifactKind={artifact.kind}
                   />
                 )}
@@ -507,9 +494,8 @@ function PureArtifact({
 }
 
 export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
-  if (prevProps.status !== nextProps.status) return false;
+  if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
-  if (prevProps.input !== nextProps.input) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
   if (prevProps.data !== nextProps.data) return false;
 

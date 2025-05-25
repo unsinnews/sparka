@@ -122,19 +122,12 @@ export function Chat({
 
       <Artifact
         chatId={id}
-        input={input}
-        setInput={setInput}
-        handleSubmit={handleSubmit}
-        status={status}
-        stop={stop}
+        chatHelpers={chatHelpers}
         attachments={attachments}
         setAttachments={setAttachments}
         data={data}
         setData={setData}
-        append={append}
         messages={messages as YourUIMessage[]}
-        setMessages={setMessages}
-        reload={reload}
         votes={votes}
         isReadonly={isReadonly}
       />

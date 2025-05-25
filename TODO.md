@@ -13,7 +13,7 @@
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)
 [ ] Migrate to TRPC with Tanstack Query
 [ ] Get model from cache in model selector while loading
-
+[ ] Edit message should have multimodal input box (instead of only Send and Cancel)
 
 ### System
 [x] Get rid of API keys, just use the backend keys

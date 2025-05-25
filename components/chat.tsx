@@ -4,6 +4,7 @@ import type { Attachment } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
 import useSWR, { useSWRConfig } from 'swr';
+import { useQueryClient } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
 import { fetcher, generateUUID } from '@/lib/utils';
@@ -15,7 +16,7 @@ import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
-import { trpc } from '@/trpc/react';
+import { useTRPC } from '@/trpc/react';
 
 export function Chat({
   id,
@@ -31,7 +32,8 @@ export function Chat({
   isReadonly: boolean;
 }) {
   const { mutate } = useSWRConfig();
-  const utils = trpc.useUtils();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const {
     messages,
@@ -52,7 +54,9 @@ export function Chat({
     generateId: generateUUID,
     onFinish: () => {
       mutate('/api/history');
-      utils.credits.getAvailableCredits.invalidate();
+      queryClient.invalidateQueries({
+        queryKey: trpc.credits.getAvailableCredits.queryKey(),
+      });
     },
     onError: (error) => {
       console.error(error);

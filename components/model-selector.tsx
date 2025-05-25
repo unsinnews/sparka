@@ -1,6 +1,7 @@
 'use client';
 
 import { startTransition, useMemo, useOptimistic, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { saveChatModelAsCookie } from '@/app/(chat)/actions';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { trpc } from '@/trpc/react';
+import { useTRPC } from '@/trpc/react';
 import { cn } from '@/lib/utils';
 
 import { CheckCircleFillIcon, ChevronDownIcon } from './icons';
@@ -29,9 +30,11 @@ export function ModelSelector({
   const [open, setOpen] = useState(false);
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
+  const trpc = useTRPC();
 
-  const { data: chatModels = [], isLoading } =
-    trpc.models.getAvailableModels.useQuery();
+  const { data: chatModels = [], isLoading } = useQuery(
+    trpc.models.getAvailableModels.queryOptions(),
+  );
 
   const selectedChatModel = useMemo(
     () =>

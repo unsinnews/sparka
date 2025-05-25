@@ -12,8 +12,7 @@ interface MessagesProps {
   status: UseChatHelpers['status'];
   votes: Array<Vote> | undefined;
   messages: Array<YourUIMessage>;
-  setMessages: UseChatHelpers['setMessages'];
-  reload: UseChatHelpers['reload'];
+  chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   isArtifactVisible: boolean;
 }
@@ -23,8 +22,7 @@ function PureMessages({
   status,
   votes,
   messages,
-  setMessages,
-  reload,
+  chatHelpers,
   isReadonly,
 }: MessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
@@ -48,8 +46,7 @@ function PureMessages({
               ? votes.find((vote) => vote.messageId === message.id)
               : undefined
           }
-          setMessages={setMessages}
-          reload={reload}
+          chatHelpers={chatHelpers}
           isReadonly={isReadonly}
         />
       ))}
@@ -68,6 +65,7 @@ function PureMessages({
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (prevProps.isArtifactVisible && nextProps.isArtifactVisible) return true;
+  if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
   if (prevProps.status !== nextProps.status) return false;
   if (prevProps.status && nextProps.status) return false;
   if (prevProps.messages.length !== nextProps.messages.length) return false;

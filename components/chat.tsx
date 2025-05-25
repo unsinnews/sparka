@@ -35,17 +35,7 @@ export function Chat({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const {
-    messages,
-    setMessages,
-    handleSubmit,
-    input,
-    setInput,
-    append,
-    status,
-    stop,
-    reload,
-  } = useChat({
+  const chatHelpers = useChat({
     id,
     body: { id, selectedChatModel },
     initialMessages,
@@ -63,6 +53,18 @@ export function Chat({
       toast.error(error.message ?? 'An error occured, please try again!');
     },
   });
+
+  const {
+    messages,
+    setMessages,
+    handleSubmit,
+    input,
+    setInput,
+    append,
+    status,
+    stop,
+    reload,
+  } = chatHelpers;
 
   const { data: votes } = useSWR<Array<Vote>>(
     messages.length >= 2 ? `/api/vote?chatId=${id}` : null,
@@ -89,11 +91,10 @@ export function Chat({
 
         <Messages
           chatId={id}
-          status={status}
           votes={votes}
+          status={status}
           messages={messages as YourUIMessage[]}
-          setMessages={setMessages}
-          reload={reload}
+          chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           isArtifactVisible={isArtifactVisible}
         />

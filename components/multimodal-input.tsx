@@ -43,6 +43,7 @@ function PureMultimodalInput({
   append,
   handleSubmit,
   className,
+  isEditMode = false,
 }: {
   chatId: string;
   input: UseChatHelpers['input'];
@@ -58,6 +59,7 @@ function PureMultimodalInput({
   append: UseChatHelpers['append'];
   handleSubmit: UseChatHelpers['handleSubmit'];
   className?: string;
+  isEditMode?: boolean;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -200,9 +202,8 @@ function PureMultimodalInput({
     <div className="relative w-full flex flex-col gap-4">
       {messages.length === 0 &&
         attachments.length === 0 &&
-        uploadQueue.length === 0 && (
-          <SuggestedActions append={append} chatId={chatId} />
-        )}
+        uploadQueue.length === 0 &&
+        !isEditMode && <SuggestedActions append={append} chatId={chatId} />}
 
       <input
         type="file"
@@ -357,6 +358,7 @@ export const MultimodalInput = memo(
     if (prevProps.status !== nextProps.status) return false;
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
     if (prevProps.data !== nextProps.data) return false;
+    if (prevProps.isEditMode !== nextProps.isEditMode) return false;
     return true;
   },
 );

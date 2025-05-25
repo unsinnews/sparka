@@ -5,14 +5,13 @@ import { AnimatePresence, motion } from 'motion/react';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';
-import { PencilEditIcon, SparklesIcon } from './icons';
+import { SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
 import { Weather } from './weather';
 import equal from 'fast-deep-equal';
 import { cn } from '@/lib/utils';
-import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
@@ -34,17 +33,15 @@ const PurePreviewMessage = ({
   message,
   vote,
   isLoading,
-  setMessages,
-  reload,
   isReadonly,
+  chatHelpers,
 }: {
   chatId: string;
   message: YourUIMessage;
   vote: Vote | undefined;
   isLoading: boolean;
-  setMessages: UseChatHelpers['setMessages'];
-  reload: UseChatHelpers['reload'];
   isReadonly: boolean;
+  chatHelpers: UseChatHelpers;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   console.log('message annotations ', message.annotations);
@@ -113,33 +110,39 @@ const PurePreviewMessage = ({
                 if (mode === 'view') {
                   return (
                     <div key={key} className="flex flex-row gap-2 items-start">
-                      {message.role === 'user' && !isReadonly && (
+                      {message.role === 'user' && !isReadonly ? (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button
-                              data-testid="message-edit-button"
-                              variant="ghost"
-                              className="px-2 h-fit rounded-full text-muted-foreground opacity-0 group-hover/message:opacity-100"
+                            <button
+                              type="button"
+                              data-testid="message-content"
+                              className={cn(
+                                'flex flex-col gap-4 cursor-pointer hover:opacity-80 transition-opacity text-left',
+                                {
+                                  'bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700':
+                                    message.role === 'user',
+                                },
+                              )}
                               onClick={() => {
                                 setMode('edit');
                               }}
                             >
-                              <PencilEditIcon />
-                            </Button>
+                              <Markdown>{part.text}</Markdown>
+                            </button>
                           </TooltipTrigger>
-                          <TooltipContent>Edit message</TooltipContent>
+                          <TooltipContent>Click to edit message</TooltipContent>
                         </Tooltip>
+                      ) : (
+                        <div
+                          data-testid="message-content"
+                          className={cn('flex flex-col gap-4', {
+                            'bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700':
+                              message.role === 'user',
+                          })}
+                        >
+                          <Markdown>{part.text}</Markdown>
+                        </div>
                       )}
-
-                      <div
-                        data-testid="message-content"
-                        className={cn('flex flex-col gap-4', {
-                          'bg-primary text-primary-foreground px-3 py-2 rounded-xl':
-                            message.role === 'user',
-                        })}
-                      >
-                        <Markdown>{part.text}</Markdown>
-                      </div>
                     </div>
                   );
                 }
@@ -151,10 +154,10 @@ const PurePreviewMessage = ({
 
                       <MessageEditor
                         key={message.id}
+                        chatId={chatId}
                         message={message}
                         setMode={setMode}
-                        setMessages={setMessages}
-                        reload={reload}
+                        chatHelpers={chatHelpers}
                       />
                     </div>
                   );
@@ -246,9 +249,8 @@ const PurePreviewMessage = ({
                       ) : toolName === 'codeInterpreter' ? (
                         // @ts-expect-error // TODO: fix this
                         <CodeInterpreterMessage result={result} args={args} />
-                      ) : 
-                      toolName !== 'reasonSearch' &&
-                      // toolName !== 'deepResearch' &&
+                      ) : toolName !== 'reasonSearch' &&
+                        // toolName !== 'deepResearch' &&
                         toolName !== 'webSearch' ? (
                         <pre>{JSON.stringify(result, null, 2)}</pre>
                       ) : null}
@@ -287,6 +289,7 @@ export const PreviewMessage = memo(
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.message.id !== nextProps.message.id) return false;
     if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
+    if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
     if (!equal(prevProps.message.annotations, nextProps.message.annotations))
       return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;

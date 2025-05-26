@@ -1,4 +1,4 @@
-import { allModels } from '../ai/all-models';
+import { getModelDefinition } from '../ai/all-models';
 import type { AvailableModels } from '../ai/providers';
 import {
   type YourToolName,
@@ -114,7 +114,7 @@ export function determineStepTools({
 }
 
 export function getBaseModelCost(modelId: AvailableModels) {
-  const model = allModels.find((model) => model.id === modelId);
+  const model = getModelDefinition(modelId);
 
   if (!model?.pricing) {
     return 10; // fallback for models without pricing

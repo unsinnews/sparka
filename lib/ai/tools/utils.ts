@@ -2,7 +2,7 @@ import type { AvailableModels } from '@/lib/ai/providers';
 import { allTools, type YourToolName } from '@/lib/ai/tools/tools';
 import { filterAffordableTools } from '@/lib/credits/credits-utils';
 import { modelCosts } from '@/lib/ai/modelCosts';
-import { allModels } from '../all-models';
+import { getModelDefinition } from '../all-models';
 
 type DetermineActiveToolsParams = {
   userCredits: number;
@@ -40,9 +40,14 @@ export function determineActiveTools({
 
   // Build the final list of active tools for this specific request
   let activeTools: YourToolName[];
-  const model = allModels.find((model) => model.id === selectedChatModel);
-  if (!model) {
+  const model = getModelDefinition(selectedChatModel);
+  if (!model.features?.functionCalling) {
     // TODO: Here verify if the model can use tools
+    if (explicitlyRequestedTool) {
+      throw new Error(
+        `The selected model [${model.id}] does not support tools: ${explicitlyRequestedTool}`,
+      );
+    }
     activeTools = [];
   } else if (explicitlyRequestedTool) {
     // If an explicit tool is requested and affordable, only use that

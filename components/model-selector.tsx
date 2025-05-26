@@ -1,6 +1,12 @@
 'use client';
 
-import { startTransition, useMemo, useOptimistic, useState } from 'react';
+import {
+  startTransition,
+  useMemo,
+  useOptimistic,
+  useState,
+  type ComponentProps,
+} from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 import { saveChatModelAsCookie } from '@/app/(chat)/actions';
@@ -8,25 +14,21 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ModelCard } from '@/components/model-card';
 import { useTRPC } from '@/trpc/react';
 import { cn } from '@/lib/utils';
+import { getModelDefinition } from '@/lib/ai/all-models';
 
-import { CheckCircleFillIcon, ChevronDownIcon } from './icons';
-
-interface Model {
-  id: string;
-  name: string;
-}
+import { ChevronDownIcon } from './icons';
 
 export function ModelSelector({
   selectedModelId,
   className,
 }: {
   selectedModelId: string;
-} & React.ComponentProps<typeof Button>) {
+} & ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
@@ -37,8 +39,7 @@ export function ModelSelector({
   );
 
   const selectedChatModel = useMemo(
-    () =>
-      chatModels.find((chatModel: Model) => chatModel.id === optimisticModelId),
+    () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
     [optimisticModelId, chatModels],
   );
 
@@ -61,37 +62,31 @@ export function ModelSelector({
           <ChevronDownIcon />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-[300px]">
-        {chatModels.map((chatModel: Model) => {
-          const { id } = chatModel;
+      <DropdownMenuContent
+        align="start"
+        className="min-w-[600px] max-w-[800px] p-2"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto">
+          {chatModels.map((chatModel) => {
+            const { id } = chatModel;
+            const modelDefinition = getModelDefinition(id);
 
-          return (
-            <DropdownMenuItem
-              data-testid={`model-selector-item-${id}`}
-              key={id}
-              onSelect={() => {
-                setOpen(false);
-
-                startTransition(() => {
-                  setOptimisticModelId(id);
-                  saveChatModelAsCookie(id);
-                });
-              }}
-              data-active={id === optimisticModelId}
-              asChild
-            >
-              <button
-                type="button"
-                className="gap-4 group/item flex flex-row justify-between items-center w-full"
-              >
-                <div>{chatModel.name}</div>
-                <div className="text-foreground dark:text-foreground opacity-0 group-data-[active=true]/item:opacity-100">
-                  <CheckCircleFillIcon />
-                </div>
-              </button>
-            </DropdownMenuItem>
-          );
-        })}
+            return (
+              <ModelCard
+                key={id}
+                model={modelDefinition}
+                isSelected={id === optimisticModelId}
+                onClick={() => {
+                  setOpen(false);
+                  startTransition(() => {
+                    setOptimisticModelId(id);
+                    saveChatModelAsCookie(id);
+                  });
+                }}
+              />
+            );
+          })}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

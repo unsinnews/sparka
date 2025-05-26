@@ -14,6 +14,27 @@ export interface ModelDefinition {
   name: string;
   specification: ModelSpecification;
   pricing?: Pricing;
+  shortDescription?: string;
+  features?: {
+    reasoning: boolean;
+    functionCalling: boolean;
+    contextWindow: {
+      input: number;
+      output: number;
+    };
+    knowledgeCutoff?: Date;
+    input: {
+      image: boolean;
+      text: boolean;
+      pdf: boolean;
+      audio: boolean;
+    };
+    output: {
+      image: boolean;
+      text: boolean;
+      audio: boolean;
+    };
+  };
 }
 
 export const allModels: readonly ModelDefinition[] = [
@@ -29,6 +50,27 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 15,
       outputMTok: 75,
     },
+    shortDescription: 'Powerful model for complex tasks',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 4096,
+      },
+      knowledgeCutoff: new Date('2023-08-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'anthropic/claude-v3-sonnet',
@@ -41,6 +83,27 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 3,
       outputMTok: 15,
+    },
+    shortDescription: 'Balanced model for most tasks',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 4096,
+      },
+      knowledgeCutoff: new Date('2023-08-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -55,6 +118,27 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 3,
       outputMTok: 15,
     },
+    shortDescription: 'Our previous intelligent model',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 8192,
+      },
+      knowledgeCutoff: new Date('2024-04-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'anthropic/claude-v3-haiku',
@@ -67,6 +151,27 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 0.25,
       outputMTok: 1.25,
+    },
+    shortDescription: 'Fast and compact model for near-instant responsiveness',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 4096,
+      },
+      knowledgeCutoff: new Date('2023-08-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -81,6 +186,27 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 0.8,
       outputMTok: 4,
     },
+    shortDescription: 'Our fastest model',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 8192,
+      },
+      knowledgeCutoff: new Date('2024-07-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'anthropic/claude-3.7-sonnet',
@@ -93,6 +219,27 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 3,
       outputMTok: 15,
+    },
+    shortDescription: 'High-performance model with early extended thinking',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 64000,
+      },
+      knowledgeCutoff: new Date('2024-11-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -107,6 +254,28 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 3,
       outputMTok: 15,
     },
+    shortDescription:
+      'High-performance model with toggleable extended thinking',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 64000,
+      },
+      knowledgeCutoff: new Date('2024-11-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'anthropic/claude-4-opus-20250514',
@@ -120,6 +289,27 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 15,
       outputMTok: 75,
     },
+    shortDescription: 'Our most capable model',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 32000,
+      },
+      knowledgeCutoff: new Date('2025-03-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'anthropic/claude-4-sonnet-20250514',
@@ -132,6 +322,27 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 3,
       outputMTok: 15,
+    },
+    shortDescription: 'High-performance model',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 64000,
+      },
+      knowledgeCutoff: new Date('2025-03-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -704,6 +915,28 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 1.1,
       outputMTok: 4.4,
     },
+    shortDescription:
+      'Small, cost-efficient reasoning model optimized for coding, math, and science',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 100000,
+      },
+      knowledgeCutoff: new Date('2023-10-01'),
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'openai/o3',
@@ -716,6 +949,28 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 10.0,
       outputMTok: 40.0,
+    },
+    shortDescription:
+      'Advanced reasoning model for complex problem-solving tasks',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 100000,
+      },
+      knowledgeCutoff: new Date('2025-03-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -730,6 +985,28 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 1.1,
       outputMTok: 4.4,
     },
+    shortDescription:
+      'Enhanced reasoning model with multimodal capabilities and improved performance',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 200000,
+        output: 100000,
+      },
+      knowledgeCutoff: new Date('2024-05-31'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'openai/gpt-4.1',
@@ -742,6 +1019,28 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 2.0,
       outputMTok: 8.0,
+    },
+    shortDescription:
+      'Latest flagship model with 1M token context and superior coding capabilities',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 1047576,
+        output: 32768,
+      },
+      knowledgeCutoff: new Date('2024-06-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -756,6 +1055,28 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 0.4,
       outputMTok: 1.6,
     },
+    shortDescription:
+      'Cost-efficient model with 1M context that matches GPT-4o performance',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 1047576,
+        output: 32768,
+      },
+      knowledgeCutoff: new Date('2024-06-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'openai/gpt-4.1-nano',
@@ -768,6 +1089,28 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 0.1,
       outputMTok: 0.4,
+    },
+    shortDescription:
+      'Fastest GPT-4.1 model optimized for speed and efficiency',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 1047576,
+        output: 32768,
+      },
+      knowledgeCutoff: new Date('2024-06-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -782,6 +1125,28 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 2.5,
       outputMTok: 10.0,
     },
+    shortDescription:
+      'Flagship multimodal model with enhanced accuracy and responsiveness',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 128000,
+        output: 16384,
+      },
+      knowledgeCutoff: new Date('2023-10-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'openai/gpt-4o-mini',
@@ -795,6 +1160,28 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 0.15,
       outputMTok: 0.6,
     },
+    shortDescription:
+      'Fast, inexpensive, capable model ideal for replacing GPT-3.5 Turbo',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 128000,
+        output: 16384,
+      },
+      knowledgeCutoff: new Date('2023-10-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'openai/gpt-4-turbo',
@@ -803,6 +1190,32 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-4-turbo',
+    },
+    pricing: {
+      inputMTok: 10.0,
+      outputMTok: 30.0,
+    },
+    shortDescription:
+      'Large multimodal model with vision capabilities and improved performance',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 128000,
+        output: 4096,
+      },
+      knowledgeCutoff: new Date('2023-12-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -813,6 +1226,32 @@ export const allModels: readonly ModelDefinition[] = [
       provider: 'openai',
       modelId: 'openai/gpt-3.5-turbo',
     },
+    pricing: {
+      inputMTok: 0.5,
+      outputMTok: 1.5,
+    },
+    shortDescription:
+      'Most capable and cost-effective model in the GPT-3.5 family',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 16385,
+        output: 4096,
+      },
+      knowledgeCutoff: new Date('2021-09-01'),
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'openai/gpt-3.5-turbo-instruct',
@@ -821,6 +1260,31 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-3.5-turbo-instruct',
+    },
+    pricing: {
+      inputMTok: 1.5,
+      outputMTok: 2.0,
+    },
+    shortDescription: 'Legacy GPT model for cheaper chat and non-chat tasks',
+    features: {
+      reasoning: false,
+      functionCalling: false,
+      contextWindow: {
+        input: 4096,
+        output: 4096,
+      },
+      knowledgeCutoff: new Date('2021-09-01'),
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -979,6 +1443,26 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 5,
       outputMTok: 15,
     },
+    shortDescription: 'Legacy Grok model with strong reasoning capabilities',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 131072,
+        output: 4096,
+      },
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'xai/grok-vision-beta',
@@ -991,6 +1475,26 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 5,
       outputMTok: 15,
+    },
+    shortDescription: 'Legacy multimodal Grok model with vision capabilities',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 8192,
+        output: 4096,
+      },
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -1005,6 +1509,27 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 2,
       outputMTok: 10,
     },
+    shortDescription:
+      'Frontier language model with state-of-the-art reasoning capabilities',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 131072,
+        output: 4096,
+      },
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'xai/grok-2-vision-1212',
@@ -1017,6 +1542,27 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 2,
       outputMTok: 10,
+    },
+    shortDescription:
+      'Advanced multimodal model with text and vision understanding',
+    features: {
+      reasoning: false,
+      functionCalling: true,
+      contextWindow: {
+        input: 32768,
+        output: 4096,
+      },
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -1031,6 +1577,27 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 3,
       outputMTok: 15,
     },
+    shortDescription:
+      'Most advanced Grok model with extended reasoning and 1M context',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 1000000,
+        output: 128000,
+      },
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'xai/grok-3-fast-beta',
@@ -1043,6 +1610,27 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 5,
       outputMTok: 25,
+    },
+    shortDescription:
+      'Optimized for speed while maintaining advanced reasoning capabilities',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 131072,
+        output: 4096,
+      },
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
   {
@@ -1057,6 +1645,27 @@ export const allModels: readonly ModelDefinition[] = [
       inputMTok: 0.3,
       outputMTok: 0.5,
     },
+    shortDescription:
+      'Cost-efficient reasoning model optimized for everyday tasks',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 131072,
+        output: 4096,
+      },
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
+    },
   },
   {
     id: 'xai/grok-3-mini-fast-beta',
@@ -1069,6 +1678,27 @@ export const allModels: readonly ModelDefinition[] = [
     pricing: {
       inputMTok: 0.6,
       outputMTok: 4,
+    },
+    shortDescription:
+      'Fastest Grok 3 mini variant for rapid response applications',
+    features: {
+      reasoning: true,
+      functionCalling: true,
+      contextWindow: {
+        input: 131072,
+        output: 4096,
+      },
+      input: {
+        image: false,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: false,
+        text: true,
+        audio: false,
+      },
     },
   },
 ] as const;

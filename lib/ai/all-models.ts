@@ -1826,7 +1826,7 @@ export type ModelSpecifications = (typeof allModels)[number]['specification'];
 export type AvailableProviderModels = (typeof allModels)[number]['id'];
 export type AvailableProviders =
   (typeof allModels)[number]['specification']['provider'];
-export type AvailableModels =
+export type AvailableModelsShortNames =
   (typeof allModels)[number]['specification']['modelIdShort'];
 
 export type ModelDefinition = ModelDefinitionInternal & {

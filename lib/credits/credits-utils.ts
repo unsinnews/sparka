@@ -1,5 +1,7 @@
-import { getModelDefinition } from '../ai/all-models';
-import type { AvailableModels } from '../ai/providers';
+import {
+  getModelDefinition,
+  type AvailableProviderModels,
+} from '../ai/all-models';
 import {
   type YourToolName,
   toolsDefinitions,
@@ -113,7 +115,7 @@ export function determineStepTools({
   };
 }
 
-export function getBaseModelCost(modelId: AvailableModels) {
+export function getBaseModelCost(modelId: AvailableProviderModels) {
   const model = getModelDefinition(modelId);
 
   if (!model?.pricing) {

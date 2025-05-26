@@ -39,14 +39,6 @@ interface ModelDefinitionInternal {
   };
 }
 
-// Type utilities for extracting provider and model parts
-type ExtractProvider<T extends string> = T extends `${infer P}/${string}`
-  ? P
-  : never;
-type ExtractModelId<T extends string> = T extends `${string}/${infer M}`
-  ? M
-  : never;
-
 export const allModels = [
   {
     id: 'anthropic/claude-v3-opus',

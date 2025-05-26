@@ -2,6 +2,7 @@ export interface ModelSpecification {
   specificationVersion: string;
   provider: string;
   modelId: string;
+  modelIdShort: string;
 }
 
 export interface Pricing {
@@ -9,7 +10,7 @@ export interface Pricing {
   outputMTok: number; // per 1M tokens
 }
 
-export interface ModelDefinition {
+interface ModelDefinitionInternal {
   id: string;
   name: string;
   specification: ModelSpecification;
@@ -34,10 +35,19 @@ export interface ModelDefinition {
       text: boolean;
       audio: boolean;
     };
+    fixedTemperature?: number;
   };
 }
 
-export const allModels: readonly ModelDefinition[] = [
+// Type utilities for extracting provider and model parts
+type ExtractProvider<T extends string> = T extends `${infer P}/${string}`
+  ? P
+  : never;
+type ExtractModelId<T extends string> = T extends `${string}/${infer M}`
+  ? M
+  : never;
+
+export const allModels = [
   {
     id: 'anthropic/claude-v3-opus',
     name: 'Claude 3 Opus',
@@ -45,6 +55,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-3-opus-latest',
+      modelIdShort: 'claude-3-opus-latest',
     },
     pricing: {
       inputMTok: 15,
@@ -79,6 +90,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-3-sonnet-latest',
+      modelIdShort: 'claude-3-sonnet-latest',
     },
     pricing: {
       inputMTok: 3,
@@ -113,6 +125,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-3-5-sonnet-latest',
+      modelIdShort: 'claude-3-5-sonnet-latest',
     },
     pricing: {
       inputMTok: 3,
@@ -147,6 +160,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-3-haiku-latest',
+      modelIdShort: 'claude-3-haiku-latest',
     },
     pricing: {
       inputMTok: 0.25,
@@ -181,6 +195,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-3-5-haiku-latest',
+      modelIdShort: 'claude-3-5-haiku-latest',
     },
     pricing: {
       inputMTok: 0.8,
@@ -215,6 +230,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-3-7-sonnet-latest',
+      modelIdShort: 'claude-3-7-sonnet-latest',
     },
     pricing: {
       inputMTok: 3,
@@ -249,6 +265,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-3-7-sonnet-latest',
+      modelIdShort: 'claude-3-7-sonnet-latest',
     },
     pricing: {
       inputMTok: 3,
@@ -284,6 +301,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-opus-4-0',
+      modelIdShort: 'claude-opus-4-0',
     },
     pricing: {
       inputMTok: 15,
@@ -318,6 +336,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'anthropic',
       modelId: 'anthropic/claude-sonnet-4-0',
+      modelIdShort: 'claude-sonnet-4-0',
     },
     pricing: {
       inputMTok: 3,
@@ -352,6 +371,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/amazon.nova-pro-v1:0',
+      modelIdShort: 'amazon.nova-pro-v1:0',
     },
   },
   {
@@ -361,6 +381,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/amazon.nova-lite-v1:0',
+      modelIdShort: 'amazon.nova-lite-v1:0',
     },
   },
   {
@@ -370,6 +391,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/amazon.nova-micro-v1:0',
+      modelIdShort: 'amazon.nova-micro-v1:0',
     },
   },
   {
@@ -379,6 +401,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-3-7-sonnet-20250219',
+      modelIdShort: 'claude-3-7-sonnet-20250219',
     },
   },
   {
@@ -388,6 +411,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-3-5-haiku-20241022',
+      modelIdShort: 'claude-3-5-haiku-20241022',
     },
   },
   {
@@ -397,6 +421,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-3-5-sonnet-20241022-v2',
+      modelIdShort: 'claude-3-5-sonnet-20241022-v2',
     },
   },
   {
@@ -406,6 +431,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-3-5-sonnet-20240620-v1',
+      modelIdShort: 'claude-3-5-sonnet-20240620-v1',
     },
   },
   {
@@ -415,6 +441,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-3-opus-20240229-v1',
+      modelIdShort: 'claude-3-opus-20240229-v1',
     },
   },
   {
@@ -424,6 +451,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-4-opus-20250514-v1',
+      modelIdShort: 'claude-4-opus-20250514-v1',
     },
   },
   {
@@ -433,6 +461,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-4-sonnet-20250514-v1',
+      modelIdShort: 'claude-4-sonnet-20250514-v1',
     },
   },
   {
@@ -442,6 +471,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/claude-3-haiku-20240307-v1',
+      modelIdShort: 'claude-3-haiku-20240307-v1',
     },
   },
   {
@@ -451,6 +481,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama4-maverick-17b-instruct-v1',
+      modelIdShort: 'meta.llama4-maverick-17b-instruct-v1',
     },
   },
   {
@@ -460,6 +491,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama4-scout-17b-instruct-v1',
+      modelIdShort: 'meta.llama4-scout-17b-instruct-v1',
     },
   },
   {
@@ -469,6 +501,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama3-3-70b-instruct-v1',
+      modelIdShort: 'meta.llama3-3-70b-instruct-v1',
     },
   },
   {
@@ -478,6 +511,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama3-2-11b-instruct-v1',
+      modelIdShort: 'meta.llama3-2-11b-instruct-v1',
     },
   },
   {
@@ -487,6 +521,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama3-2-1b-instruct-v1',
+      modelIdShort: 'meta.llama3-2-1b-instruct-v1',
     },
   },
   {
@@ -496,6 +531,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama3-2-3b-instruct-v1',
+      modelIdShort: 'meta.llama3-2-3b-instruct-v1',
     },
   },
   {
@@ -505,6 +541,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama3-2-90b-instruct-v1',
+      modelIdShort: 'meta.llama3-2-90b-instruct-v1',
     },
   },
   {
@@ -514,6 +551,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama3-1-70b-instruct-v1',
+      modelIdShort: 'meta.llama3-1-70b-instruct-v1',
     },
   },
   {
@@ -523,6 +561,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/meta.llama3-1-8b-instruct-v1',
+      modelIdShort: 'meta.llama3-1-8b-instruct-v1',
     },
   },
   {
@@ -532,6 +571,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'bedrock',
       modelId: 'bedrock/deepseek.r1-v1',
+      modelIdShort: 'deepseek.r1-v1',
     },
   },
   {
@@ -541,6 +581,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cerebras',
       modelId: 'cerebras/llama-4-scout-17b-16e-instruct',
+      modelIdShort: 'llama-4-scout-17b-16e-instruct',
     },
   },
   {
@@ -550,6 +591,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cerebras',
       modelId: 'cerebras/llama3.1-8b',
+      modelIdShort: 'llama3.1-8b',
     },
   },
   {
@@ -559,6 +601,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cerebras',
       modelId: 'cerebras/llama-3.3-70b',
+      modelIdShort: 'llama-3.3-70b',
     },
   },
   {
@@ -568,6 +611,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cerebras',
       modelId: 'cerebras/deepseek-r1-distill-llama-70b',
+      modelIdShort: 'deepseek-r1-distill-llama-70b',
     },
   },
   {
@@ -577,6 +621,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cerebras',
       modelId: 'cerebras/qwen-3-32b',
+      modelIdShort: 'qwen-3-32b',
     },
   },
   {
@@ -586,6 +631,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cohere',
       modelId: 'cohere/command-a',
+      modelIdShort: 'command-a',
     },
   },
   {
@@ -595,6 +641,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cohere',
       modelId: 'cohere/command-r-plus',
+      modelIdShort: 'command-r-plus',
     },
   },
   {
@@ -604,6 +651,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'cohere',
       modelId: 'cohere/command-r',
+      modelIdShort: 'command-r',
     },
   },
   {
@@ -613,6 +661,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'deepinfra',
       modelId: 'deepinfra/llama-4-maverick-17b-128e-instruct-fp8',
+      modelIdShort: 'llama-4-maverick-17b-128e-instruct-fp8',
     },
   },
   {
@@ -622,6 +671,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'deepinfra',
       modelId: 'deepinfra/llama-4-scout-17b-16e-instruct',
+      modelIdShort: 'llama-4-scout-17b-16e-instruct',
     },
   },
   {
@@ -631,6 +681,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'deepinfra',
       modelId: 'deepinfra/qwen3-235b-a22b',
+      modelIdShort: 'qwen3-235b-a22b',
     },
   },
   {
@@ -640,6 +691,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'deepinfra',
       modelId: 'deepinfra/qwen3-30b-a3b',
+      modelIdShort: 'qwen3-30b-a3b',
     },
   },
   {
@@ -649,6 +701,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'deepinfra',
       modelId: 'deepinfra/qwen3-32b',
+      modelIdShort: 'qwen3-32b',
     },
   },
   {
@@ -658,6 +711,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'deepinfra',
       modelId: 'deepinfra/qwen3-14b',
+      modelIdShort: 'qwen3-14b',
     },
   },
   {
@@ -667,6 +721,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'fireworks',
       modelId: 'deepseek/chat',
+      modelIdShort: 'chat',
     },
   },
   {
@@ -676,6 +731,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'fireworks',
       modelId: 'deepseek/deepseek-r1',
+      modelIdShort: 'deepseek-r1',
     },
   },
   {
@@ -685,6 +741,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'fireworks',
       modelId: 'fireworks/firefunction-v1',
+      modelIdShort: 'firefunction-v1',
     },
   },
   {
@@ -694,6 +751,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'fireworks',
       modelId: 'fireworks/mixtral-8x22b-instruct',
+      modelIdShort: 'mixtral-8x22b-instruct',
     },
   },
   {
@@ -703,6 +761,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'fireworks',
       modelId: 'fireworks/mixtral-8x7b-instruct',
+      modelIdShort: 'mixtral-8x7b-instruct',
     },
   },
   {
@@ -712,6 +771,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'fireworks',
       modelId: 'fireworks/qwq-32b',
+      modelIdShort: 'qwq-32b',
     },
   },
   {
@@ -721,6 +781,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'fireworks',
       modelId: 'fireworks/qwen3-235b-a22b',
+      modelIdShort: 'qwen3-235b-a22b',
     },
   },
   {
@@ -730,6 +791,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'google',
       modelId: 'google/gemini-1.5-pro',
+      modelIdShort: 'gemini-1.5-pro',
     },
   },
   {
@@ -739,6 +801,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'google',
       modelId: 'google/gemini-1.5-flash',
+      modelIdShort: 'gemini-1.5-flash',
     },
   },
   {
@@ -748,6 +811,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/llama-3.3-70b-versatile',
+      modelIdShort: 'llama-3.3-70b-versatile',
     },
   },
   {
@@ -757,6 +821,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/llama-3.1-8b',
+      modelIdShort: 'llama-3.1-8b',
     },
   },
   {
@@ -766,6 +831,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/llama-3-8b-instruct',
+      modelIdShort: 'llama-3-8b-instruct',
     },
   },
   {
@@ -775,6 +841,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/llama-3-70b-instruct',
+      modelIdShort: 'llama-3-70b-instruct',
     },
   },
   {
@@ -784,6 +851,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/gemma2-9b-it',
+      modelIdShort: 'gemma2-9b-it',
     },
   },
   {
@@ -793,6 +861,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/deepseek-r1-distill-llama-70b',
+      modelIdShort: 'deepseek-r1-distill-llama-70b',
     },
   },
   {
@@ -802,6 +871,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/mistral-saba-24b',
+      modelIdShort: 'mistral-saba-24b',
     },
   },
   {
@@ -811,6 +881,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/qwen-qwq-32b',
+      modelIdShort: 'qwen-qwq-32b',
     },
   },
   {
@@ -820,6 +891,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'groq',
       modelId: 'groq/llama-4-scout-17b-16e-instruct',
+      modelIdShort: 'llama-4-scout-17b-16e-instruct',
     },
   },
   {
@@ -829,6 +901,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'inception',
       modelId: 'inception/mercury-coder-small',
+      modelIdShort: 'mercury-coder-small',
     },
   },
   {
@@ -838,6 +911,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/mistral-large',
+      modelIdShort: 'mistral-large',
     },
   },
   {
@@ -847,6 +921,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/mistral-small',
+      modelIdShort: 'mistral-small',
     },
   },
   {
@@ -856,6 +931,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/codestral-2501',
+      modelIdShort: 'codestral-2501',
     },
   },
   {
@@ -865,6 +941,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/pixtral-12b-2409',
+      modelIdShort: 'pixtral-12b-2409',
     },
   },
   {
@@ -874,6 +951,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/ministral-3b-latest',
+      modelIdShort: 'ministral-3b-latest',
     },
   },
   {
@@ -883,6 +961,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/ministral-8b-latest',
+      modelIdShort: 'ministral-8b-latest',
     },
   },
   {
@@ -892,6 +971,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/pixtral-large-latest',
+      modelIdShort: 'pixtral-large-latest',
     },
   },
   {
@@ -901,6 +981,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'mistral',
       modelId: 'mistral/mistral-small-2503',
+      modelIdShort: 'mistral-small-2503',
     },
   },
   {
@@ -910,6 +991,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/o3-mini',
+      modelIdShort: 'o3-mini',
     },
     pricing: {
       inputMTok: 1.1,
@@ -945,6 +1027,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/o3',
+      modelIdShort: 'o3',
     },
     pricing: {
       inputMTok: 10.0,
@@ -974,12 +1057,13 @@ export const allModels: readonly ModelDefinition[] = [
     },
   },
   {
-    id: 'openai/o4-mini',
     name: 'o4-mini',
+    id: 'openai/o4-mini',
     specification: {
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/o4-mini',
+      modelIdShort: 'o4-mini',
     },
     pricing: {
       inputMTok: 1.1,
@@ -1006,6 +1090,7 @@ export const allModels: readonly ModelDefinition[] = [
         text: true,
         audio: false,
       },
+      fixedTemperature: 1,
     },
   },
   {
@@ -1015,6 +1100,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-4.1',
+      modelIdShort: 'gpt-4.1',
     },
     pricing: {
       inputMTok: 2.0,
@@ -1050,6 +1136,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-4.1-mini',
+      modelIdShort: 'gpt-4.1-mini',
     },
     pricing: {
       inputMTok: 0.4,
@@ -1085,6 +1172,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-4.1-nano',
+      modelIdShort: 'gpt-4.1-nano',
     },
     pricing: {
       inputMTok: 0.1,
@@ -1120,6 +1208,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-4o',
+      modelIdShort: 'gpt-4o',
     },
     pricing: {
       inputMTok: 2.5,
@@ -1155,6 +1244,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-4o-mini',
+      modelIdShort: 'gpt-4o-mini',
     },
     pricing: {
       inputMTok: 0.15,
@@ -1190,6 +1280,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-4-turbo',
+      modelIdShort: 'gpt-4-turbo',
     },
     pricing: {
       inputMTok: 10.0,
@@ -1225,6 +1316,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-3.5-turbo',
+      modelIdShort: 'gpt-3.5-turbo',
     },
     pricing: {
       inputMTok: 0.5,
@@ -1260,6 +1352,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'openai',
       modelId: 'openai/gpt-3.5-turbo-instruct',
+      modelIdShort: 'gpt-3.5-turbo-instruct',
     },
     pricing: {
       inputMTok: 1.5,
@@ -1294,6 +1387,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'perplexity',
       modelId: 'perplexity/sonar',
+      modelIdShort: 'sonar',
     },
   },
   {
@@ -1303,6 +1397,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'perplexity',
       modelId: 'perplexity/sonar-pro',
+      modelIdShort: 'sonar-pro',
     },
   },
   {
@@ -1312,6 +1407,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'perplexity',
       modelId: 'perplexity/sonar-reasoning',
+      modelIdShort: 'sonar-reasoning',
     },
   },
   {
@@ -1321,6 +1417,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'perplexity',
       modelId: 'perplexity/sonar-reasoning-pro',
+      modelIdShort: 'sonar-reasoning-pro',
     },
   },
   {
@@ -1330,6 +1427,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-3-7-sonnet-20250219',
+      modelIdShort: 'claude-3-7-sonnet-20250219',
     },
   },
   {
@@ -1339,6 +1437,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-3-5-sonnet-v2-20241022',
+      modelIdShort: 'claude-3-5-sonnet-v2-20241022',
     },
   },
   {
@@ -1348,6 +1447,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-3-5-haiku-20241022',
+      modelIdShort: 'claude-3-5-haiku-20241022',
     },
   },
   {
@@ -1357,6 +1457,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-3-opus-20240229',
+      modelIdShort: 'claude-3-opus-20240229',
     },
   },
   {
@@ -1366,6 +1467,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-4-opus-20250514',
+      modelIdShort: 'claude-4-opus-20250514',
     },
   },
   {
@@ -1375,6 +1477,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-4-sonnet-20250514',
+      modelIdShort: 'claude-4-sonnet-20250514',
     },
   },
   {
@@ -1384,6 +1487,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-3-haiku-20240307',
+      modelIdShort: 'claude-3-haiku-20240307',
     },
   },
   {
@@ -1393,6 +1497,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertexAnthropic',
       modelId: 'vertex/claude-3-5-sonnet-20240620',
+      modelIdShort: 'claude-3-5-sonnet-20240620',
     },
   },
   {
@@ -1402,6 +1507,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertex',
       modelId: 'vertex/gemini-2.0-flash-001',
+      modelIdShort: 'gemini-2.0-flash-001',
     },
   },
   {
@@ -1411,6 +1517,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertex',
       modelId: 'vertex/gemini-2.0-flash-lite-001',
+      modelIdShort: 'gemini-2.0-flash-lite-001',
     },
   },
   {
@@ -1420,6 +1527,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertex',
       modelId: 'vertex/llama-4-scout-17b-16e-instruct-maas',
+      modelIdShort: 'llama-4-scout-17b-16e-instruct-maas',
     },
   },
   {
@@ -1429,6 +1537,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'vertex',
       modelId: 'vertex/llama-4-maverick-17b-128e-instruct-maas',
+      modelIdShort: 'llama-4-maverick-17b-128e-instruct-maas',
     },
   },
   {
@@ -1438,6 +1547,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-beta',
+      modelIdShort: 'grok-beta',
     },
     pricing: {
       inputMTok: 5,
@@ -1471,6 +1581,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-vision-beta',
+      modelIdShort: 'grok-vision-beta',
     },
     pricing: {
       inputMTok: 5,
@@ -1504,6 +1615,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-2-1212',
+      modelIdShort: 'grok-2-1212',
     },
     pricing: {
       inputMTok: 2,
@@ -1538,6 +1650,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-2-vision-1212',
+      modelIdShort: 'grok-2-vision-1212',
     },
     pricing: {
       inputMTok: 2,
@@ -1572,6 +1685,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-3-beta',
+      modelIdShort: 'grok-3-beta',
     },
     pricing: {
       inputMTok: 3,
@@ -1606,6 +1720,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-3-fast-beta',
+      modelIdShort: 'grok-3-fast-beta',
     },
     pricing: {
       inputMTok: 5,
@@ -1640,6 +1755,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-3-mini-beta',
+      modelIdShort: 'grok-3-mini-beta',
     },
     pricing: {
       inputMTok: 0.3,
@@ -1674,6 +1790,7 @@ export const allModels: readonly ModelDefinition[] = [
       specificationVersion: 'v2',
       provider: 'xai',
       modelId: 'xai/grok-3-mini-fast-beta',
+      modelIdShort: 'grok-3-mini-fast-beta',
     },
     pricing: {
       inputMTok: 0.6,
@@ -1701,4 +1818,28 @@ export const allModels: readonly ModelDefinition[] = [
       },
     },
   },
-] as const;
+] as const satisfies ModelDefinitionInternal[];
+
+// Extract types from the allModels array
+export type ModelSpecifications = (typeof allModels)[number]['specification'];
+
+export type AvailableProviderModels = (typeof allModels)[number]['id'];
+export type AvailableProviders =
+  (typeof allModels)[number]['specification']['provider'];
+export type AvailableModels =
+  (typeof allModels)[number]['specification']['modelIdShort'];
+
+export type ModelDefinition = ModelDefinitionInternal & {
+  specification: ModelSpecifications;
+  providerModelId: AvailableProviderModels;
+};
+
+export function getModelDefinition(
+  modelId: AvailableProviderModels,
+): ModelDefinition {
+  const model = allModels.find((model) => model.id === modelId);
+  if (!model) {
+    throw new Error(`Model ${modelId} not found`);
+  }
+  return { ...model, providerModelId: modelId };
+}

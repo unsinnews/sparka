@@ -44,7 +44,6 @@ const PurePreviewMessage = ({
   chatHelpers: UseChatHelpers;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
-  console.log('message annotations ', message.annotations);
   return (
     <AnimatePresence>
       <motion.div

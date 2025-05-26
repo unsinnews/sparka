@@ -100,19 +100,18 @@ export const webSearch = ({ session, dataStream }: WebSearchProps) =>
       topics: z.array(
         z
           .enum(['general', 'news'])
-          .describe('Array of topic types to search for.')
-          .default('general'),
+          .describe('Array of topic types to search for.'),
       ),
       searchDepth: z.array(
         z
           .enum(['basic', 'advanced'])
-          .describe('Array of search depths to use.')
-          .default('basic'),
+          .describe('Array of search depths to use.'),
       ),
       exclude_domains: z
         .array(z.string())
-        .describe('A list of domains to exclude from all search results.')
-        .default([]),
+        .describe(
+          'A list of domains to exclude from all search results. Defaults to empty array.',
+        ),
     }),
     execute: async ({
       search_queries,

@@ -1,6 +1,6 @@
 ## MVP
 
-[ ] Show reasoning tokens in the UI
+[x] Show reasoning tokens in the UI
 [ ] Only launch with Deep Research (Disable reason search)
 [ ] Verify that backend doesn't timeout for this flow
 [ ] MultiModal Input refinement

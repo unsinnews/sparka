@@ -37,10 +37,7 @@ export const createReasonSearch = ({
       'Perform a reasoned web search with multiple steps and sources.',
     parameters: z.object({
       topic: z.string().describe('The main topic or question to research'),
-      depth: z
-        .enum(['basic', 'advanced'])
-        .describe('Search depth level')
-        .default('basic'),
+      depth: z.enum(['basic', 'advanced']).describe('Search depth level'),
     }),
     execute: async ({
       topic,

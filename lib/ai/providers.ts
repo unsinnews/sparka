@@ -2,10 +2,12 @@ import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
+  type LanguageModelV1,
 } from 'ai';
-import { openai } from '@ai-sdk/openai';
-import { anthropic } from '@ai-sdk/anthropic';
+import { openai, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
+import { anthropic, type AnthropicProviderOptions } from '@ai-sdk/anthropic';
 import { xai } from '@ai-sdk/xai';
+
 import { isTestEnvironment } from '../constants';
 import {
   artifactModel,
@@ -14,7 +16,8 @@ import {
   titleModel,
 } from './models.test';
 import { siteConfig } from '../config';
-import { allModels } from './all-models';
+import { type AvailableProviderModels, getModelDefinition } from './all-models';
+
 const telemetryConfig = {
   experimental_telemetry: {
     isEnabled: true,
@@ -43,8 +46,6 @@ export const models = {
   },
 };
 
-export type AvailableModels = (typeof allModels)[number]['id'];
-
 export const myProvider = isTestEnvironment
   ? customProvider({
       languageModels: {
@@ -71,21 +72,79 @@ export const myProvider = isTestEnvironment
       ...telemetryConfig,
     });
 
-export const getModelProvider = (modelId: AvailableModels) => {
-  const model = allModels.find((model) => model.id === modelId);
-  if (!model) {
-    throw new Error(`Model ${modelId} not found`);
+export const getModelProvider = (modelId: AvailableProviderModels) => {
+  const model = getModelDefinition(modelId);
+
+  const spec = model.specification;
+
+  let provider: LanguageModelV1;
+  if (spec.provider === 'openai') {
+    provider = openai.responses(spec.modelIdShort);
+  } else if (spec.provider === 'anthropic') {
+    provider = anthropic(spec.modelIdShort);
+  } else if (spec.provider === 'xai') {
+    provider = xai(spec.modelIdShort);
+  } else {
+    throw new Error(`Provider ${spec.provider} not supported`);
   }
 
-  const modelIdWithoutProvider = model.specification.modelId.split('/')[1];
-  switch (model.specification.provider) {
-    case 'openai':
-      return openai(modelIdWithoutProvider);
-    case 'anthropic':
-      return anthropic(modelIdWithoutProvider);
-    case 'xai':
-      return xai(modelIdWithoutProvider);
-    default:
-      throw new Error(`Provider ${model.specification.provider} not supported`);
+  // Wrap with reasoning middleware if the model supports reasoning
+  if (model.features?.reasoning && model.specification.provider === 'xai') {
+    console.log('Wrapping reasoning middleware for', model.id);
+    return wrapLanguageModel({
+      model: provider,
+      middleware: extractReasoningMiddleware({ tagName: 'think' }),
+    });
+  }
+
+  return provider;
+};
+
+export const getModelProviderOptions = (
+  providerModelId: AvailableProviderModels,
+):
+  | {
+      openai: OpenAIResponsesProviderOptions;
+    }
+  | {
+      anthropic: AnthropicProviderOptions;
+    }
+  | {
+      xai: Record<string, never>;
+    } => {
+  const model = getModelDefinition(providerModelId);
+
+  const spec = model.specification;
+  if (spec.provider === 'openai') {
+    const mId = spec.modelIdShort;
+    if (mId === 'o4-mini' || mId === 'o3' || mId === 'o3-mini') {
+      return {
+        openai: {
+          reasoningSummary: 'auto',
+        } satisfies OpenAIResponsesProviderOptions,
+      };
+    } else {
+      mId;
+      return { openai: {} };
+    }
+  } else if (spec.provider === 'anthropic') {
+    if (model.features?.reasoning) {
+      return {
+        anthropic: {
+          thinking: {
+            type: 'enabled',
+            budgetTokens: 4096,
+          },
+        } satisfies AnthropicProviderOptions,
+      };
+    } else {
+      return { anthropic: {} };
+    }
+  } else if (spec.provider === 'xai') {
+    return {
+      xai: {},
+    };
+  } else {
+    throw new Error(`Provider ${model.specification.provider} not supported`);
   }
 };

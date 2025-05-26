@@ -25,6 +25,7 @@ function PureMessages({
   chatHelpers,
   isReadonly,
 }: MessagesProps) {
+  console.log('messages', messages);
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 

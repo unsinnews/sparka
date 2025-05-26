@@ -28,8 +28,13 @@ import {
   determineStepTools,
   getBaseModelCost,
 } from '@/lib/credits/credits-utils';
-import { getModelProvider, type AvailableModels } from '@/lib/ai/providers';
+import { getModelProvider, getModelProviderOptions } from '@/lib/ai/providers';
 import { reserveCreditsWithCleanup } from '@/lib/credits/credit-reservation';
+import {
+  getModelDefinition,
+  type AvailableProviderModels,
+  type ModelDefinition,
+} from '@/lib/ai/all-models';
 
 export const maxDuration = 60;
 
@@ -49,7 +54,7 @@ export async function POST(request: NextRequest) {
     }: {
       id: string;
       messages: Array<YourUIMessage>;
-      selectedChatModel: AvailableModels;
+      selectedChatModel: AvailableProviderModels;
       data: ChatRequestData;
     } = await request.json();
 
@@ -69,6 +74,12 @@ export async function POST(request: NextRequest) {
     const webSearch = data.webSearch;
     const reason = data.reason;
 
+    let modelDefinition: ModelDefinition;
+    try {
+      modelDefinition = getModelDefinition(selectedChatModel);
+    } catch (error) {
+      return new Response('Model not found', { status: 404 });
+    }
     const userMessage = getMostRecentUserMessage(messages);
 
     if (!userMessage) {
@@ -149,7 +160,7 @@ export async function POST(request: NextRequest) {
       }
 
       return createDataStreamResponse({
-        execute: (dataStream) => {
+        execute: async (dataStream) => {
           const annotationStream = new AnnotationDataStreamWriter(dataStream);
 
           const result = streamText({
@@ -168,6 +179,13 @@ export async function POST(request: NextRequest) {
               dataStream: annotationStream,
               session,
             }),
+            ...(modelDefinition.features?.fixedTemperature
+              ? {
+                  temperature: modelDefinition.features.fixedTemperature,
+                }
+              : {}),
+
+            providerOptions: getModelProviderOptions(selectedChatModel),
 
             onFinish: async ({ response, toolResults, toolCalls, steps }) => {
               const actualCost =
@@ -194,6 +212,8 @@ export async function POST(request: NextRequest) {
                     messages: [userMessage],
                     responseMessages: response.messages,
                   });
+
+                  console.log('assistantMessage', assistantMessage);
 
                   await saveMessages({
                     messages: [

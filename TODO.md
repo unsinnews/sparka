@@ -1,3 +1,16 @@
+## MVP
+
+[ ] Show reasoning tokens in the UI
+[ ] Only launch with Deep Research (Disable reason search)
+[ ] Verify that backend doesn't timeout for this flow
+[ ] MultiModal Input refinement
+- [ ] Improve multimodal input styles for long text, borders, roundness,
+- [ ] Attachments should be removable
+- [ ] Include attachments inside box
+[ ] Define project Name
+[ ] Define project styles
+
+
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend
 [ ] Deep research should have a step in which it decides if the question can be answered or it should continue researching.
@@ -14,9 +27,10 @@
 [x] Migrate to TRPC with Tanstack Query
 [ ] Get model from cache in model selector while loading
 [x] Edit message should have multimodal input box (instead of only Send and Cancel)
-[ ] Attachments should be removable
-[ ] Improve multimodal input styles for long text, borders, roundness,
-
+[ ] Chat history: 
+- [ ] Search Chats
+- [ ] Virtual list for previous chats
+- [ ] Only render last document as preview, others as pill
 
 ### System
 [x] Get rid of API keys, just use the backend keys

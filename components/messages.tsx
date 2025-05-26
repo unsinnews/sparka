@@ -15,6 +15,7 @@ interface MessagesProps {
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   isArtifactVisible: boolean;
+  selectedModelId: string;
 }
 
 function PureMessages({
@@ -24,6 +25,7 @@ function PureMessages({
   messages,
   chatHelpers,
   isReadonly,
+  selectedModelId,
 }: MessagesProps) {
   console.log('messages', messages);
   const [messagesContainerRef, messagesEndRef] =
@@ -49,6 +51,7 @@ function PureMessages({
           }
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
+          selectedModelId={selectedModelId}
         />
       ))}
 
@@ -72,6 +75,7 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (prevProps.messages.length !== nextProps.messages.length) return false;
   if (!equal(prevProps.messages, nextProps.messages)) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
+  if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
 
   return true;
 });

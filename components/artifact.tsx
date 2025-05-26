@@ -63,6 +63,7 @@ function PureArtifact({
   chatHelpers,
   votes,
   isReadonly,
+  selectedModelId,
 }: {
   chatId: string;
 
@@ -75,6 +76,7 @@ function PureArtifact({
   setData: Dispatch<SetStateAction<ChatRequestData>>;
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
+  selectedModelId: string;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
@@ -330,6 +332,7 @@ function PureArtifact({
                     append={chatHelpers.append}
                     className="bg-background dark:bg-muted"
                     setMessages={chatHelpers.setMessages}
+                    selectedModelId={selectedModelId}
                   />
                 </form>
               </div>
@@ -498,6 +501,7 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
   if (prevProps.data !== nextProps.data) return false;
+  if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
 
   return true;
 });

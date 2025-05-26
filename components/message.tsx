@@ -35,6 +35,7 @@ const PurePreviewMessage = ({
   isLoading,
   isReadonly,
   chatHelpers,
+  selectedModelId,
 }: {
   chatId: string;
   message: YourUIMessage;
@@ -42,6 +43,7 @@ const PurePreviewMessage = ({
   isLoading: boolean;
   isReadonly: boolean;
   chatHelpers: UseChatHelpers;
+  selectedModelId: string;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   return (
@@ -157,6 +159,7 @@ const PurePreviewMessage = ({
                         message={message}
                         setMode={setMode}
                         chatHelpers={chatHelpers}
+                        selectedModelId={selectedModelId}
                       />
                     </div>
                   );
@@ -292,6 +295,7 @@ export const PreviewMessage = memo(
     if (!equal(prevProps.message.annotations, nextProps.message.annotations))
       return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
+    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
 
     return true;
   },

@@ -27,6 +27,7 @@ import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { Toggle } from './ui/toggle';
 import { GlobeIcon, Lightbulb, Telescope } from 'lucide-react';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import { ModelSelector } from './model-selector';
 
 function PureMultimodalInput({
   chatId,
@@ -44,6 +45,7 @@ function PureMultimodalInput({
   handleSubmit,
   className,
   isEditMode = false,
+  selectedModelId,
 }: {
   chatId: string;
   input: UseChatHelpers['input'];
@@ -60,6 +62,7 @@ function PureMultimodalInput({
   handleSubmit: UseChatHelpers['handleSubmit'];
   className?: string;
   isEditMode?: boolean;
+  selectedModelId: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -267,7 +270,7 @@ function PureMultimodalInput({
       />
 
       <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2 bg-muted">
-        <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+        <ModelSelector selectedModelId={selectedModelId} className="h-fit" />
         <WebSearchToggle
           enabled={data.webSearch}
           setEnabled={(enabled) => setData({ ...data, webSearch: enabled })}
@@ -282,7 +285,8 @@ function PureMultimodalInput({
         />
       </div>
 
-      <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
+      <div className="absolute bottom-0 right-0 p-2 gap-2 w-fit flex flex-row justify-end">
+        <AttachmentsButton fileInputRef={fileInputRef} status={status} />
         {status === 'submitted' ? (
           <StopButton stop={stop} setMessages={setMessages} />
         ) : (
@@ -359,6 +363,7 @@ export const MultimodalInput = memo(
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
     if (prevProps.data !== nextProps.data) return false;
     if (prevProps.isEditMode !== nextProps.isEditMode) return false;
+    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
     return true;
   },
 );

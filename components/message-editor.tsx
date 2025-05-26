@@ -19,6 +19,7 @@ export type MessageEditorProps = {
   message: YourUIMessage;
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
   chatHelpers: UseChatHelpers;
+  selectedModelId: string;
 };
 
 export function MessageEditor({
@@ -26,6 +27,7 @@ export function MessageEditor({
   message,
   setMode,
   chatHelpers,
+  selectedModelId,
 }: MessageEditorProps) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [input, setInput] = useState<string>(() =>
@@ -105,6 +107,7 @@ export function MessageEditor({
           );
         }}
         isEditMode={true}
+        selectedModelId={selectedModelId}
       />
     </div>
   );

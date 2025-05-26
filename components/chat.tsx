@@ -97,6 +97,7 @@ export function Chat({
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           isArtifactVisible={isArtifactVisible}
+          selectedModelId={selectedChatModel}
         />
 
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
@@ -115,6 +116,7 @@ export function Chat({
               messages={messages as YourUIMessage[]}
               setMessages={setMessages}
               append={append}
+              selectedModelId={selectedChatModel}
             />
           )}
         </form>
@@ -130,6 +132,7 @@ export function Chat({
         messages={messages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}
+        selectedModelId={selectedChatModel}
       />
     </>
   );

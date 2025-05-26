@@ -21,7 +21,7 @@ import { useTRPC } from '@/trpc/react';
 import { cn } from '@/lib/utils';
 import { getModelDefinition } from '@/lib/ai/all-models';
 
-import { ChevronDownIcon } from './icons';
+import { ChevronUpIcon } from 'lucide-react';
 
 export function ModelSelector({
   selectedModelId,
@@ -45,21 +45,15 @@ export function ModelSelector({
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
-      <DropdownMenuTrigger
-        asChild
-        className={cn(
-          'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
-          className,
-        )}
-      >
+      <DropdownMenuTrigger asChild className={cn('w-fit ', className)}>
         <Button
           data-testid="model-selector"
-          variant="outline"
+          variant="ghost"
           className="md:px-2 md:h-[34px]"
           disabled={isLoading}
         >
           {isLoading ? 'Loading...' : selectedChatModel?.name}
-          <ChevronDownIcon />
+          <ChevronUpIcon />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

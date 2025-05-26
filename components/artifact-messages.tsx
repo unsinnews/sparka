@@ -15,6 +15,7 @@ interface ArtifactMessagesProps {
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   artifactStatus: UIArtifact['status'];
+  selectedModelId: string;
 }
 
 function PureArtifactMessages({
@@ -24,6 +25,7 @@ function PureArtifactMessages({
   messages,
   chatHelpers,
   isReadonly,
+  selectedModelId,
 }: ArtifactMessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
@@ -46,6 +48,7 @@ function PureArtifactMessages({
           }
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
+          selectedModelId={selectedModelId}
         />
       ))}
 

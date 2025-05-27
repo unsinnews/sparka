@@ -474,7 +474,7 @@ export async function deepResearchInternal({
         // Await the recursive call directly, making this part sequential
         const deeperResult = await deepResearchInternal({
           query: nextQuery,
-          breadth: newBreadth,
+          breadth: Math.ceil(newBreadth / 2),
           depth: newDepth,
           // Pass only the *currently aggregated* learnings and URLs for the deeper dive
           // This prevents re-processing learnings from parallel branches in the deeper dive

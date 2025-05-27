@@ -1,7 +1,7 @@
 ## MVP
 
 [x] Show reasoning tokens in the UI
-[ ] Only launch with Deep Research (Disable reason search)
+[x] Only launch with Deep Research (Disable reason search)
 [ ] Verify that backend doesn't timeout for this flow
 [ ] MultiModal Input refinement
 - [ ] Improve multimodal input styles for long text, borders, roundness,

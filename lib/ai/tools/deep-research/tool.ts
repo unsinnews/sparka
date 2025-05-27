@@ -13,8 +13,8 @@ interface DeepResearchProps {
   dataStream: AnnotationDataStreamWriter;
 }
 
-// TODO: Restore both to 3 or make configurable
-const BREADTH = 2;
+// TODO: Restore both to 3 or make configurable. It needs to fit in 1m execution
+const BREADTH = 1;
 const DEPTH = 2;
 
 export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>

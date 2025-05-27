@@ -15,7 +15,7 @@ interface DeepResearchProps {
 
 // TODO: Restore both to 3 or make configurable. It needs to fit in 1m execution
 const BREADTH = 1;
-const DEPTH = 2;
+const DEPTH = 1;
 
 export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
   tool({

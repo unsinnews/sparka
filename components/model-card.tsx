@@ -18,7 +18,7 @@ import {
 import type { ModelDefinition } from '@/lib/ai/all-models';
 import { AnthropicIcon, OpenAIIcon, XAIIcon } from './icons';
 
-const PlaceholderIcon = () => <Building className="w-4 h-4" />;
+const PlaceholderIcon = () => <Building className="w-6 h-6" />;
 
 interface ModelCardProps {
   model: ModelDefinition;
@@ -39,26 +39,13 @@ function formatTokens(tokens: number): string {
 function getProviderIcon(provider: string) {
   switch (provider) {
     case 'openai':
-      return <OpenAIIcon />;
+      return <OpenAIIcon size={24} />;
     case 'anthropic':
-      return <AnthropicIcon />;
+      return <AnthropicIcon size={24} />;
     case 'xai':
-      return <XAIIcon />;
+      return <XAIIcon size={24} />;
     default:
       return <PlaceholderIcon />;
-  }
-}
-
-function getProviderColor(provider: string) {
-  switch (provider) {
-    case 'openai':
-      return 'text-green-600 dark:text-green-400';
-    case 'anthropic':
-      return 'text-orange-600 dark:text-orange-400';
-    case 'xai':
-      return 'text-blue-600 dark:text-blue-400';
-    default:
-      return 'text-gray-600 dark:text-gray-400';
   }
 }
 
@@ -70,7 +57,7 @@ export function ModelCard({ model, isSelected, onClick }: ModelCardProps) {
     <TooltipProvider>
       <div
         className={`
-          p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md
+          group p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md
           ${
             isSelected
               ? 'border-primary bg-primary/5 shadow-sm'
@@ -82,7 +69,7 @@ export function ModelCard({ model, isSelected, onClick }: ModelCardProps) {
         {/* Header */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
-            <div className={getProviderColor(provider)}>
+            <div className="transition-transform bg-muted rounded-lg p-1 group-hover:rotate-12">
               {getProviderIcon(provider)}
             </div>
             <div>

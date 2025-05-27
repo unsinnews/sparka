@@ -186,7 +186,7 @@ export const OpenAIIcon = ({ size = 16 }: { size?: number }) => {
 };
 
 export const GeminiIcon = ({ size = 16 }: { size?: number }) => {
-  return <Gemini name="gemini" size={size} />;
+  return <Gemini.Color name="gemini" size={size} />;
 };
 
 export const GroqIcon = ({ size = 16 }: { size?: number }) => {

@@ -72,19 +72,19 @@ const getToolsPrompt = (activeTools: YourToolName[]) => {
 **When NOT to use \`webSearch\`:**
 - Do not use this tool for extracting information from specific URLs provided.`,
 
-    reasonSearch: `
-**When to use \`reasonSearch\`:**
-- Use for complex queries requiring:
-  - Multi-step research planning
-  - Parallel web and academic searches
-  - Deep analysis of findings
-  - Cross-referencing and validation
-- MUST run this tool first before providing responses
-- Always include citations from search results
+    //     reasonSearch: `
+    // **When to use \`reasonSearch\`:**
+    // - Use for complex queries requiring:
+    //   - Multi-step research planning
+    //   - Parallel web and academic searches
+    //   - Deep analysis of findings
+    //   - Cross-referencing and validation
+    // - MUST run this tool first before providing responses
+    // - Always include citations from search results
 
-**When NOT to use \`reasonSearch\`:**
-- Skip if question can be answered straight away
-`,
+    // **When NOT to use \`reasonSearch\`:**
+    // - Skip if question can be answered straight away
+    // `,
 
     stockChart: `
 **When to use \`stockChart\`:**

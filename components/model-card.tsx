@@ -5,16 +5,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Brain,
-  Zap,
-  Image,
-  FileText,
-  Mic,
-  Calendar,
-  Building,
-  CheckCircle,
-} from 'lucide-react';
+import { Brain, Zap, Eye, Calendar, Building, CheckCircle } from 'lucide-react';
 import type { ModelDefinition } from '@/lib/ai/all-models';
 import { AnthropicIcon, OpenAIIcon, XAIIcon } from './icons';
 
@@ -118,88 +109,21 @@ export function ModelCard({ model, isSelected, onClick }: ModelCardProps) {
               </TooltipContent>
             </Tooltip>
           )}
+
+          {features?.input?.image && (
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge variant="outline" className="text-xs px-2 py-0.5">
+                  <Eye className="w-3 h-3 mr-1" />
+                  Vision
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Supports image input</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
-
-        {/* Input/Output Capabilities */}
-        {features && (
-          <div className="space-y-2 mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Input:
-              </span>
-              <div className="flex gap-1">
-                {features.input.text && (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <FileText className="w-3 h-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Text</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {features.input.image && (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Image className="w-3 h-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Images</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {features.input.audio && (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Mic className="w-3 h-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Audio</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-muted-foreground">
-                Output:
-              </span>
-              <div className="flex gap-1">
-                {features.output.text && (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <FileText className="w-3 h-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Text</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {features.output.image && (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Image className="w-3 h-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Images</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                {features.output.audio && (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Mic className="w-3 h-3 text-muted-foreground" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Audio</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Context Window */}
         {features?.contextWindow && (

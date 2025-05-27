@@ -5,7 +5,6 @@ import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { retrieve } from '@/lib/ai/tools/retrieve';
 import { webSearch } from '@/lib/ai/tools/web-search';
-import { createReasonSearch } from '@/lib/ai/tools/reason-search';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
@@ -31,10 +30,10 @@ export function getTools({
       session,
       dataStream,
     }),
-    reasonSearch: createReasonSearch({
-      session,
-      dataStream,
-    }),
+    // reasonSearch: createReasonSearch({
+    //   session,
+    //   dataStream,
+    // }),
     retrieve,
     webSearch: webSearch({ session, dataStream }),
     stockChart,
@@ -100,11 +99,11 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
     description: 'Request suggestions for a document',
     cost: 1,
   },
-  reasonSearch: {
-    name: 'reasonSearch',
-    description: 'Search with reasoning',
-    cost: 50,
-  },
+  // reasonSearch: {
+  //   name: 'reasonSearch',
+  //   description: 'Search with reasoning',
+  //   cost: 50,
+  // },
   retrieve: {
     name: 'retrieve',
     description: 'Retrieve information from the web',

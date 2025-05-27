@@ -275,10 +275,10 @@ function PureMultimodalInput({
           enabled={data.webSearch}
           setEnabled={(enabled) => setData({ ...data, webSearch: enabled })}
         />
-        <ReasonSearchToggle
+        {/* <ReasonSearchToggle
           enabled={data.reason}
           setEnabled={(enabled) => setData({ ...data, reason: enabled })}
-        />
+        /> */}
         <DeepResearchToggle
           enabled={data.deepResearch}
           setEnabled={(enabled) => setData({ ...data, deepResearch: enabled })}

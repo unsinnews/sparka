@@ -7,7 +7,6 @@ import {
   useState,
   type ComponentProps,
 } from 'react';
-import { useQuery } from '@tanstack/react-query';
 
 import { saveChatModelAsCookie } from '@/app/(chat)/actions';
 import { Button } from '@/components/ui/button';
@@ -17,9 +16,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ModelCard } from '@/components/model-card';
-import { useTRPC } from '@/trpc/react';
 import { cn } from '@/lib/utils';
-import { getModelDefinition } from '@/lib/ai/all-models';
+import { allImplementedModels, getModelDefinition } from '@/lib/ai/all-models';
 
 import { ChevronUpIcon } from 'lucide-react';
 
@@ -32,11 +30,14 @@ export function ModelSelector({
   const [open, setOpen] = useState(false);
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
-  const trpc = useTRPC();
 
-  const { data: chatModels = [], isLoading } = useQuery(
-    trpc.models.getAvailableModels.queryOptions(),
-  );
+  // const trpc = useTRPC();
+
+  // const { data: chatModels = [], isLoading } = useQuery(
+  //   trpc.models.getAvailableModels.queryOptions(),
+  // );
+
+  const chatModels = allImplementedModels;
 
   const selectedChatModel = useMemo(
     () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
@@ -50,9 +51,8 @@ export function ModelSelector({
           data-testid="model-selector"
           variant="ghost"
           className="md:px-2 md:h-[34px]"
-          disabled={isLoading}
         >
-          {isLoading ? 'Loading...' : selectedChatModel?.name}
+          {selectedChatModel?.name}
           <ChevronUpIcon />
         </Button>
       </DropdownMenuTrigger>

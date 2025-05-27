@@ -3,7 +3,11 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   experimental: {
     ppr: true,
-    optimizePackageImports: ['react-tweet', 'echarts-for-react'],
+    optimizePackageImports: [
+      'react-tweet',
+      'echarts-for-react',
+      '@lobehub/icons',
+    ],
   },
   images: {
     remotePatterns: [

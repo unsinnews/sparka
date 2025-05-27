@@ -1835,3 +1835,10 @@ export function getModelDefinition(
   }
   return { ...model, providerModelId: modelId };
 }
+
+export const allImplementedModels = allModels.filter(
+  (model) =>
+    model.specification.provider === 'openai' ||
+    model.specification.provider === 'xai' ||
+    model.specification.provider === 'anthropic',
+);

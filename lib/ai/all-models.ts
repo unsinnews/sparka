@@ -76,41 +76,6 @@ export const allModels = [
     },
   },
   {
-    id: 'anthropic/claude-v3-sonnet',
-    name: 'Claude 3 Sonnet',
-    specification: {
-      specificationVersion: 'v2',
-      provider: 'anthropic',
-      modelId: 'anthropic/claude-3-sonnet-latest',
-      modelIdShort: 'claude-3-sonnet-latest',
-    },
-    pricing: {
-      inputMTok: 3,
-      outputMTok: 15,
-    },
-    shortDescription: 'Balanced model for most tasks',
-    features: {
-      reasoning: false,
-      functionCalling: true,
-      contextWindow: {
-        input: 200000,
-        output: 4096,
-      },
-      knowledgeCutoff: new Date('2023-08-01'),
-      input: {
-        image: true,
-        text: true,
-        pdf: false,
-        audio: false,
-      },
-      output: {
-        image: false,
-        text: true,
-        audio: false,
-      },
-    },
-  },
-  {
     id: 'anthropic/claude-v3.5-sonnet',
     name: 'Claude 3.5 Sonnet',
     specification: {
@@ -132,41 +97,6 @@ export const allModels = [
         output: 8192,
       },
       knowledgeCutoff: new Date('2024-04-01'),
-      input: {
-        image: true,
-        text: true,
-        pdf: false,
-        audio: false,
-      },
-      output: {
-        image: false,
-        text: true,
-        audio: false,
-      },
-    },
-  },
-  {
-    id: 'anthropic/claude-v3-haiku',
-    name: 'Claude 3 Haiku',
-    specification: {
-      specificationVersion: 'v2',
-      provider: 'anthropic',
-      modelId: 'anthropic/claude-3-haiku-latest',
-      modelIdShort: 'claude-3-haiku-latest',
-    },
-    pricing: {
-      inputMTok: 0.25,
-      outputMTok: 1.25,
-    },
-    shortDescription: 'Fast and compact model for near-instant responsiveness',
-    features: {
-      reasoning: false,
-      functionCalling: true,
-      contextWindow: {
-        input: 200000,
-        output: 4096,
-      },
-      knowledgeCutoff: new Date('2023-08-01'),
       input: {
         image: true,
         text: true,

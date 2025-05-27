@@ -7,9 +7,10 @@
 - [ ] Improve multimodal input styles for long text, borders, roundness,
 - [ ] Attachments should be removable
 - [ ] Include attachments inside box
+[ ] Fix reserved credit release on crash
+[ ] Please wait until the message repsonse ends
 [ ] Define project Name
 [ ] Define project styles
-
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend

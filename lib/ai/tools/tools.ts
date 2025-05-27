@@ -9,6 +9,7 @@ import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
 import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
+import { readDocument } from '@/lib/ai/tools/read-document';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 
@@ -27,6 +28,10 @@ export function getTools({
       dataStream,
     }),
     requestSuggestions: requestSuggestions({
+      session,
+      dataStream,
+    }),
+    readDocument: readDocument({
       session,
       dataStream,
     }),
@@ -97,6 +102,11 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
   requestSuggestions: {
     name: 'requestSuggestions',
     description: 'Request suggestions for a document',
+    cost: 1,
+  },
+  readDocument: {
+    name: 'readDocument',
+    description: 'Read the content of a document',
     cost: 1,
   },
   // reasonSearch: {

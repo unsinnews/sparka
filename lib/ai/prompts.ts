@@ -115,6 +115,16 @@ const getToolsPrompt = (activeTools: YourToolName[]) => {
     // - Use 'plt.show()' for plots, and mention generated URLs for outputs
     getWeather: '',
     requestSuggestions: '',
+    readDocument: `
+**When to use \`readDocument\`:**
+- Use this to read the content of documents that have been created in the conversation
+- Useful for follow-up requests after creating a document
+- When you need to reference or analyze existing document content
+- When the user asks questions about a document they've created
+
+**When NOT to use \`readDocument\`:**
+- Do not use this for documents that haven't been created in the current conversation
+`,
     deepResearch: `
 **When to use \`deepResearch\`:**
 - Use this for complex queries requiring:

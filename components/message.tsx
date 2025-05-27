@@ -27,6 +27,7 @@ import {
   SourcesAnnotations,
   ResearchUpdateAnnotations,
 } from './message-annotations';
+import { ReadDocument } from './read-document';
 
 const PurePreviewMessage = ({
   chatId,
@@ -245,6 +246,9 @@ const PurePreviewMessage = ({
                       ) : toolName === 'retrieve' ? (
                         // @ts-expect-error // TODO: fix this
                         <Retrieve result={result} />
+                      ) : toolName === 'readDocument' ? (
+                        // @ts-expect-error // TODO: fix this
+                        <ReadDocument result={result} />
                       ) : toolName === 'stockChart' ? (
                         // @ts-expect-error // TODO: fix this
                         <StockChartMessage result={result} args={args} />

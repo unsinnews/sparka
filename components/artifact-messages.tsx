@@ -6,6 +6,9 @@ import equal from 'fast-deep-equal';
 import type { UIArtifact } from './artifact';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import { ResponseErrorMessage } from './response-error-message';
+import { ThinkingMessage } from './thinking-message';
+import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 
 interface ArtifactMessagesProps {
   chatId: string;
@@ -16,6 +19,7 @@ interface ArtifactMessagesProps {
   isReadonly: boolean;
   artifactStatus: UIArtifact['status'];
   selectedModelId: string;
+  data: ChatRequestData;
 }
 
 function PureArtifactMessages({
@@ -26,6 +30,7 @@ function PureArtifactMessages({
   chatHelpers,
   isReadonly,
   selectedModelId,
+  data,
 }: ArtifactMessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
@@ -51,6 +56,18 @@ function PureArtifactMessages({
           selectedModelId={selectedModelId}
         />
       ))}
+
+      {status === 'submitted' &&
+        messages.length > 0 &&
+        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+
+      {status === 'error' && (
+        <ResponseErrorMessage
+          chatHelpers={chatHelpers}
+          messages={messages}
+          data={data}
+        />
+      )}
 
       <div
         ref={messagesEndRef}

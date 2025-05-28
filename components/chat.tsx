@@ -94,6 +94,7 @@ export function Chat({
           votes={votes}
           status={status}
           messages={messages as YourUIMessage[]}
+          data={data}
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           isArtifactVisible={isArtifactVisible}

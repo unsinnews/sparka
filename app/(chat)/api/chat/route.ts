@@ -148,6 +148,14 @@ export async function POST(request: NextRequest) {
 
     const activeTools = toolsResult.activeTools;
 
+    // Create AbortController with 55s timeout for credit cleanup
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(async () => {
+      console.log('Request timed out after 10s, cleaning up credits');
+      await reservation.cleanup();
+      abortController.abort();
+    }, 55000); // 55 seconds
+
     // Ensure cleanup on any unhandled errors
     try {
       // Add context of user selection to the user message
@@ -179,6 +187,7 @@ export async function POST(request: NextRequest) {
               dataStream: annotationStream,
               session,
             }),
+            abortSignal: abortController.signal, // Pass abort signal to streamText
             ...(modelDefinition.features?.fixedTemperature
               ? {
                   temperature: modelDefinition.features.fixedTemperature,
@@ -188,6 +197,9 @@ export async function POST(request: NextRequest) {
             providerOptions: getModelProviderOptions(selectedChatModel),
 
             onFinish: async ({ response, toolResults, toolCalls, steps }) => {
+              // Clear timeout since we finished successfully
+              clearTimeout(timeoutId);
+
               const actualCost =
                 baseModelCost +
                 steps
@@ -242,6 +254,11 @@ export async function POST(request: NextRequest) {
                 }
               }
             },
+            onError: (error) => {
+              // Clear timeout on error
+              clearTimeout(timeoutId);
+              console.error('StreamText error:', error);
+            },
           });
 
           result.consumeStream();
@@ -251,6 +268,8 @@ export async function POST(request: NextRequest) {
           });
         },
         onError: (error) => {
+          // Clear timeout on error
+          clearTimeout(timeoutId);
           console.error(error);
           // Release reserved credits on error (fire and forget)
           if (session.user?.id) {
@@ -260,6 +279,7 @@ export async function POST(request: NextRequest) {
         },
       });
     } catch (error) {
+      clearTimeout(timeoutId);
       await reservation.cleanup();
       throw error;
     }

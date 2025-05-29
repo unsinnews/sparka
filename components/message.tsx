@@ -74,20 +74,6 @@ const PurePreviewMessage = ({
           )}
 
           <div className="flex flex-col gap-4 w-full">
-            {message.experimental_attachments && (
-              <div
-                data-testid={`message-attachments`}
-                className="flex flex-row justify-end gap-2"
-              >
-                {message.experimental_attachments.map((attachment) => (
-                  <PreviewAttachment
-                    key={attachment.url}
-                    attachment={attachment}
-                  />
-                ))}
-              </div>
-            )}
-
             {message.annotations && (
               <ResearchUpdateAnnotations
                 annotations={message.annotations}
@@ -129,6 +115,22 @@ const PurePreviewMessage = ({
                                 setMode('edit');
                               }}
                             >
+                              {message.experimental_attachments &&
+                                message.experimental_attachments.length > 0 && (
+                                  <div
+                                    data-testid={`message-attachments`}
+                                    className="flex flex-row gap-2 overflow-x-auto items-end"
+                                  >
+                                    {message.experimental_attachments.map(
+                                      (attachment) => (
+                                        <PreviewAttachment
+                                          key={attachment.url}
+                                          attachment={attachment}
+                                        />
+                                      ),
+                                    )}
+                                  </div>
+                                )}
                               <Markdown>{part.text}</Markdown>
                             </button>
                           </TooltipTrigger>
@@ -142,6 +144,23 @@ const PurePreviewMessage = ({
                               message.role === 'user',
                           })}
                         >
+                          {message.role === 'user' &&
+                            message.experimental_attachments &&
+                            message.experimental_attachments.length > 0 && (
+                              <div
+                                data-testid={`message-attachments`}
+                                className="flex flex-row gap-2 overflow-x-auto items-end"
+                              >
+                                {message.experimental_attachments.map(
+                                  (attachment) => (
+                                    <PreviewAttachment
+                                      key={attachment.url}
+                                      attachment={attachment}
+                                    />
+                                  ),
+                                )}
+                              </div>
+                            )}
                           <Markdown>{part.text}</Markdown>
                         </div>
                       )}

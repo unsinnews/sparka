@@ -8,8 +8,9 @@
 - [ ] Attachments should be removable
 - [ ] Attachments should work with drop zone
 - [ ] Include attachments inside box
+- [ ] Message attachments should be inside message box when visualizing and editing
 [x] Fix reserved credit release on crash
-[] Please wait until the message repsonse ends
+[ ] Please wait until the message repsonse ends
 [ ] Define project Name
 [ ] Define project styles
 [ ] Create / Edit document should have more context of the conversation than a description

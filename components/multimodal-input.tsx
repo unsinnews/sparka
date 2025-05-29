@@ -183,6 +183,17 @@ function PureMultimodalInput({
     [setAttachments],
   );
 
+  const removeAttachment = useCallback(
+    (attachmentToRemove: Attachment) => {
+      setAttachments((currentAttachments) =>
+        currentAttachments.filter(
+          (attachment) => attachment.url !== attachmentToRemove.url,
+        ),
+      );
+    },
+    [setAttachments],
+  );
+
   return (
     <div className="relative w-full flex flex-col gap-4">
       {messages.length === 0 &&
@@ -204,12 +215,13 @@ function PureMultimodalInput({
           {(attachments.length > 0 || uploadQueue.length > 0) && (
             <div
               data-testid="attachments-preview"
-              className="flex flex-row gap-2 overflow-x-auto items-end px-3 pb-2"
+              className="flex flex-row gap-2 overflow-x-auto items-end px-3 py-2"
             >
               {attachments.map((attachment) => (
                 <PreviewAttachment
                   key={attachment.url}
                   attachment={attachment}
+                  onRemove={() => removeAttachment(attachment)}
                 />
               ))}
 

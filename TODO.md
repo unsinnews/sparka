@@ -4,11 +4,10 @@
 [x] Only launch with Deep Research (Disable reason search)
 [x] Verify that backend doesn't timeout for this flow
 [ ] MultiModal Input refinement
-- [ ] Improve multimodal input styles for long text, borders, roundness,
-- [ ] Attachments should be removable
+- [x] Improve multimodal input styles for long text, borders, roundness,
+- [x] Attachments should be removable
+- [x] Message attachments should be inside message box when visualizing and editing
 - [ ] Attachments should work with drop zone
-- [ ] Include attachments inside box
-- [ ] Message attachments should be inside message box when visualizing and editing
 [x] Fix reserved credit release on crash
 [ ] Please wait until the message repsonse ends
 [ ] Define project Name

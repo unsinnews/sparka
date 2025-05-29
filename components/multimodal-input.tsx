@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
-import { PreviewAttachment } from './preview-attachment';
+import { AttachmentList } from './attachment-list';
 import { Button } from './ui/button';
 import {
   ChatInputContainer,
@@ -213,30 +213,13 @@ function PureMultimodalInput({
       <ChatInputContainer className={className}>
         <ChatInputTopRow>
           {(attachments.length > 0 || uploadQueue.length > 0) && (
-            <div
-              data-testid="attachments-preview"
-              className="flex flex-row gap-2 overflow-x-auto items-end px-3 py-2"
-            >
-              {attachments.map((attachment) => (
-                <PreviewAttachment
-                  key={attachment.url}
-                  attachment={attachment}
-                  onRemove={() => removeAttachment(attachment)}
-                />
-              ))}
-
-              {uploadQueue.map((filename) => (
-                <PreviewAttachment
-                  key={filename}
-                  attachment={{
-                    url: '',
-                    name: filename,
-                    contentType: '',
-                  }}
-                  isUploading={true}
-                />
-              ))}
-            </div>
+            <AttachmentList
+              attachments={attachments}
+              uploadQueue={uploadQueue}
+              onRemove={removeAttachment}
+              testId="attachments-preview"
+              className="px-3 py-2"
+            />
           )}
         </ChatInputTopRow>
 

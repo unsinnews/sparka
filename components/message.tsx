@@ -8,7 +8,6 @@ import { DocumentToolCall, DocumentToolResult } from './document';
 import { SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
-import { PreviewAttachment } from './preview-attachment';
 import { Weather } from './weather';
 import equal from 'fast-deep-equal';
 import { cn } from '@/lib/utils';
@@ -28,6 +27,7 @@ import {
   ResearchUpdateAnnotations,
 } from './message-annotations';
 import { ReadDocument } from './read-document';
+import { AttachmentList } from './attachment-list';
 
 const PurePreviewMessage = ({
   chatId,
@@ -115,22 +115,12 @@ const PurePreviewMessage = ({
                                 setMode('edit');
                               }}
                             >
-                              {message.experimental_attachments &&
-                                message.experimental_attachments.length > 0 && (
-                                  <div
-                                    data-testid={`message-attachments`}
-                                    className="flex flex-row gap-2 overflow-x-auto items-end"
-                                  >
-                                    {message.experimental_attachments.map(
-                                      (attachment) => (
-                                        <PreviewAttachment
-                                          key={attachment.url}
-                                          attachment={attachment}
-                                        />
-                                      ),
-                                    )}
-                                  </div>
-                                )}
+                              <AttachmentList
+                                attachments={
+                                  message.experimental_attachments || []
+                                }
+                                testId="message-attachments"
+                              />
                               <Markdown>{part.text}</Markdown>
                             </button>
                           </TooltipTrigger>
@@ -144,23 +134,10 @@ const PurePreviewMessage = ({
                               message.role === 'user',
                           })}
                         >
-                          {message.role === 'user' &&
-                            message.experimental_attachments &&
-                            message.experimental_attachments.length > 0 && (
-                              <div
-                                data-testid={`message-attachments`}
-                                className="flex flex-row gap-2 overflow-x-auto items-end"
-                              >
-                                {message.experimental_attachments.map(
-                                  (attachment) => (
-                                    <PreviewAttachment
-                                      key={attachment.url}
-                                      attachment={attachment}
-                                    />
-                                  ),
-                                )}
-                              </div>
-                            )}
+                          <AttachmentList
+                            attachments={message.experimental_attachments || []}
+                            testId="message-attachments"
+                          />
                           <Markdown>{part.text}</Markdown>
                         </div>
                       )}

@@ -2,15 +2,19 @@
 
 [x] Show reasoning tokens in the UI
 [x] Only launch with Deep Research (Disable reason search)
-[ ] Verify that backend doesn't timeout for this flow
+[x] Verify that backend doesn't timeout for this flow
 [ ] MultiModal Input refinement
 - [ ] Improve multimodal input styles for long text, borders, roundness,
 - [ ] Attachments should be removable
+- [ ] Attachments should work with drop zone
 - [ ] Include attachments inside box
-[ ] Fix reserved credit release on crash
-[ ] Please wait until the message repsonse ends
+[x] Fix reserved credit release on crash
+[] Please wait until the message repsonse ends
 [ ] Define project Name
 [ ] Define project styles
+[ ] Create / Edit document should have more context of the conversation than a description
+[ ] Delete previous chat messages should also delete documents created / updated in that range of the conversation
+[ ] Sign up with GitHub
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend
@@ -43,3 +47,18 @@
 
 ## Auth
 [x] Add "Deployment" redirect URI 
+
+
+PROMPT:
+
+I'm trying to find domain names for a chat with your AI LLM Models application assistant.
+
+Brainstorm 200 names variations I can try with prefixes for a chat application that works with many LLM models and is a helpful assistant.
+
+Prefixes: ly, lio, ify, zen, os, us, in, up, it, er
+
+Only print the roots (without the suffixes) I'll combine them later.
+
+E.g. chat, assistant, assist, help, helper, pair, talk, knowledge, know, knowl, knowle, wise, wis, wisdom, wisdo, etc
+
+Print as a comma separated list in text (no document)

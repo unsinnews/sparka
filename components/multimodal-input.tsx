@@ -1,7 +1,6 @@
 'use client';
 
 import type { Attachment } from 'ai';
-import cx from 'classnames';
 import type React from 'react';
 import {
   useRef,
@@ -19,7 +18,12 @@ import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
+import {
+  ChatInputContainer,
+  ChatInputTopRow,
+  ChatInputTextArea,
+  ChatInputBottomRow,
+} from './ui/chat-input';
 import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
@@ -67,25 +71,6 @@ function PureMultimodalInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
   console.log({ data });
-  useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight();
-    }
-  }, []);
-
-  const adjustHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
-    }
-  };
-
-  const resetHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = '98px';
-    }
-  };
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     'input',
@@ -98,7 +83,6 @@ function PureMultimodalInput({
       // Prefer DOM value over localStorage to handle hydration
       const finalValue = domValue || localStorageInput || '';
       setInput(finalValue);
-      adjustHeight();
     }
     // Only run once after hydration
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +94,6 @@ function PureMultimodalInput({
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
-    adjustHeight();
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -126,7 +109,6 @@ function PureMultimodalInput({
 
     setAttachments([]);
     setLocalStorageInput('');
-    resetHeight();
     setData({
       deepResearch: false,
       webSearch: false,
@@ -217,86 +199,93 @@ function PureMultimodalInput({
         tabIndex={-1}
       />
 
-      {(attachments.length > 0 || uploadQueue.length > 0) && (
-        <div
-          data-testid="attachments-preview"
-          className="flex flex-row gap-2 overflow-x-scroll items-end"
-        >
-          {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
-          ))}
+      <ChatInputContainer className={className}>
+        <ChatInputTopRow>
+          {(attachments.length > 0 || uploadQueue.length > 0) && (
+            <div
+              data-testid="attachments-preview"
+              className="flex flex-row gap-2 overflow-x-scroll items-end px-3 pb-2"
+            >
+              {attachments.map((attachment) => (
+                <PreviewAttachment
+                  key={attachment.url}
+                  attachment={attachment}
+                />
+              ))}
 
-          {uploadQueue.map((filename) => (
-            <PreviewAttachment
-              key={filename}
-              attachment={{
-                url: '',
-                name: filename,
-                contentType: '',
-              }}
-              isUploading={true}
-            />
-          ))}
-        </div>
-      )}
+              {uploadQueue.map((filename) => (
+                <PreviewAttachment
+                  key={filename}
+                  attachment={{
+                    url: '',
+                    name: filename,
+                    contentType: '',
+                  }}
+                  isUploading={true}
+                />
+              ))}
+            </div>
+          )}
+        </ChatInputTopRow>
 
-      <Textarea
-        data-testid="multimodal-input"
-        ref={textareaRef}
-        placeholder="Send a message..."
-        value={input}
-        onChange={handleInput}
-        className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] resize-none rounded-2xl overflow-hidden !text-base bg-muted pb-12 dark:border-zinc-700',
-          className,
-        )}
-        rows={2}
-        autoFocus
-        onKeyDown={(event) => {
-          if (
-            event.key === 'Enter' &&
-            !event.shiftKey &&
-            !event.nativeEvent.isComposing
-          ) {
-            event.preventDefault();
+        <ChatInputTextArea
+          data-testid="multimodal-input"
+          ref={textareaRef}
+          placeholder="Send a message..."
+          value={input}
+          onChange={handleInput}
+          maxRows={15}
+          autoFocus
+          onKeyDown={(event) => {
+            if (
+              event.key === 'Enter' &&
+              !event.shiftKey &&
+              !event.nativeEvent.isComposing
+            ) {
+              event.preventDefault();
 
-            if (status !== 'ready') {
-              toast.error('Please wait for the model to finish its response!');
-            } else {
-              submitForm();
+              if (status !== 'ready') {
+                toast.error(
+                  'Please wait for the model to finish its response!',
+                );
+              } else {
+                submitForm();
+              }
             }
-          }
-        }}
-      />
-
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start gap-2 bg-muted">
-        <ModelSelector selectedModelId={selectedModelId} className="h-fit" />
-        <WebSearchToggle
-          enabled={data.webSearch}
-          setEnabled={(enabled) => setData({ ...data, webSearch: enabled })}
+          }}
         />
-        {/* <ReasonSearchToggle
-          enabled={data.reason}
-          setEnabled={(enabled) => setData({ ...data, reason: enabled })}
-        /> */}
-        <DeepResearchToggle
-          enabled={data.deepResearch}
-          setEnabled={(enabled) => setData({ ...data, deepResearch: enabled })}
-        />
-      </div>
 
-      <div className="absolute bottom-0 right-0 p-2 gap-2 w-fit flex flex-row justify-end">
-        <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-        {status === 'submitted' ? (
-          <StopButton stop={stop} setMessages={setMessages} />
-        ) : (
-          <SendButton
-            input={input}
-            submitForm={submitForm}
-            uploadQueue={uploadQueue}
-          />
-        )}
-      </div>
+        <ChatInputBottomRow className="flex flex-row justify-between">
+          <div className="flex items-center gap-2">
+            <ModelSelector
+              selectedModelId={selectedModelId}
+              className="h-fit"
+            />
+            <WebSearchToggle
+              enabled={data.webSearch}
+              setEnabled={(enabled) => setData({ ...data, webSearch: enabled })}
+            />
+            <DeepResearchToggle
+              enabled={data.deepResearch}
+              setEnabled={(enabled) =>
+                setData({ ...data, deepResearch: enabled })
+              }
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+            {status === 'submitted' ? (
+              <StopButton stop={stop} setMessages={setMessages} />
+            ) : (
+              <SendButton
+                input={input}
+                submitForm={submitForm}
+                uploadQueue={uploadQueue}
+              />
+            )}
+          </div>
+        </ChatInputBottomRow>
+      </ChatInputContainer>
     </div>
   );
 }
@@ -311,7 +300,7 @@ function WebSearchToggle({
       onPressedChange={setEnabled}
       variant="outline"
       size="sm"
-      className="gap-2 rounded-bl-lg p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
+      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
     >
       <GlobeIcon size={14} />
       Web search
@@ -329,7 +318,7 @@ function DeepResearchToggle({
       onPressedChange={setEnabled}
       variant="outline"
       size="sm"
-      className="gap-2 rounded-bl-lg p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
+      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
     >
       <Telescope size={14} />
       Deep research
@@ -347,26 +336,13 @@ function ReasonSearchToggle({
       onPressedChange={setEnabled}
       variant="outline"
       size="sm"
-      className="gap-2 rounded-bl-lg p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
+      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
     >
       <Lightbulb size={14} />
       Reason
     </Toggle>
   );
 }
-
-export const MultimodalInput = memo(
-  PureMultimodalInput,
-  (prevProps, nextProps) => {
-    if (prevProps.input !== nextProps.input) return false;
-    if (prevProps.status !== nextProps.status) return false;
-    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-    if (prevProps.data !== nextProps.data) return false;
-    if (prevProps.isEditMode !== nextProps.isEditMode) return false;
-    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
-    return true;
-  },
-);
 
 function PureAttachmentsButton({
   fileInputRef,
@@ -378,7 +354,7 @@ function PureAttachmentsButton({
   return (
     <Button
       data-testid="attachments-button"
-      className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+      className="rounded-md p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
       onClick={(event) => {
         event.preventDefault();
         fileInputRef.current?.click();
@@ -448,3 +424,16 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.submitForm !== nextProps.submitForm) return false;
   return true;
 });
+
+export const MultimodalInput = memo(
+  PureMultimodalInput,
+  (prevProps, nextProps) => {
+    if (prevProps.input !== nextProps.input) return false;
+    if (prevProps.status !== nextProps.status) return false;
+    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
+    if (prevProps.data !== nextProps.data) return false;
+    if (prevProps.isEditMode !== nextProps.isEditMode) return false;
+    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
+    return true;
+  },
+);

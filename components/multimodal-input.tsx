@@ -14,6 +14,7 @@ import {
 } from 'react';
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
+import { useDropzone } from 'react-dropzone';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { AttachmentList } from './attachment-list';
@@ -194,6 +195,33 @@ function PureMultimodalInput({
     [setAttachments],
   );
 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: async (acceptedFiles) => {
+      if (acceptedFiles.length === 0) return;
+
+      setUploadQueue(acceptedFiles.map((file) => file.name));
+
+      try {
+        const uploadPromises = acceptedFiles.map((file) => uploadFile(file));
+        const uploadedAttachments = await Promise.all(uploadPromises);
+        const successfullyUploadedAttachments = uploadedAttachments.filter(
+          (attachment) => attachment !== undefined,
+        );
+
+        setAttachments((currentAttachments) => [
+          ...currentAttachments,
+          ...successfullyUploadedAttachments,
+        ]);
+      } catch (error) {
+        console.error('Error uploading files!', error);
+      } finally {
+        setUploadQueue([]);
+      }
+    },
+    noClick: true, // Prevent click to open file dialog since we have the button
+    disabled: status !== 'ready',
+  });
+
   return (
     <div className="relative w-full flex flex-col gap-4">
       {messages.length === 0 &&
@@ -210,77 +238,96 @@ function PureMultimodalInput({
         tabIndex={-1}
       />
 
-      <ChatInputContainer className={className}>
-        <ChatInputTopRow>
-          {(attachments.length > 0 || uploadQueue.length > 0) && (
-            <AttachmentList
-              attachments={attachments}
-              uploadQueue={uploadQueue}
-              onRemove={removeAttachment}
-              testId="attachments-preview"
-              className="px-3 py-2"
-            />
+      <div className="relative">
+        <ChatInputContainer
+          className={`${className} transition-colors ${
+            isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20' : ''
+          }`}
+          {...getRootProps()}
+        >
+          <input {...getInputProps()} />
+
+          {isDragActive && (
+            <div className="absolute inset-0 flex items-center justify-center bg-blue-50/80 dark:bg-blue-950/40 border-2 border-dashed border-blue-500 rounded-2xl z-10">
+              <div className="text-blue-600 dark:text-blue-400 font-medium">
+                Drop files here to attach
+              </div>
+            </div>
           )}
-        </ChatInputTopRow>
 
-        <ChatInputTextArea
-          data-testid="multimodal-input"
-          ref={textareaRef}
-          placeholder="Send a message..."
-          value={input}
-          onChange={handleInput}
-          maxRows={15}
-          autoFocus
-          onKeyDown={(event) => {
-            if (
-              event.key === 'Enter' &&
-              !event.shiftKey &&
-              !event.nativeEvent.isComposing
-            ) {
-              event.preventDefault();
-
-              if (status !== 'ready') {
-                toast.error(
-                  'Please wait for the model to finish its response!',
-                );
-              } else {
-                submitForm();
-              }
-            }
-          }}
-        />
-
-        <ChatInputBottomRow className="flex flex-row justify-between">
-          <div className="flex items-center gap-2">
-            <ModelSelector
-              selectedModelId={selectedModelId}
-              className="h-fit"
-            />
-            <WebSearchToggle
-              enabled={data.webSearch}
-              setEnabled={(enabled) => setData({ ...data, webSearch: enabled })}
-            />
-            <DeepResearchToggle
-              enabled={data.deepResearch}
-              setEnabled={(enabled) =>
-                setData({ ...data, deepResearch: enabled })
-              }
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-            {status === 'submitted' ? (
-              <StopButton stop={stop} setMessages={setMessages} />
-            ) : (
-              <SendButton
-                input={input}
-                submitForm={submitForm}
+          <ChatInputTopRow>
+            {(attachments.length > 0 || uploadQueue.length > 0) && (
+              <AttachmentList
+                attachments={attachments}
                 uploadQueue={uploadQueue}
+                onRemove={removeAttachment}
+                testId="attachments-preview"
+                className="px-3 py-2"
               />
             )}
-          </div>
-        </ChatInputBottomRow>
-      </ChatInputContainer>
+          </ChatInputTopRow>
+
+          <ChatInputTextArea
+            data-testid="multimodal-input"
+            ref={textareaRef}
+            placeholder="Send a message..."
+            value={input}
+            onChange={handleInput}
+            maxRows={15}
+            autoFocus
+            onKeyDown={(event) => {
+              if (
+                event.key === 'Enter' &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault();
+
+                if (status !== 'ready') {
+                  toast.error(
+                    'Please wait for the model to finish its response!',
+                  );
+                } else {
+                  submitForm();
+                }
+              }
+            }}
+          />
+
+          <ChatInputBottomRow className="flex flex-row justify-between">
+            <div className="flex items-center gap-2">
+              <ModelSelector
+                selectedModelId={selectedModelId}
+                className="h-fit"
+              />
+              <WebSearchToggle
+                enabled={data.webSearch}
+                setEnabled={(enabled) =>
+                  setData({ ...data, webSearch: enabled })
+                }
+              />
+              <DeepResearchToggle
+                enabled={data.deepResearch}
+                setEnabled={(enabled) =>
+                  setData({ ...data, deepResearch: enabled })
+                }
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+              {status === 'submitted' ? (
+                <StopButton stop={stop} setMessages={setMessages} />
+              ) : (
+                <SendButton
+                  input={input}
+                  submitForm={submitForm}
+                  uploadQueue={uploadQueue}
+                />
+              )}
+            </div>
+          </ChatInputBottomRow>
+        </ChatInputContainer>
+      </div>
     </div>
   );
 }

@@ -15,6 +15,7 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 import { useDropzone } from 'react-dropzone';
+import { motion } from 'motion/react';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { AttachmentList } from './attachment-list';
@@ -255,17 +256,27 @@ function PureMultimodalInput({
             </div>
           )}
 
-          <ChatInputTopRow>
-            {(attachments.length > 0 || uploadQueue.length > 0) && (
-              <AttachmentList
-                attachments={attachments}
-                uploadQueue={uploadQueue}
-                onRemove={removeAttachment}
-                testId="attachments-preview"
-                className="px-3 py-2"
-              />
-            )}
-          </ChatInputTopRow>
+          <motion.div
+            animate={{
+              height:
+                attachments.length > 0 || uploadQueue.length > 0 ? 'auto' : 0,
+              opacity: attachments.length > 0 || uploadQueue.length > 0 ? 1 : 0,
+            }}
+            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            style={{ overflow: 'hidden' }}
+          >
+            <ChatInputTopRow>
+              {(attachments.length > 0 || uploadQueue.length > 0) && (
+                <AttachmentList
+                  attachments={attachments}
+                  uploadQueue={uploadQueue}
+                  onRemove={removeAttachment}
+                  testId="attachments-preview"
+                  className="px-3 py-2"
+                />
+              )}
+            </ChatInputTopRow>
+          </motion.div>
 
           <ChatInputTextArea
             data-testid="multimodal-input"

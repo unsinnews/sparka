@@ -3,7 +3,7 @@
 [x] Show reasoning tokens in the UI
 [x] Only launch with Deep Research (Disable reason search)
 [x] Verify that backend doesn't timeout for this flow
-[ ] MultiModal Input refinement
+[x] MultiModal Input refinement
 - [x] Improve multimodal input styles for long text, borders, roundness,
 - [x] Attachments should be removable
 - [x] Message attachments should be inside message box when visualizing and editing

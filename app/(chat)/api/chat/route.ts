@@ -1,5 +1,6 @@
 import {
   appendResponseMessages,
+  convertToCoreMessages,
   createDataStreamResponse,
   smoothStream,
   streamText,
@@ -86,6 +87,9 @@ export async function POST(request: NextRequest) {
       return new Response('No user message found', { status: 400 });
     }
 
+    // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
+    const contextForLLM = convertToCoreMessages(messages.slice(-5));
+
     const chat = await getChatById({ id });
 
     if (!chat) {
@@ -112,6 +116,7 @@ export async function POST(request: NextRequest) {
           annotations: userMessage.annotations,
         },
       ],
+      upsert: true,
     });
     let explicitlyRequestedTool: YourToolName | null = null;
     if (deepResearch) explicitlyRequestedTool = 'deepResearch';
@@ -174,7 +179,7 @@ export async function POST(request: NextRequest) {
           const result = streamText({
             model: getModelProvider(selectedChatModel),
             system: systemPrompt({ activeTools }),
-            messages,
+            messages: contextForLLM,
             maxSteps: 5,
             experimental_activeTools: activeTools,
             experimental_transform: smoothStream({ chunking: 'word' }),

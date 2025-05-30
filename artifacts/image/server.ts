@@ -4,12 +4,12 @@ import { experimental_generateImage } from 'ai';
 
 export const imageDocumentHandler = createDocumentHandler<'image'>({
   kind: 'image',
-  onCreateDocument: async ({ title, description, dataStream }) => {
+  onCreateDocument: async ({ title, description, dataStream, prompt }) => {
     let draftContent = '';
 
     const { image } = await experimental_generateImage({
       model: myProvider.imageModel('small-model'),
-      prompt: `${title}\n\n${description}`,
+      prompt,
       n: 1,
       providerOptions: {
         experimental_telemetry: { isEnabled: true },

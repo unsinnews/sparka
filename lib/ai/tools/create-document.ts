@@ -5,7 +5,6 @@ import type { Session } from 'next-auth';
 import {
   artifactKinds,
   documentHandlersByArtifactKind,
-  type GenerationOptions,
 } from '@/lib/artifacts/server';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 
@@ -29,12 +28,18 @@ export const createDocumentTool = ({
       kind: z.enum(artifactKinds),
     }),
     execute: async ({ title, description, kind }) => {
+      const prompt = `
+      Title: ${title}
+      Description: ${description}
+      `;
+
       return await createDocument({
         dataStream,
         kind,
         title,
         description,
         session,
+        prompt,
       });
     },
   });
@@ -45,14 +50,14 @@ export async function createDocument({
   title,
   description,
   session,
-  generationOptions,
+  prompt,
 }: {
   dataStream: AnnotationDataStreamWriter;
   kind: string;
   title: string;
   description: string;
   session: Session;
-  generationOptions?: GenerationOptions;
+  prompt: string;
 }) {
   const id = generateUUID();
 
@@ -91,7 +96,7 @@ export async function createDocument({
     description,
     dataStream,
     session,
-    generationOptions,
+    prompt,
   });
 
   dataStream.writeData({ type: 'finish', content: '' });

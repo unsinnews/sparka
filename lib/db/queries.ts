@@ -104,12 +104,20 @@ export async function getChatById({ id }: { id: string }) {
 
 export async function saveMessages({
   messages,
+  upsert = false,
 }: {
   messages: Array<DBMessage>;
+  upsert?: boolean;
 }) {
   try {
     // TODO: add a wrapper that validates the types with zod (e.g. MessageAnnotationSchema)
-    return await db.insert(message).values(messages);
+    const query = db.insert(message).values(messages);
+
+    if (upsert) {
+      return await query.onConflictDoNothing();
+    }
+
+    return await query;
   } catch (error) {
     console.error('Failed to save messages in database', error);
     throw error;

@@ -202,12 +202,9 @@ export async function writeFinalReport({
     dataStream,
     session,
     kind: 'text',
-    generationOptions: {
-      system: systemPrompt(),
-      prompt: trimPrompt(
-        `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>. Here are the sources used to generate the report:\n\n${urlsSection}`,
-      ),
-    },
+    prompt: trimPrompt(
+      `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>. Here are the sources used to generate the report:\n\n${urlsSection}`,
+    ),
   });
 
   // const res = await generateObject({

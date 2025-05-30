@@ -16,18 +16,13 @@ export interface SaveDocumentProps {
   userId: string;
 }
 
-export interface GenerationOptions {
-  system?: string;
-  prompt?: string;
-}
-
 export interface CreateDocumentCallbackProps {
   id: string;
   title: string;
   dataStream: AnnotationDataStreamWriter;
   session: Session;
   description: string;
-  generationOptions?: GenerationOptions;
+  prompt: string;
 }
 
 export interface UpdateDocumentCallbackProps {

@@ -307,6 +307,7 @@ function PureArtifact({
 
               <div className="flex flex-col h-full justify-between items-center gap-4">
                 <ArtifactMessages
+                  data={data}
                   chatId={chatId}
                   status={chatHelpers.status}
                   votes={votes}

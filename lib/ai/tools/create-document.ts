@@ -7,15 +7,18 @@ import {
   documentHandlersByArtifactKind,
 } from '@/lib/artifacts/server';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
+import type { CoreMessage } from 'ai';
 
 interface CreateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
+  contextForLLM?: CoreMessage[];
 }
 
 export const createDocumentTool = ({
   session,
   dataStream,
+  contextForLLM,
 }: CreateDocumentProps) =>
   tool({
     description:
@@ -28,10 +31,27 @@ export const createDocumentTool = ({
       kind: z.enum(artifactKinds),
     }),
     execute: async ({ title, description, kind }) => {
-      const prompt = `
+      let prompt = `
       Title: ${title}
       Description: ${description}
       `;
+
+      if (contextForLLM && contextForLLM.length > 0) {
+        const conversationContext = contextForLLM
+          .map(
+            (msg) =>
+              `${msg.role}: ${typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)}`,
+          )
+          .join('\n');
+
+        prompt = `
+      Title: ${title}
+      Description: ${description}
+      
+      Conversation Context:
+      ${conversationContext}
+      `;
+      }
 
       return await createDocument({
         dataStream,

@@ -191,6 +191,7 @@ export async function POST(request: NextRequest) {
             tools: getTools({
               dataStream: annotationStream,
               session,
+              contextForLLM,
             }),
             abortSignal: abortController.signal, // Pass abort signal to streamText
             ...(modelDefinition.features?.fixedTemperature

@@ -4,12 +4,11 @@
 [x] Only launch with Deep Research (Disable reason search)
 [x] Verify that backend doesn't timeout for this flow
 [x] MultiModal Input refinement
-- [x] Improve multimodal input styles for long text, borders, roundness,
 - [x] Attachments should be removable
 - [x] Message attachments should be inside message box when visualizing and editing
 - [x] Attachments should work with drop zone
 [x] Fix reserved credit release on crash
-[ ] Please wait until the message repsonse ends
+[x] Please wait until the message repsonse ends
 [ ] Define project Name
 [ ] Define project styles
 [ ] Create / Edit document should have more context of the conversation than a description
@@ -28,6 +27,7 @@
 
 
 ### Frontend
+[ ] Improve multimodal input styles for long text
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)
 [x] Migrate to TRPC with Tanstack Query
 [ ] Get model from cache in model selector while loading
@@ -40,8 +40,12 @@
 ### System
 [x] Get rid of API keys, just use the backend keys
 [x] TBD Create limits per accounts with a few credits
+[ ] Document should have a messageId reference and that should be used to make it publicly visible when the chat is public
+[ ] Chat should be forkable
+
 [ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
+
 
 
 

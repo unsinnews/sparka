@@ -12,16 +12,23 @@ import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
+import type { CoreMessage } from 'ai';
 
 export function getTools({
   dataStream,
   session,
-}: { dataStream: AnnotationDataStreamWriter; session: Session }) {
+  contextForLLM,
+}: {
+  dataStream: AnnotationDataStreamWriter;
+  session: Session;
+  contextForLLM?: CoreMessage[];
+}) {
   return {
     getWeather,
     createDocument: createDocumentTool({
       session,
       dataStream,
+      contextForLLM,
     }),
     updateDocument: updateDocument({
       session,

@@ -23,6 +23,7 @@ export interface CreateDocumentCallbackProps {
   session: Session;
   description: string;
   prompt: string;
+  messageId: string;
 }
 
 export interface UpdateDocumentCallbackProps {
@@ -30,6 +31,7 @@ export interface UpdateDocumentCallbackProps {
   description: string;
   dataStream: AnnotationDataStreamWriter;
   session: Session;
+  messageId: string;
 }
 
 export interface DocumentHandler<T = ArtifactKind> {
@@ -55,6 +57,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
           content: draftContent,
           kind: config.kind,
           userId: args.session.user.id,
+          messageId: args.messageId,
         });
       }
 
@@ -70,6 +73,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
           content: draftContent,
           kind: config.kind,
           userId: args.session.user.id,
+          messageId: args.messageId,
         });
       }
 

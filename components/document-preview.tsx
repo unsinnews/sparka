@@ -2,16 +2,16 @@
 
 import {
   memo,
-  MouseEvent,
+  type MouseEvent,
   useCallback,
   useEffect,
   useMemo,
   useRef,
 } from 'react';
-import { ArtifactKind, UIArtifact } from './artifact';
+import type { ArtifactKind, UIArtifact } from './artifact';
 import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
 import { cn, fetcher } from '@/lib/utils';
-import { Document } from '@/lib/db/schema';
+import type { Document } from '@/lib/db/schema';
 import { InlineDocumentSkeleton } from './document-skeleton';
 import useSWR from 'swr';
 import { Editor } from './text-editor';
@@ -63,7 +63,12 @@ export function DocumentPreview({
       return (
         <DocumentToolResult
           type="create"
-          result={{ id: result.id, title: result.title, kind: result.kind }}
+          result={{
+            id: result.id,
+            title: result.title,
+            kind: result.kind,
+            messageId: result.messageId,
+          }}
           isReadonly={isReadonly}
         />
       );
@@ -94,6 +99,7 @@ export function DocumentPreview({
           id: artifact.documentId,
           createdAt: new Date(),
           userId: 'noop',
+          messageId: 'noop',
         }
       : null;
 
@@ -163,6 +169,7 @@ const PureHitboxLayer = ({
               ...artifact,
               title: result.title,
               documentId: result.id,
+              messageId: result.messageId,
               kind: result.kind,
               isVisible: true,
               boundingBox: {

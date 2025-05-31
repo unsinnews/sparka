@@ -32,7 +32,6 @@ function PureMessages({
   selectedModelId,
   data,
 }: MessagesProps) {
-  console.log('messages', messages);
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 

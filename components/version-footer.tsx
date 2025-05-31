@@ -55,15 +55,16 @@ export const VersionFooter = ({
           onClick={async () => {
             setIsMutating(true);
 
+            const versionToRestore = documents[currentVersionIndex];
+
             mutate(
               `/api/document?id=${artifact.documentId}`,
               await fetch(`/api/document?id=${artifact.documentId}`, {
-                method: 'PATCH',
+                method: 'POST',
                 body: JSON.stringify({
-                  timestamp: getDocumentTimestampByIndex(
-                    documents,
-                    currentVersionIndex,
-                  ),
+                  content: versionToRestore.content,
+                  title: versionToRestore.title,
+                  kind: versionToRestore.kind,
                 }),
               }),
               {

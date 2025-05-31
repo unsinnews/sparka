@@ -41,7 +41,6 @@ export const ResearchUpdateAnnotations = ({
   annotations,
 }: { annotations?: MessageAnnotation[] }) => {
   if (!annotations) return null;
-  console.log('Annotations: ', annotations);
   const researchUpdates = annotations.filter(
     (a) => a.type === 'research_update',
   );

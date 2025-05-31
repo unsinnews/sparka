@@ -41,7 +41,9 @@ export const message = pgTable('Message', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   chatId: uuid('chatId')
     .notNull()
-    .references(() => chat.id),
+    .references(() => chat.id, {
+      onDelete: 'cascade',
+    }),
   role: varchar('role').notNull(),
   parts: json('parts').notNull(),
   attachments: json('attachments').notNull(),
@@ -56,10 +58,14 @@ export const vote = pgTable(
   {
     chatId: uuid('chatId')
       .notNull()
-      .references(() => chat.id),
+      .references(() => chat.id, {
+        onDelete: 'cascade',
+      }),
     messageId: uuid('messageId')
       .notNull()
-      .references(() => message.id),
+      .references(() => message.id, {
+        onDelete: 'cascade',
+      }),
     isUpvoted: boolean('isUpvoted').notNull(),
   },
   (table) => {
@@ -84,6 +90,11 @@ export const document = pgTable(
     userId: uuid('userId')
       .notNull()
       .references(() => user.id),
+    messageId: uuid('messageId')
+      .notNull()
+      .references(() => message.id, {
+        onDelete: 'cascade',
+      }),
   },
   (table) => {
     return {

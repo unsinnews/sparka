@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { UIArtifact } from '@/components/artifact';
+import type { UIArtifact } from '@/components/artifact';
 import { useCallback, useMemo } from 'react';
 
 export const initialArtifactData: UIArtifact = {
@@ -9,6 +9,7 @@ export const initialArtifactData: UIArtifact = {
   content: '',
   kind: 'text',
   title: '',
+  messageId: '',
   status: 'idle',
   isVisible: false,
   boundingBox: {

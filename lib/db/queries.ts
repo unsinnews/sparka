@@ -69,9 +69,6 @@ export async function saveChat({
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
-    await db.delete(vote).where(eq(vote.chatId, id));
-    await db.delete(message).where(eq(message.chatId, id));
-
     return await db.delete(chat).where(eq(chat.id, id));
   } catch (error) {
     console.error('Failed to delete chat by id from database');
@@ -102,20 +99,24 @@ export async function getChatById({ id }: { id: string }) {
   }
 }
 
-export async function saveMessages({
-  messages,
-  upsert = false,
+export async function upsertMessage({
+  _message,
 }: {
-  messages: Array<DBMessage>;
-  upsert?: boolean;
+  _message: DBMessage;
 }) {
   try {
-    // TODO: add a wrapper that validates the types with zod (e.g. MessageAnnotationSchema)
-    const query = db.insert(message).values(messages);
-
-    if (upsert) {
-      return await query.onConflictDoNothing();
-    }
+    const query = db
+      .insert(message)
+      .values(_message)
+      .onConflictDoUpdate({
+        target: [message.id],
+        set: {
+          parts: _message.parts,
+          annotations: _message.annotations,
+          attachments: _message.attachments,
+          createdAt: _message.createdAt,
+        },
+      });
 
     return await query;
   } catch (error) {
@@ -184,12 +185,14 @@ export async function saveDocument({
   kind,
   content,
   userId,
+  messageId,
 }: {
   id: string;
   title: string;
   kind: ArtifactKind;
   content: string;
   userId: string;
+  messageId: string;
 }) {
   try {
     return await db.insert(document).values({
@@ -198,15 +201,16 @@ export async function saveDocument({
       kind,
       content,
       userId,
+      messageId,
       createdAt: new Date(),
     });
   } catch (error) {
-    console.error('Failed to save document in database');
+    console.error('Failed to save document in database', error);
     throw error;
   }
 }
 
-export async function getDocumentsById({ id }: { id: string }) {
+async function _getDocumentsById({ id }: { id: string }) {
   try {
     const documents = await db
       .select()
@@ -216,7 +220,53 @@ export async function getDocumentsById({ id }: { id: string }) {
 
     return documents;
   } catch (error) {
-    console.error('Failed to get document by id from database');
+    console.error('Failed to get document by id from database', error);
+    throw error;
+  }
+}
+
+export async function getDocumentsById({
+  id,
+  userId,
+}: {
+  id: string;
+  userId?: string;
+}) {
+  try {
+    // First, get the document and check ownership
+    const documents = await _getDocumentsById({ id });
+
+    if (documents.length === 0) return [];
+
+    const [doc] = documents;
+
+    if (!userId || doc.userId !== userId) {
+      // Need to check if chat is public
+      const documentsWithVisibility = await db
+        .select({
+          id: document.id,
+          createdAt: document.createdAt,
+          title: document.title,
+          content: document.content,
+          kind: document.kind,
+          userId: document.userId,
+          messageId: document.messageId,
+          chatVisibility: chat.visibility,
+        })
+        .from(document)
+        .innerJoin(message, eq(document.messageId, message.id))
+        .innerJoin(chat, eq(message.chatId, chat.id))
+        .where(and(eq(document.id, id), eq(chat.visibility, 'public')))
+        .orderBy(asc(document.createdAt));
+
+      return documentsWithVisibility;
+    }
+
+    return documents;
+  } catch (error) {
+    console.error(
+      'Failed to get documents by id with visibility from database',
+    );
     throw error;
   }
 }

@@ -8,9 +8,14 @@ import type { AnnotationDataStreamWriter } from './annotation-stream';
 interface UpdateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
+  messageId: string;
 }
 
-export const updateDocument = ({ session, dataStream }: UpdateDocumentProps) =>
+export const updateDocument = ({
+  session,
+  dataStream,
+  messageId,
+}: UpdateDocumentProps) =>
   tool({
     description: 'Update a document with the given description.',
     parameters: z.object({
@@ -33,6 +38,11 @@ export const updateDocument = ({ session, dataStream }: UpdateDocumentProps) =>
         content: document.title,
       });
 
+      dataStream.writeData({
+        type: 'message-id',
+        content: messageId,
+      });
+
       const documentHandler = documentHandlersByArtifactKind.find(
         (documentHandlerByArtifactKind) =>
           documentHandlerByArtifactKind.kind === document.kind,
@@ -47,12 +57,14 @@ export const updateDocument = ({ session, dataStream }: UpdateDocumentProps) =>
         description,
         dataStream,
         session,
+        messageId,
       });
 
       dataStream.writeData({ type: 'finish', content: '' });
 
       return {
         id,
+        messageId,
         title: document.title,
         kind: document.kind,
         content: 'The document has been updated successfully.',

@@ -1,9 +1,7 @@
 import { memo } from 'react';
-
-import type { ArtifactKind } from './artifact';
 import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
-import { toast } from 'sonner';
 import { useArtifact } from '@/hooks/use-artifact';
+import type { ArtifactKind } from './artifact';
 
 const getActionText = (
   type: 'create' | 'update' | 'request-suggestions',
@@ -25,7 +23,12 @@ const getActionText = (
 
 interface DocumentToolResultProps {
   type: 'create' | 'update' | 'request-suggestions';
-  result: { id: string; title: string; kind: ArtifactKind };
+  result: {
+    id: string;
+    title: string;
+    kind: ArtifactKind;
+    messageId: string;
+  };
   isReadonly: boolean;
 }
 
@@ -41,13 +44,6 @@ function PureDocumentToolResult({
       type="button"
       className="bg-background cursor-pointer border py-2 px-3 rounded-xl w-fit flex flex-row gap-3 items-start"
       onClick={(event) => {
-        if (isReadonly) {
-          toast.error(
-            'Viewing files in shared chats is currently not supported.',
-          );
-          return;
-        }
-
         const rect = event.currentTarget.getBoundingClientRect();
 
         const boundingBox = {
@@ -62,6 +58,7 @@ function PureDocumentToolResult({
           kind: result.kind,
           content: '',
           title: result.title,
+          messageId: result.messageId,
           isVisible: true,
           status: 'idle',
           boundingBox,
@@ -104,13 +101,6 @@ function PureDocumentToolCall({
       type="button"
       className="cursor pointer w-fit border py-2 px-3 rounded-xl flex flex-row items-start justify-between gap-3"
       onClick={(event) => {
-        if (isReadonly) {
-          toast.error(
-            'Viewing files in shared chats is currently not supported.',
-          );
-          return;
-        }
-
         const rect = event.currentTarget.getBoundingClientRect();
 
         const boundingBox = {

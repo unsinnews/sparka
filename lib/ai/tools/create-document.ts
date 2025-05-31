@@ -13,12 +13,14 @@ interface CreateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
   contextForLLM?: CoreMessage[];
+  messageId: string;
 }
 
 export const createDocumentTool = ({
   session,
   dataStream,
   contextForLLM,
+  messageId,
 }: CreateDocumentProps) =>
   tool({
     description:
@@ -60,6 +62,7 @@ export const createDocumentTool = ({
         description,
         session,
         prompt,
+        messageId,
       });
     },
   });
@@ -71,6 +74,7 @@ export async function createDocument({
   description,
   session,
   prompt,
+  messageId,
 }: {
   dataStream: AnnotationDataStreamWriter;
   kind: string;
@@ -78,6 +82,7 @@ export async function createDocument({
   description: string;
   session: Session;
   prompt: string;
+  messageId: string;
 }) {
   const id = generateUUID();
 
@@ -89,6 +94,11 @@ export async function createDocument({
   dataStream.writeData({
     type: 'id',
     content: id,
+  });
+
+  dataStream.writeData({
+    type: 'message-id',
+    content: messageId,
   });
 
   dataStream.writeData({
@@ -117,12 +127,14 @@ export async function createDocument({
     dataStream,
     session,
     prompt,
+    messageId,
   });
 
   dataStream.writeData({ type: 'finish', content: '' });
 
   return {
     id,
+    messageId,
     title,
     kind,
     content: 'A document was created and is now visible to the user.',

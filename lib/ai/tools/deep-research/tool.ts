@@ -8,16 +8,19 @@ import {
 } from './deep-research';
 import type { AnnotationDataStreamWriter } from '../annotation-stream';
 
-interface DeepResearchProps {
-  session: Session;
-  dataStream: AnnotationDataStreamWriter;
-}
-
 // TODO: Restore both to 3 or make configurable. It needs to fit in 1m execution
 const BREADTH = 1;
 const DEPTH = 1;
 
-export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
+export const deepResearch = ({
+  session,
+  dataStream,
+  messageId,
+}: {
+  session: Session;
+  dataStream: AnnotationDataStreamWriter;
+  messageId: string;
+}) =>
   tool({
     description: 'Perform deep research on a topic',
     parameters: z.object({
@@ -85,6 +88,7 @@ export const deepResearch = ({ session, dataStream }: DeepResearchProps) =>
           prompt: combinedQuery,
           learnings,
           visitedUrls,
+          messageId,
         });
 
         console.log(`\n\nFinal Report:\n\n${report}`);

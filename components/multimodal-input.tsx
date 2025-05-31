@@ -72,7 +72,6 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
-  console.log({ data });
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     'input',

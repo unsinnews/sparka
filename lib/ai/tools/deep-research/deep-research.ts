@@ -181,6 +181,7 @@ export async function writeFinalReport({
   prompt,
   learnings,
   visitedUrls,
+  messageId,
 }: {
   title: string;
   description: string;
@@ -189,6 +190,7 @@ export async function writeFinalReport({
   prompt: string;
   learnings: string[];
   visitedUrls: string[];
+  messageId: string;
 }) {
   const learningsString = learnings
     .map((learning) => `<learning>\n${learning}\n</learning>`)
@@ -205,6 +207,7 @@ export async function writeFinalReport({
     prompt: trimPrompt(
       `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>. Here are the sources used to generate the report:\n\n${urlsSection}`,
     ),
+    messageId,
   });
 
   // const res = await generateObject({

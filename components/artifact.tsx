@@ -43,6 +43,7 @@ export interface UIArtifact {
   documentId: string;
   kind: ArtifactKind;
   content: string;
+  messageId: string;
   isVisible: boolean;
   status: 'streaming' | 'idle';
   boundingBox: {
@@ -99,18 +100,33 @@ function PureArtifact({
 
   useEffect(() => {
     if (documents && documents.length > 0) {
-      const mostRecentDocument = documents.at(-1);
+      // At first we set the most recent document realted to the messageId selected
+      const mostRecentDocumentIndex = documents.findLastIndex(
+        (document) => document.messageId === artifact.messageId,
+      );
 
-      if (mostRecentDocument) {
+      if (mostRecentDocumentIndex !== -1) {
+        const mostRecentDocument = documents[mostRecentDocumentIndex];
         setDocument(mostRecentDocument);
-        setCurrentVersionIndex(documents.length - 1);
+        setCurrentVersionIndex(mostRecentDocumentIndex);
         setArtifact((currentArtifact) => ({
           ...currentArtifact,
           content: mostRecentDocument.content ?? '',
         }));
+      } else {
+        // Fallback to the most recent document
+        const document = documents.at(-1);
+        if (document) {
+          setDocument(document);
+          setCurrentVersionIndex(documents.length - 1);
+          setArtifact((currentArtifact) => ({
+            ...currentArtifact,
+            content: document.content ?? '',
+          }));
+        }
       }
     }
-  }, [documents, setArtifact]);
+  }, [documents, setArtifact, artifact.messageId]);
 
   useEffect(() => {
     mutateDocuments();

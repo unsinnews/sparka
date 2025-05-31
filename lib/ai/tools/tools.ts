@@ -18,10 +18,12 @@ export function getTools({
   dataStream,
   session,
   contextForLLM,
+  messageId,
 }: {
   dataStream: AnnotationDataStreamWriter;
   session: Session;
   contextForLLM?: CoreMessage[];
+  messageId: string;
 }) {
   return {
     getWeather,
@@ -29,10 +31,12 @@ export function getTools({
       session,
       dataStream,
       contextForLLM,
+      messageId,
     }),
     updateDocument: updateDocument({
       session,
       dataStream,
+      messageId,
     }),
     requestSuggestions: requestSuggestions({
       session,
@@ -50,7 +54,7 @@ export function getTools({
     webSearch: webSearch({ session, dataStream }),
     stockChart,
     codeInterpreter,
-    deepResearch: deepResearch({ session, dataStream }),
+    deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }
 
@@ -58,7 +62,7 @@ type AvailableToolsReturn = ReturnType<typeof getTools>;
 
 export type YourToolName = keyof AvailableToolsReturn;
 
-type ToolResultOf<T extends keyof AvailableToolsReturn> = Awaited<
+export type ToolResultOf<T extends keyof AvailableToolsReturn> = Awaited<
   ReturnType<AvailableToolsReturn[T]['execute']>
 >;
 

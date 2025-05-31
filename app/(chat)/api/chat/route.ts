@@ -11,7 +11,7 @@ import {
   deleteChatById,
   getChatById,
   saveChat,
-  saveMessages,
+  upsertMessage,
   getUserById,
 } from '@/lib/db/queries';
 import {
@@ -104,19 +104,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    await saveMessages({
-      messages: [
-        {
-          chatId: id,
-          id: userMessage.id,
-          role: userMessage.role,
-          parts: userMessage.parts,
-          attachments: userMessage.experimental_attachments ?? [],
-          createdAt: new Date(),
-          annotations: userMessage.annotations,
-        },
-      ],
-      upsert: true,
+    await upsertMessage({
+      _message: {
+        id: userMessage.id,
+        chatId: id,
+        role: userMessage.role,
+        parts: userMessage.parts,
+        attachments: userMessage.experimental_attachments ?? [],
+        createdAt: new Date(),
+        annotations: userMessage.annotations,
+      },
     });
     let explicitlyRequestedTool: YourToolName | null = null;
     if (deepResearch) explicitlyRequestedTool = 'deepResearch';
@@ -172,6 +169,21 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      const messageId = generateUUID();
+
+      // Save placeholder assistant message immediately (needed for document creation)
+      await upsertMessage({
+        _message: {
+          id: messageId,
+          chatId: id,
+          role: 'assistant',
+          parts: [], // Empty placeholder
+          attachments: [],
+          createdAt: new Date(),
+          annotations: [],
+        },
+      });
+
       return createDataStreamResponse({
         execute: async (dataStream) => {
           const annotationStream = new AnnotationDataStreamWriter(dataStream);
@@ -183,7 +195,7 @@ export async function POST(request: NextRequest) {
             maxSteps: 5,
             experimental_activeTools: activeTools,
             experimental_transform: smoothStream({ chunking: 'word' }),
-            experimental_generateMessageId: generateUUID,
+            experimental_generateMessageId: () => messageId,
             experimental_telemetry: {
               isEnabled: true,
               functionId: 'chat-response',
@@ -192,6 +204,7 @@ export async function POST(request: NextRequest) {
               dataStream: annotationStream,
               session,
               contextForLLM,
+              messageId,
             }),
             abortSignal: abortController.signal, // Pass abort signal to streamText
             ...(modelDefinition.features?.fixedTemperature
@@ -233,19 +246,17 @@ export async function POST(request: NextRequest) {
 
                   console.log('assistantMessage', assistantMessage);
 
-                  await saveMessages({
-                    messages: [
-                      {
-                        id: assistantId,
-                        chatId: id,
-                        role: assistantMessage.role,
-                        parts: assistantMessage.parts,
-                        attachments:
-                          assistantMessage.experimental_attachments ?? [],
-                        createdAt: new Date(),
-                        annotations: annotationStream.getAnnotations(),
-                      },
-                    ],
+                  await upsertMessage({
+                    _message: {
+                      id: assistantId,
+                      chatId: id,
+                      role: assistantMessage.role,
+                      parts: assistantMessage.parts,
+                      attachments:
+                        assistantMessage.experimental_attachments ?? [],
+                      createdAt: new Date(),
+                      annotations: annotationStream.getAnnotations(),
+                    },
                   });
 
                   // Finalize credit usage: deduct actual cost, release reservation

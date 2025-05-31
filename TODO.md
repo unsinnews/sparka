@@ -9,10 +9,11 @@
 - [x] Attachments should work with drop zone
 [x] Fix reserved credit release on crash
 [x] Please wait until the message repsonse ends
+[x] Create / Edit document should have more context of the conversation than a description
+[x] Document should have a messageId reference and that should be used to make it publicly visible when the chat changes visibility to public
+[x] Delete previous chat messages should also delete documents created / updated in that range of the conversation
 [ ] Define project Name
 [ ] Define project styles
-[ ] Create / Edit document should have more context of the conversation than a description
-[ ] Delete previous chat messages should also delete documents created / updated in that range of the conversation
 [ ] Sign up with GitHub
 
 ### Backend
@@ -20,6 +21,9 @@
 [ ] Deep research should have a step in which it decides if the question can be answered or it should continue researching.
 [ ] Unify Deep research and reasonSearch
 [ ] Add manus-like plan as a document
+[ ] Security: User should only be able to see their own chats.
+[ ] Migrate routes to TRPC (and use it in the frontend)
+   [ ] Organize authorization as a layer at the beggining of each trpc endpoint
 
 [x] Create a button to Deep Research
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
@@ -36,12 +40,15 @@
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
 - [ ] Only render last document as preview, others as pill
+[ ] When viewing shared chat from another user, vote is not allowed. The button is hidden but we are doing the request anyway
+[ ] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu
+[ ] Multimodal edit message to wide on mobile (is it using a min-width?)
 
 ### System
 [x] Get rid of API keys, just use the backend keys
 [x] TBD Create limits per accounts with a few credits
-[ ] Document should have a messageId reference and that should be used to make it publicly visible when the chat is public
-[ ] Chat should be forkable
+[ ] Chat should be forkable (even shared ones)
+
 
 [ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5

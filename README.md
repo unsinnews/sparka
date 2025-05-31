@@ -4,7 +4,7 @@
 </a>
 
 <p align="center">
-  Batteries included Next.js AI Chatbot template.
+  Multi-provider AI chat platform with workflow customization.
 </p>
 
 <p align="center">
@@ -24,13 +24,20 @@
 - [AI SDK](https://sdk.vercel.ai/docs)
   - Unified API for generating text, structured objects, and tool calls with LLMs
   - Hooks for building dynamic chat and generative user interfaces
-  - Supports xAI (default), OpenAI, Fireworks, and other model providers
+  - Supports multiple model providers in a single interface
+- Multi-Provider AI Access
+  - Connect with AI models from various providers without multiple premium subscriptions
+  - Model selection and customization options
+  - Unified chat interface for different AI capabilities
 - [shadcn/ui](https://ui.shadcn.com)
   - Styling with [Tailwind CSS](https://tailwindcss.com)
   - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
 - Data Persistence
-  - [Vercel Postgres powered by Neon](https://vercel.com/storage/postgres) for saving chat history and user data
-  - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
+  - Database integration for saving chat history and user data
+  - Efficient file storage capabilities
+- Workflow Customization
+  - Tools and features for creating custom AI workflows
+  - Knowledge access and task performance capabilities
 - [NextAuth.js](https://github.com/nextauthjs/next-auth)
   - Simple and secure authentication
 
@@ -59,7 +66,13 @@ Your app template should now be running on [localhost:3000](http://localhost:300
 
 ## Core Philosophy
 
-The primary goal of Parlagen is to provide a robust platform for use the latest AI models and features as they become available. It's also a template for your own AI chat applications, offering a comprehensive set of features out-of-the-box while remaining easy to customize and extend.
+Parlagen provides a unified platform for accessing the latest AI models and features from multiple providers in a single interface. Our goal is to eliminate the need for multiple premium subscriptions across different AI applications while offering powerful customization options for users to create their own AI workflows.
+
+The platform emphasizes:
+- **Unified Access**: Connect with various AI model providers through one interface
+- **Cost Efficiency**: Avoid paying for multiple premium subscriptions 
+- **Customization**: Power users can create personalized AI workflows
+- **Simplicity**: Clean, intuitive interface that's easy to use and maintain
 
 ## Inspiration
 

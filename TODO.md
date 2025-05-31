@@ -42,8 +42,9 @@
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
 - [ ] Only render last document as preview, others as pill
-[ ] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu
+[x] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu
 [ ] Artifact editing should be disabled on shared chats (isEditable is false)
+[ ] Migrate to tailwind 4 (and migrate container queries)
 
 ### System
 [x] Get rid of API keys, just use the backend keys

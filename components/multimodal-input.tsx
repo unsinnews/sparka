@@ -31,9 +31,15 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { Toggle } from './ui/toggle';
-import { GlobeIcon, Lightbulb, Telescope } from 'lucide-react';
+import { GlobeIcon, Lightbulb, Telescope, Settings2 } from 'lucide-react';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { ModelSelector } from './model-selector';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 
 function PureMultimodalInput({
   chatId,
@@ -304,25 +310,12 @@ function PureMultimodalInput({
             }}
           />
 
-          <ChatInputBottomRow className="flex flex-row justify-between">
-            <div className="flex items-center gap-2">
-              <ModelSelector
-                selectedModelId={selectedModelId}
-                className="h-fit"
-              />
-              <WebSearchToggle
-                enabled={data.webSearch}
-                setEnabled={(enabled) =>
-                  setData({ ...data, webSearch: enabled })
-                }
-              />
-              <DeepResearchToggle
-                enabled={data.deepResearch}
-                setEnabled={(enabled) =>
-                  setData({ ...data, deepResearch: enabled })
-                }
-              />
-            </div>
+          <ChatInputBottomRow className="@container flex flex-row justify-between">
+            <ResponsiveToggles
+              data={data}
+              setData={setData}
+              selectedModelId={selectedModelId}
+            />
             <div className="flex items-center gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
               {status === 'submitted' ? (
@@ -476,6 +469,105 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.submitForm !== nextProps.submitForm) return false;
   return true;
 });
+
+function ResponsiveToggles({
+  data,
+  setData,
+  selectedModelId,
+}: {
+  data: ChatRequestData;
+  setData: Dispatch<SetStateAction<ChatRequestData>>;
+  selectedModelId: string;
+}) {
+  const activeTool = data.webSearch
+    ? 'webSearch'
+    : data.deepResearch
+      ? 'deepResearch'
+      : data.reason
+        ? 'reason'
+        : null;
+
+  const setTool = (tool: 'webSearch' | 'deepResearch' | 'reason' | null) => {
+    setData({
+      webSearch: tool === 'webSearch',
+      deepResearch: tool === 'deepResearch',
+      reason: tool === 'reason',
+    });
+  };
+
+  return (
+    <>
+      {/* Compact layout for narrow containers */}
+      <div className="flex items-center gap-2 @[500px]:hidden">
+        <ModelSelector selectedModelId={selectedModelId} className="h-fit" />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+            >
+              <Settings2 size={14} />
+              Tools
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuItem
+              onClick={() => setTool(data.webSearch ? null : 'webSearch')}
+              className="flex items-center gap-2"
+            >
+              <GlobeIcon size={14} />
+              <span>Web search</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => setTool(data.deepResearch ? null : 'deepResearch')}
+              className="flex items-center gap-2"
+            >
+              <Telescope size={14} />
+              <span>Deep research</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Show active tool as dismissable pill */}
+        {activeTool && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setTool(null)}
+            className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+          >
+            {activeTool === 'webSearch' && <GlobeIcon size={14} />}
+            {activeTool === 'deepResearch' && <Telescope size={14} />}
+            <span>
+              {activeTool === 'webSearch' && 'Web search'}
+              {activeTool === 'deepResearch' && 'Deep research'}
+            </span>
+            <span className="text-xs opacity-70">×</span>
+          </Button>
+        )}
+      </div>
+
+      {/* Full layout for wider containers */}
+      <div className="hidden @[500px]:flex items-center gap-2">
+        <ModelSelector selectedModelId={selectedModelId} className="h-fit" />
+        <WebSearchToggle
+          enabled={data.webSearch}
+          setEnabled={(enabled) => setTool(enabled ? 'webSearch' : null)}
+        />
+        <DeepResearchToggle
+          enabled={data.deepResearch}
+          setEnabled={(enabled) => setTool(enabled ? 'deepResearch' : null)}
+        />
+        {/* <ReasonSearchToggle
+          enabled={data.reason}
+          setEnabled={(enabled) => setTool(enabled ? 'reason' : null)}
+        /> */}
+      </div>
+    </>
+  );
+}
 
 export const MultimodalInput = memo(
   PureMultimodalInput,

@@ -9,6 +9,7 @@ import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { ResponseErrorMessage } from './response-error-message';
 import { ThinkingMessage } from './thinking-message';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import { findLastArtifact } from '@/lib/utils';
 
 interface ArtifactMessagesProps {
   chatId: string;
@@ -35,6 +36,9 @@ function PureArtifactMessages({
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
 
+  // Find the last artifact in all messages
+  const lastArtifact = findLastArtifact(messages);
+
   return (
     <div
       ref={messagesContainerRef}
@@ -54,6 +58,7 @@ function PureArtifactMessages({
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           selectedModelId={selectedModelId}
+          lastArtifact={lastArtifact}
         />
       ))}
 

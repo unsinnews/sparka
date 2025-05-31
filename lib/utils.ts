@@ -1,6 +1,7 @@
 import type { CoreAssistantMessage, CoreToolMessage, Message } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 
 import type { Document } from '@/lib/db/schema';
 import type { YourUIMessage } from './ai/tools/annotations';
@@ -12,6 +13,32 @@ export function cn(...inputs: ClassValue[]) {
 interface ApplicationError extends Error {
   info: string;
   status: number;
+}
+
+export function findLastArtifact(
+  messages: Array<YourUIMessage>,
+): { messageIndex: number; toolCallId: string } | null {
+  const allArtifacts: Array<{ messageIndex: number; toolCallId: string }> = [];
+
+  messages.forEach((msg, messageIndex) => {
+    msg.parts?.forEach((part) => {
+      if (part.type === 'tool-invocation') {
+        const toolInvocation = part.toolInvocation as YourToolInvocation;
+        if (
+          toolInvocation.state === 'result' &&
+          (toolInvocation.toolName === 'createDocument' ||
+            toolInvocation.toolName === 'deepResearch')
+        ) {
+          allArtifacts.push({
+            messageIndex,
+            toolCallId: toolInvocation.toolCallId,
+          });
+        }
+      }
+    });
+  });
+
+  return allArtifacts[allArtifacts.length - 1] || null;
 }
 
 export const fetcher = async (url: string) => {

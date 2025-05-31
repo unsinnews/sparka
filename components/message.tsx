@@ -51,6 +51,7 @@ const PurePreviewMessage = ({
   isReadonly,
   chatHelpers,
   selectedModelId,
+  lastArtifact,
 }: {
   chatId: string;
   message: YourUIMessage;
@@ -59,8 +60,25 @@ const PurePreviewMessage = ({
   isReadonly: boolean;
   chatHelpers: UseChatHelpers;
   selectedModelId: string;
+  lastArtifact: { messageIndex: number; toolCallId: string } | null;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+
+  // Helper function to check if this is the last artifact
+  const isLastArtifact = (currentToolCallId: string) => {
+    if (!lastArtifact) return false;
+
+    const { messages } = chatHelpers;
+    const currentMessageIndex = messages.findIndex(
+      (msg) => msg.id === message.id,
+    );
+
+    return (
+      lastArtifact.messageIndex === currentMessageIndex &&
+      lastArtifact.toolCallId === currentToolCallId
+    );
+  };
+
   return (
     <AnimatePresence>
       <motion.div
@@ -223,16 +241,27 @@ const PurePreviewMessage = ({
 
                 if (toolInvocation.state === 'result') {
                   const { toolName, toolCallId, args, result } = toolInvocation;
+                  const shouldShowFullPreview = isLastArtifact(toolCallId);
+
                   return (
                     <div key={toolCallId}>
                       {toolName === 'getWeather' ? (
                         <Weather weatherAtLocation={result} />
-                      ) : toolName === 'createDocument' ||
-                        toolName === 'deepResearch' ? (
+                      ) : (toolName === 'createDocument' ||
+                          toolName === 'deepResearch') &&
+                        shouldShowFullPreview ? (
                         <DocumentPreview
                           isReadonly={isReadonly}
                           result={result}
                           args={args}
+                        />
+                      ) : toolName === 'createDocument' ||
+                        toolName === 'deepResearch' ? (
+                        <DocumentToolResult
+                          type="create"
+                          // @ts-expect-error // TODO: fix this
+                          result={result}
+                          isReadonly={isReadonly}
                         />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolResult
@@ -305,6 +334,7 @@ export const PreviewMessage = memo(
       return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
+    if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
 
     return true;
   },

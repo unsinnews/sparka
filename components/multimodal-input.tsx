@@ -40,6 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { Separator } from './ui/separator';
 
 function PureMultimodalInput({
   chatId,
@@ -311,11 +312,17 @@ function PureMultimodalInput({
           />
 
           <ChatInputBottomRow className="@container flex flex-row justify-between">
-            <ResponsiveToggles
-              data={data}
-              setData={setData}
-              selectedModelId={selectedModelId}
-            />
+            <div className="flex items-center gap-2">
+              <ModelSelector
+                selectedModelId={selectedModelId}
+                className="h-fit"
+              />
+              <ResponsiveToggles
+                data={data}
+                setData={setData}
+                selectedModelId={selectedModelId}
+              />
+            </div>
             <div className="flex items-center gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
               {status === 'submitted' ? (
@@ -499,8 +506,6 @@ function ResponsiveToggles({
     <>
       {/* Compact layout for narrow containers */}
       <div className="flex items-center gap-2 @[500px]:hidden">
-        <ModelSelector selectedModelId={selectedModelId} className="h-fit" />
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -509,7 +514,7 @@ function ResponsiveToggles({
               className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
             >
               <Settings2 size={14} />
-              Tools
+              <span className="hidden @[400px]:inline">Tools</span>
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-48">
@@ -532,26 +537,31 @@ function ResponsiveToggles({
 
         {/* Show active tool as dismissable pill */}
         {activeTool && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setTool(null)}
-            className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
-          >
-            {activeTool === 'webSearch' && <GlobeIcon size={14} />}
-            {activeTool === 'deepResearch' && <Telescope size={14} />}
-            <span>
-              {activeTool === 'webSearch' && 'Web search'}
-              {activeTool === 'deepResearch' && 'Deep research'}
-            </span>
-            <span className="text-xs opacity-70">×</span>
-          </Button>
+          <>
+            <Separator
+              orientation="vertical"
+              className="bg-muted-foreground/50 h-4"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTool(null)}
+              className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+            >
+              {activeTool === 'webSearch' && <GlobeIcon size={14} />}
+              {activeTool === 'deepResearch' && <Telescope size={14} />}
+              <span className="hidden @[400px]:inline">
+                {activeTool === 'webSearch' && 'Web search'}
+                {activeTool === 'deepResearch' && 'Deep research'}
+              </span>
+              <span className="text-xs opacity-70">×</span>
+            </Button>
+          </>
         )}
       </div>
 
       {/* Full layout for wider containers */}
       <div className="hidden @[500px]:flex items-center gap-2">
-        <ModelSelector selectedModelId={selectedModelId} className="h-fit" />
         <WebSearchToggle
           enabled={data.webSearch}
           setEnabled={(enabled) => setTool(enabled ? 'webSearch' : null)}

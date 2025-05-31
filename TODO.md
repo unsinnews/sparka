@@ -46,6 +46,8 @@
 [x] Artifact editing should be disabled on shared chats (isEditable is false)
 [ ] Migrate to tailwind 4 (and migrate container queries)
 [ ] Only show the last artifact in the chat as a big preview, others as pills
+[ ] Multimodal input on artifact should be hidden in shared chat
+
 
 ### System
 [x] Get rid of API keys, just use the backend keys

@@ -45,6 +45,7 @@
 [x] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu
 [ ] Artifact editing should be disabled on shared chats (isEditable is false)
 [ ] Migrate to tailwind 4 (and migrate container queries)
+[ ] Only show the last artifact in the chat as a big preview, others as pills
 
 ### System
 [x] Get rid of API keys, just use the backend keys

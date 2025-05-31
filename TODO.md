@@ -47,13 +47,13 @@
 - [ ] Virtual list for previous chats
 - [ ] Only render last document as preview, others as pill
 [ ] Migrate to tailwind 4 (and migrate container queries)
-
+[ ] Improve model selector with combobox and filters (based on features)
 
 ### System
 [x] Get rid of API keys, just use the backend keys
 [x] TBD Create limits per accounts with a few credits
 [ ] Chat should be forkable (even shared ones)
-
+[ ] Add more providers (Google, Deepseek, etc)
 
 [ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5

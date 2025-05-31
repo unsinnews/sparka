@@ -11,8 +11,10 @@ import {
   deleteChatById,
   getChatById,
   saveChat,
-  upsertMessage,
   getUserById,
+  saveMessage,
+  updateMessage,
+  getMessageById,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -48,7 +50,7 @@ export type ChatRequestData = {
 export async function POST(request: NextRequest) {
   try {
     const {
-      id,
+      id: chatId,
       messages,
       selectedChatModel,
       data,
@@ -90,31 +92,44 @@ export async function POST(request: NextRequest) {
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
     const contextForLLM = convertToCoreMessages(messages.slice(-5));
 
-    const chat = await getChatById({ id });
+    const chat = await getChatById({ id: chatId });
+
+    if (chat && chat.userId !== session.user.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
 
     if (!chat) {
       const title = await generateTitleFromUserMessage({
         message: userMessage,
       });
 
-      await saveChat({ id, userId: session.user.id, title });
+      await saveChat({ id: chatId, userId: session.user.id, title });
     } else {
       if (chat.userId !== session.user.id) {
         return new Response('Unauthorized', { status: 401 });
       }
     }
 
-    await upsertMessage({
-      _message: {
-        id: userMessage.id,
-        chatId: id,
-        role: userMessage.role,
-        parts: userMessage.parts,
-        attachments: userMessage.experimental_attachments ?? [],
-        createdAt: new Date(),
-        annotations: userMessage.annotations,
-      },
-    });
+    const [exsistentMessage] = await getMessageById({ id: userMessage.id });
+
+    if (exsistentMessage && exsistentMessage.chatId !== chatId) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    if (!exsistentMessage) {
+      // If the message does not exist, save it
+      await saveMessage({
+        _message: {
+          id: userMessage.id,
+          chatId: chatId,
+          role: userMessage.role,
+          parts: userMessage.parts,
+          attachments: userMessage.experimental_attachments ?? [],
+          createdAt: new Date(),
+          annotations: userMessage.annotations,
+        },
+      });
+    }
     let explicitlyRequestedTool: YourToolName | null = null;
     if (deepResearch) explicitlyRequestedTool = 'deepResearch';
     // else if (reason) explicitlyRequestedTool = 'reasonSearch';
@@ -172,10 +187,10 @@ export async function POST(request: NextRequest) {
       const messageId = generateUUID();
 
       // Save placeholder assistant message immediately (needed for document creation)
-      await upsertMessage({
+      await saveMessage({
         _message: {
           id: messageId,
-          chatId: id,
+          chatId: chatId,
           role: 'assistant',
           parts: [], // Empty placeholder
           attachments: [],
@@ -246,10 +261,10 @@ export async function POST(request: NextRequest) {
 
                   console.log('assistantMessage', assistantMessage);
 
-                  await upsertMessage({
+                  await updateMessage({
                     _message: {
                       id: assistantId,
-                      chatId: id,
+                      chatId: chatId,
                       role: assistantMessage.role,
                       parts: assistantMessage.parts,
                       attachments:

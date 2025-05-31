@@ -99,28 +99,36 @@ export async function getChatById({ id }: { id: string }) {
   }
 }
 
-export async function upsertMessage({
+export async function saveMessage({
   _message,
 }: {
   _message: DBMessage;
 }) {
   try {
-    const query = db
-      .insert(message)
-      .values(_message)
-      .onConflictDoUpdate({
-        target: [message.id],
-        set: {
-          parts: _message.parts,
-          annotations: _message.annotations,
-          attachments: _message.attachments,
-          createdAt: _message.createdAt,
-        },
-      });
-
-    return await query;
+    return await db.insert(message).values(_message);
   } catch (error) {
-    console.error('Failed to save messages in database', error);
+    console.error('Failed to save message in database', error);
+    throw error;
+  }
+}
+
+export async function updateMessage({
+  _message,
+}: {
+  _message: DBMessage;
+}) {
+  try {
+    return await db
+      .update(message)
+      .set({
+        parts: _message.parts,
+        annotations: _message.annotations,
+        attachments: _message.attachments,
+        createdAt: _message.createdAt,
+      })
+      .where(eq(message.id, _message.id));
+  } catch (error) {
+    console.error('Failed to update message in database', error);
     throw error;
   }
 }
@@ -151,7 +159,7 @@ export async function voteMessage({
     const [existingVote] = await db
       .select()
       .from(vote)
-      .where(and(eq(vote.messageId, messageId)));
+      .where(and(eq(vote.messageId, messageId), eq(vote.chatId, chatId)));
 
     if (existingVote) {
       return await db

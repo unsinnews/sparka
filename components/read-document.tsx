@@ -16,13 +16,11 @@ function PureReadDocument({ result }: ReadDocumentProps) {
   if (!result) return null;
 
   return (
-    <div className="bg-background border py-2 px-3 rounded-xl w-fit flex flex-row gap-3 items-start">
-      <div className="text-muted-foreground mt-1">
-        <FileIcon />
-      </div>
-      <div className="text-left">
-        <div className="text-sm text-muted-foreground">Read document</div>
-        <div className="font-medium">&ldquo;{result.title}&rdquo;</div>
+    <div className=" py-2 px-3 rounded-xl w-fit flex gap-3 items-center text-muted-foreground">
+      <FileIcon />
+      <div className="text-left flex gap-1 items-center text-sm">
+        <div className="">Read</div>
+        <div className="">&ldquo;{result.title}&rdquo;</div>
       </div>
     </div>
   );

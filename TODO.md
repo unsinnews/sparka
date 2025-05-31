@@ -43,6 +43,7 @@
 - [ ] Only render last document as preview, others as pill
 [ ] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu
 [ ] Multimodal edit message to wide on mobile (is it using a min-width?)
+[ ] Artifact editing should be disabled on shared chats (isEditable is false)
 
 ### System
 [x] Get rid of API keys, just use the backend keys

@@ -8,14 +8,12 @@ interface ErrorMessageProps {
   chatHelpers: UseChatHelpers;
   messages: Array<YourUIMessage>;
   data: ChatRequestData;
-  chatId: string;
 }
 
 export function ResponseErrorMessage({
   chatHelpers,
   messages,
   data,
-  chatId,
 }: ErrorMessageProps) {
   return (
     <div className="flex flex-col items-center mx-auto px-6 py-8 rounded-lg shadow-sm gap-4 w-full md:max-w-2xl">

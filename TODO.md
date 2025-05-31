@@ -23,7 +23,7 @@
 [ ] Add manus-like plan as a document
 [ ] Security: User should only be able to see their own chats.
 [ ] Migrate routes to TRPC (and use it in the frontend)
-   [ ] Organize authorization as a layer at the beggining of each trpc endpoint
+[ ] Organize authorization as a layer at the beggining of each trpc
 
 [x] Create a button to Deep Research
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
@@ -36,11 +36,11 @@
 [x] Migrate to TRPC with Tanstack Query
 [ ] Get model from cache in model selector while loading
 [x] Edit message should have multimodal input box (instead of only Send and Cancel)
+[x] When viewing shared chat from another user, vote is not allowed. The button is hidden but we are doing the request anyway
 [ ] Chat history: 
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
 - [ ] Only render last document as preview, others as pill
-[ ] When viewing shared chat from another user, vote is not allowed. The button is hidden but we are doing the request anyway
 [ ] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu
 [ ] Multimodal edit message to wide on mobile (is it using a min-width?)
 

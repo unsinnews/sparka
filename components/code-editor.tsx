@@ -6,7 +6,7 @@ import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
 import React, { memo, useEffect, useRef } from 'react';
-import { Suggestion } from '@/lib/db/schema';
+import type { Suggestion } from '@/lib/db/schema';
 
 type EditorProps = {
   content: string;
@@ -15,9 +15,15 @@ type EditorProps = {
   isCurrentVersion: boolean;
   currentVersionIndex: number;
   suggestions: Array<Suggestion>;
+  isReadonly?: boolean;
 };
 
-function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
+function PureCodeEditor({
+  content,
+  onSaveContent,
+  status,
+  isReadonly,
+}: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
 
@@ -25,7 +31,12 @@ function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
     if (containerRef.current && !editorRef.current) {
       const startState = EditorState.create({
         doc: content,
-        extensions: [basicSetup, python(), oneDark],
+        extensions: [
+          basicSetup,
+          python(),
+          oneDark,
+          EditorView.editable.of(!isReadonly),
+        ],
       });
 
       editorRef.current = new EditorView({
@@ -47,7 +58,7 @@ function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
   useEffect(() => {
     if (editorRef.current) {
       const updateListener = EditorView.updateListener.of((update) => {
-        if (update.docChanged) {
+        if (update.docChanged && !isReadonly) {
           const transaction = update.transactions.find(
             (tr) => !tr.annotation(Transaction.remote),
           );
@@ -63,13 +74,19 @@ function PureCodeEditor({ content, onSaveContent, status }: EditorProps) {
 
       const newState = EditorState.create({
         doc: editorRef.current.state.doc,
-        extensions: [basicSetup, python(), oneDark, updateListener],
+        extensions: [
+          basicSetup,
+          python(),
+          oneDark,
+          updateListener,
+          EditorView.editable.of(!isReadonly),
+        ],
         selection: currentSelection,
       });
 
       editorRef.current.setState(newState);
     }
-  }, [onSaveContent]);
+  }, [onSaveContent, isReadonly]);
 
   useEffect(() => {
     if (editorRef.current && content) {
@@ -106,6 +123,7 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
   if (prevProps.status === 'streaming' && nextProps.status === 'streaming')
     return false;
   if (prevProps.content !== nextProps.content) return false;
+  if (prevProps.isReadonly !== nextProps.isReadonly) return false;
 
   return true;
 }

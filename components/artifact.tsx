@@ -186,6 +186,10 @@ function PureArtifact({
 
   const saveContent = useCallback(
     (updatedContent: string, debounce: boolean) => {
+      if (isReadonly) {
+        return;
+      }
+
       if (document && updatedContent !== document.content) {
         setIsContentDirty(true);
 
@@ -196,7 +200,7 @@ function PureArtifact({
         }
       }
     },
-    [document, debouncedHandleContentChange, handleContentChange],
+    [document, debouncedHandleContentChange, handleContentChange, isReadonly],
   );
 
   function getDocumentContentById(index: number) {
@@ -459,6 +463,7 @@ function PureArtifact({
                 mode={mode}
                 metadata={metadata}
                 setMetadata={setMetadata}
+                isReadonly={isReadonly}
               />
             </div>
 
@@ -481,10 +486,11 @@ function PureArtifact({
                 isLoading={isDocumentsFetching && !artifact.content}
                 metadata={metadata}
                 setMetadata={setMetadata}
+                isReadonly={isReadonly}
               />
 
               <AnimatePresence>
-                {isCurrentVersion && (
+                {isCurrentVersion && !isReadonly && (
                   <Toolbar
                     isToolbarVisible={isToolbarVisible}
                     setIsToolbarVisible={setIsToolbarVisible}
@@ -499,7 +505,7 @@ function PureArtifact({
             </div>
 
             <AnimatePresence>
-              {!isCurrentVersion && (
+              {!isCurrentVersion && !isReadonly && (
                 <VersionFooter
                   currentVersionIndex={currentVersionIndex}
                   documents={documents}
@@ -520,6 +526,7 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
   if (prevProps.data !== nextProps.data) return false;
   if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
+  if (prevProps.isReadonly !== nextProps.isReadonly) return false;
 
   return true;
 });

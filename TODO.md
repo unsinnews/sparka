@@ -43,7 +43,7 @@
 - [ ] Virtual list for previous chats
 - [ ] Only render last document as preview, others as pill
 [x] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu
-[ ] Artifact editing should be disabled on shared chats (isEditable is false)
+[x] Artifact editing should be disabled on shared chats (isEditable is false)
 [ ] Migrate to tailwind 4 (and migrate container queries)
 [ ] Only show the last artifact in the chat as a big preview, others as pills
 

@@ -12,6 +12,7 @@ export type ArtifactActionContext<M = any> = {
   mode: 'edit' | 'diff';
   metadata: M;
   setMetadata: Dispatch<SetStateAction<M>>;
+  isReadonly?: boolean;
 };
 
 type ArtifactAction<M = any> = {
@@ -46,6 +47,7 @@ interface ArtifactContent<M = any> {
   isLoading: boolean;
   metadata: M;
   setMetadata: Dispatch<SetStateAction<M>>;
+  isReadonly?: boolean;
 }
 
 interface InitializeParameters<M = any> {

@@ -1,8 +1,8 @@
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { artifactDefinitions, UIArtifact } from './artifact';
-import { Dispatch, memo, SetStateAction, useState } from 'react';
-import { ArtifactActionContext } from './create-artifact';
+import { artifactDefinitions, type UIArtifact } from './artifact';
+import { type Dispatch, memo, type SetStateAction, useState } from 'react';
+import type { ArtifactActionContext } from './create-artifact';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -14,6 +14,7 @@ interface ArtifactActionsProps {
   mode: 'edit' | 'diff';
   metadata: any;
   setMetadata: Dispatch<SetStateAction<any>>;
+  isReadonly: boolean;
 }
 
 function PureArtifactActions({
@@ -24,6 +25,7 @@ function PureArtifactActions({
   mode,
   metadata,
   setMetadata,
+  isReadonly,
 }: ArtifactActionsProps) {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -43,45 +45,59 @@ function PureArtifactActions({
     mode,
     metadata,
     setMetadata,
+    isReadonly,
   };
 
   return (
     <div className="flex flex-row gap-1">
-      {artifactDefinition.actions.map((action) => (
-        <Tooltip key={action.description}>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn('h-fit dark:hover:bg-zinc-700', {
-                'p-2': !action.label,
-                'py-1.5 px-2': action.label,
-              })}
-              onClick={async () => {
-                setIsLoading(true);
+      {artifactDefinition.actions
+        .filter((action) => {
+          // Hide editing actions when readonly, keep view/copy actions
+          if (isReadonly) {
+            return (
+              action.description === 'View changes' ||
+              action.description === 'View Previous version' ||
+              action.description === 'View Next version' ||
+              action.description === 'Copy to clipboard'
+            );
+          }
+          return true;
+        })
+        .map((action) => (
+          <Tooltip key={action.description}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn('h-fit dark:hover:bg-zinc-700', {
+                  'p-2': !action.label,
+                  'py-1.5 px-2': action.label,
+                })}
+                onClick={async () => {
+                  setIsLoading(true);
 
-                try {
-                  await Promise.resolve(action.onClick(actionContext));
-                } catch (error) {
-                  toast.error('Failed to execute action');
-                } finally {
-                  setIsLoading(false);
+                  try {
+                    await Promise.resolve(action.onClick(actionContext));
+                  } catch (error) {
+                    toast.error('Failed to execute action');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                }}
+                disabled={
+                  isLoading || artifact.status === 'streaming'
+                    ? true
+                    : action.isDisabled
+                      ? action.isDisabled(actionContext)
+                      : false
                 }
-              }}
-              disabled={
-                isLoading || artifact.status === 'streaming'
-                  ? true
-                  : action.isDisabled
-                    ? action.isDisabled(actionContext)
-                    : false
-              }
-            >
-              {action.icon}
-              {action.label}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{action.description}</TooltipContent>
-        </Tooltip>
-      ))}
+              >
+                {action.icon}
+                {action.label}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{action.description}</TooltipContent>
+          </Tooltip>
+        ))}
     </div>
   );
 }
@@ -94,6 +110,7 @@ export const ArtifactActions = memo(
       return false;
     if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) return false;
     if (prevProps.artifact.content !== nextProps.artifact.content) return false;
+    if (prevProps.isReadonly !== nextProps.isReadonly) return false;
 
     return true;
   },

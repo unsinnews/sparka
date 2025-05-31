@@ -30,6 +30,7 @@ type EditorProps = {
   isCurrentVersion: boolean;
   currentVersionIndex: number;
   suggestions: Array<Suggestion>;
+  isReadonly?: boolean;
 };
 
 function PureEditor({
@@ -37,6 +38,7 @@ function PureEditor({
   onSaveContent,
   suggestions,
   status,
+  isReadonly,
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
@@ -63,6 +65,7 @@ function PureEditor({
 
       editorRef.current = new EditorView(containerRef.current, {
         state,
+        editable: () => !isReadonly,
       });
     }
 
@@ -79,16 +82,17 @@ function PureEditor({
   useEffect(() => {
     if (editorRef.current) {
       editorRef.current.setProps({
+        editable: () => !isReadonly,
         dispatchTransaction: (transaction) => {
           handleTransaction({
             transaction,
             editorRef,
-            onSaveContent,
+            onSaveContent: isReadonly ? () => {} : onSaveContent,
           });
         },
       });
     }
-  }, [onSaveContent]);
+  }, [onSaveContent, isReadonly]);
 
   useEffect(() => {
     if (editorRef.current && content) {
@@ -157,7 +161,8 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
     prevProps.isCurrentVersion === nextProps.isCurrentVersion &&
     !(prevProps.status === 'streaming' && nextProps.status === 'streaming') &&
     prevProps.content === nextProps.content &&
-    prevProps.onSaveContent === nextProps.onSaveContent
+    prevProps.onSaveContent === nextProps.onSaveContent &&
+    prevProps.isReadonly === nextProps.isReadonly
   );
 }
 

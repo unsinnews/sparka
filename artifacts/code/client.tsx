@@ -12,8 +12,8 @@ import { toast } from 'sonner';
 import { generateUUID } from '@/lib/utils';
 import {
   Console,
-  ConsoleOutput,
-  ConsoleOutputContent,
+  type ConsoleOutput,
+  type ConsoleOutputContent,
 } from '@/components/console';
 
 const OUTPUT_HANDLERS = {
@@ -90,11 +90,11 @@ export const codeArtifact = new Artifact<'code', Metadata>({
       }));
     }
   },
-  content: ({ metadata, setMetadata, ...props }) => {
+  content: ({ metadata, setMetadata, isReadonly, ...props }) => {
     return (
       <>
         <div className="px-1">
-          <CodeEditor {...props} />
+          <CodeEditor {...props} isReadonly={isReadonly} />
         </div>
 
         {metadata?.outputs && (
@@ -207,6 +207,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
           }));
         }
       },
+      isDisabled: ({ isReadonly }) => !!isReadonly,
     },
     {
       icon: <UndoIcon size={18} />,

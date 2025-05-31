@@ -19,6 +19,12 @@ export const authConfig = {
         return true;
       }
 
+      // Allow document API for public shared documents
+      const isDocumentApi = nextUrl.pathname.startsWith('/api/document');
+      if (isDocumentApi) {
+        return true;
+      }
+
       const isOnChat = nextUrl.pathname.startsWith('/');
       const isOnLoginPage = nextUrl.pathname.startsWith('/login');
       const isOnRegisterPage = nextUrl.pathname.startsWith('/register');

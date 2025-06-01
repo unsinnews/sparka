@@ -14,7 +14,7 @@ const PlaceholderIcon = () => <Building className="w-6 h-6" />;
 interface ModelCardProps {
   model: ModelDefinition;
   isSelected?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
 }
 
 function formatTokens(tokens: number): string {

@@ -28,7 +28,8 @@ export function MessageEditor({
   setMode,
   chatHelpers,
   selectedModelId,
-}: MessageEditorProps) {
+  onModelChange,
+}: MessageEditorProps & { onModelChange?: (modelId: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [input, setInput] = useState<string>(() =>
     message.parts
@@ -105,6 +106,7 @@ export function MessageEditor({
         }}
         isEditMode={true}
         selectedModelId={selectedModelId}
+        onModelChange={onModelChange}
       />
     </div>
   );

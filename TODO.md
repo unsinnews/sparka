@@ -12,7 +12,7 @@
 [x] Create / Edit document should have more context of the conversation than a description
 [x] Document should have a messageId reference and that should be used to make it publicly visible when the chat changes visibility to public
 [x] Delete previous chat messages should also delete documents created / updated in that range of the conversation
-[ ] Bug: Shows reasoning tokens twice /chat/7db056c0-00d2-478b-8dc5-5facd7c59fcd
+[x] When I switch providers in the edit message box, I loose the message editing content. It doesn't change the model
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub
@@ -49,7 +49,7 @@
 - [ ] Only render last document as preview, others as pill
 [ ] Migrate to tailwind 4 (and migrate container queries)
 [ ] Improve model selector with combobox and filters (based on features)
-[ ] When I switch providers in the edit message box, I loose the message editing content
+[ ] After sending a message the input box remains at the last height, it should be reset to the default height
 
 ### System
 [x] Get rid of API keys, just use the backend keys

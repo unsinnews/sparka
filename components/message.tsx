@@ -52,6 +52,7 @@ const PurePreviewMessage = ({
   chatHelpers,
   selectedModelId,
   lastArtifact,
+  onModelChange,
 }: {
   chatId: string;
   message: YourUIMessage;
@@ -61,6 +62,7 @@ const PurePreviewMessage = ({
   chatHelpers: UseChatHelpers;
   selectedModelId: string;
   lastArtifact: { messageIndex: number; toolCallId: string } | null;
+  onModelChange?: (modelId: string) => void;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
 
@@ -184,6 +186,7 @@ const PurePreviewMessage = ({
                         setMode={setMode}
                         chatHelpers={chatHelpers}
                         selectedModelId={selectedModelId}
+                        onModelChange={onModelChange}
                       />
                     </div>
                   );
@@ -335,6 +338,7 @@ export const PreviewMessage = memo(
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
     if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
+    if (prevProps.onModelChange !== nextProps.onModelChange) return false;
 
     return true;
   },

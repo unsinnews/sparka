@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
+import { saveChatModelAsCookie } from '@/app/(chat)/actions';
 
 export function Chat({
   id,
@@ -35,9 +36,12 @@ export function Chat({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const [localSelectedModelId, setLocalSelectedModelId] =
+    useState<string>(selectedChatModel);
+
   const chatHelpers = useChat({
     id,
-    body: { id, selectedChatModel },
+    body: { id, selectedChatModel: localSelectedModelId },
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -79,12 +83,17 @@ export function Chat({
     reason: false,
   });
 
+  const handleModelChange = async (modelId: string) => {
+    setLocalSelectedModelId(modelId);
+    await saveChatModelAsCookie(modelId);
+  };
+
   return (
     <>
       <div className="flex flex-col min-w-0 h-dvh bg-background">
         <ChatHeader
           chatId={id}
-          selectedModelId={selectedChatModel}
+          selectedModelId={localSelectedModelId}
           selectedVisibilityType={selectedVisibilityType}
           isReadonly={isReadonly}
         />
@@ -98,7 +107,8 @@ export function Chat({
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           isArtifactVisible={isArtifactVisible}
-          selectedModelId={selectedChatModel}
+          selectedModelId={localSelectedModelId}
+          onModelChange={handleModelChange}
         />
 
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
@@ -117,7 +127,8 @@ export function Chat({
               messages={messages as YourUIMessage[]}
               setMessages={setMessages}
               append={append}
-              selectedModelId={selectedChatModel}
+              selectedModelId={localSelectedModelId}
+              onModelChange={handleModelChange}
             />
           )}
         </form>
@@ -133,7 +144,8 @@ export function Chat({
         messages={messages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}
-        selectedModelId={selectedChatModel}
+        selectedModelId={localSelectedModelId}
+        onModelChange={handleModelChange}
       />
     </>
   );

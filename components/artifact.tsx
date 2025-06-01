@@ -65,6 +65,7 @@ function PureArtifact({
   votes,
   isReadonly,
   selectedModelId,
+  onModelChange,
 }: {
   chatId: string;
 
@@ -78,6 +79,7 @@ function PureArtifact({
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   selectedModelId: string;
+  onModelChange?: (modelId: string) => void;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
@@ -356,6 +358,7 @@ function PureArtifact({
                       className="bg-background dark:bg-muted"
                       setMessages={chatHelpers.setMessages}
                       selectedModelId={selectedModelId}
+                      onModelChange={onModelChange}
                     />
                   </form>
                 )}

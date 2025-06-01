@@ -21,6 +21,7 @@ interface MessagesProps {
   isArtifactVisible: boolean;
   selectedModelId: string;
   data: ChatRequestData;
+  onModelChange?: (modelId: string) => void;
 }
 
 function PureMessages({
@@ -32,6 +33,7 @@ function PureMessages({
   isReadonly,
   selectedModelId,
   data,
+  onModelChange,
 }: MessagesProps) {
   const [messagesContainerRef, messagesEndRef] =
     useScrollToBottom<HTMLDivElement>();
@@ -61,6 +63,7 @@ function PureMessages({
           isReadonly={isReadonly}
           selectedModelId={selectedModelId}
           lastArtifact={lastArtifact}
+          onModelChange={onModelChange}
         />
       ))}
 
@@ -94,6 +97,7 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
   if (prevProps.data !== nextProps.data) return false;
+  if (prevProps.onModelChange !== nextProps.onModelChange) return false;
 
   return true;
 });

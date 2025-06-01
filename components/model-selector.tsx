@@ -7,8 +7,6 @@ import {
   useState,
   type ComponentProps,
 } from 'react';
-
-import { saveChatModelAsCookie } from '@/app/(chat)/actions';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,8 +22,10 @@ import { ChevronUpIcon } from 'lucide-react';
 export function ModelSelector({
   selectedModelId,
   className,
+  onModelChange,
 }: {
   selectedModelId: string;
+  onModelChange?: (modelId: string) => void;
 } & ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const [optimisticModelId, setOptimisticModelId] =
@@ -59,6 +59,8 @@ export function ModelSelector({
       <DropdownMenuContent
         align="start"
         className="min-w-[600px] max-w-[800px] p-2"
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[70vh] overflow-y-auto">
           {chatModels.map((chatModel) => {
@@ -70,11 +72,12 @@ export function ModelSelector({
                 key={id}
                 model={modelDefinition}
                 isSelected={id === optimisticModelId}
-                onClick={() => {
+                onClick={(e) => {
+                  e?.stopPropagation();
                   setOpen(false);
                   startTransition(() => {
                     setOptimisticModelId(id);
-                    saveChatModelAsCookie(id);
+                    onModelChange?.(id);
                   });
                 }}
               />

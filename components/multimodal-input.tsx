@@ -59,6 +59,7 @@ function PureMultimodalInput({
   className,
   isEditMode = false,
   selectedModelId,
+  onModelChange,
 }: {
   chatId: string;
   input: UseChatHelpers['input'];
@@ -76,6 +77,7 @@ function PureMultimodalInput({
   className?: string;
   isEditMode?: boolean;
   selectedModelId: string;
+  onModelChange?: (modelId: string) => void;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -316,12 +318,9 @@ function PureMultimodalInput({
               <ModelSelector
                 selectedModelId={selectedModelId}
                 className="h-fit"
+                onModelChange={onModelChange}
               />
-              <ResponsiveToggles
-                data={data}
-                setData={setData}
-                selectedModelId={selectedModelId}
-              />
+              <ResponsiveToggles data={data} setData={setData} />
             </div>
             <div className="flex items-center gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
@@ -480,11 +479,9 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
 function ResponsiveToggles({
   data,
   setData,
-  selectedModelId,
 }: {
   data: ChatRequestData;
   setData: Dispatch<SetStateAction<ChatRequestData>>;
-  selectedModelId: string;
 }) {
   const activeTool = data.webSearch
     ? 'webSearch'
@@ -517,16 +514,27 @@ function ResponsiveToggles({
               <span className="hidden @[400px]:inline">Tools</span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
+          <DropdownMenuContent
+            align="start"
+            className="w-48"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <DropdownMenuItem
-              onClick={() => setTool(data.webSearch ? null : 'webSearch')}
+              onClick={(e) => {
+                e.stopPropagation();
+                setTool(data.webSearch ? null : 'webSearch');
+              }}
               className="flex items-center gap-2"
             >
               <GlobeIcon size={14} />
               <span>Web search</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => setTool(data.deepResearch ? null : 'deepResearch')}
+              onClick={(e) => {
+                e.stopPropagation();
+                setTool(data.deepResearch ? null : 'deepResearch');
+              }}
               className="flex items-center gap-2"
             >
               <Telescope size={14} />
@@ -588,6 +596,7 @@ export const MultimodalInput = memo(
     if (prevProps.data !== nextProps.data) return false;
     if (prevProps.isEditMode !== nextProps.isEditMode) return false;
     if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
+    if (prevProps.onModelChange !== nextProps.onModelChange) return false;
     return true;
   },
 );

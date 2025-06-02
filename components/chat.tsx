@@ -3,10 +3,9 @@
 import type { Attachment } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
-import type { Vote } from '@/lib/db/schema';
-import { fetcher, generateUUID } from '@/lib/utils';
+import { generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
@@ -17,7 +16,6 @@ import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { saveChatModelAsCookie } from '@/app/(chat)/actions';
-import useSWR from 'swr';
 
 export function Chat({
   id,
@@ -71,10 +69,10 @@ export function Chat({
     reload,
   } = chatHelpers;
 
-  const { data: votes } = useSWR<Array<Vote>>(
-    messages.length >= 2 && !isReadonly ? `/api/vote?chatId=${id}` : null,
-    fetcher,
-  );
+  const { data: votes } = useQuery({
+    ...trpc.vote.getVotes.queryOptions({ chatId: id }),
+    enabled: messages.length >= 2 && !isReadonly,
+  });
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);

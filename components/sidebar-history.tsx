@@ -6,7 +6,7 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
 import { memo, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import useSWR from 'swr';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   CheckCircleFillIcon,
@@ -31,7 +31,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuPortal,
-  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -47,8 +46,8 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import type { Chat } from '@/lib/db/schema';
-import { fetcher } from '@/lib/utils';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import { useTRPC } from '@/trpc/react';
 
 type GroupedChats = {
   today: Chat[];
@@ -153,17 +152,21 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
   const pathname = usePathname();
+  const trpc = useTRPC();
   const {
     data: history,
     isLoading,
-    mutate,
-  } = useSWR<Array<Chat>>(user ? '/api/history' : null, fetcher, {
-    fallbackData: [],
+    refetch,
+  } = useQuery({
+    ...trpc.chat.getAllChats.queryOptions(),
+    enabled: !!user,
   });
 
   useEffect(() => {
-    mutate();
-  }, [pathname, mutate]);
+    if (user) {
+      refetch();
+    }
+  }, [pathname, refetch, user]);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -176,11 +179,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     toast.promise(deletePromise, {
       loading: 'Deleting chat...',
       success: () => {
-        mutate((history) => {
-          if (history) {
-            return history.filter((h) => h.id !== id);
-          }
-        });
+        refetch();
         return 'Chat deleted successfully';
       },
       error: 'Failed to delete chat',

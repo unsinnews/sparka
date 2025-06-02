@@ -3,6 +3,7 @@ import React, { memo } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './code-block';
+import { cn } from '@/lib/utils';
 
 const components: Partial<Components> = {
   // @ts-expect-error
@@ -90,6 +91,72 @@ const components: Partial<Components> = {
         {children}
       </h6>
     );
+  },
+  table({ children }: { children?: React.ReactNode }) {
+    return (
+      <div className="w-full my-6">
+        <div className="overflow-hidden rounded border border-border bg-card">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse m-0">{children}</table>
+          </div>
+        </div>
+      </div>
+    );
+  },
+  tr({ children }: { children?: React.ReactNode }) {
+    return (
+      <tr
+        className={cn(
+          'border-b border-border last:border-b-0',
+          'hover:bg-muted/50 transition-colors duration-200',
+        )}
+      >
+        {children}
+      </tr>
+    );
+  },
+
+  thead({ children }: { children?: React.ReactNode }) {
+    return <thead>{children}</thead>;
+  },
+
+  th({ children, align }: { children?: React.ReactNode; align?: string }) {
+    const alignClass = align ? `text-${align}` : 'text-left';
+
+    return (
+      <th
+        className={cn(
+          'px-4 py-3 text-sm font-semibold text-foreground',
+          'bg-muted',
+          'border-b border-border',
+          'break-words',
+          alignClass,
+        )}
+      >
+        <div className="font-medium">{children}</div>
+      </th>
+    );
+  },
+
+  td({ children, align }: { children?: React.ReactNode; align?: string }) {
+    const alignClass = align ? `text-${align}` : 'text-left';
+
+    return (
+      <td
+        className={cn(
+          'px-4 py-3 text-sm text-muted-foreground',
+          'border-r border-border last:border-r-0',
+          'break-words',
+          alignClass,
+        )}
+      >
+        <div className="leading-relaxed">{children}</div>
+      </td>
+    );
+  },
+
+  tbody({ children }: { children?: React.ReactNode }) {
+    return <tbody>{children}</tbody>;
   },
 };
 

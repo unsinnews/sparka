@@ -3,7 +3,6 @@
 import type { Attachment } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
 import { useQueryClient } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import type { Vote } from '@/lib/db/schema';
@@ -18,6 +17,7 @@ import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { saveChatModelAsCookie } from '@/app/(chat)/actions';
+import useSWR from 'swr';
 
 export function Chat({
   id,
@@ -32,7 +32,6 @@ export function Chat({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
-  const { mutate } = useSWRConfig();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -47,7 +46,9 @@ export function Chat({
     sendExtraMessageFields: true,
     generateId: generateUUID,
     onFinish: () => {
-      mutate('/api/history');
+      queryClient.invalidateQueries({
+        queryKey: trpc.chat.getAllChats.queryKey(),
+      });
       queryClient.invalidateQueries({
         queryKey: trpc.credits.getAvailableCredits.queryKey(),
       });

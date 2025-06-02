@@ -94,12 +94,8 @@ const components: Partial<Components> = {
   },
   table({ children }: { children?: React.ReactNode }) {
     return (
-      <div className="w-full my-6">
-        <div className="overflow-hidden rounded border border-border bg-card">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse m-0">{children}</table>
-          </div>
-        </div>
+      <div className="overflow-x-auto my-6 rounded border border-border max-w-[calc(100vw-6rem)] md:max-w-none">
+        <table className="w-full border-collapse m-0">{children}</table>
       </div>
     );
   },

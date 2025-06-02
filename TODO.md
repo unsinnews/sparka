@@ -16,7 +16,7 @@
 [x] Something is limiting the width (Maybe Messages, or multimodal-input) and therefore this doesn't work on mobile
 [ ] Define project Name
 [ ] Define project styles
-[ ] Sign up with GitHub
+[ ] Sign up with GitHub (auth block from shadcn)
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend
@@ -48,10 +48,12 @@
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
 - [ ] Only render last document as preview, others as pill
-[ ] Migrate to tailwind 4 (and migrate container queries)
 [ ] Improve model selector with combobox and filters (based on features)
-[ ] After sending a message the input box remains at the last height, it should be reset to the default height
 [ ] Learn from scira's ModelSwitcher component
+[ ] After sending a message the input box remains at the last height, it should be reset to the default height
+[ ] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
+[ ] Migrate to tailwind 4 (and migrate container queries)
+
 
 ### System
 [x] Get rid of API keys, just use the backend keys

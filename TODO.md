@@ -13,6 +13,7 @@
 [x] Document should have a messageId reference and that should be used to make it publicly visible when the chat changes visibility to public
 [x] Delete previous chat messages should also delete documents created / updated in that range of the conversation
 [x] When I switch providers in the edit message box, I loose the message editing content. It doesn't change the model
+[ ] Something is limiting the width (Maybe Messages, or multimodal-input) and therefore this doesn't work on mobile
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub
@@ -50,6 +51,7 @@
 [ ] Migrate to tailwind 4 (and migrate container queries)
 [ ] Improve model selector with combobox and filters (based on features)
 [ ] After sending a message the input box remains at the last height, it should be reset to the default height
+[ ] Learn from scira's ModelSwitcher component
 
 ### System
 [x] Get rid of API keys, just use the backend keys

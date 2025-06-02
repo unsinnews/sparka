@@ -42,47 +42,49 @@ function PureMessages({
   const lastArtifact = findLastArtifact(messages);
 
   return (
-    <div
-      ref={messagesContainerRef}
-      className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4"
-    >
-      {messages.length === 0 && <Overview />}
-
-      {messages.map((message, index) => (
-        <PreviewMessage
-          key={message.id}
-          chatId={chatId}
-          message={message}
-          isLoading={status === 'streaming' && messages.length - 1 === index}
-          vote={
-            votes
-              ? votes.find((vote) => vote.messageId === message.id)
-              : undefined
-          }
-          chatHelpers={chatHelpers}
-          isReadonly={isReadonly}
-          selectedModelId={selectedModelId}
-          lastArtifact={lastArtifact}
-          onModelChange={onModelChange}
-        />
-      ))}
-
-      {status === 'submitted' &&
-        messages.length > 0 &&
-        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
-
-      {status === 'error' && (
-        <ResponseErrorMessage
-          chatHelpers={chatHelpers}
-          messages={messages}
-          data={data}
-        />
-      )}
-
+    <div className="flex flex-col overflow-y-scroll">
       <div
-        ref={messagesEndRef}
-        className="shrink-0 min-w-[24px] min-h-[24px]"
-      />
+        ref={messagesContainerRef}
+        className="flex flex-col min-w-0 gap-6 flex-1 pt-4 max-w-[calc(100vw-2rem)] sm:max-w-2xl mx-auto"
+      >
+        {messages.length === 0 && <Overview />}
+
+        {messages.map((message, index) => (
+          <PreviewMessage
+            key={message.id}
+            chatId={chatId}
+            message={message}
+            isLoading={status === 'streaming' && messages.length - 1 === index}
+            vote={
+              votes
+                ? votes.find((vote) => vote.messageId === message.id)
+                : undefined
+            }
+            chatHelpers={chatHelpers}
+            isReadonly={isReadonly}
+            selectedModelId={selectedModelId}
+            lastArtifact={lastArtifact}
+            onModelChange={onModelChange}
+          />
+        ))}
+
+        {status === 'submitted' &&
+          messages.length > 0 &&
+          messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+
+        {status === 'error' && (
+          <ResponseErrorMessage
+            chatHelpers={chatHelpers}
+            messages={messages}
+            data={data}
+          />
+        )}
+
+        <div
+          ref={messagesEndRef}
+          className="shrink-0 min-w-[24px] min-h-[24px]"
+        />
+      </div>
     </div>
   );
 }

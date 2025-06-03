@@ -1,4 +1,4 @@
-import type { DataStreamWriter, JSONValue } from 'ai';
+import type { DataStreamWriter, } from 'ai';
 import type { MessageAnnotation } from './annotations';
 
 export class AnnotationDataStreamWriter implements DataStreamWriter {

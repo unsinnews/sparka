@@ -6,7 +6,7 @@ import { useParams, usePathname, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
 import { memo, useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   CheckCircleFillIcon,
@@ -15,6 +15,7 @@ import {
   MoreHorizontalIcon,
   ShareIcon,
   TrashIcon,
+  PencilEditIcon,
 } from '@/components/icons';
 import {
   AlertDialog,
@@ -45,6 +46,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Input } from '@/components/ui/input';
 import type { Chat } from '@/lib/db/schema';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useTRPC } from '@/trpc/react';
@@ -68,18 +70,113 @@ const PureChatItem = ({
   onDelete: (chatId: string) => void;
   setOpenMobile: (open: boolean) => void;
 }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState(chat.title);
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const renameMutation = useMutation(
+    trpc.chat.renameChat.mutationOptions({
+      onMutate: async (variables) => {
+        // Cancel any outgoing refetches so they don't overwrite our optimistic update
+        await queryClient.cancelQueries({
+          queryKey: trpc.chat.getAllChats.queryKey(),
+        });
+
+        // Snapshot the previous value
+        const previousChats = queryClient.getQueryData(
+          trpc.chat.getAllChats.queryKey(),
+        );
+
+        // Optimistically update the cache
+        queryClient.setQueryData(
+          trpc.chat.getAllChats.queryKey(),
+          (old: Chat[] | undefined) => {
+            if (!old) return old;
+            return old.map((c) =>
+              c.id === variables.chatId ? { ...c, title: variables.title } : c,
+            );
+          },
+        );
+
+        // Return context with the previous value
+        return { previousChats };
+      },
+      onError: (err, variables, context) => {
+        // Rollback on error
+        if (context?.previousChats) {
+          queryClient.setQueryData(
+            trpc.chat.getAllChats.queryKey(),
+            context.previousChats,
+          );
+        }
+        toast.error('Failed to rename chat');
+      },
+      onSettled: () => {
+        // Always refetch after mutation (success or error) to sync with server
+        queryClient.invalidateQueries({
+          queryKey: trpc.chat.getAllChats.queryKey(),
+        });
+      },
+    }),
+  );
+
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId: chat.id,
     initialVisibility: chat.visibility,
   });
 
+  const handleRename = async () => {
+    if (editTitle.trim() === '' || editTitle === chat.title) {
+      setIsEditing(false);
+      setEditTitle(chat.title);
+      return;
+    }
+
+    try {
+      await renameMutation.mutateAsync({
+        chatId: chat.id,
+        title: editTitle.trim(),
+      });
+      setIsEditing(false);
+      toast.success('Chat renamed successfully');
+    } catch (error) {
+      // Error is already handled in mutation onError
+      setEditTitle(chat.title);
+      setIsEditing(false);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleRename();
+    } else if (e.key === 'Escape') {
+      setIsEditing(false);
+      setEditTitle(chat.title);
+    }
+  };
+
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={isActive}>
-        <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
-          <span>{chat.title}</span>
-        </Link>
-      </SidebarMenuButton>
+      {isEditing ? (
+        <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm">
+          <Input
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onBlur={handleRename}
+            onKeyDown={handleKeyDown}
+            className="h-auto border-0 bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
+            autoFocus
+            maxLength={255}
+          />
+        </div>
+      ) : (
+        <SidebarMenuButton asChild isActive={isActive}>
+          <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+            <span>{chat.title}</span>
+          </Link>
+        </SidebarMenuButton>
+      )}
 
       <DropdownMenu modal={true}>
         <DropdownMenuTrigger asChild>
@@ -93,6 +190,17 @@ const PureChatItem = ({
         </DropdownMenuTrigger>
 
         <DropdownMenuContent side="bottom" align="end">
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => {
+              setIsEditing(true);
+              setEditTitle(chat.title);
+            }}
+          >
+            <PencilEditIcon />
+            <span>Rename</span>
+          </DropdownMenuItem>
+
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className="cursor-pointer">
               <ShareIcon />
@@ -145,6 +253,8 @@ const PureChatItem = ({
 
 export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
   if (prevProps.isActive !== nextProps.isActive) return false;
+  if (prevProps.chat.id !== nextProps.chat.id) return false;
+  if (prevProps.chat.title !== nextProps.chat.title) return false;
   return true;
 });
 
@@ -304,6 +414,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
+                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -324,6 +435,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
+                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -344,6 +456,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
+                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -364,6 +477,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
+                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -384,6 +498,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
+                            refetch={refetch}
                           />
                         ))}
                       </>

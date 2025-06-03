@@ -63,7 +63,7 @@ which is longer than the specified ${this.chunkSize}`,
             total > this.chunkOverlap ||
             (total + _len > this.chunkSize && total > 0)
           ) {
-            total -= currentDoc[0]!.length;
+            total -= currentDoc[0]?.length;
             currentDoc.shift();
           }
         }

@@ -6,50 +6,71 @@ export function useScrollToBottom<T extends HTMLElement>(): [
 ] {
   const containerRef = useRef<T>(null);
   const endRef = useRef<T>(null);
-  const shouldScrollRef = useRef(true);
+  const oneTimeScrollRef = useRef(false);
 
   useEffect(() => {
     const container = containerRef.current;
     const end = endRef.current;
 
     if (container && end) {
-      // Initial scroll
+      // Immediate scroll to bottom on initial load
       end.scrollIntoView({ behavior: 'instant', block: 'end' });
 
-      // Check if user has scrolled up
-      const handleScroll = () => {
-        if (!container) return;
+      // Keep track of previous message count and content
+      let prevMessageCount = container.querySelectorAll(
+        '[data-role="user"], [data-role="assistant"]',
+      ).length;
+      let lastMessageTextLength = 0;
+      const observer = new MutationObserver((mutations) => {
+        // Check if new messages were added or content is streaming
+        const currentMessageCount = container.querySelectorAll(
+          '[data-role="user"], [data-role="assistant"]',
+        ).length;
+        const messages = container.querySelectorAll(
+          '[data-role="user"], [data-role="assistant"]',
+        );
 
-        const isAtBottom =
-          Math.abs(
-            container.scrollHeight -
-              container.scrollTop -
-              container.clientHeight,
-          ) < 10;
+        // If there are messages, check the last one for streaming content changes
+        let shouldScroll = false;
 
-        shouldScrollRef.current = isAtBottom;
-      };
+        if (currentMessageCount > 0) {
+          const lastMessage = messages[messages.length - 1];
+          const lastMessageContent = lastMessage.textContent || '';
 
-      const observer = new MutationObserver(() => {
-        // Only scroll if we're at the bottom or it's a new message
-        if (shouldScrollRef.current) {
+          // Determine if we should scroll based on:
+          // 1. New message was added
+          // 2. Last message content is growing (streaming)
+          if (currentMessageCount > prevMessageCount) {
+            shouldScroll = true;
+            prevMessageCount = currentMessageCount;
+          } else if (lastMessageContent.length > lastMessageTextLength) {
+            // Streaming text detection - content is growing
+            shouldScroll = true;
+          }
+
+          // Update content length tracking
+          lastMessageTextLength = lastMessageContent.length;
+        }
+
+        if (shouldScroll) {
           end.scrollIntoView({ behavior: 'instant', block: 'end' });
+          oneTimeScrollRef.current = false;
+        } else {
+          if (oneTimeScrollRef.current === false) {
+            end.scrollIntoView({ behavior: 'instant', block: 'end' });
+            oneTimeScrollRef.current = true;
+          }
         }
       });
 
       observer.observe(container, {
         childList: true,
-        subtree: true, // Watch nested changes
-        characterData: true, // Watch text changes
+        subtree: true,
+        attributes: true,
+        characterData: true,
       });
 
-      // Add scroll listener
-      container.addEventListener('scroll', handleScroll);
-
-      return () => {
-        observer.disconnect();
-        container.removeEventListener('scroll', handleScroll);
-      };
+      return () => observer.disconnect();
     }
   }, []);
 

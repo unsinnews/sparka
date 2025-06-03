@@ -19,9 +19,9 @@ export const authConfig = {
         return true;
       }
 
-      // Allow document API for public shared documents
-      const isDocumentApi = nextUrl.pathname.startsWith('/api/document');
-      if (isDocumentApi) {
+      // Allow tRPC API routes for public shared documents
+      const isTrpcApi = nextUrl.pathname.startsWith('/api/trpc');
+      if (isTrpcApi) {
         return true;
       }
 

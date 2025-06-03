@@ -7,12 +7,11 @@ import {
   type SetStateAction,
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
-import useSWR, { useSWRConfig } from 'swr';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 import type { Document, Vote } from '@/lib/db/schema';
-import { fetcher } from '@/lib/utils';
 import { MultimodalInput } from './multimodal-input';
 import { Toolbar } from './toolbar';
 import { VersionFooter } from './version-footer';
@@ -29,6 +28,8 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import { useTRPC } from '@/trpc/react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const artifactDefinitions = [
   textArtifact,
@@ -82,21 +83,25 @@ function PureArtifact({
   onModelChange?: (modelId: string) => void;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
-  const {
-    data: documents,
-    isLoading: isDocumentsFetching,
-    mutate: mutateDocuments,
-  } = useSWR<Array<Document>>(
-    artifact.documentId !== 'init' && artifact.status !== 'streaming'
-      ? `/api/document?id=${artifact.documentId}`
-      : null,
-    fetcher,
+  const { data: documents, isLoading: isDocumentsFetching } = useQuery(
+    trpc.document.getDocuments.queryOptions(
+      {
+        id: artifact.documentId,
+      },
+      {
+        enabled:
+          artifact.documentId !== 'init' && artifact.status !== 'streaming',
+      },
+    ),
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const [document, setDocument] = useState<Document | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
+  const lastSavedContentRef = useRef<string>('');
 
   const { open: isSidebarOpen } = useSidebar();
 
@@ -130,55 +135,101 @@ function PureArtifact({
     }
   }, [documents, setArtifact, artifact.messageId]);
 
-  useEffect(() => {
-    mutateDocuments();
-  }, [artifact.status, mutateDocuments]);
-
-  const { mutate } = useSWRConfig();
   const [isContentDirty, setIsContentDirty] = useState(false);
+
+  const saveDocumentMutation = useMutation(
+    trpc.document.saveDocument.mutationOptions({
+      // When mutate is called:
+      onMutate: async (newDocument) => {
+        // Skip optimistic update if this isn't the latest save request
+        if (newDocument.content !== lastSavedContentRef.current) {
+          return;
+        }
+
+        // Cancel any outgoing refetches
+        // (so they don't overwrite our optimistic update)
+        await queryClient.cancelQueries({
+          queryKey: trpc.document.getDocuments.queryKey({ id: newDocument.id }),
+        });
+
+        // Snapshot the previous value
+        const previousDocuments =
+          queryClient.getQueryData<Document[]>(
+            trpc.document.getDocuments.queryKey({ id: newDocument.id }),
+          ) ?? [];
+
+        // Optimistically update to the new value
+        const lastDocument = previousDocuments.at(-1);
+        if (!lastDocument) {
+          return;
+        }
+        const optimisticData = [
+          ...previousDocuments,
+          {
+            ...lastDocument,
+            createdAt: new Date(),
+            content: newDocument.content,
+            title: newDocument.title,
+            kind: newDocument.kind,
+            messageId: artifact.messageId,
+          },
+        ];
+        queryClient.setQueryData(
+          trpc.document.getDocuments.queryKey({ id: newDocument.id }),
+          optimisticData,
+        );
+
+        // Return a context with the previous and new todo
+        return { previousDocuments, newDocument };
+      },
+      // If the mutation fails, use the context we returned above
+      onError: (err, newDocument, context) => {
+        if (context?.previousDocuments) {
+          queryClient.setQueryData(
+            trpc.document.getDocuments.queryKey({ id: newDocument.id }),
+            context.previousDocuments,
+          );
+        }
+        // Only clear dirty flag if this was the latest save request
+        if (newDocument.content === lastSavedContentRef.current) {
+          setIsContentDirty(false);
+        }
+      },
+      // Always refetch after error or success:
+      onSettled: (result, error, params) => {
+        // Only invalidate and clear dirty flag if this was the latest save request
+        if (params.content === lastSavedContentRef.current) {
+          if (saveDocumentMutation.isIdle) {
+            queryClient.invalidateQueries({
+              queryKey: trpc.document.getDocuments.queryKey({ id: params.id }),
+            });
+          }
+          setIsContentDirty(false);
+        }
+      },
+    }),
+  );
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {
-      if (!artifact) return;
+      if (!documents) return;
 
-      mutate<Array<Document>>(
-        `/api/document?id=${artifact.documentId}`,
-        async (currentDocuments) => {
-          if (!currentDocuments) return undefined;
+      const lastDocument = documents.at(-1);
+      if (!lastDocument) return;
 
-          const currentDocument = currentDocuments.at(-1);
-
-          if (!currentDocument || !currentDocument.content) {
-            setIsContentDirty(false);
-            return currentDocuments;
-          }
-
-          if (currentDocument.content !== updatedContent) {
-            await fetch(`/api/document?id=${artifact.documentId}`, {
-              method: 'POST',
-              body: JSON.stringify({
-                title: artifact.title,
-                content: updatedContent,
-                kind: artifact.kind,
-              }),
-            });
-
-            setIsContentDirty(false);
-
-            const newDocument = {
-              ...currentDocument,
-              content: updatedContent,
-              createdAt: new Date(),
-            };
-
-            return [...currentDocuments, newDocument];
-          }
-          return currentDocuments;
-        },
-        { revalidate: false },
-      );
+      if (
+        lastDocument?.content !== updatedContent &&
+        lastSavedContentRef.current === updatedContent
+      ) {
+        saveDocumentMutation.mutate({
+          id: lastDocument.id,
+          title: lastDocument.title,
+          content: updatedContent,
+          kind: lastDocument.kind,
+        });
+      }
     },
-    [artifact, mutate],
+    [saveDocumentMutation, documents],
   );
 
   const debouncedHandleContentChange = useDebounceCallback(
@@ -191,6 +242,8 @@ function PureArtifact({
       if (isReadonly) {
         return;
       }
+      // Update the last saved content reference
+      lastSavedContentRef.current = updatedContent;
 
       if (document && updatedContent !== document.content) {
         setIsContentDirty(true);

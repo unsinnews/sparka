@@ -2,8 +2,6 @@
 
 import { isAfter } from 'date-fns';
 import { motion } from 'motion/react';
-import { useState } from 'react';
-import { useSWRConfig } from 'swr';
 import { useWindowSize } from 'usehooks-ts';
 
 import type { Document } from '@/lib/db/schema';
@@ -12,6 +10,8 @@ import { getDocumentTimestampByIndex } from '@/lib/utils';
 import { LoaderIcon } from './icons';
 import { Button } from './ui/button';
 import { useArtifact } from '@/hooks/use-artifact';
+import { useTRPC } from '@/trpc/react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 interface VersionFooterProps {
   handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
@@ -25,12 +25,71 @@ export const VersionFooter = ({
   currentVersionIndex,
 }: VersionFooterProps) => {
   const { artifact } = useArtifact();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const { width } = useWindowSize();
   const isMobile = width < 768;
 
-  const { mutate } = useSWRConfig();
-  const [isMutating, setIsMutating] = useState(false);
+  const saveDocumentMutation = useMutation(
+    trpc.document.saveDocument.mutationOptions({
+      onMutate: async (newDoc) => {
+        const queryKey = trpc.document.getDocuments.queryKey({
+          id: artifact.documentId,
+        });
+        await queryClient.cancelQueries({ queryKey });
+
+        const previousDocuments =
+          queryClient.getQueryData<Document[]>(queryKey);
+
+        if (previousDocuments && documents) {
+          const optimisticData = documents.filter((document) =>
+            isAfter(
+              new Date(document.createdAt),
+              new Date(
+                getDocumentTimestampByIndex(documents, currentVersionIndex),
+              ),
+            ),
+          );
+
+          // Add the restored version as a new document
+          const versionToRestore = documents[currentVersionIndex];
+          if (versionToRestore) {
+            const restoredDocument: Document = {
+              ...versionToRestore,
+              createdAt: new Date(),
+              content: newDoc.content,
+              title: newDoc.title,
+              kind: newDoc.kind,
+              messageId: artifact.messageId,
+            };
+            optimisticData.push(restoredDocument);
+          }
+
+          queryClient.setQueryData<Document[]>(queryKey, optimisticData);
+        }
+
+        return { previousDocuments };
+      },
+      onError: (err, newDoc, context) => {
+        if (context?.previousDocuments) {
+          const queryKey = trpc.document.getDocuments.queryKey({
+            id: artifact.documentId,
+          });
+          queryClient.setQueryData<Document[]>(
+            queryKey,
+            context.previousDocuments,
+          );
+        }
+      },
+      onSettled: () => {
+        const queryKey = trpc.document.getDocuments.queryKey({
+          id: artifact.documentId,
+        });
+        queryClient.invalidateQueries({ queryKey });
+      },
+    }),
+  );
 
   if (!documents) return;
 
@@ -51,44 +110,20 @@ export const VersionFooter = ({
 
       <div className="flex flex-row gap-4">
         <Button
-          disabled={isMutating}
+          disabled={saveDocumentMutation.isPending}
           onClick={async () => {
-            setIsMutating(true);
-
             const versionToRestore = documents[currentVersionIndex];
 
-            mutate(
-              `/api/document?id=${artifact.documentId}`,
-              await fetch(`/api/document?id=${artifact.documentId}`, {
-                method: 'POST',
-                body: JSON.stringify({
-                  content: versionToRestore.content,
-                  title: versionToRestore.title,
-                  kind: versionToRestore.kind,
-                }),
-              }),
-              {
-                optimisticData: documents
-                  ? [
-                      ...documents.filter((document) =>
-                        isAfter(
-                          new Date(document.createdAt),
-                          new Date(
-                            getDocumentTimestampByIndex(
-                              documents,
-                              currentVersionIndex,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ]
-                  : [],
-              },
-            );
+            saveDocumentMutation.mutate({
+              id: artifact.documentId,
+              content: versionToRestore.content ?? '',
+              title: versionToRestore.title,
+              kind: versionToRestore.kind,
+            });
           }}
         >
           <div>Restore this version</div>
-          {isMutating && (
+          {saveDocumentMutation.isPending && (
             <div className="animate-spin">
               <LoaderIcon />
             </div>

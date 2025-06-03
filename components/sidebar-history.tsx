@@ -414,7 +414,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
-                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -435,7 +434,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
-                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -456,7 +454,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
-                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -477,7 +474,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
-                            refetch={refetch}
                           />
                         ))}
                       </>
@@ -498,7 +494,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             setOpenMobile={setOpenMobile}
-                            refetch={refetch}
                           />
                         ))}
                       </>

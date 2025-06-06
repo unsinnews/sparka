@@ -12,11 +12,11 @@ const ScrollArea = React.forwardRef<
   }
 >(({ className, children, viewPortClassName, ...props }, ref) => (
   <ScrollAreaPrimitive.Root
-    ref={ref}
     className={cn('relative overflow-hidden', className)}
     {...props}
   >
     <ScrollAreaPrimitive.Viewport
+      ref={ref} // Changed to the viewport for stick to bottom interaction
       className={cn('h-full w-full rounded-[inherit]', viewPortClassName)}
     >
       {children}

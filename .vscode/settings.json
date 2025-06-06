@@ -24,5 +24,6 @@
   ],
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "coderabbit.autoReviewMode": "disabled"
 }

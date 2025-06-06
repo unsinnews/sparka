@@ -40,7 +40,7 @@ export function useScrollToBottom<T extends HTMLElement>(): [
           // Determine if we should scroll based on:
           // 1. New message was added
           // 2. Last message content is growing (streaming)
-          if (currentMessageCount > prevMessageCount) {
+          if (currentMessageCount !== prevMessageCount) {
             shouldScroll = true;
             prevMessageCount = currentMessageCount;
           } else if (lastMessageContent.length > lastMessageTextLength) {

@@ -1,5 +1,4 @@
 import { PreviewMessage } from './message';
-import { useScrollToBottom } from './use-scroll-to-bottom';
 import { Overview } from './overview';
 import { memo } from 'react';
 import type { Vote } from '@/lib/db/schema';
@@ -9,7 +8,11 @@ import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import { ResponseErrorMessage } from './response-error-message';
 import { ThinkingMessage } from './thinking-message';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
-import { findLastArtifact } from '@/lib/utils';
+import { cn, findLastArtifact } from '@/lib/utils';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useStickToBottom } from 'use-stick-to-bottom';
+import { Button } from './ui/button';
+import { ArrowDown } from 'lucide-react';
 
 interface MessagesProps {
   chatId: string;
@@ -35,18 +38,22 @@ function PureMessages({
   data,
   onModelChange,
 }: MessagesProps) {
-  const [messagesContainerRef, messagesEndRef] =
-    useScrollToBottom<HTMLDivElement>();
+  const { scrollRef, contentRef, scrollToBottom, isNearBottom, state } =
+    useStickToBottom();
 
   // Find the last artifact in all messages
   const lastArtifact = findLastArtifact(messages);
 
   return (
     <ScrollArea
-      className="flex flex-1 w-full"
+      ref={scrollRef}
+      className="flex flex-col flex-1 w-full"
       viewPortClassName=" [&>div]:!block"
     >
-      <div className="flex flex-col px-2 sm:px-4 min-w-0 gap-6 pt-4 max-w-[calc(100vw-2rem)] sm:max-w-2xl md:max-w-3xl container mx-auto">
+      <div
+        ref={contentRef}
+        className="flex flex-col px-2 sm:px-4 min-w-0 gap-6 pt-4 sm:max-w-2xl md:max-w-3xl container mx-auto"
+      >
         {messages.length === 0 && <Overview />}
 
         {messages.map((message, index) => (
@@ -80,10 +87,21 @@ function PureMessages({
           />
         )}
 
-        <div
-          ref={messagesEndRef}
-          className="shrink-0 min-w-[24px] min-h-[24px]"
-        />
+        <div className="shrink-0 min-w-[24px] min-h-[24px]" />
+      </div>
+      {/* Scroll to bottom button */}
+      <div className="absolute bottom-4 right-4 flex justify-center items-center w-full">
+        <Button
+          variant="outline"
+          size="icon"
+          className={cn(
+            'rounded-full shadow-lg bg-muted/60 hover:bg-muted z-10',
+            state.isNearBottom && 'hidden',
+          )}
+          onClick={() => scrollToBottom()}
+        >
+          <ArrowDown className="size-4" />
+        </Button>
       </div>
     </ScrollArea>
   );

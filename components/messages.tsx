@@ -1,5 +1,4 @@
 import { PreviewMessage } from './message';
-import { Overview } from './overview';
 import { memo } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
@@ -13,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useStickToBottom } from 'use-stick-to-bottom';
 import { Button } from './ui/button';
 import { ArrowDown } from 'lucide-react';
+import { Greeting } from './greeting';
 
 export interface MessagesProps {
   chatId: string;
@@ -54,7 +54,7 @@ function PureMessages({
         ref={contentRef}
         className="flex flex-col px-2 sm:px-4 min-w-0 gap-6 pt-4 sm:max-w-2xl md:max-w-3xl container mx-auto"
       >
-        {messages.length === 0 && <Overview />}
+        {messages.length === 0 && <Greeting />}
 
         {messages.map((message, index) => (
           <PreviewMessage

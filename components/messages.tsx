@@ -90,12 +90,12 @@ function PureMessages({
         <div className="shrink-0 min-w-[24px] min-h-[24px]" />
       </div>
       {/* Scroll to bottom button */}
-      <div className="absolute bottom-4 right-4 flex justify-center items-center w-full">
+      <div className="absolute bottom-4 flex justify-center items-center w-full">
         <Button
           variant="outline"
           size="icon"
           className={cn(
-            'rounded-full shadow-lg bg-muted/60 hover:bg-muted z-10',
+            'rounded-full shadow-lg bg-background/80 hover:bg-muted z-10',
             state.isNearBottom && 'hidden',
           )}
           onClick={() => scrollToBottom()}

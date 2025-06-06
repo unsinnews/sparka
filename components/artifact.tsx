@@ -380,7 +380,7 @@ function PureArtifact({
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col h-full justify-between items-center gap-4">
+              <div className="flex flex-col h-full justify-between items-center">
                 <ArtifactMessages
                   data={data}
                   chatId={chatId}
@@ -389,6 +389,7 @@ function PureArtifact({
                   messages={messages}
                   chatHelpers={chatHelpers}
                   isReadonly={isReadonly}
+                  isVisible={true}
                   artifactStatus={artifact.status}
                   selectedModelId={selectedModelId}
                 />

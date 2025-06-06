@@ -111,7 +111,7 @@ export function Chat({
           data={data}
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
-          isArtifactVisible={isArtifactVisible}
+          isVisible={!isArtifactVisible}
           selectedModelId={localSelectedModelId}
           onModelChange={handleModelChange}
         />

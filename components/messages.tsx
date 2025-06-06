@@ -14,14 +14,14 @@ import { useStickToBottom } from 'use-stick-to-bottom';
 import { Button } from './ui/button';
 import { ArrowDown } from 'lucide-react';
 
-interface MessagesProps {
+export interface MessagesProps {
   chatId: string;
   status: UseChatHelpers['status'];
   votes: Array<Vote> | undefined;
   messages: Array<YourUIMessage>;
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
-  isArtifactVisible: boolean;
+  isVisible: boolean;
   selectedModelId: string;
   data: ChatRequestData;
   onModelChange?: (modelId: string) => void;
@@ -108,7 +108,7 @@ function PureMessages({
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
-  if (prevProps.isArtifactVisible && nextProps.isArtifactVisible) return true;
+  if (!prevProps.isVisible && !nextProps.isVisible) return true;
   if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
   if (prevProps.status !== nextProps.status) return false;
   if (prevProps.status && nextProps.status) return false;

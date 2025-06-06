@@ -42,11 +42,11 @@ function PureMessages({
   const lastArtifact = findLastArtifact(messages);
 
   return (
-    <div className="flex flex-col overflow-y-scroll flex-1 w-full">
-      <div
-        ref={messagesContainerRef}
-        className="flex flex-col min-w-0 gap-6 flex-1 pt-4 max-w-[calc(100vw-2rem)] sm:max-w-2xl md:max-w-3xl container mx-auto"
-      >
+    <ScrollArea
+      className="flex flex-1 w-full"
+      viewPortClassName=" [&>div]:!block"
+    >
+      <div className="flex flex-col px-2 sm:px-4 min-w-0 gap-6 pt-4 max-w-[calc(100vw-2rem)] sm:max-w-2xl md:max-w-3xl container mx-auto">
         {messages.length === 0 && <Overview />}
 
         {messages.map((message, index) => (
@@ -85,7 +85,7 @@ function PureMessages({
           className="shrink-0 min-w-[24px] min-h-[24px]"
         />
       </div>
-    </div>
+    </ScrollArea>
   );
 }
 

@@ -5,7 +5,7 @@ import { useChat } from '@ai-sdk/react';
 import { useState } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
-import { generateUUID } from '@/lib/utils';
+import { cn, generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
@@ -16,7 +16,7 @@ import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { saveChatModelAsCookie } from '@/app/(chat)/actions';
-
+import { useSidebar } from '@/components/ui/sidebar';
 export function Chat({
   id,
   initialMessages,
@@ -74,6 +74,7 @@ export function Chat({
     enabled: messages.length >= 2 && !isReadonly,
   });
 
+  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
   const [data, setData] = useState<ChatRequestData>({
@@ -89,7 +90,12 @@ export function Chat({
 
   return (
     <>
-      <div className="flex flex-col min-w-0 h-dvh bg-background">
+      <div
+        className={cn(
+          'flex flex-col min-w-0 h-dvh bg-background max-w-[calc(100vw-var(--sidebar-width))]',
+          isMobile && 'max-w-screen',
+        )}
+      >
         <ChatHeader
           chatId={id}
           selectedModelId={localSelectedModelId}

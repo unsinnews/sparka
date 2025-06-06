@@ -14,11 +14,12 @@
 [x] Delete previous chat messages should also delete documents created / updated in that range of the conversation
 [x] When I switch providers in the edit message box, I loose the message editing content. It doesn't change the model
 [x] Something is limiting the width (Maybe Messages, or multimodal-input) and therefore this doesn't work on mobile
-[x] useScrollToBottom activates when scrolling up
+[ ] useScrollToBottom activates when scrolling up. What do we do on artifacts?
 [x] Rename chat title
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
+[ ] Use scroll to bottom scrolls when hovering different parts of the messages display
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend

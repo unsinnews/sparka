@@ -5,7 +5,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';
-import { SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { Weather } from './weather';
@@ -92,23 +91,13 @@ const PurePreviewMessage = ({
       >
         <div
           className={cn(
-            'grid grid-cols-[auto_1fr] gap-4 w-full group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl',
-            {
-              'w-full': mode === 'edit',
-              'group-data-[role=user]/message:w-fit': mode !== 'edit',
-            },
+            'w-full',
+            mode === 'edit'
+              ? 'max-w-full'
+              : 'group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:w-fit',
           )}
         >
-          {message.role === 'assistant' ? (
-            <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
-              <div className="translate-y-px">
-                <SparklesIcon size={14} />
-              </div>
-            </div>
-          ) : (
-            <div className="size-8" />
-          )}
-
+          {/* Content Column */}
           <div className="flex flex-col gap-4 w-full">
             {message.annotations && (
               <ResearchUpdateAnnotations
@@ -160,7 +149,7 @@ const PurePreviewMessage = ({
                       >
                         <div
                           data-testid="message-content"
-                          className={cn('flex flex-col gap-4 w-full', {
+                          className={cn('flex flex-col gap-4 w-full ml-4', {
                             'bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700 text-left':
                               message.role === 'user',
                           })}

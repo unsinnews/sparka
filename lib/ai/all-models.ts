@@ -1740,7 +1740,7 @@ export const allModels = [
       },
     },
   },
-] as const satisfies ModelDefinitionInternal[];
+] satisfies ModelDefinitionInternal[];
 
 // Extract types from the allModels array
 export type ModelSpecifications = (typeof allModels)[number]['specification'];
@@ -1756,19 +1756,32 @@ export type ModelDefinition = ModelDefinitionInternal & {
   providerModelId: AvailableProviderModels;
 };
 
-export function getModelDefinition(
-  modelId: AvailableProviderModels,
-): ModelDefinition {
-  const model = allModels.find((model) => model.id === modelId);
-  if (!model) {
-    throw new Error(`Model ${modelId} not found`);
-  }
-  return { ...model, providerModelId: modelId };
-}
-
 export const allImplementedModels = allModels.filter(
   (model) =>
     model.specification.provider === 'openai' ||
     model.specification.provider === 'xai' ||
     model.specification.provider === 'anthropic',
 );
+
+// Memoized dictionary of models by ID for efficient lookups
+const _modelsByIdCache = new Map<string, ModelDefinitionInternal>();
+
+function getModelsByIdDict(): Map<string, ModelDefinitionInternal> {
+  if (_modelsByIdCache.size === 0) {
+    allModels.forEach((model) => {
+      _modelsByIdCache.set(model.id, model);
+    });
+  }
+  return _modelsByIdCache;
+}
+
+export function getModelDefinition(
+  modelId: AvailableProviderModels,
+): ModelDefinition {
+  const modelsByIdDict = getModelsByIdDict();
+  const model = modelsByIdDict.get(modelId);
+  if (!model) {
+    throw new Error(`Model ${modelId} not found`);
+  }
+  return { ...model, providerModelId: modelId };
+}

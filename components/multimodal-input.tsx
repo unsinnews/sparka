@@ -35,6 +35,7 @@ import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { ModelSelector } from './model-selector';
 import { ResponsiveToggles } from './chat-toggles';
 import { ScrollArea } from './ui/scroll-area';
+import { getModelDefinition } from '@/lib/ai/all-models';
 
 function PureMultimodalInput({
   chatId,
@@ -110,6 +111,26 @@ function PureMultimodalInput({
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
   };
+
+  // Handle model changes and disable deep research if switching to reasoning model
+  const handleModelChange = useCallback(
+    (modelId: string) => {
+      const modelDef = getModelDefinition(modelId as any);
+      const hasReasoning = modelDef.features?.reasoning === true;
+
+      // If switching to a reasoning model and deep research is enabled, disable it
+      if (hasReasoning && data.deepResearch) {
+        setData((prev) => ({
+          ...prev,
+          deepResearch: false,
+        }));
+      }
+
+      // Call the original model change handler
+      onModelChange?.(modelId);
+    },
+    [data.deepResearch, setData, onModelChange],
+  );
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
@@ -331,9 +352,13 @@ function PureMultimodalInput({
               <ModelSelector
                 selectedModelId={selectedModelId}
                 className="h-fit"
-                onModelChange={onModelChange}
+                onModelChange={handleModelChange}
               />
-              <ResponsiveToggles data={data} setData={setData} />
+              <ResponsiveToggles
+                data={data}
+                setData={setData}
+                selectedModelId={selectedModelId}
+              />
             </div>
             <div className="flex items-center gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />

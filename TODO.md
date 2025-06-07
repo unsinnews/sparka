@@ -29,7 +29,6 @@
     [x] Improve multimodal input styles for long text
     [x] Scrollbar
 
-[ ] Long running jobs
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
@@ -81,7 +80,8 @@
 [ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
 [ ] Fix broken CI workflows
-
+[ ] Long running jobs
+    [ ] Restore deep research for reasoning models once we can go longer than 1m in request time.
 
 ## Auth
 [x] Add "Deployment" redirect URI 

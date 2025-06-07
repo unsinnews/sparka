@@ -13,6 +13,7 @@ import {
 } from './ui/dropdown-menu';
 import { Separator } from './ui/separator';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import { getModelDefinition } from '@/lib/ai/all-models';
 
 export function WebSearchToggle({
   enabled,
@@ -35,14 +36,20 @@ export function WebSearchToggle({
 export function DeepResearchToggle({
   enabled,
   setEnabled,
-}: { enabled: boolean; setEnabled: (enabled: boolean) => void }) {
+  disabled = false,
+}: {
+  enabled: boolean;
+  setEnabled: (enabled: boolean) => void;
+  disabled?: boolean;
+}) {
   return (
     <Toggle
       pressed={enabled}
       onPressedChange={setEnabled}
       variant="outline"
       size="sm"
-      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
+      disabled={disabled}
+      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50"
     >
       <Telescope size={14} />
       Deep research
@@ -71,10 +78,22 @@ export function ReasonSearchToggle({
 export function ResponsiveToggles({
   data,
   setData,
+  selectedModelId,
 }: {
   data: ChatRequestData;
   setData: Dispatch<SetStateAction<ChatRequestData>>;
+  selectedModelId: string;
 }) {
+  // Check if the selected model has reasoning capabilities
+  const hasReasoningModel = (() => {
+    try {
+      const modelDef = getModelDefinition(selectedModelId as any);
+      return modelDef.features?.reasoning === true;
+    } catch {
+      return false;
+    }
+  })();
+
   const activeTool = data.webSearch
     ? 'webSearch'
     : data.deepResearch
@@ -84,6 +103,11 @@ export function ResponsiveToggles({
         : null;
 
   const setTool = (tool: 'webSearch' | 'deepResearch' | 'reason' | null) => {
+    // Prevent enabling deep research if reasoning model is selected
+    if (tool === 'deepResearch' && hasReasoningModel) {
+      return;
+    }
+
     setData({
       webSearch: tool === 'webSearch',
       deepResearch: tool === 'deepResearch',
@@ -128,9 +152,15 @@ export function ResponsiveToggles({
                 setTool(data.deepResearch ? null : 'deepResearch');
               }}
               className="flex items-center gap-2"
+              disabled={hasReasoningModel}
             >
               <Telescope size={14} />
               <span>Deep research</span>
+              {hasReasoningModel && (
+                <span className="text-xs opacity-60">
+                  (disabled for reasoning models)
+                </span>
+              )}
             </DropdownMenuItem>
             {/* <DropdownMenuItem
               onClick={(e) => {
@@ -181,6 +211,7 @@ export function ResponsiveToggles({
         <DeepResearchToggle
           enabled={data.deepResearch}
           setEnabled={(enabled) => setTool(enabled ? 'deepResearch' : null)}
+          disabled={hasReasoningModel}
         />
         {/* <ReasonSearchToggle
           enabled={data.reason}

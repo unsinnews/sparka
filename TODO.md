@@ -17,11 +17,11 @@
 [x] useScrollToBottom activates when scrolling up. What do we do on artifacts?
 [x] Rename chat title
 [x] Use scroll to bottom scrolls when hovering different parts of the messages display
+[x] Bug: On mobile the multimodal input loads with small width and then becomes full width.
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
-[ ] Bug: On mobile the multimodal input loads with small width and then becomes full width.
 [ ] Add Gemini
 [ ] Scroll area sidebar chat history
 [ ] Scroll area artifacts

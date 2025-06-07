@@ -22,6 +22,7 @@
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
 [ ] Bug: On mobile the multimodal input loads with small width and then becomes full width.
+[ ] Add Gemini
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend

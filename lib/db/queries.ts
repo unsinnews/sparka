@@ -480,3 +480,16 @@ export async function getStreamsByChatId({ chatId }: { chatId: string }) {
     throw error;
   }
 }
+
+export async function deleteStreamId({
+  streamId,
+}: {
+  streamId: string;
+}) {
+  try {
+    return await db.delete(chatStream).where(eq(chatStream.streamId, streamId));
+  } catch (error) {
+    console.error('Failed to delete stream ID from database');
+    throw error;
+  }
+}

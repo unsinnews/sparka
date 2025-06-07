@@ -18,6 +18,7 @@ import {
   saveStreamId,
   getStreamsByChatId,
   getMessagesByChatId,
+  deleteStreamId,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -46,11 +47,28 @@ import { after } from 'next/server';
 
 export const maxDuration = 60;
 
+// Create shared Redis clients for resumable stream and cleanup
+let redisPublisher: any = null;
+let redisSubscriber: any = null;
+
+if (process.env.REDIS_URL) {
+  (async () => {
+    const redis = await import('redis');
+    redisPublisher = redis.createClient({ url: process.env.REDIS_URL });
+    redisSubscriber = redis.createClient({ url: process.env.REDIS_URL });
+    await Promise.all([redisPublisher.connect(), redisSubscriber.connect()]);
+  })();
+}
+
 const streamContext = createResumableStreamContext({
   waitUntil: after,
-  // For production, you would configure Redis here
   keyPrefix: 'parlagen:resumable-stream',
-  // Uses process.env.REDIS_URL
+  ...(redisPublisher && redisSubscriber
+    ? {
+        publisher: redisPublisher,
+        subscriber: redisSubscriber,
+      }
+    : {}),
 });
 
 export type ChatRequestData = {
@@ -409,6 +427,31 @@ export async function POST(request: NextRequest) {
           }
           return 'Oops, an error occured!';
         },
+      });
+
+      after(async () => {
+        // Cleanup to happen after the POST response is sent
+        // Set TTL on Redis keys to auto-expire after 10 minutes
+        if (redisPublisher) {
+          try {
+            const keyPattern = `parlagen:resumable-stream:rs:sentinel:${streamId}*`;
+            const keys = await redisPublisher.keys(keyPattern);
+            if (keys.length > 0) {
+              // Set 5 minute expiration on all stream-related keys
+              await Promise.all(
+                keys.map((key: string) => redisPublisher.expire(key, 300)),
+              );
+            }
+          } catch (error) {
+            console.error('Failed to set TTL on stream keys:', error);
+          }
+        }
+        try {
+          // Only clean up the DB record
+          await deleteStreamId({ streamId });
+        } catch (cleanupError) {
+          console.error('Failed to cleanup stream DB record:', cleanupError);
+        }
       });
 
       return new Response(

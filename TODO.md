@@ -41,6 +41,8 @@
 [ ] Add Gemini
 
 ### Backend
+[x] Create a button to Deep Research
+[x] Write a chron job that deletes chatStream rows older than 24hs
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend
 [ ] Deep research should have a step in which it decides if the question can be answered or it should continue researching.
 [ ] Unify Deep research and reasonSearch
@@ -49,10 +51,8 @@
 [ ] Migrate routes to TRPC (and use it in the frontend)
 [ ] Organize authorization as a layer at the beggining of each trpc
 
-[x] Create a button to Deep Research
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
 [ ] Propagate model selection to deep research / reason tools (and create new selectables for them)
-[ ] Write a chron job that deletes chatStream rows older than 24hs
 
 ### Frontend
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)

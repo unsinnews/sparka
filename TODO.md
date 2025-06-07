@@ -23,12 +23,12 @@
 [x] Resumable streams
 [x] Feat: Improve model selector with combobox and filters (based on features)
 [x] Why does it reload the page when I change the model?
-
-[ ] Multimodal Input
+[x] Multimodal Input
     [x] After sending a message the input box remains at the last height, it should be reset to the default height
     [x] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
-    [ ] Improve multimodal input styles for long text
-    [ ] Scrollbar
+    [x] Improve multimodal input styles for long text
+    [x] Scrollbar
+
 [ ] Long running jobs
 [ ] Define project Name
 [ ] Define project styles

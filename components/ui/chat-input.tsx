@@ -1,6 +1,9 @@
 import * as React from 'react';
-import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
+import {
+  AutosizeTextarea,
+  type AutosizeTextAreaRef,
+} from './autosize-textarea';
 
 interface ChatInputTextAreaRef extends HTMLTextAreaElement {
   adjustHeight: () => void;
@@ -35,49 +38,20 @@ ChatInputTopRow.displayName = 'ChatInputTopRow';
 
 const ChatInputTextArea = React.forwardRef<
   ChatInputTextAreaRef,
-  React.ComponentProps<typeof Textarea> & {
+  React.ComponentProps<typeof AutosizeTextarea> & {
     maxRows?: number;
   }
->(({ className, maxRows = 7, onChange, ...props }, ref) => {
-  const internalRef = React.useRef<HTMLTextAreaElement>(null);
+>(({ className, maxRows = 7, ...props }, ref) => {
+  const autosizeRef = React.useRef<AutosizeTextAreaRef>(null);
 
-  const adjustHeight = React.useCallback(() => {
-    const textarea = internalRef.current;
-    if (textarea) {
-      textarea.style.height = 'auto';
-      const scrollHeight = textarea.scrollHeight;
-      const lineHeight =
-        Number.parseInt(getComputedStyle(textarea).lineHeight) || 24;
-      const maxHeight = lineHeight * maxRows;
-      textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
-    }
-  }, [maxRows]);
-
-  React.useEffect(() => {
-    adjustHeight();
-  }, [adjustHeight]);
-
-  const handleChange = React.useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      onChange?.(e);
-      // Use setTimeout to ensure the value is updated before adjusting height
-      setTimeout(adjustHeight, 0);
-    },
-    [onChange, adjustHeight],
-  );
-
-  React.useImperativeHandle(
-    ref,
-    () => ({
-      ...(internalRef.current as HTMLTextAreaElement),
-      adjustHeight,
-    }),
-    [adjustHeight],
-  );
+  // Calculate max height based on maxRows
+  const lineHeight = 24; // Default line height
+  const maxHeight = lineHeight * maxRows;
+  const minHeight = 44; // Default min height
 
   return (
-    <Textarea
-      ref={internalRef}
+    <AutosizeTextarea
+      ref={autosizeRef}
       className={cn(
         'flex min-h-[44px] items-start pl-1 w-full resize-none border-0 bg-transparent p-2 focus-visible:ring-0 shadow-none outline-none overflow-auto',
         className,
@@ -87,7 +61,6 @@ const ChatInputTextArea = React.forwardRef<
         MozBoxShadow: 'none',
         boxShadow: 'none',
       }}
-      onChange={handleChange}
       {...props}
     />
   );

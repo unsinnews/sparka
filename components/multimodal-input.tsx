@@ -34,6 +34,7 @@ import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { ModelSelector } from './model-selector';
 import { ResponsiveToggles } from './chat-toggles';
+import { ScrollArea } from './ui/scroll-area';
 
 function PureMultimodalInput({
   chatId,
@@ -297,32 +298,33 @@ function PureMultimodalInput({
             </ChatInputTopRow>
           </motion.div>
 
-          <ChatInputTextArea
-            data-testid="multimodal-input"
-            ref={textareaRef}
-            placeholder="Send a message..."
-            value={input}
-            onChange={handleInput}
-            maxRows={20}
-            autoFocus
-            onKeyDown={(event) => {
-              if (
-                event.key === 'Enter' &&
-                !event.shiftKey &&
-                !event.nativeEvent.isComposing
-              ) {
-                event.preventDefault();
+          <ScrollArea className="max-h-[70vh]">
+            <ChatInputTextArea
+              data-testid="multimodal-input"
+              ref={textareaRef}
+              placeholder="Send a message..."
+              value={input}
+              onChange={handleInput}
+              autoFocus
+              onKeyDown={(event) => {
+                if (
+                  event.key === 'Enter' &&
+                  !event.shiftKey &&
+                  !event.nativeEvent.isComposing
+                ) {
+                  event.preventDefault();
 
-                if (status !== 'ready') {
-                  toast.error(
-                    'Please wait for the model to finish its response!',
-                  );
-                } else {
-                  submitForm();
+                  if (status !== 'ready') {
+                    toast.error(
+                      'Please wait for the model to finish its response!',
+                    );
+                  } else {
+                    submitForm();
+                  }
                 }
-              }
-            }}
-          />
+              }}
+            />
+          </ScrollArea>
 
           <ChatInputBottomRow className="@container flex flex-row justify-between">
             <div className="flex items-center gap-2">

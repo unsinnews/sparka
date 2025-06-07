@@ -126,6 +126,7 @@ export async function updateMessage({
         annotations: _message.annotations,
         attachments: _message.attachments,
         createdAt: _message.createdAt,
+        isPartial: _message.isPartial,
       })
       .where(eq(message.id, _message.id));
   } catch (error) {

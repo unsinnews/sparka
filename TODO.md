@@ -36,6 +36,7 @@
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Update README.md
 [ ] Demo without logging in
+[ ] PDF models
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend

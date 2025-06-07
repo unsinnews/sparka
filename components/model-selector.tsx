@@ -129,15 +129,19 @@ export function ModelSelector({
       </PopoverTrigger>
       <PopoverContent className="w-[700px] p-0" align="start">
         <Command>
-          <div className="flex items-center justify-between border-b px-3 w-full">
-            <CommandInput placeholder="Search models..." className="flex-1" />
+          <div className="flex items-center border-b">
+            <CommandInput
+              placeholder="Search models..."
+              className="px-3"
+              containerClassName="w-full border-0"
+            />
             <Popover open={filterOpen} onOpenChange={setFilterOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'ml-2 h-8 w-8 p-0 relative',
+                    'mr-3 h-8 w-8 p-0 relative',
                     activeFilterCount > 0 && 'text-primary',
                   )}
                 >

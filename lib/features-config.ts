@@ -40,7 +40,7 @@ export const AVAILABLE_FEATURES: Record<string, FeatureConfig> = {
     name: 'PDF',
     description: 'Supports PDF input',
     icon: FileText,
-    enabled: true,
+    enabled: false,
     category: 'input',
   },
   audioInput: {

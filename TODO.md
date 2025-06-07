@@ -21,9 +21,6 @@
 [x] Scroll area sidebar chat history
 [x] Scroll area artifacts
 [x] Resumable streams
-[ ] Define project Name
-[ ] Define project styles
-[ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
     [ ] Learn from scira's ModelSwitcher **component**
 [ ] Add Gemini
@@ -33,6 +30,11 @@
     [ ] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
     [ ] Improve multimodal input styles for long text
 [ ] Long running jobs
+[ ] Define project Name
+[ ] Define project styles
+[ ] Sign up with GitHub (auth block from shadcn)
+[ ] Update README.md
+[ ] Demo without logging in
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend

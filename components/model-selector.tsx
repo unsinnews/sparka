@@ -222,20 +222,16 @@ export function ModelSelector({
                           value={id}
                           onSelect={() => {
                             setOpen(false);
+                            startTransition(() => {
+                              setOptimisticModelId(id);
+                              onModelChange?.(id);
+                            });
                           }}
                           className="p-0 h-auto"
                         >
                           <ModelCard
                             model={modelDefinition}
                             isSelected={id === optimisticModelId}
-                            onClick={(e) => {
-                              setOptimisticModelId(id);
-                              startTransition(() => {
-                                onModelChange?.(id);
-                              });
-                              setOpen(false);
-                              e?.stopPropagation();
-                            }}
                             className="size-full"
                           />
                         </CommandItem>

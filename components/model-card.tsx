@@ -39,12 +39,10 @@ function getProviderIcon(provider: string) {
 export function ModelCard({
   model,
   isSelected,
-  onClick,
   className,
 }: {
   model: ModelDefinition;
   isSelected?: boolean;
-  onClick?: (e?: React.MouseEvent) => void;
   className?: string;
 }) {
   const { features, pricing, shortDescription } = model;
@@ -71,7 +69,7 @@ export function ModelCard({
 
   return (
     <TooltipProvider>
-      <button
+      <div
         className={cn(
           'group p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-start',
           isSelected
@@ -79,8 +77,6 @@ export function ModelCard({
             : 'border-border hover:border-primary/50',
           className,
         )}
-        type="button"
-        onClick={onClick}
       >
         {/* Header */}
         <div className="flex items-start justify-between mb-3 w-full">
@@ -161,7 +157,7 @@ export function ModelCard({
             in, ${pricing.outputMTok}/M out
           </div>
         )}
-      </button>
+      </div>
     </TooltipProvider>
   );
 }

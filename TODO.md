@@ -19,13 +19,13 @@
 [x] Use scroll to bottom scrolls when hovering different parts of the messages display
 [x] Bug: On mobile the multimodal input loads with small width and then becomes full width.
 [x] Scroll area sidebar chat history
+[x] Scroll area artifacts
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
     [ ] Learn from scira's ModelSwitcher **component**
 [ ] Add Gemini
-[ ] Scroll area artifacts
 [ ] Multimodal Input
     [ ] Scrollbar
     [ ] After sending a message the input box remains at the last height, it should be reset to the default height

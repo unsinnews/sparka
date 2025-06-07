@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
-import { saveChatModelAsCookie } from '@/app/(chat)/actions';
+
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 
@@ -98,7 +98,19 @@ export function Chat({
 
   const handleModelChange = async (modelId: string) => {
     setLocalSelectedModelId(modelId);
-    await saveChatModelAsCookie(modelId);
+
+    try {
+      await fetch('/api/chat-model', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ model: modelId }),
+      });
+    } catch (error) {
+      console.error('Failed to save chat model:', error);
+      toast.error('Failed to save model preference');
+    }
   };
 
   return (

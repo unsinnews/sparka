@@ -229,10 +229,11 @@ export function ModelSelector({
                             model={modelDefinition}
                             isSelected={id === optimisticModelId}
                             onClick={(e) => {
+                              setOptimisticModelId(id);
                               startTransition(() => {
-                                setOptimisticModelId(id);
                                 onModelChange?.(id);
                               });
+                              setOpen(false);
                               e?.stopPropagation();
                             }}
                             className="size-full"

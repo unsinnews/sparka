@@ -21,8 +21,8 @@
 [x] Scroll area sidebar chat history
 [x] Scroll area artifacts
 [x] Resumable streams
-[ ] Feat: Improve model selector with combobox and filters (based on features)
-    [ ] Why does it reload the page when I change the model?
+[x] Feat: Improve model selector with combobox and filters (based on features)
+[ ] Why does it reload the page when I change the model?
 
 [ ] Add Gemini
 [ ] Multimodal Input

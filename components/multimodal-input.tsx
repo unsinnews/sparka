@@ -303,7 +303,7 @@ function PureMultimodalInput({
             placeholder="Send a message..."
             value={input}
             onChange={handleInput}
-            maxRows={15}
+            maxRows={20}
             autoFocus
             onKeyDown={(event) => {
               if (

@@ -132,7 +132,7 @@ export function ResponsiveToggles({
               <Telescope size={14} />
               <span>Deep research</span>
             </DropdownMenuItem>
-            <DropdownMenuItem
+            {/* <DropdownMenuItem
               onClick={(e) => {
                 e.stopPropagation();
                 setTool(data.reason ? null : 'reason');
@@ -141,7 +141,7 @@ export function ResponsiveToggles({
             >
               <Lightbulb size={14} />
               <span>Reason</span>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -182,10 +182,10 @@ export function ResponsiveToggles({
           enabled={data.deepResearch}
           setEnabled={(enabled) => setTool(enabled ? 'deepResearch' : null)}
         />
-        <ReasonSearchToggle
+        {/* <ReasonSearchToggle
           enabled={data.reason}
           setEnabled={(enabled) => setTool(enabled ? 'reason' : null)}
-        />
+        /> */}
       </div>
     </>
   );

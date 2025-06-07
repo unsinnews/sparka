@@ -25,6 +25,7 @@ import {
   ChatInputTopRow,
   ChatInputTextArea,
   ChatInputBottomRow,
+  type ChatInputTextAreaRef,
 } from './ui/chat-input';
 import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
@@ -71,7 +72,7 @@ function PureMultimodalInput({
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
 }) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const textareaRef = useRef<ChatInputTextAreaRef>(null);
   const { width } = useWindowSize();
 
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
@@ -92,6 +93,13 @@ function PureMultimodalInput({
 
   useEffect(() => {
     setLocalStorageInput(input);
+
+    // Reset height when input is cleared
+    if (input === '' && textareaRef.current?.adjustHeight) {
+      setTimeout(() => {
+        textareaRef.current?.adjustHeight();
+      }, 0);
+    }
   }, [input, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -116,6 +124,11 @@ function PureMultimodalInput({
       webSearch: false,
       reason: false,
     });
+
+    // Reset textarea height after form submission
+    setTimeout(() => {
+      textareaRef.current?.adjustHeight();
+    }, 0);
 
     // TODO: Is it needed to refocus every time this function is called?
     if (width && width > 768) {

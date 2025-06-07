@@ -2,6 +2,10 @@ import * as React from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
+interface ChatInputTextAreaRef extends HTMLTextAreaElement {
+  adjustHeight: () => void;
+}
+
 const ChatInputContainer = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -30,7 +34,7 @@ const ChatInputTopRow = React.forwardRef<
 ChatInputTopRow.displayName = 'ChatInputTopRow';
 
 const ChatInputTextArea = React.forwardRef<
-  HTMLTextAreaElement,
+  ChatInputTextAreaRef,
   React.ComponentProps<typeof Textarea> & {
     maxRows?: number;
   }
@@ -64,8 +68,11 @@ const ChatInputTextArea = React.forwardRef<
 
   React.useImperativeHandle(
     ref,
-    () => internalRef.current as HTMLTextAreaElement,
-    [],
+    () => ({
+      ...(internalRef.current as HTMLTextAreaElement),
+      adjustHeight,
+    }),
+    [adjustHeight],
   );
 
   return (
@@ -104,4 +111,5 @@ export {
   ChatInputTopRow,
   ChatInputTextArea,
   ChatInputBottomRow,
+  type ChatInputTextAreaRef,
 };

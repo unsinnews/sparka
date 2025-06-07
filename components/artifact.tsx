@@ -19,6 +19,7 @@ import { ArtifactActions } from './artifact-actions';
 import { ArtifactCloseButton } from './artifact-close-button';
 import { ArtifactMessages } from './artifact-messages';
 import { useSidebar } from './ui/sidebar';
+import { ScrollArea } from './ui/scroll-area';
 import { useArtifact } from '@/hooks/use-artifact';
 import { imageArtifact } from '@/artifacts/image/client';
 import { codeArtifact } from '@/artifacts/code/client';
@@ -487,7 +488,7 @@ function PureArtifact({
               },
             }}
           >
-            <div className="p-2 flex flex-row justify-between items-start">
+            <div className="p-2 flex flex-row justify-between items-start bg-background/80">
               <div className="flex flex-row gap-4 items-start">
                 <ArtifactCloseButton />
 
@@ -526,42 +527,44 @@ function PureArtifact({
               />
             </div>
 
-            <div className="dark:bg-muted bg-background h-full overflow-y-scroll !max-w-full items-center">
-              <artifactDefinition.content
-                title={artifact.title}
-                content={
-                  isCurrentVersion
-                    ? artifact.content
-                    : getDocumentContentById(currentVersionIndex)
-                }
-                mode={mode}
-                status={artifact.status}
-                currentVersionIndex={currentVersionIndex}
-                suggestions={[]}
-                onSaveContent={saveContent}
-                isInline={false}
-                isCurrentVersion={isCurrentVersion}
-                getDocumentContentById={getDocumentContentById}
-                isLoading={isDocumentsFetching && !artifact.content}
-                metadata={metadata}
-                setMetadata={setMetadata}
-                isReadonly={isReadonly}
-              />
+            <ScrollArea className="dark:bg-muted h-full !max-w-full">
+              <div className="items-center  bg-background/80">
+                <artifactDefinition.content
+                  title={artifact.title}
+                  content={
+                    isCurrentVersion
+                      ? artifact.content
+                      : getDocumentContentById(currentVersionIndex)
+                  }
+                  mode={mode}
+                  status={artifact.status}
+                  currentVersionIndex={currentVersionIndex}
+                  suggestions={[]}
+                  onSaveContent={saveContent}
+                  isInline={false}
+                  isCurrentVersion={isCurrentVersion}
+                  getDocumentContentById={getDocumentContentById}
+                  isLoading={isDocumentsFetching && !artifact.content}
+                  metadata={metadata}
+                  setMetadata={setMetadata}
+                  isReadonly={isReadonly}
+                />
 
-              <AnimatePresence>
-                {isCurrentVersion && !isReadonly && (
-                  <Toolbar
-                    isToolbarVisible={isToolbarVisible}
-                    setIsToolbarVisible={setIsToolbarVisible}
-                    append={chatHelpers.append}
-                    status={chatHelpers.status}
-                    stop={chatHelpers.stop}
-                    setMessages={chatHelpers.setMessages}
-                    artifactKind={artifact.kind}
-                  />
-                )}
-              </AnimatePresence>
-            </div>
+                <AnimatePresence>
+                  {isCurrentVersion && !isReadonly && (
+                    <Toolbar
+                      isToolbarVisible={isToolbarVisible}
+                      setIsToolbarVisible={setIsToolbarVisible}
+                      append={chatHelpers.append}
+                      status={chatHelpers.status}
+                      stop={chatHelpers.stop}
+                      setMessages={chatHelpers.setMessages}
+                      artifactKind={artifact.kind}
+                    />
+                  )}
+                </AnimatePresence>
+              </div>
+            </ScrollArea>
 
             <AnimatePresence>
               {!isCurrentVersion && !isReadonly && (

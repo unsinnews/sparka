@@ -18,13 +18,19 @@
 [x] Rename chat title
 [x] Use scroll to bottom scrolls when hovering different parts of the messages display
 [x] Bug: On mobile the multimodal input loads with small width and then becomes full width.
+[x] Scroll area sidebar chat history
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
+    [ ] Learn from scira's ModelSwitcher **component**
 [ ] Add Gemini
-[x] Scroll area sidebar chat history
 [ ] Scroll area artifacts
+[ ] Multimodal Input
+    [ ] Scrollbar
+    [ ] After sending a message the input box remains at the last height, it should be reset to the default height
+    [ ] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
+    [ ] Improve multimodal input styles for long text
 [ ] Resumable streams
 [ ] Long running jobs
 
@@ -43,7 +49,6 @@
 
 
 ### Frontend
-[ ] Improve multimodal input styles for long text
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)
 [x] Migrate to TRPC with Tanstack Query
 [ ] Get model from cache in model selector while loading
@@ -57,10 +62,7 @@
 [ ] Chat history: 
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
-- [ ] Only render last document as preview, others as pill
-[ ] Learn from scira's ModelSwitcher **component**
-[ ] After sending a message the input box remains at the last height, it should be reset to the default height
-[ ] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
+[ ] Only render last document as preview, others as pill
 [ ] Migrate to tailwind 4 (and migrate container queries)
 
 

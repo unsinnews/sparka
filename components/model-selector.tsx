@@ -25,8 +25,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ModelCard } from '@/components/model-card';
 import { cn } from '@/lib/utils';
 import { allImplementedModels, getModelDefinition } from '@/lib/ai/all-models';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { getEnabledFeatures } from '@/lib/features-config';
 
-import { ChevronUpIcon } from 'lucide-react';
+import { ChevronUpIcon, FilterIcon } from 'lucide-react';
+
+type FeatureFilter = Record<string, boolean>;
 
 export function ModelSelector({
   selectedModelId,
@@ -37,21 +43,75 @@ export function ModelSelector({
   onModelChange?: (modelId: string) => void;
 } & ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
 
-  // const trpc = useTRPC();
+  // Initialize feature filters with enabled features only
+  const enabledFeatures = getEnabledFeatures();
+  const initialFilters = enabledFeatures.reduce<FeatureFilter>(
+    (acc, feature) => {
+      acc[feature.key] = false;
+      return acc;
+    },
+    {},
+  );
 
-  // const { data: chatModels = [], isLoading } = useQuery(
-  //   trpc.models.getAvailableModels.queryOptions(),
-  // );
+  const [featureFilters, setFeatureFilters] =
+    useState<FeatureFilter>(initialFilters);
 
   const chatModels = allImplementedModels;
+
+  const filteredModels = useMemo(() => {
+    const hasActiveFilters = Object.values(featureFilters).some(Boolean);
+
+    if (!hasActiveFilters) {
+      return chatModels;
+    }
+
+    return chatModels.filter((model) => {
+      const modelDef = getModelDefinition(model.id);
+      const features = modelDef.features;
+
+      if (!features) return false;
+
+      // Check each active filter
+      return Object.entries(featureFilters).every(([key, isActive]) => {
+        if (!isActive) return true;
+
+        switch (key) {
+          case 'reasoning':
+            return features.reasoning;
+          case 'functionCalling':
+            return features.functionCalling;
+          case 'imageInput':
+            return features.input.image;
+          case 'pdfInput':
+            return features.input.pdf;
+          case 'audioInput':
+            return features.input.audio;
+          case 'imageOutput':
+            return features.output.image;
+          case 'audioOutput':
+            return features.output.audio;
+          default:
+            return true;
+        }
+      });
+    });
+  }, [chatModels, featureFilters]);
 
   const selectedChatModel = useMemo(
     () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
     [optimisticModelId, chatModels],
   );
+
+  const activeFilterCount =
+    Object.values(featureFilters).filter(Boolean).length;
+
+  const clearFilters = () => {
+    setFeatureFilters(initialFilters);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -67,17 +127,88 @@ export function ModelSelector({
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[600px] p-0" align="start">
+      <PopoverContent className="w-[700px] p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search models..." />
-          <CommandList className="overflow-y-visible max-h-none">
+          <div className="flex items-center justify-between border-b px-3 w-full">
+            <CommandInput placeholder="Search models..." className="flex-1" />
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'ml-2 h-8 w-8 p-0 relative',
+                    activeFilterCount > 0 && 'text-primary',
+                  )}
+                >
+                  <FilterIcon className="h-4 w-4" />
+                  {activeFilterCount > 0 && (
+                    <Badge
+                      variant="secondary"
+                      className="absolute -top-1 -right-1 text-xs min-w-[16px] h-4 flex items-center justify-center p-0"
+                    >
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="p-0" align="end">
+                <div className="p-4">
+                  <div className="mb-3 h-7 flex items-center justify-between">
+                    <div className="text-sm font-medium">Filter by Tools</div>
+                    {activeFilterCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="text-xs h-6"
+                      >
+                        Clear filters
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    {enabledFeatures.map((feature) => {
+                      const IconComponent = feature.icon;
+
+                      return (
+                        <div
+                          key={feature.key}
+                          className="flex items-center space-x-2"
+                        >
+                          <Checkbox
+                            id={feature.key}
+                            checked={featureFilters[feature.key] || false}
+                            onCheckedChange={(checked) =>
+                              setFeatureFilters((prev) => ({
+                                ...prev,
+                                [feature.key]: Boolean(checked),
+                              }))
+                            }
+                          />
+                          <Label
+                            htmlFor={feature.key}
+                            className="text-sm flex items-center gap-1.5"
+                          >
+                            <IconComponent className="w-3.5 h-3.5" />
+                            {feature.name}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <CommandList className="max-h-none">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              {/* flex parent container needed for scroll area to work */}
               <div className="flex">
                 <ScrollArea className="max-h-[70vh]" type="scroll">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
-                    {chatModels.map((chatModel) => {
+                    {filteredModels.map((chatModel) => {
                       const { id } = chatModel;
                       const modelDefinition = getModelDefinition(id);
 

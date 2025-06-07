@@ -5,10 +5,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Brain, Zap, Eye, Calendar, Building, CheckCircle } from 'lucide-react';
+import { Calendar, Building, CheckCircle } from 'lucide-react';
 import type { ModelDefinition } from '@/lib/ai/all-models';
 import { AnthropicIcon, OpenAIIcon, XAIIcon } from './icons';
 import { cn } from '@/lib/utils';
+import { getFeatureConfig, isFeatureEnabled } from '@/lib/features-config';
 
 const PlaceholderIcon = () => <Building className="w-6 h-6" />;
 
@@ -49,6 +50,25 @@ export function ModelCard({
   const { features, pricing, shortDescription } = model;
   const provider = model.specification.provider;
 
+  // Define feature mappings for the model card
+  const featureBadges = [
+    {
+      key: 'reasoning',
+      condition: features?.reasoning,
+      variant: 'secondary' as const,
+    },
+    {
+      key: 'functionCalling',
+      condition: features?.functionCalling,
+      variant: 'outline' as const,
+    },
+    {
+      key: 'imageInput',
+      condition: features?.input?.image,
+      variant: 'outline' as const,
+    },
+  ];
+
   return (
     <TooltipProvider>
       <button
@@ -87,47 +107,28 @@ export function ModelCard({
 
         {/* Key Features Row */}
         <div className="flex flex-row gap-1 mb-3">
-          {features?.reasoning && (
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                  <Brain className="w-3 h-3 mr-1" />
-                  Reasoning
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Advanced reasoning capabilities</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+          {featureBadges.map(({ key, condition, variant }) => {
+            if (!condition || !isFeatureEnabled(key)) return null;
 
-          {features?.functionCalling && (
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge variant="outline" className="text-xs px-2 py-0.5">
-                  <Zap className="w-3 h-3 mr-1" />
-                  Tools
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Tool calling support</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+            const featureConfig = getFeatureConfig(key);
+            if (!featureConfig) return null;
 
-          {features?.input?.image && (
-            <Tooltip>
-              <TooltipTrigger>
-                <Badge variant="outline" className="text-xs px-2 py-0.5">
-                  <Eye className="w-3 h-3 mr-1" />
-                  Vision
-                </Badge>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Supports image input</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
+            const IconComponent = featureConfig.icon;
+
+            return (
+              <Tooltip key={key}>
+                <TooltipTrigger>
+                  <Badge variant={variant} className="text-xs px-2 py-0.5">
+                    <IconComponent className="w-3 h-3 mr-1" />
+                    {featureConfig.name}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{featureConfig.description}</p>
+                </TooltipContent>
+              </Tooltip>
+            );
+          })}
         </div>
 
         {/* Context Window */}

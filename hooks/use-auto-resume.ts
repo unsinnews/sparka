@@ -28,8 +28,7 @@ export function useAutoResume({
 
     if (
       mostRecentMessage?.role === 'user' ||
-      (mostRecentMessage?.role === 'assistant' &&
-        mostRecentMessage.parts.length === 0)
+      (mostRecentMessage?.role === 'assistant' && mostRecentMessage.isPartial)
     ) {
       experimental_resume();
     }

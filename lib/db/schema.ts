@@ -49,6 +49,7 @@ export const message = pgTable('Message', {
   attachments: json('attachments').notNull(),
   createdAt: timestamp('createdAt').notNull(),
   annotations: json('annotations'),
+  isPartial: boolean('isPartial').notNull().default(false),
 });
 
 export type DBMessage = InferSelectModel<typeof message>;

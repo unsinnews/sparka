@@ -27,6 +27,7 @@ import {
 } from './message-annotations';
 import { ReadDocument } from './read-document';
 import { AttachmentList } from './attachment-list';
+import { Skeleton } from './ui/skeleton';
 
 interface ConditionalWrapperProps {
   condition: boolean;
@@ -99,6 +100,13 @@ const PurePreviewMessage = ({
         >
           {/* Content Column */}
           <div className="flex flex-col gap-4 w-full">
+            {message.isPartial && message.parts.length === 0 && (
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-4/5 rounded-full" />
+                <Skeleton className="h-4 w-3/5 rounded-full" />
+                <Skeleton className="h-4 w-2/5 rounded-full" />
+              </div>
+            )}
             {message.annotations && (
               <ResearchUpdateAnnotations
                 annotations={message.annotations}

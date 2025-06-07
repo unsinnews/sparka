@@ -221,6 +221,7 @@ export async function POST(request: NextRequest) {
           attachments: userMessage.experimental_attachments ?? [],
           createdAt: new Date(),
           annotations: userMessage.annotations,
+          isPartial: false,
         },
       });
     }
@@ -262,7 +263,6 @@ export async function POST(request: NextRequest) {
     // Create AbortController with 55s timeout for credit cleanup
     const abortController = new AbortController();
     const timeoutId = setTimeout(async () => {
-      console.log('Request timed out after 10s, cleaning up credits');
       await reservation.cleanup();
       abortController.abort();
     }, 55000); // 55 seconds
@@ -294,6 +294,7 @@ export async function POST(request: NextRequest) {
           attachments: [],
           createdAt: new Date(),
           annotations: [],
+          isPartial: true,
         },
       });
 
@@ -358,8 +359,6 @@ export async function POST(request: NextRequest) {
                     responseMessages: response.messages,
                   });
 
-                  console.log('assistantMessage', assistantMessage);
-
                   await updateMessage({
                     _message: {
                       id: assistantId,
@@ -370,6 +369,7 @@ export async function POST(request: NextRequest) {
                         assistantMessage.experimental_attachments ?? [],
                       createdAt: new Date(),
                       annotations: annotationStream.getAnnotations(),
+                      isPartial: false,
                     },
                   });
 

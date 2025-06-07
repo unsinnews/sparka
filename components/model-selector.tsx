@@ -21,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { ModelCard } from '@/components/model-card';
 import { cn } from '@/lib/utils';
 import { allImplementedModels, getModelDefinition } from '@/lib/ai/all-models';
@@ -69,38 +70,43 @@ export function ModelSelector({
       <PopoverContent className="w-[600px] p-0" align="start">
         <Command>
           <CommandInput placeholder="Search models..." />
-          <CommandList className="max-h-[70vh] overflow-y-auto">
+          <CommandList className="overflow-y-visible max-h-none">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
-                {chatModels.map((chatModel) => {
-                  const { id } = chatModel;
-                  const modelDefinition = getModelDefinition(id);
+              {/* flex parent container needed for scroll area to work */}
+              <div className="flex">
+                <ScrollArea className="max-h-[70vh]" type="scroll">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
+                    {chatModels.map((chatModel) => {
+                      const { id } = chatModel;
+                      const modelDefinition = getModelDefinition(id);
 
-                  return (
-                    <CommandItem
-                      key={id}
-                      value={id}
-                      onSelect={() => {
-                        setOpen(false);
-                        startTransition(() => {
-                          setOptimisticModelId(id);
-                          onModelChange?.(id);
-                        });
-                      }}
-                      className="p-0 h-auto"
-                    >
-                      <ModelCard
-                        model={modelDefinition}
-                        isSelected={id === optimisticModelId}
-                        onClick={(e) => {
-                          e?.stopPropagation();
-                        }}
-                        className="w-full h-full"
-                      />
-                    </CommandItem>
-                  );
-                })}
+                      return (
+                        <CommandItem
+                          key={id}
+                          value={id}
+                          onSelect={() => {
+                            setOpen(false);
+                            startTransition(() => {
+                              setOptimisticModelId(id);
+                              onModelChange?.(id);
+                            });
+                          }}
+                          className="p-0 h-auto"
+                        >
+                          <ModelCard
+                            model={modelDefinition}
+                            isSelected={id === optimisticModelId}
+                            onClick={(e) => {
+                              e?.stopPropagation();
+                            }}
+                            className="size-full"
+                          />
+                        </CommandItem>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               </div>
             </CommandGroup>
           </CommandList>

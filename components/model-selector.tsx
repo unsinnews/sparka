@@ -87,10 +87,6 @@ export function ModelSelector({
                           value={id}
                           onSelect={() => {
                             setOpen(false);
-                            startTransition(() => {
-                              setOptimisticModelId(id);
-                              onModelChange?.(id);
-                            });
                           }}
                           className="p-0 h-auto"
                         >
@@ -98,6 +94,10 @@ export function ModelSelector({
                             model={modelDefinition}
                             isSelected={id === optimisticModelId}
                             onClick={(e) => {
+                              startTransition(() => {
+                                setOptimisticModelId(id);
+                                onModelChange?.(id);
+                              });
                               e?.stopPropagation();
                             }}
                             className="size-full"

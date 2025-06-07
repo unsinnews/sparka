@@ -22,7 +22,8 @@
 [x] Scroll area artifacts
 [x] Resumable streams
 [ ] Feat: Improve model selector with combobox and filters (based on features)
-    [ ] Learn from scira's ModelSwitcher **component**
+    [ ] Why does it reload the page when I change the model?
+
 [ ] Add Gemini
 [ ] Multimodal Input
     [ ] Scrollbar

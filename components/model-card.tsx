@@ -63,12 +63,12 @@ export function ModelCard({
         onClick={onClick}
       >
         {/* Header */}
-        <div className="flex items-start justify-between mb-3">
+        <div className="flex items-start justify-between mb-3 w-full">
           <div className="flex items-center gap-2">
             <div className="transition-transform bg-muted rounded-lg p-1 group-hover:rotate-12">
               {getProviderIcon(provider)}
             </div>
-            <div>
+            <div className="text-left">
               <h3 className="font-semibold text-sm">{model.name}</h3>
               <p className="text-xs text-muted-foreground capitalize">
                 {provider}

@@ -10,7 +10,7 @@ export const authConfig = {
     // while this file is also used in non-Node.js environments
   ],
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
+    async authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
       const isApiAuthRoute = nextUrl.pathname.startsWith('/api/auth');
 
@@ -22,6 +22,13 @@ export const authConfig = {
       // Allow tRPC API routes for public shared documents
       const isTrpcApi = nextUrl.pathname.startsWith('/api/trpc');
       if (isTrpcApi) {
+        return true;
+      }
+
+      // Check for public chat API routes
+      const isChatResumeApiRoute =
+        nextUrl.pathname === '/api/chat' && nextUrl.searchParams.get('chatId');
+      if (isChatResumeApiRoute) {
         return true;
       }
 

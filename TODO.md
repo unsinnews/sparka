@@ -23,7 +23,6 @@
 [x] Resumable streams
 [ ] Define project Name
 [ ] Define project styles
-[ ] Get chat by id should use visibility settings. Is it not?
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
     [ ] Learn from scira's ModelSwitcher **component**

@@ -37,6 +37,15 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const messagesFromDb = await getMessagesByChatId({
     id,
   });
+  // Pop incomplete assistant messages
+  if (
+    messagesFromDb.length > 0 &&
+    messagesFromDb[messagesFromDb.length - 1].role === 'assistant' &&
+    (messagesFromDb[messagesFromDb.length - 1].parts as UIMessage['parts'])
+      .length === 0
+  ) {
+    messagesFromDb.pop();
+  }
 
   function convertToUIMessages(
     messages: Array<DBMessage>,

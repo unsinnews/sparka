@@ -69,15 +69,23 @@ export async function GET(request: NextRequest) {
 
   const session = await auth();
 
-  if (!session || !session.user || !session.user.id) {
-    return new Response('Unauthorized', { status: 401 });
-  }
-
   try {
-    // Verify user owns this chat
+    // First check if chat exists and is public
     const chat = await getChatById({ id: chatId });
-    if (!chat || chat.userId !== session.user.id) {
-      return new Response('Unauthorized', { status: 401 });
+
+    if (!chat) {
+      return new Response('Chat not found', { status: 404 });
+    }
+
+    // If chat is not public, require authentication and ownership
+    if (chat.visibility !== 'public') {
+      if (!session || !session.user || !session.user.id) {
+        return new Response('Unauthorized', { status: 401 });
+      }
+
+      if (chat.userId !== session.user.id) {
+        return new Response('Unauthorized', { status: 401 });
+      }
     }
 
     const streamIds = await getStreamsByChatId({ chatId });

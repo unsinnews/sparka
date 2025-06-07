@@ -76,7 +76,7 @@
 
 [ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
-
+[ ] Fix broken CI workflows
 
 
 ## Auth

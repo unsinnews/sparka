@@ -7,6 +7,7 @@ import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sidebar,
   SidebarContent,
@@ -23,7 +24,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar className="group-data-[side=left]:border-r-0">
+    <Sidebar className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen">
       <SidebarHeader>
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center">
@@ -58,9 +59,11 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           </div>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent>
-        <SidebarHistory user={user} />
-      </SidebarContent>
+      <ScrollArea className="h-full">
+        <SidebarContent className="max-w-[var(--sidebar-width)] pr-2">
+          <SidebarHistory user={user} />
+        </SidebarContent>
+      </ScrollArea>
       <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
     </Sidebar>
   );

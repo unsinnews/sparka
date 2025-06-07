@@ -23,8 +23,10 @@
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
 [ ] Add Gemini
-[ ] Scroll area sidebar chat history
+[x] Scroll area sidebar chat history
 [ ] Scroll area artifacts
+[ ] Resumable streams
+[ ] Long running jobs
 
 ### Backend
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend

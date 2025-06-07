@@ -26,7 +26,7 @@
 
 [ ] Multimodal Input
     [x] After sending a message the input box remains at the last height, it should be reset to the default height
-    [ ] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
+    [x] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
     [ ] Improve multimodal input styles for long text
     [ ] Scrollbar
 [ ] Long running jobs

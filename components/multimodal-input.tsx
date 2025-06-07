@@ -83,8 +83,9 @@ function PureMultimodalInput({
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
-      // Prefer DOM value over localStorage to handle hydration
-      const finalValue = domValue || localStorageInput || '';
+      // Prefer DOM value over localStorage to handle hydration, but only use localStorage if not in edit mode
+      const finalValue =
+        domValue || (!isEditMode ? localStorageInput : '') || '';
       setInput(finalValue);
     }
     // Only run once after hydration
@@ -92,7 +93,10 @@ function PureMultimodalInput({
   }, []);
 
   useEffect(() => {
-    setLocalStorageInput(input);
+    // Only save to localStorage if not in edit mode
+    if (!isEditMode) {
+      setLocalStorageInput(input);
+    }
 
     // Reset height when input is cleared
     if (input === '' && textareaRef.current?.adjustHeight) {
@@ -100,7 +104,7 @@ function PureMultimodalInput({
         textareaRef.current?.adjustHeight();
       }, 0);
     }
-  }, [input, setLocalStorageInput]);
+  }, [input, setLocalStorageInput, isEditMode]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
@@ -118,7 +122,9 @@ function PureMultimodalInput({
     });
 
     setAttachments([]);
-    setLocalStorageInput('');
+    if (!isEditMode) {
+      setLocalStorageInput('');
+    }
     setData({
       deepResearch: false,
       webSearch: false,

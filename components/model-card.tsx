@@ -117,13 +117,13 @@ export function ModelCard({
 
             return (
               <Tooltip key={key}>
-                <TooltipTrigger>
+                <TooltipTrigger asChild>
                   <Badge variant={variant} className="text-xs px-2 py-0.5">
                     <IconComponent className="w-3 h-3 mr-1" />
                     {featureConfig.name}
                   </Badge>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent asChild>
                   <p>{featureConfig.description}</p>
                 </TooltipContent>
               </Tooltip>

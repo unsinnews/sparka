@@ -8,14 +8,9 @@ import {
 import { Brain, Zap, Eye, Calendar, Building, CheckCircle } from 'lucide-react';
 import type { ModelDefinition } from '@/lib/ai/all-models';
 import { AnthropicIcon, OpenAIIcon, XAIIcon } from './icons';
+import { cn } from '@/lib/utils';
 
 const PlaceholderIcon = () => <Building className="w-6 h-6" />;
-
-interface ModelCardProps {
-  model: ModelDefinition;
-  isSelected?: boolean;
-  onClick?: (e?: React.MouseEvent) => void;
-}
 
 function formatTokens(tokens: number): string {
   if (tokens >= 1000000) {
@@ -40,21 +35,31 @@ function getProviderIcon(provider: string) {
   }
 }
 
-export function ModelCard({ model, isSelected, onClick }: ModelCardProps) {
+export function ModelCard({
+  model,
+  isSelected,
+  onClick,
+  className,
+}: {
+  model: ModelDefinition;
+  isSelected?: boolean;
+  onClick?: (e?: React.MouseEvent) => void;
+  className?: string;
+}) {
   const { features, pricing, shortDescription } = model;
   const provider = model.specification.provider;
 
   return (
     <TooltipProvider>
-      <div
-        className={`
-          group p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md
-          ${
-            isSelected
-              ? 'border-primary bg-primary/5 shadow-sm'
-              : 'border-border hover:border-primary/50'
-          }
-        `}
+      <button
+        className={cn(
+          'group p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-start',
+          isSelected
+            ? 'border-primary bg-primary/5 shadow-sm'
+            : 'border-border hover:border-primary/50',
+          className,
+        )}
+        type="button"
         onClick={onClick}
       >
         {/* Header */}
@@ -75,13 +80,13 @@ export function ModelCard({ model, isSelected, onClick }: ModelCardProps) {
 
         {/* Description */}
         {shortDescription && (
-          <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+          <p className="text-xs text-muted-foreground mb-3 line-clamp-2 text-left">
             {shortDescription}
           </p>
         )}
 
         {/* Key Features Row */}
-        <div className="flex flex-wrap gap-1 mb-3">
+        <div className="flex flex-row gap-1 mb-3">
           {features?.reasoning && (
             <Tooltip>
               <TooltipTrigger>
@@ -155,7 +160,7 @@ export function ModelCard({ model, isSelected, onClick }: ModelCardProps) {
             in, ${pricing.outputMTok}/M out
           </div>
         )}
-      </div>
+      </button>
     </TooltipProvider>
   );
 }

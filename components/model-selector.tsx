@@ -202,7 +202,7 @@ export function ModelSelector({
               </PopoverContent>
             </Popover>
           </div>
-          <CommandList className="max-h-none">
+          <CommandList className="max-h-none min-h-[250px] flex justify-center items-center">
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
               <div className="flex">

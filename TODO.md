@@ -20,8 +20,10 @@
 [x] Bug: On mobile the multimodal input loads with small width and then becomes full width.
 [x] Scroll area sidebar chat history
 [x] Scroll area artifacts
+[x] Resumable streams
 [ ] Define project Name
 [ ] Define project styles
+[ ] Get chat by id should use visibility settings. Is it not?
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Feat: Improve model selector with combobox and filters (based on features)
     [ ] Learn from scira's ModelSwitcher **component**
@@ -31,7 +33,6 @@
     [ ] After sending a message the input box remains at the last height, it should be reset to the default height
     [ ] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
     [ ] Improve multimodal input styles for long text
-[ ] Resumable streams
 [ ] Long running jobs
 
 ### Backend
@@ -46,7 +47,7 @@
 [x] Create a button to Deep Research
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
 [ ] Propagate model selection to deep research / reason tools (and create new selectables for them)
-
+[ ] Write a chron job that deletes chatStream rows older than 24hs
 
 ### Frontend
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)
@@ -74,7 +75,6 @@
 
 [ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
-
 
 
 

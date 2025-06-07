@@ -17,6 +17,8 @@ import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { saveChatModelAsCookie } from '@/app/(chat)/actions';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useAutoResume } from '@/hooks/use-auto-resume';
+
 export function Chat({
   id,
   initialMessages,
@@ -67,7 +69,18 @@ export function Chat({
     status,
     stop,
     reload,
+    experimental_resume,
+    data: chatData,
   } = chatHelpers;
+
+  // Auto-resume functionality
+  useAutoResume({
+    autoResume: true,
+    initialMessages,
+    experimental_resume,
+    data: chatData,
+    setMessages,
+  });
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),

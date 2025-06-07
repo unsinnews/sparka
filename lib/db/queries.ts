@@ -11,6 +11,7 @@ import {
   message,
   vote,
   type DBMessage,
+  chatStream,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { db } from './client';
@@ -444,4 +445,37 @@ export async function getUserById({
     .where(eq(user.id, userId))
     .limit(1);
   return users[0];
+}
+
+export async function saveStreamId({
+  chatId,
+  streamId,
+}: {
+  chatId: string;
+  streamId: string;
+}) {
+  try {
+    return await db.insert(chatStream).values({
+      chatId,
+      streamId,
+    });
+  } catch (error) {
+    console.error('Failed to save stream ID in database');
+    throw error;
+  }
+}
+
+export async function getStreamsByChatId({ chatId }: { chatId: string }) {
+  try {
+    const streams = await db
+      .select()
+      .from(chatStream)
+      .where(eq(chatStream.chatId, chatId))
+      .orderBy(asc(chatStream.createdAt));
+
+    return streams.map((stream) => stream.streamId);
+  } catch (error) {
+    console.error('Failed to get streams by chat ID from database');
+    throw error;
+  }
 }

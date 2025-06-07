@@ -1,7 +1,7 @@
 import {
   appendResponseMessages,
   convertToCoreMessages,
-  createDataStreamResponse,
+  createDataStream,
   smoothStream,
   streamText,
 } from 'ai';
@@ -15,6 +15,9 @@ import {
   saveMessage,
   updateMessage,
   getMessageById,
+  saveStreamId,
+  getStreamsByChatId,
+  getMessagesByChatId,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -38,14 +41,97 @@ import {
   type AvailableProviderModels,
   type ModelDefinition,
 } from '@/lib/ai/all-models';
+import { createResumableStreamContext } from 'resumable-stream';
+import { after } from 'next/server';
 
 export const maxDuration = 60;
+
+const streamContext = createResumableStreamContext({
+  waitUntil: after,
+  // For production, you would configure Redis here
+  keyPrefix: 'parlagen:resumable-stream',
+  // Uses process.env.REDIS_URL
+});
 
 export type ChatRequestData = {
   deepResearch: boolean;
   reason: boolean;
   webSearch: boolean;
 };
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const chatId = searchParams.get('chatId');
+
+  if (!chatId) {
+    return new Response('chatId is required', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session || !session.user || !session.user.id) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  try {
+    // Verify user owns this chat
+    const chat = await getChatById({ id: chatId });
+    if (!chat || chat.userId !== session.user.id) {
+      return new Response('Unauthorized', { status: 401 });
+    }
+
+    const streamIds = await getStreamsByChatId({ chatId });
+
+    if (!streamIds.length) {
+      return new Response('No streams found', { status: 404 });
+    }
+
+    const recentStreamId = streamIds.at(-1);
+
+    if (!recentStreamId) {
+      return new Response('No recent stream found', { status: 404 });
+    }
+
+    const emptyDataStream = createDataStream({
+      execute: () => {},
+    });
+
+    const stream = await streamContext.resumableStream(
+      recentStreamId,
+      () => emptyDataStream,
+    );
+
+    if (stream) {
+      return new Response(stream, { status: 200 });
+    }
+
+    /*
+     * For when the generation is "active" during SSR but the
+     * resumable stream has concluded after reaching this point.
+     */
+
+    const messages = await getMessagesByChatId({ id: chatId });
+    const mostRecentMessage = messages.at(-1);
+
+    if (!mostRecentMessage || mostRecentMessage.role !== 'assistant') {
+      return new Response(emptyDataStream, { status: 200 });
+    }
+
+    const streamWithMessage = createDataStream({
+      execute: (buffer) => {
+        buffer.writeData({
+          type: 'append-message',
+          message: JSON.stringify(mostRecentMessage),
+        });
+      },
+    });
+
+    return new Response(streamWithMessage, { status: 200 });
+  } catch (error) {
+    console.error('Error in GET /api/chat:', error);
+    return new Response('Internal server error', { status: 500 });
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -185,6 +271,10 @@ export async function POST(request: NextRequest) {
       }
 
       const messageId = generateUUID();
+      const streamId = generateUUID();
+
+      // Record this new stream so we can resume later
+      await saveStreamId({ chatId, streamId });
 
       // Save placeholder assistant message immediately (needed for document creation)
       await saveMessage({
@@ -199,8 +289,9 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return createDataStreamResponse({
-        execute: async (dataStream) => {
+      // Build the data stream that will emit tokens
+      const stream = createDataStream({
+        execute: (dataStream) => {
           const annotationStream = new AnnotationDataStreamWriter(dataStream);
 
           const result = streamText({
@@ -299,6 +390,7 @@ export async function POST(request: NextRequest) {
             sendReasoning: true,
           });
         },
+
         onError: (error) => {
           // Clear timeout on error
           clearTimeout(timeoutId);
@@ -310,6 +402,10 @@ export async function POST(request: NextRequest) {
           return 'Oops, an error occured!';
         },
       });
+
+      return new Response(
+        await streamContext.resumableStream(streamId, () => stream),
+      );
     } catch (error) {
       clearTimeout(timeoutId);
       await reservation.cleanup();

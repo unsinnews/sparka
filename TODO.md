@@ -30,7 +30,6 @@
     [x] Scrollbar
 [x] PDF models
 [x] Add Gemini
-    [ ] Doesnt show reasoning tokens in the UI
 
 [ ] Define project Name
 [ ] Define project styles
@@ -85,7 +84,7 @@
 [ ] Image Generation Support
 [ ] Chat Branching
     [ ] Chat should be forkable (even shared ones)
-    
+
 [ ] Add more providers (Google, Deepseek, etc)
 
 [ ] AI SDK 5 ?

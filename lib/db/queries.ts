@@ -510,6 +510,42 @@ export async function deleteStreamId({
   }
 }
 
+export async function getMessagesWithAttachments() {
+  try {
+    return await db.select({ attachments: message.attachments }).from(message);
+  } catch (error) {
+    console.error(
+      'Failed to get messages with attachments from database',
+      error,
+    );
+    throw error;
+  }
+}
+
+export async function getAllAttachmentUrls(): Promise<string[]> {
+  try {
+    const messages = await getMessagesWithAttachments();
+
+    const attachmentUrls: string[] = [];
+
+    for (const msg of messages) {
+      if (msg.attachments && Array.isArray(msg.attachments)) {
+        const attachments = msg.attachments as Attachment[];
+        for (const attachment of attachments) {
+          if (attachment.url) {
+            attachmentUrls.push(attachment.url);
+          }
+        }
+      }
+    }
+
+    return attachmentUrls;
+  } catch (error) {
+    console.error('Failed to get attachment URLs from database', error);
+    throw error;
+  }
+}
+
 async function deleteAttachmentsFromMessages(messages: DBMessage[]) {
   try {
     const attachmentUrls: string[] = [];

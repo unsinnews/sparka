@@ -63,6 +63,16 @@ bun dev
 
 Your app template should now be running on [localhost:3000](http://localhost:3000/).
 
+## Cron Jobs
+
+The application includes automated cleanup jobs:
+
+- **Attachment Cleanup**: Runs daily at 2 AM UTC to remove unused file attachments older than 1 hour
+- Requires `CRON_SECRET` environment variable for security
+
+To set up the cron job:
+1. Add `CRON_SECRET=your-secret-key` to your environment variables (generate with `openssl rand -hex 32`)
+2. The cron job is configured in `vercel.json` and will run automatically on Vercel
 
 ## Core Philosophy
 

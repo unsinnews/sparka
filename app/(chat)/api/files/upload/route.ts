@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
+import { BLOB_FILE_PREFIX } from '@/lib/constants';
 
 // Use Blob instead of File since File is not available in Node.js environment
 const FileSchema = z.object({
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
     const fileBuffer = await file.arrayBuffer();
 
     try {
-      const data = await put(`${filename}`, fileBuffer, {
+      const data = await put(`${BLOB_FILE_PREFIX}${filename}`, fileBuffer, {
         access: 'public',
         addRandomSuffix: true,
       });

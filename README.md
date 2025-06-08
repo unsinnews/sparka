@@ -1,19 +1,11 @@
 <a href="https://chat.vercel.ai/">
-  <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png">
+  <!-- <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png"> -->
   <h1 align="center">Parlagen</h1>
 </a>
 
 <p align="center">
-  Multi-provider AI chat platform with workflow customization.
-</p>
+  Multi-provider AI chat platform. Use models and features from multiple providers in a single interface.</p>
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#model-providers"><strong>Model Providers</strong></a> ·
-  <a href="#running-locally"><strong>Running locally</strong></a> ·
-  <a href="#core-philosophy"><strong>Core Philosophy</strong></a> ·
-  <a href="#inspiration"><strong>Inspiration</strong></a>
-</p>
 <br/>
 
 ## Features
@@ -35,15 +27,12 @@
 - Data Persistence
   - Database integration for saving chat history and user data
   - Efficient file storage capabilities
-- Workflow Customization
-  - Tools and features for creating custom AI workflows
-  - Knowledge access and task performance capabilities
 - [NextAuth.js](https://github.com/nextauthjs/next-auth)
   - Simple and secure authentication
-
-## Model Providers
-
-This template ships with [xAI](https://x.ai) `grok-2-1212` as the default chat model. However, with the [AI SDK](https://sdk.vercel.ai/docs), you can switch LLM providers to [OpenAI](https://openai.com), [Anthropic](https://anthropic.com), [Cohere](https://cohere.com/), and [many more](https://sdk.vercel.ai/providers/ai-sdk-providers) with just a few lines of code.
+- Attachment Support
+- Web Search
+- Resumable Streams
+- Chat Sharing
 
 
 ## Running locally

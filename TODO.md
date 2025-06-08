@@ -40,6 +40,7 @@
 [ ] Demo without logging in
 
 
+
 ### Backend
 [x] Create a button to Deep Research
 [x] Write a chron job that deletes chatStream rows older than 24hs
@@ -79,7 +80,12 @@
 ### System
 [x] Get rid of API keys, just use the backend keys
 [x] TBD Create limits per accounts with a few credits
-[ ] Chat should be forkable (even shared ones)
+
+[ ] Syntax Highlighting
+[ ] Image Generation Support
+[ ] Chat Branching
+    [ ] Chat should be forkable (even shared ones)
+    
 [ ] Add more providers (Google, Deepseek, etc)
 
 [ ] AI SDK 5 ?

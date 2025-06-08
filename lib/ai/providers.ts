@@ -7,6 +7,7 @@ import {
 import { openai, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
 import { anthropic, type AnthropicProviderOptions } from '@ai-sdk/anthropic';
 import { xai } from '@ai-sdk/xai';
+import { google, type GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
 
 import { isTestEnvironment } from '../constants';
 import {
@@ -84,6 +85,8 @@ export const getModelProvider = (modelId: AvailableProviderModels) => {
     provider = anthropic(spec.modelIdShort);
   } else if (spec.provider === 'xai') {
     provider = xai(spec.modelIdShort);
+  } else if (spec.provider === 'google') {
+    provider = google(spec.modelIdShort);
   } else {
     throw new Error(`Provider ${spec.provider} not supported`);
   }
@@ -111,6 +114,9 @@ export const getModelProviderOptions = (
     }
   | {
       xai: Record<string, never>;
+    }
+  | {
+      google: GoogleGenerativeAIProviderOptions;
     } => {
   const model = getModelDefinition(providerModelId);
 
@@ -144,6 +150,19 @@ export const getModelProviderOptions = (
     return {
       xai: {},
     };
+  } else if (spec.provider === 'google') {
+    if (model.features?.reasoning) {
+      return {
+        google: {
+          thinkingConfig: {
+            includeThoughts: true,
+            thinkingBudget: 10000,
+          },
+        },
+      };
+    } else {
+      return { google: {} };
+    }
   } else {
     throw new Error(`Provider ${model.specification.provider} not supported`);
   }

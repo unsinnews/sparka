@@ -28,6 +28,9 @@
     [x] Sometimes the multimodal input keeps stale messages (experiment to find exactly in which scenarios)
     [x] Improve multimodal input styles for long text
     [x] Scrollbar
+[x] PDF models
+[x] Add Gemini
+    [ ] Doesnt show reasoning tokens in the UI
 
 [ ] Define project Name
 [ ] Define project styles
@@ -36,8 +39,6 @@
 
 [ ] Demo without logging in
 
-[ ] PDF models
-[ ] Add Gemini
 
 ### Backend
 [x] Create a button to Deep Research
@@ -87,22 +88,6 @@
 [ ] Long running jobs
     [ ] Restore deep research for reasoning models once we can go longer than 1m in request time.
 [ ] Offer model variants without reasoning (for the ones that can be run with or without reasoning)
+[ ] Optiomize all-models by only using allImplementedModels. Needs to propagate discriminated unions typing correctly
+[ ] Model definitions need more flexibility (or model variants). E.g. google provider have different tiers size, reasoning, etc
 
-
-## Auth
-[x] Add "Deployment" redirect URI 
-
-
-PROMPT:
-
-I'm trying to find domain names for a chat with your AI LLM Models application assistant.
-
-Brainstorm 200 names variations I can try with prefixes for a chat application that works with many LLM models and is a helpful assistant.
-
-Prefixes: ly, lio, ify, zen, os, us, in, up, it, er
-
-Only print the roots (without the suffixes) I'll combine them later.
-
-E.g. chat, assistant, assist, help, helper, pair, talk, knowledge, know, knowl, knowle, wise, wis, wisdom, wisdo, etc
-
-Print as a comma separated list in text (no document)

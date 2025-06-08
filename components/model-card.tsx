@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Calendar, Building, CheckCircle } from 'lucide-react';
 import type { ModelDefinition } from '@/lib/ai/all-models';
-import { AnthropicIcon, OpenAIIcon, XAIIcon } from './icons';
+import { AnthropicIcon, GoogleIcon, OpenAIIcon, XAIIcon } from './icons';
 import { cn } from '@/lib/utils';
 import { getFeatureConfig, isFeatureEnabled } from '@/lib/features-config';
 
@@ -31,6 +31,8 @@ function getProviderIcon(provider: string) {
       return <AnthropicIcon size={24} />;
     case 'xai':
       return <XAIIcon size={24} />;
+    case 'google':
+      return <GoogleIcon size={24} />;
     default:
       return <PlaceholderIcon />;
   }

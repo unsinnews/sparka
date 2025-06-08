@@ -197,6 +197,10 @@ export const XAIIcon = ({ size = 16 }: { size?: number }) => {
   return <XAI name="xai" size={size} />;
 };
 
+export const GoogleIcon = ({ size = 16 }: { size?: number }) => {
+  return <Gemini name="google" size={size} />;
+};
+
 export const AnthropicIcon = ({ size = 16 }: { size?: number }) => {
   return <Anthropic name="anthropic" size={size} />;
 };

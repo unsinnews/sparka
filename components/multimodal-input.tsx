@@ -35,7 +35,11 @@ import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { ModelSelector } from './model-selector';
 import { ResponsiveToggles } from './chat-toggles';
 import { ScrollArea } from './ui/scroll-area';
-import { getModelDefinition } from '@/lib/ai/all-models';
+import {
+  getModelDefinition,
+  DEFAULT_PDF_MODEL,
+  DEFAULT_IMAGE_MODEL,
+} from '@/lib/ai/all-models';
 
 function PureMultimodalInput({
   chatId,
@@ -132,8 +136,80 @@ function PureMultimodalInput({
     [data.deepResearch, setData, onModelChange],
   );
 
+  // Helper function to auto-switch to PDF-compatible model
+  const switchToPdfCompatibleModel = useCallback(() => {
+    const defaultPdfModelDef = getModelDefinition(DEFAULT_PDF_MODEL);
+    toast.success(`Switched to ${defaultPdfModelDef.name} (supports PDF)`);
+    onModelChange?.(DEFAULT_PDF_MODEL);
+    return defaultPdfModelDef;
+  }, [onModelChange]);
+
+  // Helper function to auto-switch to image-compatible model
+  const switchToImageCompatibleModel = useCallback(() => {
+    const defaultImageModelDef = getModelDefinition(DEFAULT_IMAGE_MODEL);
+    toast.success(`Switched to ${defaultImageModelDef.name} (supports images)`);
+    onModelChange?.(DEFAULT_IMAGE_MODEL);
+    return defaultImageModelDef;
+  }, [onModelChange]);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+
+  // Helper function to process and validate files
+  const processFiles = useCallback(
+    (files: File[]) => {
+      const imageFiles: File[] = [];
+      const pdfFiles: File[] = [];
+      const oversizedFiles: File[] = [];
+      const unsupportedFiles: File[] = [];
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+      files.forEach((file) => {
+        // Check file size first
+        if (file.size > MAX_FILE_SIZE) {
+          oversizedFiles.push(file);
+          return;
+        }
+
+        // Then check file type
+        if (file.type.startsWith('image/')) {
+          imageFiles.push(file);
+        } else if (file.type === 'application/pdf') {
+          pdfFiles.push(file);
+        } else {
+          unsupportedFiles.push(file);
+        }
+      });
+
+      // Show error messages for invalid files
+      if (oversizedFiles.length > 0) {
+        toast.error(`${oversizedFiles.length} file(s) exceed 5MB limit`);
+      }
+      if (unsupportedFiles.length > 0) {
+        toast.error(
+          `${unsupportedFiles.length} unsupported file type(s). Only images and PDFs are allowed`,
+        );
+      }
+
+      // Auto-switch model based on file types
+      if (pdfFiles.length > 0 || imageFiles.length > 0) {
+        let currentModelDef = getModelDefinition(selectedModelId);
+
+        // First check PDF support if PDFs are present
+        if (pdfFiles.length > 0 && !currentModelDef.features?.input?.pdf) {
+          currentModelDef = switchToPdfCompatibleModel();
+        }
+
+        // Then check image support if images are present (using potentially updated model)
+        if (imageFiles.length > 0 && !currentModelDef.features?.input?.image) {
+          currentModelDef = switchToImageCompatibleModel();
+        }
+      }
+
+      return [...imageFiles, ...pdfFiles];
+    },
+    [selectedModelId, switchToPdfCompatibleModel, switchToImageCompatibleModel],
+  );
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
@@ -171,6 +247,7 @@ function PureMultimodalInput({
     width,
     chatId,
     data,
+    isEditMode,
   ]);
 
   const uploadFile = async (file: File) => {
@@ -203,11 +280,14 @@ function PureMultimodalInput({
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(event.target.files || []);
+      const validFiles = processFiles(files);
 
-      setUploadQueue(files.map((file) => file.name));
+      if (validFiles.length === 0) return;
+
+      setUploadQueue(validFiles.map((file) => file.name));
 
       try {
-        const uploadPromises = files.map((file) => uploadFile(file));
+        const uploadPromises = validFiles.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
           (attachment) => attachment !== undefined,
@@ -223,7 +303,7 @@ function PureMultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments],
+    [setAttachments, processFiles],
   );
 
   const removeAttachment = useCallback(
@@ -241,10 +321,13 @@ function PureMultimodalInput({
     onDrop: async (acceptedFiles) => {
       if (acceptedFiles.length === 0) return;
 
-      setUploadQueue(acceptedFiles.map((file) => file.name));
+      const validFiles = processFiles(acceptedFiles);
+      if (validFiles.length === 0) return;
+
+      setUploadQueue(validFiles.map((file) => file.name));
 
       try {
-        const uploadPromises = acceptedFiles.map((file) => uploadFile(file));
+        const uploadPromises = validFiles.map((file) => uploadFile(file));
         const uploadedAttachments = await Promise.all(uploadPromises);
         const successfullyUploadedAttachments = uploadedAttachments.filter(
           (attachment) => attachment !== undefined,
@@ -262,6 +345,10 @@ function PureMultimodalInput({
     },
     noClick: true, // Prevent click to open file dialog since we have the button
     disabled: status !== 'ready',
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
+      'application/pdf': ['.pdf'],
+    },
   });
 
   return (
@@ -276,6 +363,7 @@ function PureMultimodalInput({
         className="fixed -top-4 -left-4 size-0.5 opacity-0 pointer-events-none"
         ref={fileInputRef}
         multiple
+        accept="image/*,.pdf"
         onChange={handleFileChange}
         tabIndex={-1}
       />
@@ -292,7 +380,7 @@ function PureMultimodalInput({
           {isDragActive && (
             <div className="absolute inset-0 flex items-center justify-center bg-blue-50/80 dark:bg-blue-950/40 border-2 border-dashed border-blue-500 rounded-2xl z-10">
               <div className="text-blue-600 dark:text-blue-400 font-medium">
-                Drop files here to attach
+                Drop images or PDFs here to attach
               </div>
             </div>
           )}

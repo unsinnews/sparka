@@ -2,6 +2,7 @@ import type { Attachment } from 'ai';
 
 import { LoaderIcon, CrossIcon } from './icons';
 import { Button } from './ui/button';
+import { FileText, Download, ExternalLink } from 'lucide-react';
 
 export const PreviewAttachment = ({
   attachment,
@@ -13,6 +14,8 @@ export const PreviewAttachment = ({
   onRemove?: () => void;
 }) => {
   const { name, url, contentType } = attachment;
+
+  const isPdf = contentType === 'application/pdf';
 
   return (
     <div
@@ -40,6 +43,40 @@ export const PreviewAttachment = ({
               alt={name ?? 'An image attachment'}
               className="rounded-md size-full object-cover"
             />
+          ) : isPdf ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              <FileText className="size-8 text-red-500" />
+              {/* Show action buttons for PDFs in message view (when not uploading and no remove button) */}
+              {!isUploading && !onRemove && url && (
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/20 p-1 h-auto"
+                      onClick={() => window.open(url, '_blank')}
+                      title="Open PDF"
+                    >
+                      <ExternalLink className="size-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-white hover:bg-white/20 p-1 h-auto"
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.download = name || 'document.pdf';
+                        link.click();
+                      }}
+                      title="Download PDF"
+                    >
+                      <Download className="size-3" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="" />
           )

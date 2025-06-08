@@ -65,7 +65,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -100,7 +100,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -135,7 +135,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -170,7 +170,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -206,7 +206,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -241,7 +241,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -276,7 +276,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -968,7 +968,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1004,7 +1004,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1041,7 +1041,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1077,7 +1077,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1113,7 +1113,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1149,7 +1149,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1185,7 +1185,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1221,7 +1221,7 @@ export const allModels = [
       input: {
         image: true,
         text: true,
-        pdf: false,
+        pdf: true,
         audio: false,
       },
       output: {
@@ -1785,3 +1785,7 @@ export function getModelDefinition(
   }
   return { ...model, providerModelId: modelId };
 }
+
+export const DEFAULT_CHAT_MODEL: string = 'openai/gpt-4o-mini';
+export const DEFAULT_PDF_MODEL: string = 'openai/gpt-4o-mini';
+export const DEFAULT_IMAGE_MODEL: string = 'openai/gpt-4o-mini';

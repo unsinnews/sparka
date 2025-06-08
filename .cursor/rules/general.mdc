@@ -9,7 +9,7 @@ alwaysApply: true
 - Next.js with server actions
 - ORM is Drizzle with the schema at `lib/db/schema.ts`
 - DB queries and mutations are at `lib/db/queries.ts`
-
+- To test your changes through compilation. Don't run a build. But do `bun test:types`
 
 ## App structure
 - People interact with the AI through the `app/(chat)/api/chat/route.ts` by sending a message. It responds by creating a new message.

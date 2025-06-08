@@ -1,5 +1,6 @@
 import 'server-only';
 import { and, asc, desc, eq, gt, gte, inArray } from 'drizzle-orm';
+import { del } from '@vercel/blob';
 
 import {
   user,
@@ -14,6 +15,7 @@ import {
   chatStream,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
+import type { Attachment } from '@/lib/ai/types';
 import { db } from './client';
 
 export async function getUserByEmail(email: string): Promise<Array<User>> {
@@ -70,6 +72,17 @@ export async function saveChat({
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
+    // Get all messages for this chat to clean up their attachments
+    const messagesToDelete = await db
+      .select()
+      .from(message)
+      .where(eq(message.chatId, id));
+
+    // Clean up attachments before deleting the chat (which will cascade delete messages)
+    if (messagesToDelete.length > 0) {
+      await deleteAttachmentsFromMessages(messagesToDelete);
+    }
+
     return await db.delete(chat).where(eq(chat.id, id));
   } catch (error) {
     console.error('Failed to delete chat by id from database');
@@ -373,7 +386,7 @@ export async function deleteMessagesByChatIdAfterTimestamp({
 }) {
   try {
     const messagesToDelete = await db
-      .select({ id: message.id })
+      .select()
       .from(message)
       .where(
         and(eq(message.chatId, chatId), gte(message.createdAt, timestamp)),
@@ -382,6 +395,9 @@ export async function deleteMessagesByChatIdAfterTimestamp({
     const messageIds = messagesToDelete.map((message) => message.id);
 
     if (messageIds.length > 0) {
+      // Clean up attachments before deleting messages
+      await deleteAttachmentsFromMessages(messagesToDelete);
+
       await db
         .delete(vote)
         .where(
@@ -491,5 +507,30 @@ export async function deleteStreamId({
   } catch (error) {
     console.error('Failed to delete stream ID from database');
     throw error;
+  }
+}
+
+async function deleteAttachmentsFromMessages(messages: DBMessage[]) {
+  try {
+    const attachmentUrls: string[] = [];
+
+    for (const msg of messages) {
+      if (msg.attachments && Array.isArray(msg.attachments)) {
+        const attachments = msg.attachments as Attachment[];
+        for (const attachment of attachments) {
+          if (attachment.url) {
+            attachmentUrls.push(attachment.url);
+          }
+        }
+      }
+    }
+
+    if (attachmentUrls.length > 0) {
+      await del(attachmentUrls);
+    }
+  } catch (error) {
+    console.error('Failed to delete attachments from Vercel Blob:', error);
+    // Don't throw here - we still want to proceed with message deletion
+    // even if blob cleanup fails
   }
 }

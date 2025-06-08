@@ -65,6 +65,11 @@ export function ModelCard({
       condition: features?.input?.image,
       variant: 'outline' as const,
     },
+    {
+      key: 'pdfInput',
+      condition: features?.input?.pdf,
+      variant: 'outline' as const,
+    },
   ];
 
   return (

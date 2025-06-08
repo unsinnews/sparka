@@ -1,5 +1,3 @@
-export const DEFAULT_CHAT_MODEL: string = 'anthropic/claude-4-sonnet-20250514';
-
 interface ChatModel {
   id: string;
   name: string;

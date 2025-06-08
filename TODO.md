@@ -52,6 +52,10 @@
 
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
 [ ] Propagate model selection to deep research / reason tools (and create new selectables for them)
+[ ] Save file uploads in Blob with non-public access
+[ ] Deleting a chat should delete all the images and PDFs uploaded to blobs
+[ ] Create a layer to coordinate queries (db related) and other funcions (e.g. blob deletion)
+
 
 ### Frontend
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)
@@ -69,7 +73,7 @@
 [ ] Chat history: 
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
-
+[ ] Reduce number of re-renders (memoization)
 
 ### System
 [x] Get rid of API keys, just use the backend keys
@@ -82,6 +86,8 @@
 [ ] Fix broken CI workflows
 [ ] Long running jobs
     [ ] Restore deep research for reasoning models once we can go longer than 1m in request time.
+[ ] Offer model variants without reasoning (for the ones that can be run with or without reasoning)
+
 
 ## Auth
 [x] Add "Deployment" redirect URI 

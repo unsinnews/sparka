@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { Chat } from '@/components/chat';
-import { getChatById, getMessagesByChatId } from '@/lib/db/queries';
+import { getMessagesByChatId, tryGetChatById } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
 import type { DBMessage } from '@/lib/db/schema';
@@ -12,17 +12,40 @@ import type {
   MessageAnnotation,
   YourUIMessage,
 } from '@/lib/ai/tools/annotations';
+import { AnonymousChatLoader } from './anonymous-chat-loader';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
-  const chat = await getChatById({ id });
+  const chat = await tryGetChatById({ id });
+  const session = await auth();
+  console.log('session', session);
+  console.log('chat', chat);
+
+  // If chat not found in DB
   if (!chat) {
-    notFound();
+    // If user is logged in, chat should be in DB
+    if (session?.user) {
+      notFound();
+    }
+
+    // For anonymous users, the chat might be stored locally
+    // Use a client component to handle localStorage access
+    const cookieStore = await cookies();
+    const chatModelFromCookie = cookieStore.get('chat-model');
+
+    return (
+      <>
+        <AnonymousChatLoader
+          chatId={id}
+          selectedChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
+        />
+        <DataStreamHandler id={id} />
+      </>
+    );
   }
 
-  const session = await auth();
-
+  // Chat exists in DB - handle visibility and permissions
   if (chat.visibility === 'private') {
     if (!session || !session.user) {
       return notFound();

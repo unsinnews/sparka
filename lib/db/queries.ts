@@ -102,6 +102,15 @@ export async function getChatsByUserId({ id }: { id: string }) {
   }
 }
 
+export async function tryGetChatById({ id }: { id: string }) {
+  try {
+    const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
+    return selectedChat;
+  } catch (error) {
+    return null;
+  }
+}
+
 export async function getChatById({ id }: { id: string }) {
   try {
     const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));

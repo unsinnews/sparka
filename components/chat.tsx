@@ -19,9 +19,9 @@ import { useTRPC } from '@/trpc/react';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { useSession } from 'next-auth/react';
-import { useAnonymousChats } from '@/lib/hooks/use-anonymous-chats';
 import { useAnonymousMessages } from '@/lib/hooks/use-anonymous-messages';
 import type { UIChat } from '@/lib/types/ui';
+import { useChatStoreContext } from '@/providers/chat-store-provider';
 
 export function Chat({
   id,
@@ -39,7 +39,7 @@ export function Chat({
   const { data: session } = useSession();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { saveChat } = useAnonymousChats(!session?.user);
+  const { saveChat, invalidateChats } = useChatStoreContext();
 
   // For anonymous users, get the saveMessage function to save new messages
   const { saveMessage } = useAnonymousMessages(id);
@@ -56,16 +56,13 @@ export function Chat({
     generateId: generateUUID,
     onFinish: (message) => {
       if (session?.user) {
-        // Authenticated user - invalidate tRPC queries
-        queryClient.invalidateQueries({
-          queryKey: trpc.chat.getAllChats.queryKey(),
-        });
+        // Authenticated user - invalidate through chat store
+        invalidateChats();
         queryClient.invalidateQueries({
           queryKey: trpc.credits.getAvailableCredits.queryKey(),
         });
       } else {
-        // Anonymous user - save chat to localStorage
-        // Extract title from first user message or use default
+        // Anonymous user - save chat through chat store
         const title =
           initialMessages.length > 0
             ? initialMessages

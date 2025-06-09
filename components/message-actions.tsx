@@ -16,6 +16,7 @@ import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
 
 export function PureMessageActions({
   chatId,
@@ -31,7 +32,7 @@ export function PureMessageActions({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [_, copyToClipboard] = useCopyToClipboard();
-
+  const { data: session } = useSession();
   const voteMessageMutation = useMutation(
     trpc.vote.voteMessage.mutationOptions({
       onSuccess: () => {
@@ -80,7 +81,7 @@ export function PureMessageActions({
             <Button
               data-testid="message-upvote"
               className="py-1 px-2 h-fit text-muted-foreground !pointer-events-auto"
-              disabled={vote?.isUpvoted}
+              disabled={vote?.isUpvoted || !session?.user}
               variant="outline"
               onClick={() => {
                 toast.promise(
@@ -109,7 +110,7 @@ export function PureMessageActions({
               data-testid="message-downvote"
               className="py-1 px-2 h-fit text-muted-foreground !pointer-events-auto"
               variant="outline"
-              disabled={vote && !vote.isUpvoted}
+              disabled={(vote && !vote.isUpvoted) || !session?.user}
               onClick={() => {
                 toast.promise(
                   voteMessageMutation.mutateAsync({

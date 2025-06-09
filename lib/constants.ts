@@ -7,3 +7,5 @@ export const isTestEnvironment = Boolean(
 );
 
 export const BLOB_FILE_PREFIX = 'parlagen/files/';
+
+export const ANONYMOUS_SESSION_COOKIES_KEY = 'anonymous-session';

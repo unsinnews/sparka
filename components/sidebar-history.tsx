@@ -2,11 +2,10 @@
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
-import { memo, useEffect, useState } from 'react';
+import { memo, useState } from 'react';
 import { toast } from 'sonner';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
   CheckCircleFillIcon,
@@ -47,79 +46,33 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
-import type { Chat } from '@/lib/db/schema';
+import type { UIChat } from '@/lib/types/ui';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import { useTRPC } from '@/trpc/react';
+import { useChatStoreContext } from '@/providers/chat-store-provider';
 
 type GroupedChats = {
-  today: Chat[];
-  yesterday: Chat[];
-  lastWeek: Chat[];
-  lastMonth: Chat[];
-  older: Chat[];
+  today: UIChat[];
+  yesterday: UIChat[];
+  lastWeek: UIChat[];
+  lastMonth: UIChat[];
+  older: UIChat[];
 };
 
 const PureChatItem = ({
   chat,
   isActive,
   onDelete,
+  onRename,
   setOpenMobile,
 }: {
-  chat: Chat;
+  chat: UIChat;
   isActive: boolean;
   onDelete: (chatId: string) => void;
+  onRename: (chatId: string, title: string) => void;
   setOpenMobile: (open: boolean) => void;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(chat.title);
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-
-  const renameMutation = useMutation(
-    trpc.chat.renameChat.mutationOptions({
-      onMutate: async (variables) => {
-        // Cancel any outgoing refetches so they don't overwrite our optimistic update
-        await queryClient.cancelQueries({
-          queryKey: trpc.chat.getAllChats.queryKey(),
-        });
-
-        // Snapshot the previous value
-        const previousChats = queryClient.getQueryData(
-          trpc.chat.getAllChats.queryKey(),
-        );
-
-        // Optimistically update the cache
-        queryClient.setQueryData(
-          trpc.chat.getAllChats.queryKey(),
-          (old: Chat[] | undefined) => {
-            if (!old) return old;
-            return old.map((c) =>
-              c.id === variables.chatId ? { ...c, title: variables.title } : c,
-            );
-          },
-        );
-
-        // Return context with the previous value
-        return { previousChats };
-      },
-      onError: (err, variables, context) => {
-        // Rollback on error
-        if (context?.previousChats) {
-          queryClient.setQueryData(
-            trpc.chat.getAllChats.queryKey(),
-            context.previousChats,
-          );
-        }
-        toast.error('Failed to rename chat');
-      },
-      onSettled: () => {
-        // Always refetch after mutation (success or error) to sync with server
-        queryClient.invalidateQueries({
-          queryKey: trpc.chat.getAllChats.queryKey(),
-        });
-      },
-    }),
-  );
 
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId: chat.id,
@@ -134,14 +87,10 @@ const PureChatItem = ({
     }
 
     try {
-      await renameMutation.mutateAsync({
-        chatId: chat.id,
-        title: editTitle.trim(),
-      });
+      await onRename(chat.id, editTitle.trim());
       setIsEditing(false);
       toast.success('Chat renamed successfully');
     } catch (error) {
-      // Error is already handled in mutation onError
       setEditTitle(chat.title);
       setIsEditing(false);
     }
@@ -261,39 +210,24 @@ export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
-  const pathname = usePathname();
-  const trpc = useTRPC();
-  const {
-    data: history,
-    isLoading,
-    refetch,
-  } = useQuery({
-    ...trpc.chat.getAllChats.queryOptions(),
-    enabled: !!user,
-  });
+  const router = useRouter();
 
-  useEffect(() => {
-    if (user) {
-      refetch();
-    }
-  }, [pathname, refetch, user]);
+  const { chats, isLoading, deleteChat, renameChat } = useChatStoreContext();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const router = useRouter();
-  const handleDelete = async () => {
-    const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
-      method: 'DELETE',
-    });
 
-    toast.promise(deletePromise, {
-      loading: 'Deleting chat...',
-      success: () => {
-        refetch();
-        return 'Chat deleted successfully';
-      },
-      error: 'Failed to delete chat',
-    });
+  const handleDelete = async () => {
+    if (!deleteId) return;
+
+    try {
+      await deleteChat(deleteId, {
+        onSuccess: () => toast.success('Chat deleted successfully'),
+        onError: () => toast.error('Failed to delete chat'),
+      });
+    } catch (error) {
+      // Error already handled by onError callback
+    }
 
     setShowDeleteDialog(false);
 
@@ -302,12 +236,14 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     }
   };
 
-  if (!user) {
+  const uiChats = chats;
+
+  if (!user && !isLoading && uiChats.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
           <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-            Login to save and revisit previous chats!
+            Start chatting to see your conversation history!
           </div>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -343,7 +279,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     );
   }
 
-  if (history?.length === 0) {
+  if (uiChats?.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -355,7 +291,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     );
   }
 
-  const groupChatsByDate = (chats: Chat[]): GroupedChats => {
+  const groupChatsByDate = (chats: UIChat[]): GroupedChats => {
     const now = new Date();
     const oneWeekAgo = subWeeks(now, 1);
     const oneMonthAgo = subMonths(now, 1);
@@ -393,9 +329,9 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu>
-            {history &&
+            {uiChats &&
               (() => {
-                const groupedChats = groupChatsByDate(history);
+                const groupedChats = groupChatsByDate(uiChats);
 
                 return (
                   <>
@@ -413,6 +349,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setDeleteId(chatId);
                               setShowDeleteDialog(true);
                             }}
+                            onRename={renameChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -433,6 +370,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setDeleteId(chatId);
                               setShowDeleteDialog(true);
                             }}
+                            onRename={renameChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -453,6 +391,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setDeleteId(chatId);
                               setShowDeleteDialog(true);
                             }}
+                            onRename={renameChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -473,6 +412,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setDeleteId(chatId);
                               setShowDeleteDialog(true);
                             }}
+                            onRename={renameChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -493,6 +433,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setDeleteId(chatId);
                               setShowDeleteDialog(true);
                             }}
+                            onRename={renameChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}

@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { generateUUID } from '@/lib/utils';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
+import { ANONYMOUS_SESSION_COOKIES_KEY } from './constants';
 
 export function createAnonymousSession(): AnonymousSession {
   return {
@@ -15,7 +16,7 @@ export function createAnonymousSession(): AnonymousSession {
 export async function getAnonymousSession(): Promise<AnonymousSession | null> {
   try {
     const cookieStore = await cookies();
-    const sessionData = cookieStore.get('anonymous-session');
+    const sessionData = cookieStore.get(ANONYMOUS_SESSION_COOKIES_KEY);
 
     if (!sessionData?.value) return null;
 
@@ -39,7 +40,7 @@ export async function setAnonymousSession(
   session: AnonymousSession,
 ): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.set('anonymous-session', JSON.stringify(session), {
+  cookieStore.set(ANONYMOUS_SESSION_COOKIES_KEY, JSON.stringify(session), {
     path: '/',
     maxAge: ANONYMOUS_LIMITS.SESSION_DURATION / 1000, // Convert to seconds
     sameSite: 'lax',
@@ -49,5 +50,5 @@ export async function setAnonymousSession(
 
 export async function clearAnonymousSession(): Promise<void> {
   const cookieStore = await cookies();
-  cookieStore.delete('anonymous-session');
+  cookieStore.delete(ANONYMOUS_SESSION_COOKIES_KEY);
 }

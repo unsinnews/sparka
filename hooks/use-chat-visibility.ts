@@ -2,11 +2,11 @@
 
 import { updateChatVisibility } from '@/app/(chat)/actions';
 import type { VisibilityType } from '@/components/visibility-selector';
-import type { Chat } from '@/lib/db/schema';
 import { useMemo } from 'react';
 import useSWR from 'swr';
-import { useTRPC } from '@/trpc/react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import { useChatStoreContext } from '@/providers/chat-store-provider';
+import type { Chat } from '@/lib/db/schema';
 
 export function useChatVisibility({
   chatId,
@@ -15,10 +15,8 @@ export function useChatVisibility({
   chatId: string;
   initialVisibility: VisibilityType;
 }) {
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
-
-  const { data: history } = useQuery(trpc.chat.getAllChats.queryOptions());
+  const { data: session } = useSession();
+  const { rawAuthChats, updateChatInCache } = useChatStoreContext();
 
   const { data: localVisibility, mutate: setLocalVisibility } = useSWR(
     `${chatId}-visibility`,
@@ -29,31 +27,16 @@ export function useChatVisibility({
   );
 
   const visibilityType = useMemo(() => {
-    if (!history) return localVisibility;
-    const chat = history.find((chat: Chat) => chat.id === chatId);
+    if (!rawAuthChats) return localVisibility;
+    const chat = rawAuthChats.find((chat: Chat) => chat.id === chatId);
     if (!chat) return 'private';
     return chat.visibility;
-  }, [history, chatId, localVisibility]);
+  }, [rawAuthChats, chatId, localVisibility]);
 
   const setVisibilityType = (updatedVisibilityType: VisibilityType) => {
     setLocalVisibility(updatedVisibilityType);
 
-    queryClient.setQueryData(
-      trpc.chat.getAllChats.queryKey(),
-      (oldData: Chat[] | undefined) => {
-        return oldData
-          ? oldData.map((chat) => {
-              if (chat.id === chatId) {
-                return {
-                  ...chat,
-                  visibility: updatedVisibilityType,
-                };
-              }
-              return chat;
-            })
-          : [];
-      },
-    );
+    updateChatInCache(chatId, { visibility: updatedVisibilityType });
 
     updateChatVisibility({
       chatId: chatId,

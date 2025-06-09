@@ -82,37 +82,15 @@ export async function reserveCredits({
 
 export function determineStepTools({
   toolBudget,
-  explicitlyRequestedTool,
 }: {
   toolBudget: number;
-  explicitlyRequestedTool: YourToolName | null;
-}): {
-  success: boolean;
-  activeTools: YourToolName[];
-  error?: string;
-} {
+}): YourToolName[] {
   const affordableTools = allTools.filter((toolName) => {
     const toolCost = toolsDefinitions[toolName].cost;
     return toolBudget >= toolCost;
   });
 
-  if (
-    explicitlyRequestedTool &&
-    !affordableTools.includes(explicitlyRequestedTool)
-  ) {
-    return {
-      success: false,
-      activeTools: [],
-      error: `Insufficient budget for requested tool: ${explicitlyRequestedTool}. Need ${toolsDefinitions[explicitlyRequestedTool].cost} credits but only ${toolBudget} available after model cost.`,
-    };
-  }
-
-  return {
-    success: true,
-    activeTools: explicitlyRequestedTool
-      ? [explicitlyRequestedTool]
-      : affordableTools,
-  };
+  return affordableTools;
 }
 
 export function getBaseModelCost(modelId: AvailableProviderModels) {

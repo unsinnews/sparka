@@ -2,6 +2,7 @@
 
 import type { User } from 'next-auth';
 import { useRouter } from 'next/navigation';
+import { LogIn } from 'lucide-react';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
@@ -14,6 +15,8 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
@@ -64,7 +67,26 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           <SidebarHistory user={user} />
         </SidebarContent>
       </ScrollArea>
-      <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
+      <SidebarFooter>
+        {user ? (
+          <SidebarUserNav user={user} />
+        ) : (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground justify-start gap-3 h-10"
+                onClick={() => {
+                  setOpenMobile(false);
+                  router.push('/login');
+                }}
+              >
+                <LogIn className="size-4" />
+                <span>Login</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
+      </SidebarFooter>
     </Sidebar>
   );
 }

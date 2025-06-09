@@ -36,8 +36,10 @@
 [ ] Sign up with GitHub (auth block from shadcn)
 [ ] Update README.md
 
-[ ] Demo without logging in
 
+[ ] Demo without logging in
+   [ ] Refactor @/tools to only require userId
+[ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 
 ### Backend

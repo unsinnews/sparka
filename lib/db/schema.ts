@@ -131,16 +131,3 @@ export const suggestion = pgTable(
 );
 
 export type Suggestion = InferSelectModel<typeof suggestion>;
-
-export const chatStream = pgTable('ChatStream', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  chatId: uuid('chatId')
-    .notNull()
-    .references(() => chat.id, {
-      onDelete: 'cascade',
-    }),
-  streamId: text('streamId').notNull(),
-  createdAt: timestamp('createdAt').notNull().defaultNow(),
-});
-
-export type ChatStream = InferSelectModel<typeof chatStream>;

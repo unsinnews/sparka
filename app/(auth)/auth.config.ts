@@ -25,10 +25,9 @@ export const authConfig = {
         return true;
       }
 
-      // Check for public chat API routes
-      const isChatResumeApiRoute =
-        nextUrl.pathname === '/api/chat' && nextUrl.searchParams.get('chatId');
-      if (isChatResumeApiRoute) {
+      // Allow all chat API routes for anonymous access
+      const isChatApiRoute = nextUrl.pathname === '/api/chat';
+      if (isChatApiRoute) {
         return true;
       }
 
@@ -45,6 +44,11 @@ export const authConfig = {
       }
 
       if (isOnChat) {
+        // Allow anonymous access to main chat page
+        if (nextUrl.pathname === '/') {
+          return true;
+        }
+        // Require auth for specific chat IDs
         if (isLoggedIn) return true;
         return false; // Redirect unauthenticated users to login page
       }

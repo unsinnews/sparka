@@ -2,7 +2,7 @@
 
 import type { Attachment } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -18,6 +18,10 @@ import { useTRPC } from '@/trpc/react';
 
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
+import { useSession } from 'next-auth/react';
+import { useAnonymousChats } from '@/lib/hooks/use-anonymous-chats';
+import { useAnonymousMessages } from '@/lib/hooks/use-anonymous-messages';
+import type { UIChat } from '@/lib/types/ui';
 
 export function Chat({
   id,
@@ -32,8 +36,13 @@ export function Chat({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
+  const { data: session } = useSession();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const { saveChat } = useAnonymousChats(!session?.user);
+
+  // For anonymous users, get the saveMessage function to save new messages
+  const { saveMessage } = useAnonymousMessages(id);
 
   const [localSelectedModelId, setLocalSelectedModelId] =
     useState<string>(selectedChatModel);
@@ -45,13 +54,45 @@ export function Chat({
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
-    onFinish: () => {
-      queryClient.invalidateQueries({
-        queryKey: trpc.chat.getAllChats.queryKey(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: trpc.credits.getAvailableCredits.queryKey(),
-      });
+    onFinish: (message) => {
+      if (session?.user) {
+        // Authenticated user - invalidate tRPC queries
+        queryClient.invalidateQueries({
+          queryKey: trpc.chat.getAllChats.queryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: trpc.credits.getAvailableCredits.queryKey(),
+        });
+      } else {
+        // Anonymous user - save chat to localStorage
+        // Extract title from first user message or use default
+        const title =
+          initialMessages.length > 0
+            ? initialMessages
+                .find((m) => m.role === 'user')
+                ?.content?.toString()
+                .slice(0, 50) || 'New Chat'
+            : message.content.slice(0, 50) || 'New Chat';
+
+        saveChat({
+          id,
+          title,
+          createdAt: new Date(),
+          visibility: 'private',
+        } as UIChat);
+
+        // Save the assistant message to localStorage
+        saveMessage({
+          id: message.id,
+          chatId: id,
+          role: message.role,
+          parts: message.parts,
+          attachments: message.experimental_attachments || [],
+          createdAt: message.createdAt || new Date(),
+          annotations: message.annotations || [],
+          isPartial: false,
+        });
+      }
     },
     onError: (error) => {
       console.error(error);
@@ -62,7 +103,7 @@ export function Chat({
   const {
     messages,
     setMessages,
-    handleSubmit,
+    handleSubmit: originalHandleSubmit,
     input,
     setInput,
     append,
@@ -72,6 +113,30 @@ export function Chat({
     experimental_resume,
     data: chatData,
   } = chatHelpers;
+
+  // Wrapper around handleSubmit to save user messages for anonymous users
+  const handleSubmit = useCallback(
+    (event?: { preventDefault?: () => void }, options?: any) => {
+      // For anonymous users, intercept and save user message
+      if (!session?.user && input.trim()) {
+        const userMessage = {
+          id: generateUUID(),
+          chatId: id,
+          role: 'user' as const,
+          parts: [{ type: 'text' as const, text: input }],
+          attachments: options?.experimental_attachments || [],
+          createdAt: new Date(),
+          annotations: [],
+          isPartial: false,
+        };
+
+        saveMessage(userMessage);
+      }
+
+      return originalHandleSubmit(event, options);
+    },
+    [session?.user, input, id, saveMessage, originalHandleSubmit],
+  );
 
   // Auto-resume functionality
   useAutoResume({
@@ -84,7 +149,7 @@ export function Chat({
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),
-    enabled: messages.length >= 2 && !isReadonly,
+    enabled: messages.length >= 2 && !isReadonly && !!session?.user,
   });
 
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();

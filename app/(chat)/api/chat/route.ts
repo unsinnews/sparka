@@ -15,10 +15,7 @@ import {
   saveMessage,
   updateMessage,
   getMessageById,
-  saveStreamId,
-  getStreamsByChatId,
   getMessagesByChatId,
-  deleteStreamId,
 } from '@/lib/db/queries';
 import {
   generateUUID,
@@ -32,11 +29,14 @@ import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { NextRequest } from 'next/server';
 import {
-  determineStepTools,
+  determineStepTools as determineStepActiveTools,
   getBaseModelCost,
 } from '@/lib/credits/credits-utils';
 import { getModelProvider, getModelProviderOptions } from '@/lib/ai/providers';
-import { reserveCreditsWithCleanup } from '@/lib/credits/credit-reservation';
+import {
+  reserveCreditsWithCleanup,
+  type CreditReservation,
+} from '@/lib/credits/credit-reservation';
 import {
   getModelDefinition,
   type AvailableProviderModels,
@@ -44,8 +44,29 @@ import {
 } from '@/lib/ai/all-models';
 import { createResumableStreamContext } from 'resumable-stream';
 import { after } from 'next/server';
+import {
+  getAnonymousSession,
+  createAnonymousSession,
+  setAnonymousSession,
+} from '@/lib/anonymous-session';
+import type { AnonymousSession } from '@/lib/types/anonymous';
+import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 
 export const maxDuration = 60;
+
+async function getCreditReservation(userId: string, baseModelCost: number) {
+  const reservedCredits = await reserveCreditsWithCleanup(
+    userId,
+    baseModelCost,
+    5,
+  );
+
+  if (!reservedCredits.success) {
+    return { reservation: null, error: reservedCredits.error };
+  }
+
+  return { reservation: reservedCredits.reservation, error: null };
+}
 
 // Create shared Redis clients for resumable stream and cleanup
 let redisPublisher: any = null;
@@ -82,39 +103,68 @@ export async function GET(request: NextRequest) {
   const chatId = searchParams.get('chatId');
 
   if (!chatId) {
+    console.log('RESPONSE > GET /api/chat: chatId is required');
     return new Response('chatId is required', { status: 400 });
   }
 
   const session = await auth();
+  const userId = session?.user?.id || null;
+  const isAnonymous = userId === null;
 
   try {
-    // First check if chat exists and is public
-    const chat = await getChatById({ id: chatId });
+    let streamIds: string[] = [];
 
-    if (!chat) {
-      return new Response('Chat not found', { status: 404 });
-    }
+    // For authenticated users, check DB permissions first
+    if (!isAnonymous) {
+      const chat = await getChatById({ id: chatId });
 
-    // If chat is not public, require authentication and ownership
-    if (chat.visibility !== 'public') {
-      if (!session || !session.user || !session.user.id) {
-        return new Response('Unauthorized', { status: 401 });
+      if (!chat) {
+        console.log('RESPONSE > GET /api/chat: Chat not found');
+        return new Response('Chat not found', { status: 404 });
       }
 
-      if (chat.userId !== session.user.id) {
-        return new Response('Unauthorized', { status: 401 });
+      // If chat is not public, require authentication and ownership
+      if (chat.visibility !== 'public') {
+        if (!session || !session.user || !session.user.id) {
+          console.log(
+            'RESPONSE > GET /api/chat: Unauthorized - no session or user',
+          );
+          return new Response('Unauthorized', { status: 401 });
+        }
+
+        if (chat.userId !== session.user.id) {
+          console.log(
+            'RESPONSE > GET /api/chat: Unauthorized - chat ownership mismatch',
+          );
+          return new Response('Unauthorized', { status: 401 });
+        }
       }
     }
 
-    const streamIds = await getStreamsByChatId({ chatId });
+    // Get streams from Redis for all users
+    if (redisPublisher) {
+      const keyPattern = isAnonymous
+        ? `parlagen:anonymous-stream:${chatId}:*`
+        : `parlagen:stream:${chatId}:*`;
+
+      const keys = await redisPublisher.keys(keyPattern);
+      streamIds = keys
+        .map((key: string) => {
+          const parts = key.split(':');
+          return parts[parts.length - 1] || '';
+        })
+        .filter(Boolean);
+    }
 
     if (!streamIds.length) {
+      console.log('RESPONSE > GET /api/chat: No streams found');
       return new Response('No streams found', { status: 404 });
     }
 
     const recentStreamId = streamIds.at(-1);
 
     if (!recentStreamId) {
+      console.log('RESPONSE > GET /api/chat: No recent stream found');
       return new Response('No recent stream found', { status: 404 });
     }
 
@@ -128,6 +178,7 @@ export async function GET(request: NextRequest) {
     );
 
     if (stream) {
+      console.log('RESPONSE > GET /api/chat: Returning resumable stream');
       return new Response(stream, { status: 200 });
     }
 
@@ -140,6 +191,9 @@ export async function GET(request: NextRequest) {
     const mostRecentMessage = messages.at(-1);
 
     if (!mostRecentMessage || mostRecentMessage.role !== 'assistant') {
+      console.log(
+        'RESPONSE > GET /api/chat: No recent assistant message, returning empty stream',
+      );
       return new Response(emptyDataStream, { status: 200 });
     }
 
@@ -152,9 +206,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    console.log(
+      'RESPONSE > GET /api/chat: Returning stream with most recent message',
+    );
     return new Response(streamWithMessage, { status: 200 });
   } catch (error) {
-    console.error('Error in GET /api/chat:', error);
+    console.error('RESPONSE > Error in GET /api/chat:', error);
     return new Response('Internal server error', { status: 500 });
   }
 }
@@ -175,14 +232,59 @@ export async function POST(request: NextRequest) {
 
     const session = await auth();
 
-    if (!session || !session.user || !session.user.id) {
-      return new Response('Unauthorized', { status: 401 });
-    }
+    const userId = session?.user?.id || null;
+    const isAnonymous = userId === null;
+    let anonymousSession: AnonymousSession | null = null;
 
-    const user = await getUserById({ userId: session.user.id });
+    // Check for anonymous users
 
-    if (!user) {
-      return new Response('User not found', { status: 404 });
+    if (userId) {
+      // TODO: Consider if checking if user exists is really needed
+      const user = await getUserById({ userId });
+      if (!user) {
+        console.log('RESPONSE > POST /api/chat: User not found');
+        return new Response('User not found', { status: 404 });
+      }
+    } else {
+      anonymousSession =
+        (await getAnonymousSession()) || createAnonymousSession();
+
+      // Check message limits
+      if (anonymousSession.messageCount >= ANONYMOUS_LIMITS.MAX_MESSAGES) {
+        console.log(
+          'RESPONSE > POST /api/chat: Anonymous message limit reached',
+        );
+        return new Response(
+          JSON.stringify({
+            error: 'Message limit reached',
+            type: 'ANONYMOUS_LIMIT_EXCEEDED',
+            maxMessages: ANONYMOUS_LIMITS.MAX_MESSAGES,
+          }),
+          {
+            status: 402,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+      }
+
+      // Validate model for anonymous users
+      if (
+        !ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(selectedChatModel as any)
+      ) {
+        console.log(
+          'RESPONSE > POST /api/chat: Model not available for anonymous users',
+        );
+        return new Response(
+          JSON.stringify({
+            error: 'Model not available for anonymous users',
+            availableModels: ANONYMOUS_LIMITS.AVAILABLE_MODELS,
+          }),
+          {
+            status: 403,
+            headers: { 'Content-Type': 'application/json' },
+          },
+        );
+      }
     }
 
     const deepResearch = data.deepResearch;
@@ -193,128 +295,173 @@ export async function POST(request: NextRequest) {
     try {
       modelDefinition = getModelDefinition(selectedChatModel);
     } catch (error) {
+      console.log('RESPONSE > POST /api/chat: Model not found');
       return new Response('Model not found', { status: 404 });
     }
     const userMessage = getMostRecentUserMessage(messages);
 
     if (!userMessage) {
+      console.log('RESPONSE > POST /api/chat: No user message found');
       return new Response('No user message found', { status: 400 });
     }
 
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
     const contextForLLM = convertToCoreMessages(messages.slice(-5));
 
-    const chat = await getChatById({ id: chatId });
+    // Skip database operations for anonymous users
+    if (!isAnonymous) {
+      const chat = await getChatById({ id: chatId });
 
-    if (chat && chat.userId !== session.user.id) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    if (!chat) {
-      const title = await generateTitleFromUserMessage({
-        message: userMessage,
-      });
-
-      await saveChat({ id: chatId, userId: session.user.id, title });
-    } else {
-      if (chat.userId !== session.user.id) {
+      if (chat && chat.userId !== userId) {
+        console.log(
+          'RESPONSE > POST /api/chat: Unauthorized - chat ownership mismatch',
+        );
         return new Response('Unauthorized', { status: 401 });
+      }
+
+      if (!chat) {
+        const title = await generateTitleFromUserMessage({
+          message: userMessage,
+        });
+
+        await saveChat({ id: chatId, userId, title });
+      } else {
+        if (chat.userId !== userId) {
+          console.log(
+            'RESPONSE > POST /api/chat: Unauthorized - chat ownership mismatch',
+          );
+          return new Response('Unauthorized', { status: 401 });
+        }
+      }
+
+      const [exsistentMessage] = await getMessageById({ id: userMessage.id });
+
+      if (exsistentMessage && exsistentMessage.chatId !== chatId) {
+        console.log(
+          'RESPONSE > POST /api/chat: Unauthorized - message chatId mismatch',
+        );
+        return new Response('Unauthorized', { status: 401 });
+      }
+
+      if (!exsistentMessage) {
+        // If the message does not exist, save it
+        await saveMessage({
+          _message: {
+            id: userMessage.id,
+            chatId: chatId,
+            role: userMessage.role,
+            parts: userMessage.parts,
+            attachments: userMessage.experimental_attachments ?? [],
+            createdAt: new Date(),
+            annotations: userMessage.annotations,
+            isPartial: false,
+          },
+        });
       }
     }
 
-    const [exsistentMessage] = await getMessageById({ id: userMessage.id });
-
-    if (exsistentMessage && exsistentMessage.chatId !== chatId) {
-      return new Response('Unauthorized', { status: 401 });
-    }
-
-    if (!exsistentMessage) {
-      // If the message does not exist, save it
-      await saveMessage({
-        _message: {
-          id: userMessage.id,
-          chatId: chatId,
-          role: userMessage.role,
-          parts: userMessage.parts,
-          attachments: userMessage.experimental_attachments ?? [],
-          createdAt: new Date(),
-          annotations: userMessage.annotations,
-          isPartial: false,
-        },
-      });
-    }
     let explicitlyRequestedTool: YourToolName | null = null;
     if (deepResearch) explicitlyRequestedTool = 'deepResearch';
     // else if (reason) explicitlyRequestedTool = 'reasonSearch';
     else if (webSearch) explicitlyRequestedTool = 'webSearch';
 
     const baseModelCost = getBaseModelCost(selectedChatModel);
-    const reservedCredits = await reserveCreditsWithCleanup(
-      session.user.id,
-      baseModelCost,
-      5,
-    );
 
-    if (!reservedCredits.success) {
-      return new Response(reservedCredits.error, {
-        status: 402,
-      });
+    let reservation: CreditReservation | null = null;
+
+    if (!isAnonymous) {
+      const { reservation: res, error: creditError } =
+        await getCreditReservation(userId, baseModelCost);
+
+      if (creditError) {
+        console.log(
+          'RESPONSE > POST /api/chat: Credit reservation error:',
+          creditError,
+        );
+        return new Response(creditError, {
+          status: 402,
+        });
+      }
+
+      reservation = res;
+    } else if (anonymousSession) {
+      // Increment message count and update session
+      anonymousSession.messageCount++;
+      await setAnonymousSession(anonymousSession);
     }
 
-    // Now we know reservedCredits.success is true
-    const { reservation } = reservedCredits;
+    const activeTools = isAnonymous
+      ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS
+      : reservation
+        ? determineStepActiveTools({
+            toolBudget: reservation.budget - baseModelCost,
+          })
+        : [];
 
-    const toolsResult = determineStepTools({
-      toolBudget: reservation.budget - baseModelCost,
-      explicitlyRequestedTool,
-    });
-
-    if (!toolsResult.success) {
-      await reservation.cleanup();
-      return new Response(toolsResult.error || 'Cannot determine tools', {
-        status: 402,
-      });
+    if (
+      explicitlyRequestedTool &&
+      !activeTools.includes(explicitlyRequestedTool)
+    ) {
+      console.log(
+        'RESPONSE > POST /api/chat: Insufficient budget for requested tool:',
+        explicitlyRequestedTool,
+      );
+      return new Response(
+        `Insufficient budget for requested tool: ${explicitlyRequestedTool}.`,
+        {
+          status: 402,
+        },
+      );
+    } else if (explicitlyRequestedTool) {
+      // Add context of user selection to the user message
+      // TODO: Consider doing this in the system prompt instead
+      if (userMessage.parts[0].type === 'text') {
+        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
+      }
     }
-
-    const activeTools = toolsResult.activeTools;
-
     // Create AbortController with 55s timeout for credit cleanup
     const abortController = new AbortController();
     const timeoutId = setTimeout(async () => {
-      await reservation.cleanup();
+      if (reservation) {
+        await reservation.cleanup();
+      }
       abortController.abort();
     }, 55000); // 55 seconds
 
     // Ensure cleanup on any unhandled errors
     try {
-      // Add context of user selection to the user message
-      // TODO: Consider doing this in the system prompt instead
-      if (userMessage.parts[0].type === 'text') {
-        if (explicitlyRequestedTool) {
-          userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
-          userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
-        }
-      }
-
       const messageId = generateUUID();
       const streamId = generateUUID();
 
-      // Record this new stream so we can resume later
-      await saveStreamId({ chatId, streamId });
+      // Record this new stream so we can resume later - use Redis for all users
+      if (redisPublisher) {
+        const keyPrefix = isAnonymous
+          ? `parlagen:anonymous-stream:${chatId}:${streamId}`
+          : `parlagen:stream:${chatId}:${streamId}`;
 
-      // Save placeholder assistant message immediately (needed for document creation)
-      await saveMessage({
-        _message: {
-          id: messageId,
-          chatId: chatId,
-          role: 'assistant',
-          parts: [], // Empty placeholder
-          attachments: [],
-          createdAt: new Date(),
-          annotations: [],
-          isPartial: true,
-        },
-      });
+        await redisPublisher.setEx(
+          keyPrefix,
+          600, // 10 minutes TTL
+          JSON.stringify({ chatId, streamId, createdAt: Date.now() }),
+        );
+      }
+
+      if (!isAnonymous) {
+        // Save placeholder assistant message immediately (needed for document creation)
+        await saveMessage({
+          _message: {
+            id: messageId,
+            chatId: chatId,
+            role: 'assistant',
+            parts: [], // Empty placeholder
+            attachments: [],
+            createdAt: new Date(),
+            annotations: [],
+            isPartial: true,
+          },
+        });
+      }
 
       // Build the data stream that will emit tokens
       const stream = createDataStream({
@@ -335,7 +482,12 @@ export async function POST(request: NextRequest) {
             },
             tools: getTools({
               dataStream: annotationStream,
-              session,
+              session: {
+                user: {
+                  id: userId || undefined,
+                },
+                expires: 'noop',
+              },
               contextForLLM,
               messageId,
             }),
@@ -352,15 +504,15 @@ export async function POST(request: NextRequest) {
               // Clear timeout since we finished successfully
               clearTimeout(timeoutId);
 
-              const actualCost =
-                baseModelCost +
-                steps
-                  .flatMap((step) => step.toolResults)
-                  .reduce((acc, toolResult) => {
-                    return acc + toolsDefinitions[toolResult.toolName].cost;
-                  }, 0);
+              if (userId) {
+                const actualCost =
+                  baseModelCost +
+                  steps
+                    .flatMap((step) => step.toolResults)
+                    .reduce((acc, toolResult) => {
+                      return acc + toolsDefinitions[toolResult.toolName].cost;
+                    }, 0);
 
-              if (session.user?.id) {
                 try {
                   const assistantId = getTrailingMessageId({
                     messages: response.messages.filter(
@@ -377,29 +529,35 @@ export async function POST(request: NextRequest) {
                     responseMessages: response.messages,
                   });
 
-                  await updateMessage({
-                    _message: {
-                      id: assistantId,
-                      chatId: chatId,
-                      role: assistantMessage.role,
-                      parts: assistantMessage.parts,
-                      attachments:
-                        assistantMessage.experimental_attachments ?? [],
-                      createdAt: new Date(),
-                      annotations: annotationStream.getAnnotations(),
-                      isPartial: false,
-                    },
-                  });
+                  if (!isAnonymous) {
+                    await updateMessage({
+                      _message: {
+                        id: assistantId,
+                        chatId: chatId,
+                        role: assistantMessage.role,
+                        parts: assistantMessage.parts,
+                        attachments:
+                          assistantMessage.experimental_attachments ?? [],
+                        createdAt: new Date(),
+                        annotations: annotationStream.getAnnotations(),
+                        isPartial: false,
+                      },
+                    });
+                  }
 
                   // Finalize credit usage: deduct actual cost, release reservation
-                  await reservation.finalize(actualCost);
+                  if (reservation) {
+                    await reservation.finalize(actualCost);
+                  }
                 } catch (error) {
                   console.error(
                     'Failed to save chat or finalize credits:',
                     error,
                   );
                   // Still release the reservation on error
-                  await reservation.cleanup();
+                  if (reservation) {
+                    await reservation.cleanup();
+                  }
                 }
               }
             },
@@ -422,8 +580,12 @@ export async function POST(request: NextRequest) {
           clearTimeout(timeoutId);
           console.error(error);
           // Release reserved credits on error (fire and forget)
-          if (session.user?.id) {
+          if (reservation) {
             reservation.cleanup();
+          }
+          if (anonymousSession) {
+            anonymousSession.messageCount--;
+            setAnonymousSession(anonymousSession);
           }
           return 'Oops, an error occured!';
         },
@@ -446,24 +608,38 @@ export async function POST(request: NextRequest) {
             console.error('Failed to set TTL on stream keys:', error);
           }
         }
+
         try {
-          // Only clean up the DB record
-          await deleteStreamId({ streamId });
+          // Clean up stream info from Redis for all users
+          if (redisPublisher) {
+            const keyPrefix = isAnonymous
+              ? `parlagen:anonymous-stream:${chatId}:${streamId}`
+              : `parlagen:stream:${chatId}:${streamId}`;
+
+            await redisPublisher.del(keyPrefix);
+          }
         } catch (cleanupError) {
-          console.error('Failed to cleanup stream DB record:', cleanupError);
+          console.error('Failed to cleanup stream record:', cleanupError);
         }
       });
 
+      console.log('RESPONSE > POST /api/chat: Returning resumable stream');
       return new Response(
         await streamContext.resumableStream(streamId, () => stream),
       );
     } catch (error) {
       clearTimeout(timeoutId);
-      await reservation.cleanup();
+      if (reservation) {
+        await reservation.cleanup();
+      }
+      if (anonymousSession) {
+        anonymousSession.messageCount--;
+        setAnonymousSession(anonymousSession);
+      }
       throw error;
     }
   } catch (error) {
-    console.error(error);
+    console.error('RESPONSE > POST /api/chat error:', error);
     return new Response('An error occurred while processing your request!', {
       status: 404,
     });
@@ -475,12 +651,16 @@ export async function DELETE(request: Request) {
   const id = searchParams.get('id');
 
   if (!id) {
+    console.log('RESPONSE > DELETE /api/chat: id is required');
     return new Response('Not Found', { status: 404 });
   }
 
   const session = await auth();
 
   if (!session || !session.user) {
+    console.log(
+      'RESPONSE > DELETE /api/chat: Unauthorized - no session or user',
+    );
     return new Response('Unauthorized', { status: 401 });
   }
 
@@ -488,13 +668,18 @@ export async function DELETE(request: Request) {
     const chat = await getChatById({ id });
 
     if (chat.userId !== session.user.id) {
+      console.log(
+        'RESPONSE > DELETE /api/chat: Unauthorized - chat ownership mismatch',
+      );
       return new Response('Unauthorized', { status: 401 });
     }
 
     await deleteChatById({ id });
 
+    console.log('RESPONSE > DELETE /api/chat: Chat deleted');
     return new Response('Chat deleted', { status: 200 });
   } catch (error) {
+    console.error('RESPONSE > DELETE /api/chat error:', error);
     return new Response('An error occurred while processing your request!', {
       status: 500,
     });

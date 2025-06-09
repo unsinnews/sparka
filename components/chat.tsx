@@ -39,7 +39,8 @@ export function Chat({
   const { data: session } = useSession();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const { saveChat, invalidateChats } = useChatStoreContext();
+  const { saveChat, invalidateChats, generateTitleFromMessage } =
+    useChatStoreContext();
 
   // For anonymous users, get the saveMessage function to save new messages
   const { saveMessage } = useAnonymousMessages(id);
@@ -62,23 +63,7 @@ export function Chat({
           queryKey: trpc.credits.getAvailableCredits.queryKey(),
         });
       } else {
-        // Anonymous user - save chat through chat store
-        const title =
-          initialMessages.length > 0
-            ? initialMessages
-                .find((m) => m.role === 'user')
-                ?.content?.toString()
-                .slice(0, 50) || 'New Chat'
-            : message.content.slice(0, 50) || 'New Chat';
-
-        saveChat({
-          id,
-          title,
-          createdAt: new Date(),
-          visibility: 'private',
-        } as UIChat);
-
-        // Save the assistant message to localStorage
+        // Anonymous user - save the assistant message
         saveMessage({
           id: message.id,
           chatId: id,
@@ -128,11 +113,39 @@ export function Chat({
         };
 
         saveMessage(userMessage);
+
+        // Generate title from first user message if this is a new chat
+        const isFirstMessage =
+          initialMessages.length === 0 && messages.length === 0;
+        if (isFirstMessage && generateTitleFromMessage && input.trim()) {
+          // Save chat with temporary title first
+          const tempTitle =
+            input.slice(0, 50) + (input.length > 50 ? '...' : '');
+          saveChat({
+            id,
+            title: 'New Chat',
+            createdAt: new Date(),
+            visibility: 'private',
+          } as UIChat);
+
+          // Generate proper title asynchronously
+          generateTitleFromMessage(id, input.trim());
+        }
       }
 
       return originalHandleSubmit(event, options);
     },
-    [session?.user, input, id, saveMessage, originalHandleSubmit],
+    [
+      session?.user,
+      input,
+      id,
+      saveMessage,
+      originalHandleSubmit,
+      initialMessages.length,
+      messages.length,
+      generateTitleFromMessage,
+      saveChat,
+    ],
   );
 
   // Auto-resume functionality

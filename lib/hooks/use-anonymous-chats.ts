@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { AnonymousChat, AnonymousMessage } from '@/lib/types/anonymous';
 import type { UIChat } from '@/lib/types/ui';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
+import { useTRPC } from '@/trpc/react';
+import { useMutation } from '@tanstack/react-query';
 
 const ANONYMOUS_CHATS_KEY = 'anonymous-chats';
 const ANONYMOUS_MESSAGES_KEY = 'anonymous-messages';
@@ -11,6 +13,16 @@ const ANONYMOUS_MESSAGES_KEY = 'anonymous-messages';
 export function useAnonymousChats(enabled = true) {
   const [chats, setChats] = useState<UIChat[]>([]);
   const [isLoading, setIsLoading] = useState(enabled);
+  const trpc = useTRPC();
+
+  // Title generation mutation
+  const generateTitleMutation = useMutation(
+    trpc.chat.generateTitle.mutationOptions({
+      onError: (error) => {
+        console.error('Failed to generate title:', error);
+      },
+    }),
+  );
 
   // Load chats from localStorage on mount
   useEffect(() => {
@@ -190,11 +202,38 @@ export function useAnonymousChats(enabled = true) {
     [enabled],
   );
 
+  // Generate title from first user message
+  const generateTitleFromMessage = useCallback(
+    async (chatId: string, userMessage: string) => {
+      if (!enabled) return;
+
+      try {
+        const result = await generateTitleMutation.mutateAsync({
+          message: userMessage,
+        });
+
+        if (result?.title) {
+          // Update the chat with the generated title
+          renameChat(chatId, result.title);
+        }
+      } catch (error) {
+        console.error('Failed to generate and save title:', error);
+        // Fallback to truncated message as title
+        const fallbackTitle =
+          userMessage.slice(0, 50) + (userMessage.length > 50 ? '...' : '');
+        renameChat(chatId, fallbackTitle);
+      }
+    },
+    [enabled, generateTitleMutation, renameChat],
+  );
+
   return {
     chats,
     isLoading,
     saveChat,
     deleteChat,
     renameChat,
+    generateTitleFromMessage,
+    isGeneratingTitle: generateTitleMutation.isPending,
   };
 }

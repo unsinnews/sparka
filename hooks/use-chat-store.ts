@@ -29,6 +29,8 @@ export function useChatStore() {
     deleteChat: deleteAnonymousChat,
     renameChat: renameAnonymousChat,
     saveChat: saveAnonymousChat,
+    generateTitleFromMessage: generateAnonymousTitle,
+    isGeneratingTitle,
   } = useAnonymousChats(!isAuthenticated);
 
   // Memoize the tRPC query options to prevent recreation
@@ -222,6 +224,10 @@ export function useChatStore() {
       invalidateChats,
       getChatFromCache,
       updateChatInCache,
+      generateTitleFromMessage: isAuthenticated
+        ? undefined
+        : generateAnonymousTitle,
+      isGeneratingTitle: isAuthenticated ? false : isGeneratingTitle,
       // Expose raw data for components that need it
       rawAuthChats: authChats,
       queryClient,
@@ -238,6 +244,8 @@ export function useChatStore() {
       invalidateChats,
       getChatFromCache,
       updateChatInCache,
+      generateAnonymousTitle,
+      isGeneratingTitle,
       authChats,
       queryClient,
       trpcQueryKey,

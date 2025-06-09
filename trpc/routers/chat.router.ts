@@ -3,8 +3,14 @@ import {
   updateChatTitleById,
   getChatById,
 } from '@/lib/db/queries';
-import { createTRPCRouter, protectedProcedure } from '@/trpc/init';
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from '@/trpc/init';
 import { z } from 'zod';
+import { generateText } from 'ai';
+import { myProvider } from '@/lib/ai/providers';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -29,5 +35,26 @@ export const chatRouter = createTRPCRouter({
         chatId: input.chatId,
         title: input.title,
       });
+    }),
+
+  generateTitle: publicProcedure
+    .input(
+      z.object({
+        message: z.string().min(1).max(2000),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const { text: title } = await generateText({
+        model: myProvider.languageModel('title-model'),
+        system: `\n
+        - you will generate a short title based on the first message a user begins a conversation with
+        - ensure it is not more than 80 characters long
+        - the title should be a summary of the user's message
+        - do not use quotes or colons`,
+        prompt: input.message,
+        experimental_telemetry: { isEnabled: true },
+      });
+
+      return { title };
     }),
 });

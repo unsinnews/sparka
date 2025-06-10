@@ -38,9 +38,9 @@
 
 
 [ ] Demo without logging in
-   [ ] Refactor @/tools to only require userId
-   [ ] /chat/[id] should load for cookies for unauthenticated users
+   [x] /chat/[id] should load for cookies for unauthenticated users
    [ ] Reduce anonymous message limit to 10
+   [ ] Move useSwr from visibility into a context
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 

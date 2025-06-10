@@ -17,6 +17,7 @@ import {
   LockIcon,
 } from './icons';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import { useSession } from 'next-auth/react';
 
 export type VisibilityType = 'private' | 'public';
 
@@ -49,7 +50,7 @@ export function VisibilitySelector({
   selectedVisibilityType: VisibilityType;
 } & React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
-
+  const { data: session } = useSession();
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId,
     initialVisibility: selectedVisibilityType,
@@ -68,6 +69,7 @@ export function VisibilitySelector({
           'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
           className,
         )}
+        disabled={!session?.user?.id}
       >
         <Button
           variant="outline"

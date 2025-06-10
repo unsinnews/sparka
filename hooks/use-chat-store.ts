@@ -11,6 +11,8 @@ import type { Chat } from '@/lib/db/schema';
 import type { UIChat } from '@/lib/types/ui';
 import { dbChatToUIChat } from '@/lib/types/ui';
 import { generateUUID } from '@/lib/utils';
+import { updateChatVisibility } from '@/app/(chat)/actions';
+import type { VisibilityType } from '@/components/visibility-selector';
 
 interface ChatMutationOptions {
   onSuccess?: () => void;
@@ -298,6 +300,29 @@ export function useChatStore() {
     [isAuthenticated, queryClient, getAllChatsQueryKey],
   );
 
+  // Chat visibility management
+  const createChatVisibility = useCallback(
+    (chatId: string, initialVisibility: VisibilityType) => {
+      const getChatVisibility = () => {
+        if (!authChats) return initialVisibility;
+        const chat = authChats.find((chat: Chat) => chat.id === chatId);
+        if (!chat) return 'private';
+        return chat.visibility;
+      };
+
+      const setChatVisibility = (updatedVisibilityType: VisibilityType) => {
+        updateChatInCache(chatId, { visibility: updatedVisibilityType });
+        updateChatVisibility({
+          chatId: chatId,
+          visibility: updatedVisibilityType,
+        });
+      };
+
+      return { getChatVisibility, setChatVisibility };
+    },
+    [authChats, updateChatInCache],
+  );
+
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(
     () => ({
@@ -309,11 +334,7 @@ export function useChatStore() {
       onAssistantMessageFinish,
       userMessageSubmit,
       getChatFromCache,
-      updateChatInCache,
-      // Expose raw data for components that need it
-      rawAuthChats: authChats,
-      queryClient,
-      trpcQueryKey: getAllChatsQueryKey,
+      createChatVisibility,
     }),
     [
       chats,
@@ -324,10 +345,7 @@ export function useChatStore() {
       onAssistantMessageFinish,
       userMessageSubmit,
       getChatFromCache,
-      updateChatInCache,
-      authChats,
-      queryClient,
-      getAllChatsQueryKey,
+      createChatVisibility,
     ],
   );
 }

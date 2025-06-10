@@ -14,6 +14,7 @@ import { dbChatToUIChat } from '@/lib/types/ui';
 import { generateUUID } from '@/lib/utils';
 import { updateChatVisibility } from '@/app/(chat)/actions';
 import type { VisibilityType } from '@/components/visibility-selector';
+import { useAnonymousSession } from './use-anonymous-session';
 
 interface ChatMutationOptions {
   onSuccess?: () => void;
@@ -55,6 +56,9 @@ export function useChatStore() {
     getMessagesForChat: getAnonymousMessagesForChat,
     deleteMessagesForChat: deleteAnonymousMessagesForChat,
   } = useAnonymousMessagesStorage();
+
+  // Anonymous session hook
+  const { incrementMessageCount } = useAnonymousSession();
 
   // Memoize the tRPC query options to prevent recreation
   const queryOptions = useMemo(
@@ -272,7 +276,10 @@ export function useChatStore() {
       attachments: any[] = [],
     ) => {
       if (!isAuthenticated && input.trim()) {
-        // Anonymous user - create and save the user message
+        // Anonymous user - increment message count first
+        incrementMessageCount();
+
+        // Create and save the user message
         const userMessage = {
           id: generateUUID(),
           chatId,
@@ -304,7 +311,13 @@ export function useChatStore() {
       }
       // For authenticated users, the API handles message saving and title generation
     },
-    [isAuthenticated, generateAnonymousTitle, saveChat, saveAnonymousMessage],
+    [
+      isAuthenticated,
+      generateAnonymousTitle,
+      saveChat,
+      saveAnonymousMessage,
+      incrementMessageCount,
+    ],
   );
 
   // Memoized get chat function

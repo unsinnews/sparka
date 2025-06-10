@@ -42,7 +42,8 @@
    [x] deleteTrailingMessages should be in chat store and implemented for anonymous too
    [x] Model selector should have non-anonymous models disabled
    [x] Move useSwr from visibility into a context
-   [ ] Reduce anonymous message limit to 100
+   [ ] Display remaining messages in the chat, with a sign to login to reset the limit
+   [ ] Reduce anonymous message limit to 10
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 

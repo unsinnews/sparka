@@ -40,6 +40,7 @@ import {
   DEFAULT_PDF_MODEL,
   DEFAULT_IMAGE_MODEL,
 } from '@/lib/ai/all-models';
+import { MessageLimitDisplay } from './message-limit-display';
 
 function PureMultimodalInput({
   chatId,
@@ -357,6 +358,8 @@ function PureMultimodalInput({
         attachments.length === 0 &&
         uploadQueue.length === 0 &&
         !isEditMode && <SuggestedActions append={append} chatId={chatId} />}
+
+      {!isEditMode && <MessageLimitDisplay />}
 
       <input
         type="file"

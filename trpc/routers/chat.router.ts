@@ -2,6 +2,8 @@ import {
   getChatsByUserId,
   updateChatTitleById,
   getChatById,
+  getMessageById,
+  deleteMessagesByChatIdAfterTimestamp,
 } from '@/lib/db/queries';
 import {
   createTRPCRouter,
@@ -11,6 +13,7 @@ import {
 import { z } from 'zod';
 import { generateText } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
+import { TRPCError } from '@trpc/server';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -35,6 +38,38 @@ export const chatRouter = createTRPCRouter({
         chatId: input.chatId,
         title: input.title,
       });
+    }),
+
+  deleteTrailingMessages: protectedProcedure
+    .input(
+      z.object({
+        messageId: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get the message to find its chat and timestamp
+      const [message] = await getMessageById({ id: input.messageId });
+
+      if (!message) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Message not found',
+        });
+      }
+
+      // Verify the chat belongs to the user
+      const chat = await getChatById({ id: message.chatId });
+      if (!chat || chat.userId !== ctx.user.id) {
+        throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Access denied' });
+      }
+
+      // Delete all messages after the specified message timestamp
+      await deleteMessagesByChatIdAfterTimestamp({
+        chatId: message.chatId,
+        timestamp: message.createdAt,
+      });
+
+      return { success: true };
     }),
 
   generateTitle: publicProcedure

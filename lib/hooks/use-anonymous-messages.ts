@@ -110,6 +110,39 @@ export function useAnonymousMessagesStorage() {
     });
   }, []);
 
+  const deleteTrailingMessages = useCallback((messageId: string) => {
+    setAllMessages((prev: AnonymousMessage[]) => {
+      // Find the message with the given ID
+      const targetMessage = prev.find(
+        (m: AnonymousMessage) => m.id === messageId,
+      );
+      if (!targetMessage) {
+        console.warn('Target message not found for deleteTrailingMessages');
+        return prev;
+      }
+
+      // Filter out messages from the same chat that were created after the target message
+      const updated = prev.filter((m: AnonymousMessage) => {
+        if (m.chatId !== targetMessage.chatId) {
+          return true; // Keep messages from other chats
+        }
+        return m.createdAt <= targetMessage.createdAt; // Keep messages created before or at the same time
+      });
+
+      // Update cache
+      allMessagesCache = updated;
+
+      // Save to localStorage
+      try {
+        localStorage.setItem(ANONYMOUS_MESSAGES_KEY, JSON.stringify(updated));
+      } catch (error) {
+        console.error('Error deleting anonymous trailing messages:', error);
+      }
+
+      return updated;
+    });
+  }, []);
+
   const getMessagesForChat = useCallback(
     (chatId: string): AnonymousMessage[] => {
       return allMessages
@@ -124,6 +157,7 @@ export function useAnonymousMessagesStorage() {
     isLoading,
     saveMessage,
     deleteMessage,
+    deleteTrailingMessages,
     getMessagesForChat,
   };
 }

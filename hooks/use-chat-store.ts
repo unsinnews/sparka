@@ -51,6 +51,7 @@ export function useChatStore() {
     isLoading: isLoadingAnonymousMessages,
     saveMessage: saveAnonymousMessage,
     deleteMessage: deleteAnonymousMessage,
+    deleteTrailingMessages: deleteAnonymousTrailingMessages,
     getMessagesForChat: getAnonymousMessagesForChat,
   } = useAnonymousMessagesStorage();
 
@@ -114,6 +115,21 @@ export function useChatStore() {
         queryClient.invalidateQueries({
           queryKey: getAllChatsQueryKey,
         });
+      },
+    }),
+  );
+
+  // Delete trailing messages mutation
+  const deleteTrailingMessagesMutation = useMutation(
+    trpc.chat.deleteTrailingMessages.mutationOptions({
+      onSuccess: () => {
+        // Invalidate chats to refresh the UI
+        queryClient.invalidateQueries({
+          queryKey: getAllChatsQueryKey,
+        });
+      },
+      onError: (err) => {
+        toast.error('Failed to delete messages');
       },
     }),
   );
@@ -337,6 +353,30 @@ export function useChatStore() {
     [authChats, updateChatInCache],
   );
 
+  // Memoized delete trailing messages function
+  const deleteTrailingMessages = useCallback(
+    async (messageId: string, options?: ChatMutationOptions) => {
+      try {
+        if (isAuthenticated) {
+          await deleteTrailingMessagesMutation.mutateAsync({ messageId });
+        } else {
+          deleteAnonymousTrailingMessages(messageId);
+        }
+        options?.onSuccess?.();
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error : new Error('Unknown error');
+        options?.onError?.(errorMessage);
+        throw errorMessage;
+      }
+    },
+    [
+      isAuthenticated,
+      deleteTrailingMessagesMutation,
+      deleteAnonymousTrailingMessages,
+    ],
+  );
+
   // Memoize the return object to prevent unnecessary re-renders
   return useMemo(
     () => ({
@@ -344,6 +384,7 @@ export function useChatStore() {
       isLoading,
       deleteChat,
       renameChat,
+      deleteTrailingMessages,
       onAssistantMessageFinish,
       userMessageSubmit,
       createChatVisibility,
@@ -356,6 +397,7 @@ export function useChatStore() {
       isLoading,
       deleteChat,
       renameChat,
+      deleteTrailingMessages,
       onAssistantMessageFinish,
       userMessageSubmit,
       createChatVisibility,

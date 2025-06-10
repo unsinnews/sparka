@@ -8,11 +8,11 @@ import {
   useEffect,
   useRef,
 } from 'react';
-import { deleteTrailingMessages } from '@/app/(chat)/actions';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import { useChatStoreContext } from '@/providers/chat-store-provider';
 
 export type MessageEditorProps = {
   chatId: string;
@@ -46,6 +46,7 @@ export function MessageEditor({
     reason: false,
   });
 
+  const { deleteTrailingMessages } = useChatStoreContext();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -82,9 +83,7 @@ export function MessageEditor({
         handleSubmit={async (event, options) => {
           setIsSubmitting(true);
 
-          await deleteTrailingMessages({
-            id: message.id,
-          });
+          await deleteTrailingMessages(message.id);
 
           // chatHelpers.setInput(input);
           chatHelpers.setMessages((messages) => {

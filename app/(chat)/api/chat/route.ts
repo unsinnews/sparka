@@ -2,7 +2,6 @@ import {
   appendResponseMessages,
   convertToCoreMessages,
   createDataStream,
-  smoothStream,
   streamText,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
@@ -51,6 +50,7 @@ import {
 } from '@/lib/anonymous-session';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
+import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
 
 export const maxDuration = 60;
 
@@ -474,7 +474,7 @@ export async function POST(request: NextRequest) {
             messages: contextForLLM,
             maxSteps: 5,
             experimental_activeTools: activeTools,
-            experimental_transform: smoothStream({ chunking: 'word' }),
+            experimental_transform: markdownJoinerTransform(),
             experimental_generateMessageId: () => messageId,
             experimental_telemetry: {
               isEnabled: true,

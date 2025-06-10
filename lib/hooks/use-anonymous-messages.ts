@@ -152,6 +152,13 @@ export function useAnonymousMessagesStorage() {
     [allMessages],
   );
 
+  const deleteAnonymousMessagesForChat = useCallback((chatId: string) => {
+    setAllMessages((prev: AnonymousMessage[]) => {
+      const updated = prev.filter((m: AnonymousMessage) => m.chatId !== chatId);
+      return updated;
+    });
+  }, []);
+
   return {
     allMessages,
     isLoading,
@@ -159,5 +166,6 @@ export function useAnonymousMessagesStorage() {
     deleteMessage,
     deleteTrailingMessages,
     getMessagesForChat,
+    deleteMessagesForChat: deleteAnonymousMessagesForChat,
   };
 }

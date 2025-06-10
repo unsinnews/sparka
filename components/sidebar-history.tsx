@@ -49,6 +49,8 @@ import { Input } from '@/components/ui/input';
 import type { UIChat } from '@/lib/types/ui';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useChatStoreContext } from '@/providers/chat-store-provider';
+import { useSession } from 'next-auth/react';
+import { cn } from '@/lib/utils';
 
 type GroupedChats = {
   today: UIChat[];
@@ -74,6 +76,8 @@ const PureChatItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(chat.title);
 
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId: chat.id,
     initialVisibility: chat.visibility,
@@ -151,7 +155,13 @@ const PureChatItem = ({
           </DropdownMenuItem>
 
           <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="cursor-pointer">
+            <DropdownMenuSubTrigger
+              className={cn(
+                'cursor-pointer',
+                !isAuthenticated && 'opacity-50 cursor-not-allowed',
+              )}
+              disabled={!isAuthenticated}
+            >
               <ShareIcon />
               <span>Share</span>
             </DropdownMenuSubTrigger>

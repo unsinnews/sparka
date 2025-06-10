@@ -53,6 +53,7 @@ export function useChatStore() {
     deleteMessage: deleteAnonymousMessage,
     deleteTrailingMessages: deleteAnonymousTrailingMessages,
     getMessagesForChat: getAnonymousMessagesForChat,
+    deleteMessagesForChat: deleteAnonymousMessagesForChat,
   } = useAnonymousMessagesStorage();
 
   // Memoize the tRPC query options to prevent recreation
@@ -165,6 +166,7 @@ export function useChatStore() {
           await refetchAuthChats();
         } else {
           deleteAnonymousChat(chatId);
+          deleteAnonymousMessagesForChat(chatId);
         }
         options?.onSuccess?.();
       } catch (error) {
@@ -174,7 +176,12 @@ export function useChatStore() {
         throw errorMessage;
       }
     },
-    [isAuthenticated, refetchAuthChats, deleteAnonymousChat],
+    [
+      isAuthenticated,
+      refetchAuthChats,
+      deleteAnonymousChat,
+      deleteAnonymousMessagesForChat,
+    ],
   );
 
   // Memoized rename function

@@ -37,13 +37,14 @@
 [ ] Update README.md
 
 
-[ ] Demo without logging in
+[x] Demo without logging in
    [x] /chat/[id] should load for cookies for unauthenticated users
    [x] deleteTrailingMessages should be in chat store and implemented for anonymous too
    [x] Model selector should have non-anonymous models disabled
    [x] Move useSwr from visibility into a context
-   [ ] Display remaining messages in the chat, with a sign to login to reset the limit
-   [ ] Reduce anonymous message limit to 10
+   [x] Display remaining messages in the chat, with a sign to login to reset the limit
+   [x] Reduce anonymous message limit to 10
+   [ ] Artifacts handling for anonymous users (how to support images, etc). Maybe tools are only for logged users
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 

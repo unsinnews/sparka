@@ -4,7 +4,6 @@ import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import { useQuery } from '@tanstack/react-query';
 
 import {
   DropdownMenu,
@@ -18,14 +17,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useTRPC } from '@/trpc/react';
+import { useChatStore } from '@/hooks/use-chat-store';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
-  const trpc = useTRPC();
-
-  const { data } = useQuery(trpc.credits.getAvailableCredits.queryOptions());
-  const credits = data?.totalCredits;
+  const { credits } = useChatStore();
 
   return (
     <SidebarMenu>

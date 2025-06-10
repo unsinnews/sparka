@@ -67,6 +67,12 @@ export function useChatStore() {
     enabled: isAuthenticated,
   });
 
+  // Credits query
+  const { data: creditsData, isLoading: isLoadingCredits } = useQuery({
+    ...trpc.credits.getAvailableCredits.queryOptions(),
+    enabled: isAuthenticated,
+  });
+
   // Authenticated rename mutation
   const renameMutation = useMutation(
     trpc.chat.renameChat.mutationOptions({
@@ -335,6 +341,8 @@ export function useChatStore() {
       userMessageSubmit,
       getChatFromCache,
       createChatVisibility,
+      credits: creditsData?.totalCredits,
+      isLoadingCredits,
     }),
     [
       chats,
@@ -346,6 +354,8 @@ export function useChatStore() {
       userMessageSubmit,
       getChatFromCache,
       createChatVisibility,
+      creditsData?.totalCredits,
+      isLoadingCredits,
     ],
   );
 }

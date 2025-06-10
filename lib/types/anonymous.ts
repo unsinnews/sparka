@@ -29,7 +29,7 @@ export interface AnonymousMessage {
 }
 
 export const ANONYMOUS_LIMITS = {
-  MAX_MESSAGES: 20,
+  MAX_MESSAGES: 100,
   AVAILABLE_MODELS: [
     'openai/gpt-3.5-turbo',
     'xai/grok-3-mini-beta',

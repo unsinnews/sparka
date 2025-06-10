@@ -10,10 +10,20 @@ import { useAnonymousChats } from '@/lib/hooks/use-anonymous-chats';
 import type { Chat } from '@/lib/db/schema';
 import type { UIChat } from '@/lib/types/ui';
 import { dbChatToUIChat } from '@/lib/types/ui';
+import { generateUUID } from '@/lib/utils';
 
 interface ChatMutationOptions {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
+}
+
+interface AssistantMessage {
+  id: string;
+  role: string;
+  parts?: any;
+  experimental_attachments?: any;
+  createdAt?: Date;
+  annotations?: any;
 }
 
 export function useChatStore() {
@@ -173,6 +183,91 @@ export function useChatStore() {
     }
   }, [isAuthenticated, queryClient, getAllChatsQueryKey]);
 
+  // Combined function for handling assistant message finish
+  const onAssistantMessageFinish = useCallback(
+    (
+      chatId: string,
+      message: AssistantMessage,
+      saveMessage?: (message: any) => void,
+    ) => {
+      if (isAuthenticated) {
+        // Authenticated user - invalidate chats and credits
+        invalidateChats();
+        queryClient.invalidateQueries({
+          queryKey: trpc.credits.getAvailableCredits.queryKey(),
+        });
+      } else {
+        // Anonymous user - save the assistant message
+        if (saveMessage) {
+          saveMessage({
+            id: message.id,
+            chatId,
+            role: message.role,
+            parts: message.parts || [],
+            attachments: message.experimental_attachments || [],
+            createdAt: message.createdAt || new Date(),
+            annotations: message.annotations || [],
+            isPartial: false,
+          });
+        }
+      }
+    },
+    [
+      isAuthenticated,
+      invalidateChats,
+      queryClient,
+      trpc.credits.getAvailableCredits,
+    ],
+  );
+
+  // Combined function for handling user message submission
+  const userMessageSubmit = useCallback(
+    (
+      chatId: string,
+      input: string,
+      initialMessagesLength: number,
+      messagesLength: number,
+      attachments: any[] = [],
+      saveMessage?: (message: any) => void,
+    ) => {
+      if (!isAuthenticated && input.trim()) {
+        // Anonymous user - create and save the user message
+        const userMessage = {
+          id: generateUUID(),
+          chatId,
+          role: 'user' as const,
+          parts: [{ type: 'text' as const, text: input }],
+          attachments,
+          createdAt: new Date(),
+          annotations: [],
+          isPartial: false as const,
+        };
+
+        if (saveMessage) {
+          saveMessage(userMessage);
+        }
+
+        // Generate title from first user message if this is a new chat
+        const isFirstMessage =
+          initialMessagesLength === 0 && messagesLength === 0;
+        if (isFirstMessage && generateAnonymousTitle && input.trim()) {
+          // Save chat with temporary title first
+          saveChat({
+            id: chatId,
+            title: 'New Chat',
+            createdAt: new Date(),
+            visibility: 'private',
+          } as UIChat);
+
+          // Generate proper title asynchronously
+          generateAnonymousTitle(chatId, input.trim());
+        }
+      }
+      // For authenticated users, the API handles message saving and title generation
+    },
+    [isAuthenticated, generateAnonymousTitle, saveChat],
+  );
+
   // Memoized get chat function
   const getChatFromCache = useCallback(
     (chatId: string): UIChat | undefined => {
@@ -199,7 +294,6 @@ export function useChatStore() {
           },
         );
       }
-      // For anonymous users, the hooks handle their own state
     },
     [isAuthenticated, queryClient, getAllChatsQueryKey],
   );
@@ -212,14 +306,10 @@ export function useChatStore() {
       isAuthenticated,
       deleteChat,
       renameChat,
-      saveChat,
-      invalidateChats,
+      onAssistantMessageFinish,
+      userMessageSubmit,
       getChatFromCache,
       updateChatInCache,
-      generateTitleFromMessage: isAuthenticated
-        ? undefined
-        : generateAnonymousTitle,
-      isGeneratingTitle: isAuthenticated ? false : isGeneratingTitle,
       // Expose raw data for components that need it
       rawAuthChats: authChats,
       queryClient,
@@ -231,12 +321,10 @@ export function useChatStore() {
       isAuthenticated,
       deleteChat,
       renameChat,
-      saveChat,
-      invalidateChats,
+      onAssistantMessageFinish,
+      userMessageSubmit,
       getChatFromCache,
       updateChatInCache,
-      generateAnonymousTitle,
-      isGeneratingTitle,
       authChats,
       queryClient,
       getAllChatsQueryKey,

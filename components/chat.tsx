@@ -3,7 +3,7 @@
 import type { Attachment } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useState, useCallback } from 'react';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
@@ -15,12 +15,11 @@ import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
+import { useSession } from 'next-auth/react';
 
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
-import { useSession } from 'next-auth/react';
 import { useAnonymousMessages } from '@/lib/hooks/use-anonymous-messages';
-import type { UIChat } from '@/lib/types/ui';
 import { useChatStoreContext } from '@/providers/chat-store-provider';
 
 export function Chat({
@@ -36,11 +35,9 @@ export function Chat({
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
-  const { data: session } = useSession();
   const trpc = useTRPC();
-  const queryClient = useQueryClient();
-  const { saveChat, invalidateChats, generateTitleFromMessage } =
-    useChatStoreContext();
+  const { data: session } = useSession();
+  const { onAssistantMessageFinish, userMessageSubmit } = useChatStoreContext();
 
   // For anonymous users, get the saveMessage function to save new messages
   const { saveMessage } = useAnonymousMessages(id);
@@ -56,25 +53,7 @@ export function Chat({
     sendExtraMessageFields: true,
     generateId: generateUUID,
     onFinish: (message) => {
-      if (session?.user) {
-        // Authenticated user - invalidate through chat store
-        invalidateChats();
-        queryClient.invalidateQueries({
-          queryKey: trpc.credits.getAvailableCredits.queryKey(),
-        });
-      } else {
-        // Anonymous user - save the assistant message
-        saveMessage({
-          id: message.id,
-          chatId: id,
-          role: message.role,
-          parts: message.parts,
-          attachments: message.experimental_attachments || [],
-          createdAt: message.createdAt || new Date(),
-          annotations: message.annotations || [],
-          isPartial: false,
-        });
-      }
+      onAssistantMessageFinish(id, message, saveMessage);
     },
     onError: (error) => {
       console.error(error);
@@ -99,52 +78,26 @@ export function Chat({
   // Wrapper around handleSubmit to save user messages for anonymous users
   const handleSubmit = useCallback(
     (event?: { preventDefault?: () => void }, options?: any) => {
-      // For anonymous users, intercept and save user message
-      if (!session?.user && input.trim()) {
-        const userMessage = {
-          id: generateUUID(),
-          chatId: id,
-          role: 'user' as const,
-          parts: [{ type: 'text' as const, text: input }],
-          attachments: options?.experimental_attachments || [],
-          createdAt: new Date(),
-          annotations: [],
-          isPartial: false,
-        };
-
-        saveMessage(userMessage);
-
-        // Generate title from first user message if this is a new chat
-        const isFirstMessage =
-          initialMessages.length === 0 && messages.length === 0;
-        if (isFirstMessage && generateTitleFromMessage && input.trim()) {
-          // Save chat with temporary title first
-          const tempTitle =
-            input.slice(0, 50) + (input.length > 50 ? '...' : '');
-          saveChat({
-            id,
-            title: 'New Chat',
-            createdAt: new Date(),
-            visibility: 'private',
-          } as UIChat);
-
-          // Generate proper title asynchronously
-          generateTitleFromMessage(id, input.trim());
-        }
-      }
+      // Let the chat store handle user message submission logic
+      userMessageSubmit(
+        id,
+        input,
+        initialMessages.length,
+        messages.length,
+        options?.experimental_attachments || [],
+        saveMessage,
+      );
 
       return originalHandleSubmit(event, options);
     },
     [
-      session?.user,
-      input,
       id,
-      saveMessage,
+      input,
+      userMessageSubmit,
       originalHandleSubmit,
       initialMessages.length,
       messages.length,
-      generateTitleFromMessage,
-      saveChat,
+      saveMessage,
     ],
   );
 

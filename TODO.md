@@ -39,8 +39,10 @@
 
 [ ] Demo without logging in
    [x] /chat/[id] should load for cookies for unauthenticated users
-   [ ] Reduce anonymous message limit to 10
+   [ ] deleteTrailingMessages should be in chat store and implemented for anonymous too
+   [ ] Model selector should have non-anonymous models disabled
    [ ] Move useSwr from visibility into a context
+   [ ] Reduce anonymous message limit to 10
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 

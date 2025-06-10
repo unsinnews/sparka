@@ -127,7 +127,7 @@ export function ModelSelector({
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[700px] p-0" align="start">
+      <PopoverContent className="max-w-[700px] w-auto p-0" align="start">
         <Command>
           <div className="flex items-center border-b">
             <CommandInput
@@ -232,7 +232,7 @@ export function ModelSelector({
                           <ModelCard
                             model={modelDefinition}
                             isSelected={id === optimisticModelId}
-                            className="size-full"
+                            className="h-full w-[250px]"
                           />
                         </CommandItem>
                       );

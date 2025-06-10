@@ -109,7 +109,7 @@ export function ModelCard({
         )}
 
         {/* Key Features Row */}
-        <div className="flex flex-row gap-1 mb-3">
+        <div className="flex flex-row gap-1 mb-3 flex-wrap">
           {featureBadges.map(({ key, condition, variant }) => {
             if (!condition || !isFeatureEnabled(key)) return null;
 

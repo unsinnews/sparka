@@ -40,7 +40,7 @@ export function useChatStore() {
   );
 
   // Memoize the tRPC query key to prevent recreation
-  const trpcQueryKey = useMemo(
+  const getAllChatsQueryKey = useMemo(
     () => trpc.chat.getAllChats.queryKey(),
     [trpc.chat.getAllChats],
   );
@@ -60,29 +60,32 @@ export function useChatStore() {
     trpc.chat.renameChat.mutationOptions({
       onMutate: async (variables) => {
         await queryClient.cancelQueries({
-          queryKey: trpcQueryKey,
+          queryKey: getAllChatsQueryKey,
         });
 
-        const previousChats = queryClient.getQueryData(trpcQueryKey);
+        const previousChats = queryClient.getQueryData(getAllChatsQueryKey);
 
-        queryClient.setQueryData(trpcQueryKey, (old: Chat[] | undefined) => {
-          if (!old) return old;
-          return old.map((c) =>
-            c.id === variables.chatId ? { ...c, title: variables.title } : c,
-          );
-        });
+        queryClient.setQueryData(
+          getAllChatsQueryKey,
+          (old: Chat[] | undefined) => {
+            if (!old) return old;
+            return old.map((c) =>
+              c.id === variables.chatId ? { ...c, title: variables.title } : c,
+            );
+          },
+        );
 
         return { previousChats };
       },
       onError: (err, variables, context) => {
         if (context?.previousChats) {
-          queryClient.setQueryData(trpcQueryKey, context.previousChats);
+          queryClient.setQueryData(getAllChatsQueryKey, context.previousChats);
         }
         toast.error('Failed to rename chat');
       },
       onSettled: () => {
         queryClient.invalidateQueries({
-          queryKey: trpcQueryKey,
+          queryKey: getAllChatsQueryKey,
         });
       },
     }),
@@ -160,25 +163,15 @@ export function useChatStore() {
     [isAuthenticated, saveAnonymousChat],
   );
 
-  // Memoized refetch function
-  const refetch = useCallback(() => {
-    if (isAuthenticated) {
-      console.log('Manual refetch triggered');
-      return refetchAuthChats();
-    }
-    // Anonymous chats don't need refetching since they're local
-    return Promise.resolve();
-  }, [isAuthenticated, refetchAuthChats]);
-
   // Memoized invalidate function
   const invalidateChats = useCallback(() => {
     console.log('Invalidating chats!');
     if (isAuthenticated) {
       queryClient.invalidateQueries({
-        queryKey: trpcQueryKey,
+        queryKey: getAllChatsQueryKey,
       });
     }
-  }, [isAuthenticated, queryClient, trpcQueryKey]);
+  }, [isAuthenticated, queryClient, getAllChatsQueryKey]);
 
   // Memoized get chat function
   const getChatFromCache = useCallback(
@@ -193,7 +186,7 @@ export function useChatStore() {
     (chatId: string, updates: Partial<UIChat>) => {
       if (isAuthenticated) {
         queryClient.setQueryData(
-          trpcQueryKey,
+          getAllChatsQueryKey,
           (oldData: Chat[] | undefined) => {
             return oldData
               ? oldData.map((chat) => {
@@ -208,7 +201,7 @@ export function useChatStore() {
       }
       // For anonymous users, the hooks handle their own state
     },
-    [isAuthenticated, queryClient, trpcQueryKey],
+    [isAuthenticated, queryClient, getAllChatsQueryKey],
   );
 
   // Memoize the return object to prevent unnecessary re-renders
@@ -220,7 +213,6 @@ export function useChatStore() {
       deleteChat,
       renameChat,
       saveChat,
-      refetch,
       invalidateChats,
       getChatFromCache,
       updateChatInCache,
@@ -231,7 +223,7 @@ export function useChatStore() {
       // Expose raw data for components that need it
       rawAuthChats: authChats,
       queryClient,
-      trpcQueryKey,
+      trpcQueryKey: getAllChatsQueryKey,
     }),
     [
       chats,
@@ -240,7 +232,6 @@ export function useChatStore() {
       deleteChat,
       renameChat,
       saveChat,
-      refetch,
       invalidateChats,
       getChatFromCache,
       updateChatInCache,
@@ -248,7 +239,7 @@ export function useChatStore() {
       isGeneratingTitle,
       authChats,
       queryClient,
-      trpcQueryKey,
+      getAllChatsQueryKey,
     ],
   );
 }

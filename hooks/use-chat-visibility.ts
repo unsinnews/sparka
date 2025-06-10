@@ -1,10 +1,9 @@
 'use client';
 
 import type { VisibilityType } from '@/components/visibility-selector';
-import { useMemo } from 'react';
-import useSWR from 'swr';
+import { useMemo, useState } from 'react';
 import { useChatStoreContext } from '@/providers/chat-store-provider';
-import { toast } from 'sonner';
+import { useVisibilityContext } from '@/contexts/visibility-context';
 
 export function useChatVisibility({
   chatId,
@@ -14,14 +13,9 @@ export function useChatVisibility({
   initialVisibility: VisibilityType;
 }) {
   const { createChatVisibility } = useChatStoreContext();
+  const { getVisibility, setVisibility } = useVisibilityContext();
 
-  const { data: localVisibility, mutate: setLocalVisibility } = useSWR(
-    `${chatId}-visibility`,
-    null,
-    {
-      fallbackData: initialVisibility,
-    },
-  );
+  const [localVisibility, setLocalVisibility] = useState(initialVisibility);
 
   const { getChatVisibility, setChatVisibility } = useMemo(
     () => createChatVisibility(chatId, initialVisibility),
@@ -29,11 +23,23 @@ export function useChatVisibility({
   );
 
   const visibilityType = useMemo(() => {
+    const contextVisibility = getVisibility(chatId);
     const actualVisibility = getChatVisibility();
+
+    if (contextVisibility !== undefined) {
+      return contextVisibility;
+    }
+
     return actualVisibility !== initialVisibility
       ? actualVisibility
       : localVisibility;
-  }, [getChatVisibility, initialVisibility, localVisibility]);
+  }, [
+    getChatVisibility,
+    initialVisibility,
+    localVisibility,
+    getVisibility,
+    chatId,
+  ]);
 
   const setVisibilityType = (updatedVisibilityType: VisibilityType) => {
     if (updatedVisibilityType === visibilityType) {
@@ -42,13 +48,7 @@ export function useChatVisibility({
 
     setLocalVisibility(updatedVisibilityType);
     setChatVisibility(updatedVisibilityType);
-
-    const message =
-      updatedVisibilityType === 'public'
-        ? 'Chat is now public - anyone with the link can access it'
-        : 'Chat is now private - only you can access it';
-
-    toast.success(message);
+    setVisibility(chatId, updatedVisibilityType, initialVisibility);
   };
 
   return { visibilityType, setVisibilityType };

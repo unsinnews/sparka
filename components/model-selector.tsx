@@ -7,6 +7,7 @@ import {
   useState,
   type ComponentProps,
 } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import {
   Command,
@@ -29,6 +30,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { getEnabledFeatures } from '@/lib/features-config';
+import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 
 import { ChevronUpIcon, FilterIcon } from 'lucide-react';
 
@@ -47,6 +49,9 @@ export function ModelSelector({
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
 
+  const { data: session } = useSession();
+  const isAnonymous = !session?.user;
+
   // Initialize feature filters with enabled features only
   const enabledFeatures = getEnabledFeatures();
   const initialFilters = enabledFeatures.reduce<FeatureFilter>(
@@ -60,7 +65,9 @@ export function ModelSelector({
   const [featureFilters, setFeatureFilters] =
     useState<FeatureFilter>(initialFilters);
 
-  const chatModels = allImplementedModels;
+  const chatModels = useMemo(() => {
+    return allImplementedModels;
+  }, []);
 
   const filteredModels = useMemo(() => {
     const hasActiveFilters = Object.values(featureFilters).some(Boolean);
@@ -100,6 +107,16 @@ export function ModelSelector({
       });
     });
   }, [chatModels, featureFilters]);
+
+  // Function to check if a model is available for anonymous users
+  const isModelAvailableForAnonymous = (modelId: string) => {
+    return ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(modelId as any);
+  };
+
+  // Function to determine if a model is disabled
+  const isModelDisabled = (modelId: string) => {
+    return isAnonymous && !isModelAvailableForAnonymous(modelId);
+  };
 
   const selectedChatModel = useMemo(
     () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
@@ -220,12 +237,15 @@ export function ModelSelector({
                     {filteredModels.map((chatModel) => {
                       const { id } = chatModel;
                       const modelDefinition = getModelDefinition(id);
+                      const disabled = isModelDisabled(id);
 
                       return (
                         <CommandItem
                           key={id}
                           value={id}
                           onSelect={(event) => {
+                            if (disabled) return; // Prevent selection of disabled models
+
                             startTransition(() => {
                               setOptimisticModelId(id);
                               onModelChange?.(id);
@@ -237,6 +257,12 @@ export function ModelSelector({
                           <ModelCard
                             model={modelDefinition}
                             isSelected={id === optimisticModelId}
+                            isDisabled={disabled}
+                            disabledReason={
+                              disabled
+                                ? 'Sign in to access this model'
+                                : undefined
+                            }
                             className="h-full w-[250px]"
                           />
                         </CommandItem>

@@ -206,7 +206,12 @@ export function ModelSelector({
               </PopoverContent>
             </Popover>
           </div>
-          <CommandList className="max-h-none min-h-[250px] flex justify-center items-center">
+          <CommandList
+            className="max-h-none min-h-[250px] flex justify-center items-center"
+            onMouseDown={(event) => {
+              event.stopPropagation();
+            }}
+          >
             <CommandEmpty>No model found.</CommandEmpty>
             <CommandGroup>
               <div className="flex">
@@ -220,11 +225,11 @@ export function ModelSelector({
                         <CommandItem
                           key={id}
                           value={id}
-                          onSelect={() => {
-                            setOpen(false);
+                          onSelect={(event) => {
                             startTransition(() => {
                               setOptimisticModelId(id);
                               onModelChange?.(id);
+                              setOpen(false);
                             });
                           }}
                           className="p-0 h-auto"

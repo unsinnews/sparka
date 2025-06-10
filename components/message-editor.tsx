@@ -51,6 +51,7 @@ export function MessageEditor({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      console.log('handleClickOutside', event);
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)

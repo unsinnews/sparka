@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { Chat } from '@/components/chat';
-import { useAnonymousMessages } from '@/lib/hooks/use-anonymous-messages';
+import { useChatStore } from '@/hooks/use-chat-store';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { AnonymousMessage } from '@/lib/types/anonymous';
 
@@ -15,8 +15,11 @@ export function AnonymousChatLoader({
   chatId,
   selectedChatModel,
 }: AnonymousChatLoaderProps) {
-  const { messages: anonymousMessages, isLoading } =
-    useAnonymousMessages(chatId);
+  const { getMessagesForChat, isLoading } = useChatStore();
+  const anonymousMessages = useMemo(
+    () => getMessagesForChat(chatId),
+    [getMessagesForChat, chatId],
+  );
 
   // Convert anonymous messages to UI messages format
   const initialMessages: YourUIMessage[] = useMemo(() => {

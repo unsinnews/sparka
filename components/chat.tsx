@@ -19,7 +19,6 @@ import { useSession } from 'next-auth/react';
 
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
-import { useAnonymousMessages } from '@/lib/hooks/use-anonymous-messages';
 import { useChatStoreContext } from '@/providers/chat-store-provider';
 
 export function Chat({
@@ -39,9 +38,6 @@ export function Chat({
   const { data: session } = useSession();
   const { onAssistantMessageFinish, userMessageSubmit } = useChatStoreContext();
 
-  // For anonymous users, get the saveMessage function to save new messages
-  const { saveMessage } = useAnonymousMessages(id);
-
   const [localSelectedModelId, setLocalSelectedModelId] =
     useState<string>(selectedChatModel);
 
@@ -53,7 +49,7 @@ export function Chat({
     sendExtraMessageFields: true,
     generateId: generateUUID,
     onFinish: (message) => {
-      onAssistantMessageFinish(id, message, saveMessage);
+      onAssistantMessageFinish(id, message);
     },
     onError: (error) => {
       console.error(error);
@@ -85,7 +81,6 @@ export function Chat({
         initialMessages.length,
         messages.length,
         options?.experimental_attachments || [],
-        saveMessage,
       );
 
       return originalHandleSubmit(event, options);
@@ -97,7 +92,6 @@ export function Chat({
       originalHandleSubmit,
       initialMessages.length,
       messages.length,
-      saveMessage,
     ],
   );
 

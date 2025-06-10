@@ -3,16 +3,18 @@
 import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 
 import { useTRPC } from '@/trpc/react';
 import { useAnonymousChats } from '@/lib/hooks/use-anonymous-chats';
 import type { Chat } from '@/lib/db/schema';
 import type { UIChat } from '@/lib/types/ui';
+import type { AnonymousMessage } from '@/lib/types/anonymous';
 import { dbChatToUIChat } from '@/lib/types/ui';
 import { generateUUID } from '@/lib/utils';
 import { updateChatVisibility } from '@/app/(chat)/actions';
 import type { VisibilityType } from '@/components/visibility-selector';
+import { getAnonymousSession } from '@/lib/anonymous-session-client';
 
 interface ChatMutationOptions {
   onSuccess?: () => void;
@@ -28,11 +30,24 @@ interface AssistantMessage {
   annotations?: any;
 }
 
+const ANONYMOUS_MESSAGES_KEY = 'anonymous-messages';
+
+// Global state to store all messages once loaded
+let allMessagesCache: AnonymousMessage[] | null = null;
+let isLoadingCache = false;
+
 export function useChatStore() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const trpc = useTRPC();
   const queryClient = useQueryClient();
+
+  // Anonymous messages state
+  const [allAnonymousMessages, setAllAnonymousMessages] = useState<
+    AnonymousMessage[]
+  >([]);
+  const [isLoadingAnonymousMessages, setIsLoadingAnonymousMessages] =
+    useState(true);
 
   // Anonymous hooks
   const {
@@ -44,6 +59,68 @@ export function useChatStore() {
     generateTitleFromMessage: generateAnonymousTitle,
     isGeneratingTitle,
   } = useAnonymousChats(!isAuthenticated);
+
+  // Load all anonymous messages from localStorage once
+  useEffect(() => {
+    if (isAuthenticated) {
+      setIsLoadingAnonymousMessages(false);
+      return;
+    }
+
+    const loadAllMessages = () => {
+      if (allMessagesCache !== null) {
+        // Use cached data
+        setAllAnonymousMessages(allMessagesCache);
+        setIsLoadingAnonymousMessages(false);
+        return;
+      }
+
+      if (isLoadingCache) {
+        // Another instance is already loading
+        return;
+      }
+
+      isLoadingCache = true;
+
+      try {
+        const session = getAnonymousSession();
+        if (!session) {
+          allMessagesCache = [];
+          setAllAnonymousMessages([]);
+          setIsLoadingAnonymousMessages(false);
+          isLoadingCache = false;
+          return;
+        }
+
+        const savedMessages = localStorage.getItem(ANONYMOUS_MESSAGES_KEY);
+        if (savedMessages) {
+          const parsedMessages = JSON.parse(
+            savedMessages,
+          ) as AnonymousMessage[];
+          // Convert dates for all messages
+          const messagesWithDates = parsedMessages.map((message) => ({
+            ...message,
+            createdAt: new Date(message.createdAt),
+          }));
+
+          allMessagesCache = messagesWithDates;
+          setAllAnonymousMessages(messagesWithDates);
+        } else {
+          allMessagesCache = [];
+          setAllAnonymousMessages([]);
+        }
+      } catch (error) {
+        console.error('Error loading anonymous messages:', error);
+        allMessagesCache = [];
+        setAllAnonymousMessages([]);
+      } finally {
+        setIsLoadingAnonymousMessages(false);
+        isLoadingCache = false;
+      }
+    };
+
+    loadAllMessages();
+  }, [isAuthenticated]);
 
   // Memoize the tRPC query options to prevent recreation
   const queryOptions = useMemo(
@@ -118,8 +195,77 @@ export function useChatStore() {
 
   // Memoize loading state
   const isLoading = useMemo(() => {
-    return isAuthenticated ? isLoadingAuth : isLoadingAnonymous;
-  }, [isAuthenticated, isLoadingAuth, isLoadingAnonymous]);
+    return isAuthenticated
+      ? isLoadingAuth
+      : isLoadingAnonymous || isLoadingAnonymousMessages;
+  }, [
+    isAuthenticated,
+    isLoadingAuth,
+    isLoadingAnonymous,
+    isLoadingAnonymousMessages,
+  ]);
+
+  // Anonymous message functions
+  const getMessagesForChat = useCallback(
+    (chatId: string): AnonymousMessage[] => {
+      if (isAuthenticated) return [];
+      return allAnonymousMessages
+        .filter((message) => message.chatId === chatId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+    },
+    [isAuthenticated, allAnonymousMessages],
+  );
+
+  const saveAnonymousMessage = useCallback(
+    (message: AnonymousMessage) => {
+      if (isAuthenticated) return;
+
+      setAllAnonymousMessages((prev: AnonymousMessage[]) => {
+        const updated = [
+          ...prev.filter((m: AnonymousMessage) => m.id !== message.id),
+          message,
+        ];
+
+        // Update cache
+        allMessagesCache = updated;
+
+        // Save to localStorage
+        try {
+          localStorage.setItem(ANONYMOUS_MESSAGES_KEY, JSON.stringify(updated));
+        } catch (error) {
+          console.error('Error saving anonymous message:', error);
+        }
+
+        return updated;
+      });
+    },
+    [isAuthenticated],
+  );
+
+  const deleteAnonymousMessage = useCallback(
+    (messageId: string) => {
+      if (isAuthenticated) return;
+
+      setAllAnonymousMessages((prev: AnonymousMessage[]) => {
+        const updated = prev.filter(
+          (m: AnonymousMessage) => m.id !== messageId,
+        );
+
+        // Update cache
+        allMessagesCache = updated;
+
+        // Save to localStorage
+        try {
+          localStorage.setItem(ANONYMOUS_MESSAGES_KEY, JSON.stringify(updated));
+        } catch (error) {
+          console.error('Error deleting anonymous message:', error);
+        }
+
+        return updated;
+      });
+    },
+    [isAuthenticated],
+  );
 
   // Memoized delete function
   const deleteChat = useCallback(
@@ -193,11 +339,7 @@ export function useChatStore() {
 
   // Combined function for handling assistant message finish
   const onAssistantMessageFinish = useCallback(
-    (
-      chatId: string,
-      message: AssistantMessage,
-      saveMessage?: (message: any) => void,
-    ) => {
+    (chatId: string, message: AssistantMessage) => {
       if (isAuthenticated) {
         // Authenticated user - invalidate chats and credits
         invalidateChats();
@@ -206,18 +348,16 @@ export function useChatStore() {
         });
       } else {
         // Anonymous user - save the assistant message
-        if (saveMessage) {
-          saveMessage({
-            id: message.id,
-            chatId,
-            role: message.role,
-            parts: message.parts || [],
-            attachments: message.experimental_attachments || [],
-            createdAt: message.createdAt || new Date(),
-            annotations: message.annotations || [],
-            isPartial: false,
-          });
-        }
+        saveAnonymousMessage({
+          id: message.id,
+          chatId,
+          role: message.role,
+          parts: message.parts || [],
+          attachments: message.experimental_attachments || [],
+          createdAt: message.createdAt || new Date(),
+          annotations: message.annotations || [],
+          isPartial: false,
+        });
       }
     },
     [
@@ -225,6 +365,7 @@ export function useChatStore() {
       invalidateChats,
       queryClient,
       trpc.credits.getAvailableCredits,
+      saveAnonymousMessage,
     ],
   );
 
@@ -236,7 +377,6 @@ export function useChatStore() {
       initialMessagesLength: number,
       messagesLength: number,
       attachments: any[] = [],
-      saveMessage?: (message: any) => void,
     ) => {
       if (!isAuthenticated && input.trim()) {
         // Anonymous user - create and save the user message
@@ -251,9 +391,7 @@ export function useChatStore() {
           isPartial: false as const,
         };
 
-        if (saveMessage) {
-          saveMessage(userMessage);
-        }
+        saveAnonymousMessage(userMessage);
 
         // Generate title from first user message if this is a new chat
         const isFirstMessage =
@@ -273,7 +411,7 @@ export function useChatStore() {
       }
       // For authenticated users, the API handles message saving and title generation
     },
-    [isAuthenticated, generateAnonymousTitle, saveChat],
+    [isAuthenticated, generateAnonymousTitle, saveChat, saveAnonymousMessage],
   );
 
   // Memoized get chat function
@@ -334,28 +472,26 @@ export function useChatStore() {
     () => ({
       chats,
       isLoading,
-      isAuthenticated,
       deleteChat,
       renameChat,
       onAssistantMessageFinish,
       userMessageSubmit,
-      getChatFromCache,
       createChatVisibility,
       credits: creditsData?.totalCredits,
       isLoadingCredits,
+      getMessagesForChat,
     }),
     [
       chats,
       isLoading,
-      isAuthenticated,
       deleteChat,
       renameChat,
       onAssistantMessageFinish,
       userMessageSubmit,
-      getChatFromCache,
       createChatVisibility,
       creditsData?.totalCredits,
       isLoadingCredits,
+      getMessagesForChat,
     ],
   );
 }

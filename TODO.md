@@ -83,6 +83,9 @@
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
 [ ] Reduce number of re-renders (memoization)
+[ ] Open canvas button on navbar like chatgpt
+[ ] Open canvas button like chatgpt
+
 
 ### System
 [x] Get rid of API keys, just use the backend keys

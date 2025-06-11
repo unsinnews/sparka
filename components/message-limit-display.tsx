@@ -19,10 +19,6 @@ export function MessageLimitDisplay({ className }: MessageLimitDisplayProps) {
   const { anonymousSession, isAuthenticated } = useAnonymousSession();
   const [dismissed, setDismissed] = useState(false);
 
-  console.log('anonymousSession', anonymousSession);
-  console.log('isAuthenticated', isAuthenticated);
-
-  console.log('dismissed', dismissed);
   // Don't show for authenticated users
   if (isAuthenticated) return null;
 

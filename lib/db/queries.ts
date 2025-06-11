@@ -426,6 +426,64 @@ export async function deleteMessagesByChatIdAfterTimestamp({
   }
 }
 
+export async function deleteMessagesByChatIdAfterMessageId({
+  chatId,
+  messageId,
+}: {
+  chatId: string;
+  messageId: string;
+}) {
+  try {
+    // First, get the target message to find its position in the chat
+    const [targetMessage] = await db
+      .select()
+      .from(message)
+      .where(and(eq(message.id, messageId), eq(message.chatId, chatId)));
+
+    if (!targetMessage) {
+      throw new Error('Target message not found');
+    }
+
+    // Get all messages in the chat ordered by creation time
+    const allMessages = await db
+      .select()
+      .from(message)
+      .where(eq(message.chatId, chatId))
+      .orderBy(asc(message.createdAt));
+
+    // Find the index of the target message
+    const targetIndex = allMessages.findIndex((msg) => msg.id === messageId);
+
+    if (targetIndex === -1) {
+      throw new Error('Target message not found in chat');
+    }
+
+    // Get all messages after the target message (excluding the target itself)
+    const messagesToDelete = allMessages.slice(targetIndex + 1);
+    const messageIdsToDelete = messagesToDelete.map((msg) => msg.id);
+
+    if (messageIdsToDelete.length > 0) {
+      // Clean up attachments before deleting messages
+      await deleteAttachmentsFromMessages(messagesToDelete);
+
+      // Delete the messages (votes will be deleted automatically via CASCADE)
+      return await db
+        .delete(message)
+        .where(
+          and(
+            eq(message.chatId, chatId),
+            inArray(message.id, messageIdsToDelete),
+          ),
+        );
+    }
+  } catch (error) {
+    console.error(
+      'Failed to delete messages by chat id after message id from database',
+    );
+    throw error;
+  }
+}
+
 export async function updateChatVisiblityById({
   chatId,
   visibility,

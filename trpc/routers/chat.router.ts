@@ -3,7 +3,7 @@ import {
   updateChatTitleById,
   getChatById,
   getMessageById,
-  deleteMessagesByChatIdAfterTimestamp,
+  deleteMessagesByChatIdAfterMessageId,
 } from '@/lib/db/queries';
 import {
   createTRPCRouter,
@@ -47,7 +47,7 @@ export const chatRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      // Get the message to find its chat and timestamp
+      // Get the message to verify it exists and get its chat
       const [message] = await getMessageById({ id: input.messageId });
 
       if (!message) {
@@ -63,10 +63,10 @@ export const chatRouter = createTRPCRouter({
         throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Access denied' });
       }
 
-      // Delete all messages after the specified message timestamp
-      await deleteMessagesByChatIdAfterTimestamp({
+      // Delete all messages after the specified message (by position, not timestamp)
+      await deleteMessagesByChatIdAfterMessageId({
         chatId: message.chatId,
-        timestamp: message.createdAt,
+        messageId: input.messageId,
       });
 
       return { success: true };

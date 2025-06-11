@@ -121,12 +121,29 @@ export function useAnonymousMessagesStorage() {
         return prev;
       }
 
-      // Filter out messages from the same chat that were created after the target message
+      // Get all messages for the same chat, sorted by creation time
+      const chatMessages = prev
+        .filter((m: AnonymousMessage) => m.chatId === targetMessage.chatId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+
+      // Find the index of the target message in the sorted chat messages
+      const targetIndex = chatMessages.findIndex((m) => m.id === messageId);
+
+      if (targetIndex === -1) {
+        console.warn('Target message not found in chat messages');
+        return prev;
+      }
+
+      // Get messages to keep: all messages from other chats + messages up to and including the target message
+      const messagesToKeep = chatMessages.slice(0, targetIndex + 1);
+      const messageIdsToKeep = new Set(messagesToKeep.map((m) => m.id));
+
+      // Filter to keep messages from other chats and messages up to the target message
       const updated = prev.filter((m: AnonymousMessage) => {
         if (m.chatId !== targetMessage.chatId) {
           return true; // Keep messages from other chats
         }
-        return m.createdAt <= targetMessage.createdAt; // Keep messages created before or at the same time
+        return messageIdsToKeep.has(m.id); // Keep only messages up to and including target
       });
 
       // Update cache

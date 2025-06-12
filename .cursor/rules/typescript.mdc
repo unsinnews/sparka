@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+## Exports / Imports
+
+- Never create index barrel files (index.ts, index.js)    
+- Always use direct imports with named exports

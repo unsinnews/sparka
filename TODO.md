@@ -70,7 +70,7 @@
 [x] Annotations for search should be less granular, just a list of sites (like perplexity)
 [x] Migrate to TRPC with Tanstack Query
 [ ] Get model from cache in model selector while loading
-[x] Edit message should have multimodal input box (instead of only Send and Cancel)
+[x] Edit message should have multimodal input box (instead of only Send and Cancel)****
 [x] When viewing shared chat from another user, vote is not allowed. The button is hidden but we are doing the request anyway
 [x] Multimodal edit message to wide on mobile (is it using a min-width?)
 [x] The multimodal input footer toggles dont fit the screen in artifact view. Should turn into a menu

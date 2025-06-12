@@ -40,7 +40,7 @@ import {
   DEFAULT_PDF_MODEL,
   DEFAULT_IMAGE_MODEL,
 } from '@/lib/ai/all-models';
-import { MessageLimitDisplay } from './message-limit-display';
+import { MessageLimitDisplay } from './upgrade-cta/message-limit-display';
 
 function PureMultimodalInput({
   chatId,

@@ -31,6 +31,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { getEnabledFeatures } from '@/lib/features-config';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
+import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
 
 import { ChevronUpIcon, FilterIcon } from 'lucide-react';
 
@@ -117,6 +118,11 @@ export function ModelSelector({
   const isModelDisabled = (modelId: string) => {
     return isAnonymous && !isModelAvailableForAnonymous(modelId);
   };
+  // Check if there are disabled models for anonymous users
+  const hasDisabledModels = useMemo(() => {
+    if (!isAnonymous) return false;
+    return filteredModels.some((model) => isModelDisabled(model.id));
+  }, [isAnonymous, filteredModels]);
 
   const selectedChatModel = useMemo(
     () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
@@ -223,6 +229,15 @@ export function ModelSelector({
               </PopoverContent>
             </Popover>
           </div>
+          {hasDisabledModels && (
+            <div className="p-3 pb-0">
+              <LoginCtaBanner
+                message="Sign in to unlock all models."
+                variant="default"
+                compact
+              />
+            </div>
+          )}
           <CommandList
             className="max-h-none min-h-[250px] flex justify-center items-center"
             onMouseDown={(event) => {

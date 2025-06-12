@@ -7,7 +7,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 import { useAnonymousSession } from '@/hooks/use-anonymous-session';
-import { Button } from './ui/button';
+import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 
 interface MessageLimitDisplayProps {

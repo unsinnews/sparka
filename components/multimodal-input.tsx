@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'motion/react';
+import { useSession } from 'next-auth/react';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { AttachmentList } from './attachment-list';
@@ -41,6 +42,8 @@ import {
   DEFAULT_IMAGE_MODEL,
 } from '@/lib/ai/all-models';
 import { MessageLimitDisplay } from './upgrade-cta/message-limit-display';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { LoginPrompt } from './upgrade-cta/login-prompt';
 
 function PureMultimodalInput({
   chatId,
@@ -477,19 +480,39 @@ function PureAttachmentsButton({
   fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
   status: UseChatHelpers['status'];
 }) {
+  const { data: session } = useSession();
+  const isAnonymous = !session?.user;
+  const [showLoginPopover, setShowLoginPopover] = useState(false);
+
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (isAnonymous) {
+      setShowLoginPopover(true);
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   return (
-    <Button
-      data-testid="attachments-button"
-      className="rounded-md p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
-      onClick={(event) => {
-        event.preventDefault();
-        fileInputRef.current?.click();
-      }}
-      disabled={status !== 'ready'}
-      variant="ghost"
-    >
-      <PaperclipIcon size={14} />
-    </Button>
+    <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
+      <PopoverTrigger asChild>
+        <Button
+          data-testid="attachments-button"
+          className="rounded-md p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+          onClick={handleClick}
+          disabled={status !== 'ready'}
+          variant="ghost"
+        >
+          <PaperclipIcon size={14} />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="end">
+        <LoginPrompt
+          title="Sign in to attach files"
+          description="You can attach images and PDFs to your messages for the AI to analyze."
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 

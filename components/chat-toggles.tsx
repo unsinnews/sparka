@@ -16,12 +16,12 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { getModelDefinition } from '@/lib/ai/all-models';
-import { LoginCtaCard } from './upgrade-cta/login-cta-card';
+import { LoginPrompt } from './upgrade-cta/login-prompt';
 import {
   toolDefinitions,
   enabledTools,
   type ToolDefinition,
-} from './tool-definitions';
+} from './chat-features-definitions';
 
 function ToolToggle({
   tool,
@@ -64,11 +64,10 @@ function ToolToggle({
           {tool.name}
         </Toggle>
       </PopoverTrigger>
-      <PopoverContent className="w-80" align="start">
-        <LoginCtaCard
+      <PopoverContent className="w-80 p-0" align="start">
+        <LoginPrompt
           title={`Sign in to use ${tool.name}`}
           description={tool.description}
-          variant="default"
         />
       </PopoverContent>
     </Popover>
@@ -135,11 +134,10 @@ export function ResponsiveToggles({
                 <span className="hidden @[400px]:inline">Tools</span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-80" align="start">
-              <LoginCtaCard
+            <PopoverContent className="w-80 p-0" align="start">
+              <LoginPrompt
                 title="Sign in to use Tools"
                 description="Access web search, deep research, and more to get better answers."
-                variant="default"
               />
             </PopoverContent>
           </Popover>

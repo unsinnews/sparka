@@ -9,6 +9,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 
 import {
   CheckCircleFillIcon,
@@ -18,6 +23,7 @@ import {
 } from './icons';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useSession } from 'next-auth/react';
+import { LoginPrompt } from './upgrade-cta/login-prompt';
 
 export type VisibilityType = 'private' | 'public';
 
@@ -51,6 +57,8 @@ export function VisibilitySelector({
 } & React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
+  const isAnonymous = !session?.user;
+
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId,
     initialVisibility: selectedVisibilityType,
@@ -61,6 +69,35 @@ export function VisibilitySelector({
     [visibilityType],
   );
 
+  const triggerButton = (
+    <Button
+      variant="outline"
+      className={cn(
+        'hidden md:flex md:px-2 md:h-[34px]',
+        className,
+        isAnonymous && 'cursor-pointer',
+      )}
+    >
+      {selectedVisibility?.icon}
+      {selectedVisibility?.label}
+      <ChevronDownIcon />
+    </Button>
+  );
+
+  if (isAnonymous) {
+    return (
+      <Popover>
+        <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+        <PopoverContent className="w-80 p-0" align="start">
+          <LoginPrompt
+            title="Sign in to share your chat"
+            description="Control who can see your conversations and share them with others."
+          />
+        </PopoverContent>
+      </Popover>
+    );
+  }
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
@@ -69,16 +106,8 @@ export function VisibilitySelector({
           'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
           className,
         )}
-        disabled={!session?.user?.id}
       >
-        <Button
-          variant="outline"
-          className="hidden md:flex md:px-2 md:h-[34px]"
-        >
-          {selectedVisibility?.icon}
-          {selectedVisibility?.label}
-          <ChevronDownIcon />
-        </Button>
+        {triggerButton}
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="start" className="min-w-[300px]">

@@ -45,6 +45,9 @@
    [x] Display remaining messages in the chat, with a sign to login to reset the limit
    [x] Reduce anonymous message limit to 10
    [ ] Artifacts handling for anonymous users (how to support images, etc). Maybe tools are only for logged users
+   [ ] Fix message Limits consistency between backend and frontend
+       [ ] Disable send button when users reached the limit
+       [ ] Create a better tooltip message when backend reaches rate-limit
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 

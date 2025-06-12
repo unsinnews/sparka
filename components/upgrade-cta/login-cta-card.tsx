@@ -77,8 +77,10 @@ export function LoginCtaCard({
                   >
                     {title}
                   </h4>
-                  <p className={cn('text-sm', textStyles[variant])}>
-                    {description}{' '}
+                  <div className="flex items-start gap-2 flex-col">
+                    <p className={cn('text-sm', textStyles[variant])}>
+                      {description}{' '}
+                    </p>
                     <Link
                       href="/login"
                       className={cn(
@@ -88,7 +90,7 @@ export function LoginCtaCard({
                     >
                       Sign in
                     </Link>
-                  </p>
+                  </div>
                 </div>
               </div>
               {dismissible && (

@@ -1,7 +1,8 @@
 'use client';
 
-import type { Dispatch, SetStateAction } from 'react';
-import { GlobeIcon, Lightbulb, Telescope, Settings2 } from 'lucide-react';
+import React, { type Dispatch, type SetStateAction, useState } from 'react';
+import { Settings2 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 
 import { Toggle } from './ui/toggle';
 import { Button } from './ui/button';
@@ -11,67 +12,66 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { getModelDefinition } from '@/lib/ai/all-models';
+import { LoginCtaCard } from './upgrade-cta/login-cta-card';
+import {
+  toolDefinitions,
+  enabledTools,
+  type ToolDefinition,
+} from './tool-definitions';
 
-export function WebSearchToggle({
-  enabled,
-  setEnabled,
-}: { enabled: boolean; setEnabled: (enabled: boolean) => void }) {
-  return (
-    <Toggle
-      pressed={enabled}
-      onPressedChange={setEnabled}
-      variant="outline"
-      size="sm"
-      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
-    >
-      <GlobeIcon size={14} />
-      Web search
-    </Toggle>
-  );
-}
-
-export function DeepResearchToggle({
+function ToolToggle({
+  tool,
   enabled,
   setEnabled,
   disabled = false,
 }: {
+  tool: ToolDefinition;
   enabled: boolean;
   setEnabled: (enabled: boolean) => void;
   disabled?: boolean;
 }) {
-  return (
-    <Toggle
-      pressed={enabled}
-      onPressedChange={setEnabled}
-      variant="outline"
-      size="sm"
-      disabled={disabled}
-      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50"
-    >
-      <Telescope size={14} />
-      Deep research
-    </Toggle>
-  );
-}
+  const { data: session } = useSession();
+  const isAnonymous = !session?.user;
+  const [showLoginPopover, setShowLoginPopover] = useState(false);
 
-export function ReasonSearchToggle({
-  enabled,
-  setEnabled,
-}: { enabled: boolean; setEnabled: (enabled: boolean) => void }) {
+  const handleToggle = (pressed: boolean) => {
+    if (disabled) return;
+    if (isAnonymous) {
+      setShowLoginPopover(true);
+      return;
+    }
+    setEnabled(pressed);
+  };
+
+  const Icon = tool.icon;
+
   return (
-    <Toggle
-      pressed={enabled}
-      onPressedChange={setEnabled}
-      variant="outline"
-      size="sm"
-      className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center"
-    >
-      <Lightbulb size={14} />
-      Reason
-    </Toggle>
+    <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
+      <PopoverTrigger asChild>
+        <Toggle
+          pressed={enabled}
+          onPressedChange={handleToggle}
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+          className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50"
+        >
+          <Icon size={14} />
+          {tool.name}
+        </Toggle>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="start">
+        <LoginCtaCard
+          title={`Sign in to use ${tool.name}`}
+          description={tool.description}
+          variant="default"
+        />
+      </PopoverContent>
+    </Popover>
   );
 }
 
@@ -84,7 +84,10 @@ export function ResponsiveToggles({
   setData: Dispatch<SetStateAction<ChatRequestData>>;
   selectedModelId: string;
 }) {
-  // Check if the selected model has reasoning capabilities
+  const { data: session } = useSession();
+  const isAnonymous = !session?.user;
+  const [showLoginPopover, setShowLoginPopover] = useState(false);
+
   const hasReasoningModel = (() => {
     try {
       const modelDef = getModelDefinition(selectedModelId as any);
@@ -94,88 +97,98 @@ export function ResponsiveToggles({
     }
   })();
 
-  const activeTool = data.webSearch
-    ? 'webSearch'
-    : data.deepResearch
-      ? 'deepResearch'
-      : data.reason
-        ? 'reason'
-        : null;
+  const activeTool = enabledTools.find((key) => data[key]);
 
-  const setTool = (tool: 'webSearch' | 'deepResearch' | 'reason' | null) => {
-    // Prevent enabling deep research if reasoning model is selected
+  const setTool = (tool: (typeof enabledTools)[number] | null) => {
     if (tool === 'deepResearch' && hasReasoningModel) {
       return;
     }
 
-    setData({
-      webSearch: tool === 'webSearch',
-      deepResearch: tool === 'deepResearch',
-      reason: tool === 'reason',
-    });
+    if (isAnonymous && tool !== null) {
+      setShowLoginPopover(true);
+      return;
+    }
+
+    const newToolState = enabledTools.reduce(
+      (acc, key) => {
+        acc[key] = key === tool;
+        return acc;
+      },
+      {} as Record<(typeof enabledTools)[number], boolean>,
+    );
+
+    setData((prev) => ({ ...prev, ...newToolState }));
   };
 
   return (
     <>
-      {/* Compact layout for narrow containers */}
       <div className="flex items-center gap-2 @[500px]:hidden">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+        {isAnonymous ? (
+          <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+              >
+                <Settings2 size={14} />
+                <span className="hidden @[400px]:inline">Tools</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="start">
+              <LoginCtaCard
+                title="Sign in to use Tools"
+                description="Access web search, deep research, and more to get better answers."
+                variant="default"
+              />
+            </PopoverContent>
+          </Popover>
+        ) : (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+              >
+                <Settings2 size={14} />
+                <span className="hidden @[400px]:inline">Tools</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="start"
+              className="w-48"
+              onClick={(e) => e.stopPropagation()}
+              onMouseDown={(e) => e.stopPropagation()}
             >
-              <Settings2 size={14} />
-              <span className="hidden @[400px]:inline">Tools</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="start"
-            className="w-48"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setTool(data.webSearch ? null : 'webSearch');
-              }}
-              className="flex items-center gap-2"
-            >
-              <GlobeIcon size={14} />
-              <span>Web search</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setTool(data.deepResearch ? null : 'deepResearch');
-              }}
-              className="flex items-center gap-2"
-              disabled={hasReasoningModel}
-            >
-              <Telescope size={14} />
-              <span>Deep research</span>
-              {hasReasoningModel && (
-                <span className="text-xs opacity-60">
-                  (disabled for reasoning models)
-                </span>
-              )}
-            </DropdownMenuItem>
-            {/* <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                setTool(data.reason ? null : 'reason');
-              }}
-              className="flex items-center gap-2"
-            >
-              <Lightbulb size={14} />
-              <span>Reason</span>
-            </DropdownMenuItem> */}
-          </DropdownMenuContent>
-        </DropdownMenu>
+              {enabledTools.map((key) => {
+                const tool = toolDefinitions[key];
+                const isDisabled = key === 'deepResearch' && hasReasoningModel;
+                const Icon = tool.icon;
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTool(data[key] ? null : key);
+                    }}
+                    className="flex items-center gap-2"
+                    disabled={isDisabled}
+                  >
+                    <Icon size={14} />
+                    <span>{tool.name}</span>
+                    {isDisabled && (
+                      <span className="text-xs opacity-60">
+                        (for non-reasoning models)
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
 
-        {/* Show active tool as dismissable pill */}
         {activeTool && (
           <>
             <Separator
@@ -188,13 +201,11 @@ export function ResponsiveToggles({
               onClick={() => setTool(null)}
               className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
             >
-              {activeTool === 'webSearch' && <GlobeIcon size={14} />}
-              {activeTool === 'deepResearch' && <Telescope size={14} />}
-              {activeTool === 'reason' && <Lightbulb size={14} />}
+              {React.createElement(toolDefinitions[activeTool].icon, {
+                size: 14,
+              })}
               <span className="hidden @[400px]:inline">
-                {activeTool === 'webSearch' && 'Web search'}
-                {activeTool === 'deepResearch' && 'Deep research'}
-                {activeTool === 'reason' && 'Reason'}
+                {toolDefinitions[activeTool].name}
               </span>
               <span className="text-xs opacity-70">×</span>
             </Button>
@@ -202,21 +213,20 @@ export function ResponsiveToggles({
         )}
       </div>
 
-      {/* Full layout for wider containers */}
       <div className="hidden @[500px]:flex items-center gap-2">
-        <WebSearchToggle
-          enabled={data.webSearch}
-          setEnabled={(enabled) => setTool(enabled ? 'webSearch' : null)}
-        />
-        <DeepResearchToggle
-          enabled={data.deepResearch}
-          setEnabled={(enabled) => setTool(enabled ? 'deepResearch' : null)}
-          disabled={hasReasoningModel}
-        />
-        {/* <ReasonSearchToggle
-          enabled={data.reason}
-          setEnabled={(enabled) => setTool(enabled ? 'reason' : null)}
-        /> */}
+        {enabledTools.map((key) => {
+          const tool = toolDefinitions[key];
+          const isDisabled = key === 'deepResearch' && hasReasoningModel;
+          return (
+            <ToolToggle
+              key={key}
+              tool={tool}
+              enabled={!!data[key]}
+              setEnabled={(enabled) => setTool(enabled ? key : null)}
+              disabled={isDisabled}
+            />
+          );
+        })}
       </div>
     </>
   );

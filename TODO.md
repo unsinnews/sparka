@@ -38,8 +38,10 @@
 
 
 [x] Restore model selector
-[ ] Optimize the Model Selector component with lazy loading
 
+
+
+[ ] Cleanup YourUIMessage, DBMessage, AnonymousMessage, Message, UIMessage
 
 
 [ ] Branching
@@ -57,6 +59,10 @@
 
 
 ## Polishing
+
+[ ] Optimize the Model Selector component
+    [ ] with lazy loading 
+    [ ] With memoization
 [ ] Switch to client side navigation (like next-faster)
    [ ] Switch routes with react router instead of reloading site for them
 
@@ -79,6 +85,9 @@
    [x] Reduce anonymous message limit to 10
    [ ] Artifacts handling for anonymous users (how to support images, etc). Maybe tools are only for logged users
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
+
+[ ] Optimize the number of getVotes queries
+[ ] Why doe visibility selector takes chat visibility as a prop?
 
 
 ### Backend

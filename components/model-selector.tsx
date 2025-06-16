@@ -5,6 +5,7 @@ import {
   useMemo,
   useOptimistic,
   useState,
+  memo,
   type ComponentProps,
 } from 'react';
 import { useSession } from 'next-auth/react';
@@ -37,7 +38,7 @@ import { ChevronUpIcon, FilterIcon } from 'lucide-react';
 
 type FeatureFilter = Record<string, boolean>;
 
-export function ModelSelector({
+export function PureModelSelector({
   selectedModelId,
   className,
   onModelChange,
@@ -49,6 +50,7 @@ export function ModelSelector({
   const [filterOpen, setFilterOpen] = useState(false);
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
+  console.log('Rendering model selector');
 
   const { data: session } = useSession();
   const isAnonymous = !session?.user;
@@ -230,7 +232,7 @@ export function ModelSelector({
             </Popover>
           </div>
           {hasDisabledModels && (
-            <div className="p-3 pb-0">
+            <div className="p-3">
               <LoginCtaBanner
                 message="Sign in to unlock all models."
                 variant="default"
@@ -293,3 +295,11 @@ export function ModelSelector({
     </Popover>
   );
 }
+
+export const ModelSelector = memo(PureModelSelector, (prevProps, nextProps) => {
+  return (
+    prevProps.selectedModelId === nextProps.selectedModelId &&
+    prevProps.className === nextProps.className &&
+    prevProps.onModelChange === nextProps.onModelChange
+  );
+});

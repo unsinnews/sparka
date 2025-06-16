@@ -33,7 +33,10 @@ export const chatRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       // Verify the chat belongs to the user
       const chat = await getChatById({ id: input.chatId });
-      if (!chat || chat.userId !== ctx.user.id) {
+      if (
+        !chat ||
+        (chat.userId !== ctx.user.id && chat.visibility === 'private')
+      ) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Chat not found or access denied',

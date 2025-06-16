@@ -38,19 +38,33 @@
 
 
 [x] Restore model selector
-[ ] Optimize rendering of model selector
+[ ] Optimize the Model Selector component with lazy loading
 
 
-[ ] Threads 
+
+[ ] Branching
+    [ ] User Message Edits should start a new branch
+    [ ] Createa a menu in the assistant message actions to retry (creating a new branch)
+    [ ] Allow user to switch branches in the UI
     [ ] For thread switching, use setMessages from useChat
+
+
+[ ] Chat sharing
+    [ ] Shared chats should load from the db, even for unauthed users
+        [ ] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
+    [ ] for authed users, trpc should prefetch the query for the chat message
 
 
 
 ## Polishing
-[ ] Switch routes with react router instead of reloading site for them
+[ ] Switch to client side navigation (like next-faster)
+   [ ] Switch routes with react router instead of reloading site for them
 
 [ ] Anonymous message limits should be a number of credits.
     [ ] Increment message count for anyonymous on asssitant message finish
+   [ ] Fix message Limits consistency between backend and frontend
+       [ ] Disable send button when users reached the limit
+       [ ] Create a better tooltip message when backend reaches rate-limit
 
 [ ] The useDeleteChat hook should use trpc, and have an optimistic mutation
 [ ] Sign in panel is not aligned horizontally
@@ -64,9 +78,6 @@
    [x] Display remaining messages in the chat, with a sign to login to reset the limit
    [x] Reduce anonymous message limit to 10
    [ ] Artifacts handling for anonymous users (how to support images, etc). Maybe tools are only for logged users
-   [ ] Fix message Limits consistency between backend and frontend
-       [ ] Disable send button when users reached the limit
-       [ ] Create a better tooltip message when backend reaches rate-limit
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 

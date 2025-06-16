@@ -321,22 +321,26 @@ export function useSaveMessageMutation() {
   const queryClient = useQueryClient();
   const { saveChat: saveChatWithTitle } = useSaveChat();
 
-  // TODO: Get the parent ID for the message
   return useMutation({
     mutationFn: async ({
       message,
       chatId,
-    }: { message: Message; chatId: string }) => {
+      parentMessageId,
+    }: {
+      message: Message;
+      chatId: string;
+      parentMessageId: string | null;
+    }) => {
       if (!isAuthenticated) {
         // Save message for anonymous users when completed (not partial)
 
         await saveAnonymousMessage(
-          messageToDbMessage(message, chatId, null, false),
+          messageToDbMessage(message, chatId, parentMessageId, false),
         );
       }
       // For authenticated users, the API handles saving
     },
-    onMutate: async ({ message, chatId }) => {
+    onMutate: async ({ message, chatId, parentMessageId }) => {
       // Get the query key for messages
 
       const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
@@ -355,7 +359,7 @@ export function useSaveMessageMutation() {
         (old: YourUIMessage[] | undefined) => {
           const newMessage = messageToYourUIMessage(
             message,
-            null, // TODO: Get the parent ID for the message
+            parentMessageId,
             false,
           );
           if (!old) return [newMessage];

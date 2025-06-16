@@ -29,20 +29,6 @@ import { ReadDocument } from './read-document';
 import { AttachmentList } from './attachment-list';
 import { Skeleton } from './ui/skeleton';
 
-interface ConditionalWrapperProps {
-  condition: boolean;
-  wrapper: (children: React.ReactNode) => React.ReactNode;
-  children: React.ReactNode;
-}
-
-const ConditionalWrapper = ({
-  condition,
-  wrapper,
-  children,
-}: ConditionalWrapperProps) => {
-  return condition ? wrapper(children) : children;
-};
-
 const PurePreviewMessage = ({
   chatId,
   message,
@@ -131,30 +117,42 @@ const PurePreviewMessage = ({
                 if (mode === 'view') {
                   return (
                     <div key={key} className="">
-                      <ConditionalWrapper
-                        condition={message.role === 'user' && !isReadonly}
-                        wrapper={(children) => (
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                type="button"
+                      {message.role === 'user' && !isReadonly ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              data-testid="message-content"
+                              className={cn(
+                                'cursor-pointer hover:opacity-80 transition-opacity',
+                              )}
+                              onClick={() => {
+                                setMode('edit');
+                              }}
+                            >
+                              <div
                                 data-testid="message-content"
                                 className={cn(
-                                  'cursor-pointer hover:opacity-80 transition-opacity',
+                                  'flex flex-col gap-4 w-full ml-4',
+                                  {
+                                    'bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700 text-left':
+                                      message.role === 'user',
+                                  },
                                 )}
-                                onClick={() => {
-                                  setMode('edit');
-                                }}
                               >
-                                {children}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              Click to edit message
-                            </TooltipContent>
-                          </Tooltip>
-                        )}
-                      >
+                                <AttachmentList
+                                  attachments={
+                                    message.experimental_attachments || []
+                                  }
+                                  testId="message-attachments"
+                                />
+                                <Markdown>{part.text}</Markdown>
+                              </div>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>Click to edit message</TooltipContent>
+                        </Tooltip>
+                      ) : (
                         <div
                           data-testid="message-content"
                           className={cn('flex flex-col gap-4 w-full ml-4', {
@@ -168,7 +166,7 @@ const PurePreviewMessage = ({
                           />
                           <Markdown>{part.text}</Markdown>
                         </div>
-                      </ConditionalWrapper>
+                      )}
                     </div>
                   );
                 }

@@ -5,9 +5,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 import { useTRPC } from '@/trpc/react';
-import type { Chat } from '@/lib/db/schema';
 import type { UIChat } from '@/lib/types/ui';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
+import type { AnonymousChat } from '@/lib/types/anonymous';
 
 export function useGetAllChats() {
   const { data: session } = useSession();
@@ -35,7 +35,8 @@ export function useGetAllChats() {
             const savedChats = localStorage.getItem('anonymous-chats');
             if (!savedChats) return [];
 
-            const parsedChats = JSON.parse(savedChats) as Chat[];
+            const parsedChats = JSON.parse(savedChats) as AnonymousChat[];
+            console.log('parsedChats', parsedChats, session.id);
             return parsedChats
               .filter((chat: any) => chat.userId === session.id)
               .map((chat: any) => ({

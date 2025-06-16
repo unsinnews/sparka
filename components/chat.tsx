@@ -2,7 +2,7 @@
 
 import type { Attachment } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -38,11 +38,13 @@ export function Chat({
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
 
+  const lastMessageId = useRef<string | null>(
+    initialMessages[initialMessages.length - 1]?.id || null,
+  );
   const [localSelectedModelId, setLocalSelectedModelId] =
     useState<string>(selectedChatModel);
 
-  console.log('chat.tsx id', id);
-
+  console.log('chat.tsx', id);
   const chatHelpers = useChat({
     id,
     body: { id, selectedChatModel: localSelectedModelId },
@@ -52,7 +54,11 @@ export function Chat({
     generateId: generateUUID,
 
     onFinish: (message) => {
-      saveChatMessage({ message, chatId: id });
+      saveChatMessage({
+        message,
+        chatId: id,
+        parentMessageId: lastMessageId.current,
+      });
     },
     onError: (error) => {
       console.error(error);
@@ -92,6 +98,7 @@ export function Chat({
           content: input,
         },
         chatId: id,
+        parentMessageId: lastMessageId.current,
       });
 
       return originalHandleSubmit(event, options);
@@ -107,6 +114,14 @@ export function Chat({
     data: chatData,
     setMessages,
   });
+
+  const lastMessage =
+    chatHelpers.messages[chatHelpers.messages.length - 1] || null;
+  useEffect(() => {
+    if (lastMessage && lastMessage.id !== lastMessageId.current) {
+      lastMessageId.current = lastMessage.id;
+    }
+  }, [lastMessage]);
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),

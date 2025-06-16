@@ -1,6 +1,5 @@
 import type { AnonymousChat, AnonymousMessage } from '@/lib/types/anonymous';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
-import type { UIChat } from '../types/ui';
 
 const ANONYMOUS_CHATS_KEY = 'anonymous-chats';
 const ANONYMOUS_MESSAGES_KEY = 'anonymous-messages';
@@ -88,7 +87,7 @@ export async function renameAnonymousChat(
   }
 } // Module-level functions for chat operations
 export async function saveAnonymousChatToStorage(
-  chat: Omit<UIChat, 'userId'>,
+  chat: Omit<AnonymousChat, 'userId'>,
 ): Promise<void> {
   try {
     const session = getAnonymousSession();
@@ -102,10 +101,12 @@ export async function saveAnonymousChatToStorage(
       title: chat.title,
       createdAt: chat.createdAt.toISOString(),
       visibility: chat.visibility,
-      sessionId: session.id,
+      userId: session.id,
     };
 
-    const existingIndex = chats.findIndex((c: any) => c.id === chat.id);
+    const existingIndex = chats.findIndex(
+      (c: AnonymousChat) => c.id === chat.id,
+    );
     if (existingIndex >= 0) {
       chats[existingIndex] = chatToSave;
     } else {

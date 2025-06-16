@@ -37,6 +37,25 @@
 [ ] Update README.md
 
 
+[x] Restore model selector
+[ ] Optimize rendering of model selector
+
+
+[ ] Threads 
+    [ ] For thread switching, use setMessages from useChat
+
+
+
+## Polishing
+[ ] Switch routes with react router instead of reloading site for them
+
+[ ] Anonymous message limits should be a number of credits.
+    [ ] Increment message count for anyonymous on asssitant message finish
+
+[ ] The useDeleteChat hook should use trpc, and have an optimistic mutation
+[ ] Sign in panel is not aligned horizontally
+[ ] Should generate title be on user message or on assistant message? At the moment it's on user for anonymous and on assistant for authenticated
+
 [x] Demo without logging in
    [x] /chat/[id] should load for cookies for unauthenticated users
    [x] deleteTrailingMessages should be in chat store and implemented for anonymous too

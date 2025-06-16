@@ -4,7 +4,7 @@ import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
-import { memo, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
@@ -47,10 +47,14 @@ import {
 } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import type { UIChat } from '@/lib/types/ui';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import { useChatStoreContext } from '@/providers/chat-store-provider';
 import { useSession } from 'next-auth/react';
 import { cn } from '@/lib/utils';
+import { useGetAllChats } from '@/hooks/use-get-all-chats';
+import {
+  useDeleteChat,
+  useRenameChat,
+  useSetVisibility,
+} from '@/hooks/use-chat-store';
 
 type GroupedChats = {
   today: UIChat[];
@@ -78,10 +82,7 @@ const PureChatItem = ({
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
-  const { visibilityType, setVisibilityType } = useChatVisibility({
-    chatId: chat.id,
-    initialVisibility: chat.visibility,
-  });
+  const { mutate: setVisibility } = useSetVisibility();
 
   const handleRename = async () => {
     if (editTitle.trim() === '' || editTitle === chat.title) {
@@ -112,7 +113,7 @@ const PureChatItem = ({
   return (
     <SidebarMenuItem>
       {isEditing ? (
-        <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm">
+        <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm bg-background">
           <Input
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
@@ -170,28 +171,36 @@ const PureChatItem = ({
                 <DropdownMenuItem
                   className="cursor-pointer flex-row justify-between"
                   onClick={() => {
-                    setVisibilityType('private');
+                    setVisibility({
+                      chatId: chat.id,
+                      visibility: 'private',
+                    });
                   }}
                 >
                   <div className="flex flex-row gap-2 items-center">
                     <LockIcon size={12} />
                     <span>Private</span>
                   </div>
-                  {visibilityType === 'private' ? (
+                  {chat.visibility === 'private' ? (
                     <CheckCircleFillIcon />
                   ) : null}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="cursor-pointer flex-row justify-between"
                   onClick={() => {
-                    setVisibilityType('public');
+                    setVisibility({
+                      chatId: chat.id,
+                      visibility: 'public',
+                    });
                   }}
                 >
                   <div className="flex flex-row gap-2 items-center">
                     <GlobeIcon />
                     <span>Public</span>
                   </div>
-                  {visibilityType === 'public' ? <CheckCircleFillIcon /> : null}
+                  {chat.visibility === 'public' ? (
+                    <CheckCircleFillIcon />
+                  ) : null}
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuPortal>
@@ -222,10 +231,20 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const { id } = useParams();
   const router = useRouter();
 
-  const { chats, isLoading, deleteChat, renameChat } = useChatStoreContext();
+  const { mutate: renameChatMutation } = useRenameChat();
+  const { deleteChat } = useDeleteChat();
+
+  const { data: chats, isLoading } = useGetAllChats();
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+  const renameChat = useCallback(
+    (chatId: string, title: string) => {
+      renameChatMutation({ chatId, title });
+    },
+    [renameChatMutation],
+  );
 
   const handleDelete = async () => {
     if (!deleteId) return;
@@ -246,9 +265,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     }
   };
 
-  const uiChats = chats;
-
-  if (!user && !isLoading && uiChats.length === 0) {
+  if (!user && !isLoading && chats?.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -289,7 +306,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     );
   }
 
-  if (uiChats?.length === 0) {
+  if (chats?.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -339,9 +356,9 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu>
-            {uiChats &&
+            {chats &&
               (() => {
-                const groupedChats = groupChatsByDate(uiChats);
+                const groupedChats = groupChatsByDate(chats);
 
                 return (
                   <>

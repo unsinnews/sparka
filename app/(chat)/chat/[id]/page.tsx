@@ -6,12 +6,7 @@ import { Chat } from '@/components/chat';
 import { getMessagesByChatId, tryGetChatById } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
-import type { DBMessage } from '@/lib/db/schema';
-import type { Attachment, UIMessage } from 'ai';
-import type {
-  MessageAnnotation,
-  YourUIMessage,
-} from '@/lib/ai/tools/annotations';
+import { dbMessageToUIMessage } from '@/lib/types/ui';
 import { AnonymousChatLoader } from './anonymous-chat-loader';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
@@ -60,23 +55,6 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     id,
   });
 
-  function convertToUIMessages(
-    messages: Array<DBMessage>,
-  ): Array<YourUIMessage> {
-    return messages.map((message) => ({
-      id: message.id,
-      parts: message.parts as UIMessage['parts'],
-      role: message.role as UIMessage['role'],
-      // Note: content will soon be deprecated in @ai-sdk/react
-      content: '',
-      createdAt: message.createdAt,
-      experimental_attachments:
-        (message.attachments as Array<Attachment>) ?? [],
-      annotations: message.annotations as MessageAnnotation[],
-      isPartial: message.isPartial,
-    }));
-  }
-
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get('chat-model');
 
@@ -84,7 +62,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     <>
       <Chat
         id={chat.id}
-        initialMessages={convertToUIMessages(messagesFromDb)}
+        initialMessages={messagesFromDb.map(dbMessageToUIMessage)}
         selectedChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
         selectedVisibilityType={chat.visibility}
         isReadonly={session?.user?.id !== chat.userId}

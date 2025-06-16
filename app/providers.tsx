@@ -5,7 +5,6 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { TRPCReactProvider } from '@/trpc/react';
-import { VisibilityProvider } from '@/contexts/visibility-context';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -16,12 +15,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       disableTransitionOnChange
     >
       <TRPCReactProvider>
-        <VisibilityProvider>
-          <TooltipProvider>
-            <Toaster position="top-center" />
-            {children}
-          </TooltipProvider>
-        </VisibilityProvider>
+        <TooltipProvider>
+          <Toaster position="top-center" />
+          {children}
+        </TooltipProvider>
       </TRPCReactProvider>
     </ThemeProvider>
   );

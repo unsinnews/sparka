@@ -458,8 +458,8 @@ export async function deleteMessagesByChatIdAfterMessageId({
       throw new Error('Target message not found in chat');
     }
 
-    // Get all messages after the target message (excluding the target itself)
-    const messagesToDelete = allMessages.slice(targetIndex + 1);
+    // Get all messages after the target message (including the target itself)
+    const messagesToDelete = allMessages.slice(targetIndex);
     const messageIdsToDelete = messagesToDelete.map((msg) => msg.id);
 
     if (messageIdsToDelete.length > 0) {

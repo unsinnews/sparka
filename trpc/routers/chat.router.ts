@@ -4,6 +4,8 @@ import {
   getChatById,
   getMessageById,
   deleteMessagesByChatIdAfterMessageId,
+  getMessagesByChatId,
+  updateChatVisiblityById,
 } from '@/lib/db/queries';
 import {
   createTRPCRouter,
@@ -14,11 +16,33 @@ import { z } from 'zod';
 import { generateText } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
+import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/types/ui';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
-    return await getChatsByUserId({ id: ctx.user.id });
+    const chats = await getChatsByUserId({ id: ctx.user.id });
+    return chats.map(dbChatToUIChat);
   }),
+
+  getMessagesByChatId: protectedProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Verify the chat belongs to the user
+      const chat = await getChatById({ id: input.chatId });
+      if (!chat || chat.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found or access denied',
+        });
+      }
+
+      const dbMessages = await getMessagesByChatId({ id: input.chatId });
+      return dbMessages.map(dbMessageToUIMessage);
+    }),
 
   renameChat: protectedProcedure
     .input(
@@ -34,10 +58,11 @@ export const chatRouter = createTRPCRouter({
         throw new Error('Chat not found or access denied');
       }
 
-      return await updateChatTitleById({
+      const res = await updateChatTitleById({
         chatId: input.chatId,
         title: input.title,
       });
+      return;
     }),
 
   deleteTrailingMessages: protectedProcedure
@@ -67,6 +92,32 @@ export const chatRouter = createTRPCRouter({
       await deleteMessagesByChatIdAfterMessageId({
         chatId: message.chatId,
         messageId: input.messageId,
+      });
+
+      return;
+    }),
+
+  setVisibility: protectedProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+        visibility: z.enum(['private', 'public']),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify the chat belongs to the user
+      const chat = await getChatById({ id: input.chatId });
+      if (!chat || chat.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found or access denied',
+        });
+      }
+
+      // Update chat visibility
+      await updateChatVisiblityById({
+        chatId: input.chatId,
+        visibility: input.visibility,
       });
 
       return { success: true };

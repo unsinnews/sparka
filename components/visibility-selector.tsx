@@ -21,9 +21,10 @@ import {
   GlobeIcon,
   LockIcon,
 } from './icons';
-import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { useSession } from 'next-auth/react';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
+import { useGetAllChats } from '@/hooks/use-get-all-chats';
+import { useSetVisibility } from '@/hooks/use-chat-store';
 
 export type VisibilityType = 'private' | 'public';
 
@@ -57,26 +58,30 @@ export function VisibilitySelector({
 } & React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const { data: session } = useSession();
-  const isAnonymous = !session?.user;
+  const isAuthenticated = !!session?.user;
+  const { data: allChats } = useGetAllChats();
+  const { mutate: setVisibility } = useSetVisibility();
 
-  const { visibilityType, setVisibilityType } = useChatVisibility({
-    chatId,
-    initialVisibility: selectedVisibilityType,
-  });
+  const currentChat = useMemo(() => {
+    return allChats?.find((chat) => chat.id === chatId);
+  }, [allChats, chatId]);
+
+  const currentVisibilityType = currentChat
+    ? currentChat.visibility
+    : 'private';
 
   const selectedVisibility = useMemo(
-    () => visibilities.find((visibility) => visibility.id === visibilityType),
-    [visibilityType],
+    () =>
+      visibilities.find(
+        (visibility) => visibility.id === currentVisibilityType,
+      ),
+    [currentVisibilityType],
   );
 
   const triggerButton = (
     <Button
       variant="outline"
-      className={cn(
-        'hidden md:flex md:px-2 md:h-[34px]',
-        className,
-        isAnonymous && 'cursor-pointer',
-      )}
+      className={cn('hidden md:flex md:px-2 md:h-[34px]', className)}
     >
       {selectedVisibility?.icon}
       {selectedVisibility?.label}
@@ -84,7 +89,7 @@ export function VisibilitySelector({
     </Button>
   );
 
-  if (isAnonymous) {
+  if (!isAuthenticated) {
     return (
       <Popover>
         <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
@@ -106,6 +111,7 @@ export function VisibilitySelector({
           'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
           className,
         )}
+        disabled={!currentChat}
       >
         {triggerButton}
       </DropdownMenuTrigger>
@@ -115,11 +121,14 @@ export function VisibilitySelector({
           <DropdownMenuItem
             key={visibility.id}
             onSelect={() => {
-              setVisibilityType(visibility.id);
+              setVisibility({
+                chatId,
+                visibility: visibility.id,
+              });
               setOpen(false);
             }}
             className="gap-4 group/item flex flex-row justify-between items-center"
-            data-active={visibility.id === visibilityType}
+            data-active={visibility.id === currentVisibilityType}
           >
             <div className="flex flex-col gap-1 items-start">
               {visibility.label}

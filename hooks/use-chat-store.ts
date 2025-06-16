@@ -1,164 +1,155 @@
 'use client';
 
+// Hooks that are used to mutate the chat store
+// They use local storage functions from '@/lib/utils/anonymous-chat-storage' for anonymous users
+// They use tRPC mutations for authenticated users
+
 import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useCallback, useMemo } from 'react';
 
 import { useTRPC } from '@/trpc/react';
-import { useAnonymousChats } from '@/lib/hooks/use-anonymous-chats';
-import { useAnonymousMessagesStorage } from '@/lib/hooks/use-anonymous-messages';
-import type { Chat } from '@/lib/db/schema';
 import type { UIChat } from '@/lib/types/ui';
-import { dbChatToUIChat } from '@/lib/types/ui';
-import { generateUUID } from '@/lib/utils';
-import { updateChatVisibility } from '@/app/(chat)/actions';
-import type { VisibilityType } from '@/components/visibility-selector';
-import { useAnonymousSession } from './use-anonymous-session';
+import { useChatId } from '@/providers/chat-id-provider';
+import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import {
+  loadLocalAnonymousMessagesByChatId,
+  saveAnonymousMessage,
+  deleteAnonymousChat,
+  renameAnonymousChat,
+  saveAnonymousChatToStorage,
+  deleteAnonymousTrailingMessages,
+} from '@/lib/utils/anonymous-chat-storage';
+
+// Custom hook for chat mutations
+export function useSaveChat() {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const generateTitleMutation = useMutation(
+    trpc.chat.generateTitle.mutationOptions({
+      onError: (error) => {
+        console.error('Failed to generate title:', error);
+      },
+    }),
+  );
+
+  const saveChatMutation = useMutation({
+    mutationFn: async ({
+      chatId,
+      message,
+    }: { chatId: string; message: string }) => {
+      // Save chat with temporary title first
+      const tempChat = {
+        id: chatId,
+        title: 'Untitled',
+        createdAt: new Date(),
+        visibility: 'private' as const,
+      };
+
+      await saveAnonymousChatToStorage(tempChat);
+      return { tempChat, message };
+    },
+    onSuccess: async ({ tempChat, message }) => {
+      // Generate proper title asynchronously after successful save
+      const data = await generateTitleMutation.mutateAsync({ message });
+      if (data?.title) {
+        // Update the chat with the generated title
+        await saveAnonymousChatToStorage({
+          ...tempChat,
+          title: data.title,
+        });
+
+        // Invalidate chats to refresh the UI
+        queryClient.invalidateQueries({
+          queryKey: trpc.chat.getAllChats.queryKey(),
+        });
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to save chat:', error);
+      toast.error('Failed to save chat');
+    },
+  });
+
+  const saveChat = useCallback(
+    (chatId: string, message: string, isAuthenticated: boolean) => {
+      // Skip if authenticated (API handles it)
+      if (isAuthenticated) {
+        return;
+      }
+
+      return saveChatMutation.mutate({ chatId, message });
+    },
+    [saveChatMutation],
+  );
+
+  return {
+    saveChat,
+    isSaving: saveChatMutation.isPending,
+    isGeneratingTitle: generateTitleMutation.isPending,
+  };
+}
+
+export function useMessagesQuery() {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+  const { chatId } = useChatId();
+
+  // Memoize the tRPC query options for messages by chat ID
+  const getMessagesByChatIdQueryOptions = useMemo(() => {
+    const options = trpc.chat.getMessagesByChatId.queryOptions({
+      chatId: chatId || '',
+    });
+    if (isAuthenticated) {
+      return {
+        ...options,
+        enabled: !!chatId,
+      };
+    } else {
+      return {
+        queryKey: options.queryKey, // Include chatId in query key for proper caching
+        queryFn: async () => {
+          console.log('Loading anonymous messages for chatId:', chatId);
+          // Load from localStorage for anonymous users
+          try {
+            // TODO: Replace with the actual function
+            const restoredMessages = (await loadLocalAnonymousMessagesByChatId(
+              chatId || '',
+            )) as unknown as YourUIMessage[];
+            return restoredMessages;
+          } catch (error) {
+            console.error('Error loading anonymous messages:', error);
+            return [] as YourUIMessage[];
+          }
+        },
+        enabled: !!chatId,
+      };
+    }
+  }, [trpc.chat.getMessagesByChatId, isAuthenticated, chatId]);
+
+  // Query for messages by chat ID (only when chatId is available)
+  return useQuery(getMessagesByChatIdQueryOptions);
+}
 
 interface ChatMutationOptions {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
-
-interface AssistantMessage {
-  id: string;
-  role: string;
-  parts?: any;
-  experimental_attachments?: any;
-  createdAt?: Date;
-  annotations?: any;
-}
-
-export function useChatStore() {
+// Custom hook for deleting chats
+export function useDeleteChat() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
-  const trpc = useTRPC();
   const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
-  // Anonymous hooks
-  const {
-    chats: anonymousChats,
-    isLoading: isLoadingAnonymous,
-    deleteChat: deleteAnonymousChat,
-    renameChat: renameAnonymousChat,
-    saveChat: saveAnonymousChat,
-    generateTitleFromMessage: generateAnonymousTitle,
-    isGeneratingTitle,
-  } = useAnonymousChats(!isAuthenticated);
-
-  // Anonymous messages hook (only used for anonymous users)
-  const {
-    isLoading: isLoadingAnonymousMessages,
-    saveMessage: saveAnonymousMessage,
-    deleteMessage: deleteAnonymousMessage,
-    deleteTrailingMessages: deleteAnonymousTrailingMessages,
-    getMessagesForChat: getAnonymousMessagesForChat,
-    deleteMessagesForChat: deleteAnonymousMessagesForChat,
-  } = useAnonymousMessagesStorage();
-
-  // Anonymous session hook
-  const { incrementMessageCount } = useAnonymousSession();
-
-  // Memoize the tRPC query options to prevent recreation
-  const queryOptions = useMemo(
-    () => trpc.chat.getAllChats.queryOptions(),
-    [trpc.chat.getAllChats],
-  );
-
-  // Memoize the tRPC query key to prevent recreation
   const getAllChatsQueryKey = useMemo(
     () => trpc.chat.getAllChats.queryKey(),
     [trpc.chat.getAllChats],
   );
 
-  // Authenticated query with stable options
-  const {
-    data: authChats,
-    isLoading: isLoadingAuth,
-    refetch: refetchAuthChats,
-  } = useQuery({
-    ...queryOptions,
-    enabled: isAuthenticated,
-  });
-
-  // Credits query
-  const { data: creditsData, isLoading: isLoadingCredits } = useQuery({
-    ...trpc.credits.getAvailableCredits.queryOptions(),
-    enabled: isAuthenticated,
-  });
-
-  // Authenticated rename mutation
-  const renameMutation = useMutation(
-    trpc.chat.renameChat.mutationOptions({
-      onMutate: async (variables) => {
-        await queryClient.cancelQueries({
-          queryKey: getAllChatsQueryKey,
-        });
-
-        const previousChats = queryClient.getQueryData(getAllChatsQueryKey);
-
-        queryClient.setQueryData(
-          getAllChatsQueryKey,
-          (old: Chat[] | undefined) => {
-            if (!old) return old;
-            return old.map((c) =>
-              c.id === variables.chatId ? { ...c, title: variables.title } : c,
-            );
-          },
-        );
-
-        return { previousChats };
-      },
-      onError: (err, variables, context) => {
-        if (context?.previousChats) {
-          queryClient.setQueryData(getAllChatsQueryKey, context.previousChats);
-        }
-        toast.error('Failed to rename chat');
-      },
-      onSettled: () => {
-        queryClient.invalidateQueries({
-          queryKey: getAllChatsQueryKey,
-        });
-      },
-    }),
-  );
-
-  // Delete trailing messages mutation
-  const deleteTrailingMessagesMutation = useMutation(
-    trpc.chat.deleteTrailingMessages.mutationOptions({
-      onSuccess: () => {
-        // Invalidate chats to refresh the UI
-        queryClient.invalidateQueries({
-          queryKey: getAllChatsQueryKey,
-        });
-      },
-      onError: (err) => {
-        toast.error('Failed to delete messages');
-      },
-    }),
-  );
-
-  // Memoize the unified chat list
-  const chats: UIChat[] = useMemo(() => {
-    return isAuthenticated
-      ? authChats?.map(dbChatToUIChat) || []
-      : anonymousChats;
-  }, [isAuthenticated, authChats, anonymousChats]);
-
-  // Memoize loading state
-  const isLoading = useMemo(() => {
-    return isAuthenticated
-      ? isLoadingAuth
-      : isLoadingAnonymous || isLoadingAnonymousMessages;
-  }, [
-    isAuthenticated,
-    isLoadingAuth,
-    isLoadingAnonymous,
-    isLoadingAnonymousMessages,
-  ]);
-
-  // Memoized delete function
   const deleteChat = useCallback(
     async (chatId: string, options?: ChatMutationOptions) => {
       try {
@@ -167,10 +158,8 @@ export function useChatStore() {
             method: 'DELETE',
           });
           if (!response.ok) throw new Error('Failed to delete chat');
-          await refetchAuthChats();
         } else {
-          deleteAnonymousChat(chatId);
-          deleteAnonymousMessagesForChat(chatId);
+          await deleteAnonymousChat(chatId);
         }
         options?.onSuccess?.();
       } catch (error) {
@@ -178,252 +167,292 @@ export function useChatStore() {
           error instanceof Error ? error : new Error('Unknown error');
         options?.onError?.(errorMessage);
         throw errorMessage;
-      }
-    },
-    [
-      isAuthenticated,
-      refetchAuthChats,
-      deleteAnonymousChat,
-      deleteAnonymousMessagesForChat,
-    ],
-  );
-
-  // Memoized rename function
-  const renameChat = useCallback(
-    async (chatId: string, title: string, options?: ChatMutationOptions) => {
-      try {
-        if (isAuthenticated) {
-          await renameMutation.mutateAsync({ chatId, title });
-        } else {
-          renameAnonymousChat(chatId, title);
-        }
-        options?.onSuccess?.();
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error : new Error('Unknown error');
-        options?.onError?.(errorMessage);
-        throw errorMessage;
-      }
-    },
-    [isAuthenticated, renameMutation, renameAnonymousChat],
-  );
-
-  // Memoized save function - remove automatic refetch to prevent excessive calls
-  const saveChat = useCallback(
-    (chat: UIChat) => {
-      if (isAuthenticated) {
-        // For authenticated users, chats are automatically saved via API
-        // Don't automatically refetch - let the component decide when to refetch
-        console.log(
-          'Chat saved, but not auto-refetching to prevent excessive calls',
-        );
-      } else {
-        saveAnonymousChat(chat);
-      }
-    },
-    [isAuthenticated, saveAnonymousChat],
-  );
-
-  // Memoized invalidate function
-  const invalidateChats = useCallback(() => {
-    console.log('Invalidating chats!');
-    if (isAuthenticated) {
-      queryClient.invalidateQueries({
-        queryKey: getAllChatsQueryKey,
-      });
-    }
-  }, [isAuthenticated, queryClient, getAllChatsQueryKey]);
-
-  // Combined function for handling assistant message finish
-  const onAssistantMessageFinish = useCallback(
-    (chatId: string, message: AssistantMessage) => {
-      if (isAuthenticated) {
-        // Authenticated user - invalidate chats and credits
-        invalidateChats();
+      } finally {
         queryClient.invalidateQueries({
-          queryKey: trpc.credits.getAvailableCredits.queryKey(),
+          queryKey: getAllChatsQueryKey,
         });
-      } else {
-        // Anonymous user - save the assistant message
-        saveAnonymousMessage({
-          id: message.id,
-          chatId,
-          role: message.role,
-          parts: message.parts || [],
-          attachments: message.experimental_attachments || [],
-          createdAt: message.createdAt || new Date(),
-          annotations: message.annotations || [],
-          isPartial: false,
-        });
-      }
-    },
-    [
-      isAuthenticated,
-      invalidateChats,
-      queryClient,
-      trpc.credits.getAvailableCredits,
-      saveAnonymousMessage,
-    ],
-  );
-
-  // Combined function for handling user message submission
-  const userMessageSubmit = useCallback(
-    (
-      chatId: string,
-      input: string,
-      initialMessagesLength: number,
-      messagesLength: number,
-      attachments: any[] = [],
-    ) => {
-      if (!isAuthenticated && input.trim()) {
-        // Anonymous user - increment message count first
-        incrementMessageCount();
-
-        // Create and save the user message
-        const userMessage = {
-          id: generateUUID(),
-          chatId,
-          role: 'user' as const,
-          parts: [{ type: 'text' as const, text: input }],
-          attachments,
-          createdAt: new Date(),
-          annotations: [],
-          isPartial: false as const,
-        };
-
-        saveAnonymousMessage(userMessage);
-
-        // Generate title from first user message if this is a new chat
-        const isFirstMessage =
-          initialMessagesLength === 0 && messagesLength === 0;
-        if (isFirstMessage && generateAnonymousTitle && input.trim()) {
-          // Save chat with temporary title first
-          saveChat({
-            id: chatId,
-            title: 'Untitled',
-            createdAt: new Date(),
-            visibility: 'private',
-          } as UIChat);
-
-          // Generate proper title asynchronously
-          generateAnonymousTitle(chatId, input.trim());
-        }
-      }
-      // For authenticated users, the API handles message saving and title generation
-    },
-    [
-      isAuthenticated,
-      generateAnonymousTitle,
-      saveChat,
-      saveAnonymousMessage,
-      incrementMessageCount,
-    ],
-  );
-
-  // Memoized get chat function
-  const getChatFromCache = useCallback(
-    (chatId: string): UIChat | undefined => {
-      return chats.find((chat) => chat.id === chatId);
-    },
-    [chats],
-  );
-
-  // Memoized update cache function
-  const updateChatInCache = useCallback(
-    (chatId: string, updates: Partial<UIChat>) => {
-      if (isAuthenticated) {
-        queryClient.setQueryData(
-          getAllChatsQueryKey,
-          (oldData: Chat[] | undefined) => {
-            return oldData
-              ? oldData.map((chat) => {
-                  if (chat.id === chatId) {
-                    return { ...chat, ...updates };
-                  }
-                  return chat;
-                })
-              : [];
-          },
-        );
       }
     },
     [isAuthenticated, queryClient, getAllChatsQueryKey],
   );
 
-  // Chat visibility management
-  const createChatVisibility = useCallback(
-    (chatId: string, initialVisibility: VisibilityType) => {
-      const getChatVisibility = () => {
-        if (!authChats) return initialVisibility;
-        const chat = authChats.find((chat: Chat) => chat.id === chatId);
-        if (!chat) return 'private';
-        return chat.visibility;
-      };
+  return { deleteChat };
+}
 
-      const setChatVisibility = (updatedVisibilityType: VisibilityType) => {
-        updateChatInCache(chatId, { visibility: updatedVisibilityType });
-        updateChatVisibility({
-          chatId: chatId,
-          visibility: updatedVisibilityType,
-        });
-      };
+// Custom hook for renaming chats
+export function useRenameChat() {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const queryClient = useQueryClient();
+  const trpc = useTRPC();
 
-      return { getChatVisibility, setChatVisibility };
-    },
-    [authChats, updateChatInCache],
+  const getAllChatsQueryKey = useMemo(
+    () => trpc.chat.getAllChats.queryKey(),
+    [trpc.chat.getAllChats],
   );
 
-  // Memoized delete trailing messages function
-  const deleteTrailingMessages = useCallback(
-    async (messageId: string, options?: ChatMutationOptions) => {
-      try {
-        if (isAuthenticated) {
-          await deleteTrailingMessagesMutation.mutateAsync({ messageId });
-        } else {
-          deleteAnonymousTrailingMessages(messageId);
+  const renameMutation = useMutation({
+    mutationFn: isAuthenticated
+      ? trpc.chat.renameChat.mutationOptions().mutationFn
+      : async ({ chatId, title }: { chatId: string; title: string }) => {
+          await renameAnonymousChat(chatId, title);
+        },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: getAllChatsQueryKey,
+      });
+
+      const previousChats = queryClient.getQueryData(getAllChatsQueryKey);
+
+      queryClient.setQueryData(
+        getAllChatsQueryKey,
+        (old: UIChat[] | undefined) => {
+          if (!old) return old;
+          return old.map((c) =>
+            c.id === variables.chatId ? { ...c, title: variables.title } : c,
+          );
+        },
+      );
+
+      return { previousChats };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousChats) {
+        queryClient.setQueryData(getAllChatsQueryKey, context.previousChats);
+      }
+      toast.error('Failed to rename chat');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: getAllChatsQueryKey,
+      });
+    },
+  });
+
+  return renameMutation;
+}
+
+// Custom hook for deleting trailing messages
+export function useDeleteTrailingMessages() {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const deleteTrailingMutationOptions = useMemo(
+    () => trpc.chat.deleteTrailingMessages.mutationOptions(),
+    [trpc.chat.deleteTrailingMessages],
+  );
+
+  const invalidateMessagesByChatId = useCallback(
+    (chatId: string) => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.chat.getMessagesByChatId.queryKey({ chatId }),
+      });
+    },
+    [queryClient, trpc.chat.getMessagesByChatId],
+  );
+
+  // Delete trailing messages mutation
+  const deleteTrailingMessagesMutation = useMutation({
+    mutationFn: isAuthenticated
+      ? async ({ messageId, chatId }: { messageId: string; chatId: string }) =>
+          await deleteTrailingMutationOptions?.mutationFn?.({
+            messageId,
+          })
+      : async ({
+          messageId,
+          chatId,
+        }: { messageId: string; chatId: string }) => {
+          await deleteAnonymousTrailingMessages(messageId);
+        },
+    onMutate: async (variables) => {
+      const { messageId, chatId } = variables;
+      const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+        chatId,
+      });
+
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: messagesQueryKey });
+
+      // Snapshot previous value
+      const previousMessages = queryClient.getQueryData(messagesQueryKey);
+
+      // Optimistically update cache - keep only messages before the messageId
+      queryClient.setQueryData(
+        messagesQueryKey,
+        (old: YourUIMessage[] | undefined) => {
+          if (!old) return old;
+          const messageIndex = old.findIndex((msg) => msg.id === messageId);
+          if (messageIndex === -1) return old;
+          return old.slice(0, messageIndex);
+        },
+      );
+
+      return { previousMessages, messagesQueryKey };
+    },
+    onError: (err, variables, context) => {
+      // Rollback on error
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          context.messagesQueryKey,
+          context.previousMessages,
+        );
+      }
+      toast.error('Failed to delete messages');
+    },
+    onSuccess: (_, variables) => {
+      invalidateMessagesByChatId(variables.chatId);
+      toast.success('Messages deleted');
+    },
+  });
+
+  return deleteTrailingMessagesMutation;
+}
+
+export function useSaveMessageMutation() {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { saveChat: saveChatWithTitle } = useSaveChat();
+
+  return useMutation({
+    mutationFn: async (
+      message: YourUIMessage & { chatId: string; attachments?: any[] },
+    ) => {
+      if (!isAuthenticated) {
+        // Save message for anonymous users when completed (not partial)
+        await saveAnonymousMessage({
+          ...message,
+          attachments: message.attachments || [],
+          createdAt: message.createdAt || new Date(),
+          isPartial: message.isPartial || false,
+        });
+      }
+      // For authenticated users, the API handles saving
+    },
+    onMutate: async (message) => {
+      // Get the query key for messages
+      const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+        chatId: message.chatId,
+      });
+
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: messagesQueryKey });
+
+      // Snapshot previous value
+      const previousMessages = queryClient.getQueryData(messagesQueryKey);
+
+      // Optimistically update cache
+      queryClient.setQueryData(
+        messagesQueryKey,
+        (old: YourUIMessage[] | undefined) => {
+          if (!old) return [message];
+          return [...old, message];
+        },
+      );
+
+      return { previousMessages, messagesQueryKey };
+    },
+    onError: (err, message, context) => {
+      // Rollback on error
+      if (context?.previousMessages) {
+        queryClient.setQueryData(
+          context.messagesQueryKey,
+          context.previousMessages,
+        );
+      }
+      toast.error('Failed to save message');
+    },
+    onSuccess: (data, variables) => {
+      if (isAuthenticated) {
+        // Update credits
+        queryClient.invalidateQueries({
+          queryKey: trpc.credits.getAvailableCredits.queryKey(),
+        });
+
+        // Invalidate chats (for chat title)
+        queryClient.invalidateQueries({
+          queryKey: trpc.chat.getAllChats.queryKey(),
+        });
+      } else {
+        // Check if this this the fist message in the cache
+        const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+          chatId: variables.chatId,
+        });
+        const messages = queryClient.getQueryData(messagesQueryKey);
+        if (messages?.length === 1) {
+          saveChatWithTitle(
+            variables.chatId,
+            variables.content,
+            isAuthenticated,
+          );
         }
-        options?.onSuccess?.();
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error : new Error('Unknown error');
-        options?.onError?.(errorMessage);
-        throw errorMessage;
       }
     },
-    [
-      isAuthenticated,
-      deleteTrailingMessagesMutation,
-      deleteAnonymousTrailingMessages,
-    ],
+  });
+}
+
+export function useSetVisibility() {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const getAllChatsQueryKey = useMemo(
+    () => trpc.chat.getAllChats.queryKey(),
+    [trpc.chat.getAllChats],
   );
 
-  // Memoize the return object to prevent unnecessary re-renders
-  return useMemo(
-    () => ({
-      chats,
-      isLoading,
-      deleteChat,
-      renameChat,
-      deleteTrailingMessages,
-      onAssistantMessageFinish,
-      userMessageSubmit,
-      createChatVisibility,
-      credits: creditsData?.totalCredits,
-      isLoadingCredits,
-      getMessagesForChat: getAnonymousMessagesForChat,
-    }),
-    [
-      chats,
-      isLoading,
-      deleteChat,
-      renameChat,
-      deleteTrailingMessages,
-      onAssistantMessageFinish,
-      userMessageSubmit,
-      createChatVisibility,
-      creditsData?.totalCredits,
-      isLoadingCredits,
-      getAnonymousMessagesForChat,
-    ],
-  );
+  return useMutation({
+    mutationFn: isAuthenticated
+      ? trpc.chat.setVisibility.mutationOptions().mutationFn
+      : async ({
+          chatId,
+          visibility,
+        }: { chatId: string; visibility: 'private' | 'public' }) => {
+          throw new Error('Not implemented');
+        },
+    onMutate: async (variables) => {
+      await queryClient.cancelQueries({
+        queryKey: getAllChatsQueryKey,
+      });
+
+      const previousChats = queryClient.getQueryData(getAllChatsQueryKey);
+
+      queryClient.setQueryData(
+        getAllChatsQueryKey,
+        (old: UIChat[] | undefined) => {
+          if (!old) return old;
+          return old.map((c) =>
+            c.id === variables.chatId
+              ? { ...c, visibility: variables.visibility }
+              : c,
+          );
+        },
+      );
+
+      return { previousChats };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousChats) {
+        queryClient.setQueryData(getAllChatsQueryKey, context.previousChats);
+      }
+      toast.error('Failed to update chat visibility');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: getAllChatsQueryKey,
+      });
+    },
+    onSuccess: (_, variables) => {
+      const message =
+        variables.visibility === 'public'
+          ? 'Chat is now public - anyone with the link can access it'
+          : 'Chat is now private - only you can access it';
+
+      toast.success(message);
+    },
+  });
 }

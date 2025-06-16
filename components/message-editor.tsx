@@ -12,7 +12,11 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
-import { useChatStoreContext } from '@/providers/chat-store-provider';
+import {
+  useDeleteTrailingMessages,
+  useSaveMessageMutation,
+} from '@/hooks/use-chat-store';
+import { useSession } from 'next-auth/react';
 
 export type MessageEditorProps = {
   chatId: string;
@@ -46,7 +50,13 @@ export function MessageEditor({
     reason: false,
   });
 
-  const { deleteTrailingMessages } = useChatStoreContext();
+  const { mutateAsync: saveMessageAsync } = useSaveMessageMutation();
+
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+
+  const { mutateAsync: deleteTrailingMessagesAsync } =
+    useDeleteTrailingMessages();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -84,7 +94,7 @@ export function MessageEditor({
         handleSubmit={async (event, options) => {
           setIsSubmitting(true);
 
-          await deleteTrailingMessages(message.id);
+          await deleteTrailingMessagesAsync({ messageId: message.id, chatId });
 
           // chatHelpers.setInput(input);
           chatHelpers.setMessages((messages) => {
@@ -103,6 +113,19 @@ export function MessageEditor({
             },
             options,
           );
+
+          if (!isAuthenticated) {
+            // Append doesn't perform a new submission. Therefore, for local storage, we need to save the message manually.
+            await saveMessageAsync({
+              content: input,
+              role: 'user',
+              experimental_attachments: attachments,
+              parts: [{ type: 'text', text: input }],
+              id: message.id,
+              createdAt: new Date(),
+              chatId,
+            });
+          }
         }}
         isEditMode={true}
         selectedModelId={selectedModelId}

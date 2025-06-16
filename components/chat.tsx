@@ -19,7 +19,7 @@ import { useSession } from 'next-auth/react';
 
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
-import { useChatStoreContext } from '@/providers/chat-store-provider';
+import { useSaveMessageMutation } from '@/hooks/use-chat-store';
 
 export function Chat({
   id,
@@ -36,10 +36,12 @@ export function Chat({
 }) {
   const trpc = useTRPC();
   const { data: session } = useSession();
-  const { onAssistantMessageFinish, userMessageSubmit } = useChatStoreContext();
+  const { mutate: saveChatMessage } = useSaveMessageMutation();
 
   const [localSelectedModelId, setLocalSelectedModelId] =
     useState<string>(selectedChatModel);
+
+  console.log('chat.tsx id', id);
 
   const chatHelpers = useChat({
     id,
@@ -48,8 +50,17 @@ export function Chat({
     experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: generateUUID,
+
     onFinish: (message) => {
-      onAssistantMessageFinish(id, message);
+      saveChatMessage({
+        id: message.id,
+        chatId: id,
+        parts: message.parts as YourUIMessage['parts'],
+        experimental_attachments: message.experimental_attachments,
+        createdAt: message.createdAt || new Date(),
+        role: message.role,
+        content: message.content,
+      });
     },
     onError: (error) => {
       console.error(error);
@@ -58,7 +69,7 @@ export function Chat({
   });
 
   const {
-    messages,
+    messages: chatHelperMessages,
     setMessages,
     handleSubmit: originalHandleSubmit,
     input,
@@ -74,31 +85,30 @@ export function Chat({
   // Wrapper around handleSubmit to save user messages for anonymous users
   const handleSubmit = useCallback(
     (event?: { preventDefault?: () => void }, options?: any) => {
-      // Let the chat store handle user message submission logic
-      userMessageSubmit(
-        id,
-        input,
-        initialMessages.length,
-        messages.length,
-        options?.experimental_attachments || [],
-      );
+      saveChatMessage({
+        id: generateUUID(),
+        chatId: id,
+        parts: [
+          {
+            type: 'text',
+            text: input,
+          },
+        ],
+        experimental_attachments: options?.experimental_attachments || [],
+        createdAt: new Date(),
+        role: 'user',
+        content: input,
+      });
 
       return originalHandleSubmit(event, options);
     },
-    [
-      id,
-      input,
-      userMessageSubmit,
-      originalHandleSubmit,
-      initialMessages.length,
-      messages.length,
-    ],
+    [id, input, originalHandleSubmit, saveChatMessage],
   );
 
   // Auto-resume functionality
   useAutoResume({
     autoResume: true,
-    initialMessages,
+    initialMessages: chatHelperMessages as YourUIMessage[],
     experimental_resume,
     data: chatData,
     setMessages,
@@ -106,7 +116,7 @@ export function Chat({
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),
-    enabled: messages.length >= 2 && !isReadonly && !!session?.user,
+    enabled: chatHelperMessages.length >= 2 && !isReadonly && !!session?.user,
   });
 
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
@@ -154,7 +164,7 @@ export function Chat({
           chatId={id}
           votes={votes}
           status={status}
-          messages={messages as YourUIMessage[]}
+          messages={chatHelperMessages as YourUIMessage[]}
           data={data}
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
@@ -176,7 +186,7 @@ export function Chat({
               stop={stop}
               attachments={attachments}
               setAttachments={setAttachments}
-              messages={messages as YourUIMessage[]}
+              messages={chatHelperMessages as YourUIMessage[]}
               setMessages={setMessages}
               append={append}
               selectedModelId={localSelectedModelId}
@@ -193,7 +203,7 @@ export function Chat({
         setAttachments={setAttachments}
         data={data}
         setData={setData}
-        messages={messages as YourUIMessage[]}
+        messages={chatHelperMessages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}
         selectedModelId={localSelectedModelId}

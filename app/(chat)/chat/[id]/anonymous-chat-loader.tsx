@@ -1,10 +1,7 @@
 'use client';
-
-import { useMemo } from 'react';
 import { Chat } from '@/components/chat';
-import { useChatStore } from '@/hooks/use-chat-store';
+import { useMessagesQuery } from '@/hooks/use-chat-store';
 import type { YourUIMessage } from '@/lib/ai/tools/annotations';
-import type { AnonymousMessage } from '@/lib/types/anonymous';
 
 interface AnonymousChatLoaderProps {
   chatId: string;
@@ -15,25 +12,7 @@ export function AnonymousChatLoader({
   chatId,
   selectedChatModel,
 }: AnonymousChatLoaderProps) {
-  const { getMessagesForChat, isLoading } = useChatStore();
-  const anonymousMessages = useMemo(
-    () => getMessagesForChat(chatId),
-    [getMessagesForChat, chatId],
-  );
-
-  // Convert anonymous messages to UI messages format
-  const initialMessages: YourUIMessage[] = useMemo(() => {
-    return anonymousMessages.map((message: AnonymousMessage) => ({
-      id: message.id,
-      parts: message.parts,
-      role: message.role as YourUIMessage['role'],
-      content: '',
-      createdAt: message.createdAt,
-      experimental_attachments: message.attachments || [],
-      annotations: message.annotations || [],
-      isPartial: message.isPartial,
-    }));
-  }, [anonymousMessages]);
+  const { data: messages, isLoading, isFetched } = useMessagesQuery();
 
   // Don't render Chat until messages are loaded
   if (isLoading) {
@@ -47,7 +26,7 @@ export function AnonymousChatLoader({
   return (
     <Chat
       id={chatId}
-      initialMessages={initialMessages}
+      initialMessages={messages as YourUIMessage[]}
       selectedChatModel={selectedChatModel}
       selectedVisibilityType="public"
       isReadonly={false}

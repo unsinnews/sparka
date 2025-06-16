@@ -17,11 +17,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useChatStore } from '@/hooks/use-chat-store';
+import { useGetCredits } from '@/hooks/use-get-credits';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
-  const { credits } = useChatStore();
+  const { credits } = useGetCredits();
 
   return (
     <SidebarMenu>
@@ -37,7 +37,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                 className="rounded-full mr-2"
               />
               <span className="truncate flex-1">{user?.email}</span>
-              {credits !== null && (
+              {credits !== undefined && (
                 <div className="flex items-center text-muted-foreground mr-2">
                   <Coins className="w-4 h-4 mr-1" />
                   <span>{credits}</span>

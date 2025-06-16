@@ -9,8 +9,9 @@ export interface UIChat {
   userId: string;
 }
 
-export type YourUIMessage = Omit<UIMessage, 'annotations'> & {
+export type YourUIMessage = Omit<UIMessage, 'annotations' | 'createdAt'> & {
   annotations?: MessageAnnotation[];
   isPartial?: boolean;
   parentMessageId: string | null;
+  createdAt: Date;
 };

@@ -6,7 +6,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { ResponseErrorMessage } from './response-error-message';
 import { ThinkingMessage } from './thinking-message';
-import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { cn, findLastArtifact } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useStickToBottom } from 'use-stick-to-bottom';
@@ -23,7 +23,7 @@ export interface MessagesProps {
   isReadonly: boolean;
   isVisible: boolean;
   selectedModelId: string;
-  data: ChatRequestData;
+  data: ChatRequestToolsConfig;
   onModelChange?: (modelId: string) => void;
 }
 

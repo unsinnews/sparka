@@ -18,7 +18,7 @@ import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/types/ui';
-import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { useSession } from 'next-auth/react';
 
@@ -88,11 +88,8 @@ export function Chat({
 
   const appendWithUpdateLastMessageId = useCallback(
     async (message: Message | CreateMessage, options?: ChatRequestOptions) => {
-      console.log('calling with messagesSetterArg', message, options);
-
-      append(message, options);
       lastMessageId.current = message.id || null;
-      return null;
+      return append(message, options);
     },
     [append],
   );
@@ -120,9 +117,15 @@ export function Chat({
         parentMessageId: lastMessageId.current,
       });
 
+      append(message, {
+        ...options,
+        data: {
+          ...options?.data,
+          parentMessageId: lastMessageId.current,
+        },
+      });
       lastMessageId.current = message.id;
 
-      append(message, options);
       setInput('');
     },
     [id, input, append, saveChatMessage, setInput, lastMessageId],
@@ -157,7 +160,7 @@ export function Chat({
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-  const [data, setData] = useState<ChatRequestData>({
+  const [data, setData] = useState<ChatRequestToolsConfig>({
     deepResearch: false,
     webSearch: false,
     reason: false,
@@ -184,8 +187,17 @@ export function Chat({
     return {
       ...chatHelpers,
       append: appendWithUpdateLastMessageId,
+      reload: async (options?: ChatRequestOptions) => {
+        return reload({
+          ...options,
+          data: {
+            ...(options?.data as ChatRequestToolsConfig),
+            parentMessageId: lastMessageId.current,
+          },
+        });
+      },
     };
-  }, [chatHelpers, appendWithUpdateLastMessageId]);
+  }, [chatHelpers, appendWithUpdateLastMessageId, lastMessageId, reload]);
 
   return (
     <>

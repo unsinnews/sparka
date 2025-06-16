@@ -11,7 +11,7 @@ import {
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
 import type { YourUIMessage } from '@/lib/types/ui';
-import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import {
   useDeleteTrailingMessages,
   useSaveMessageMutation,
@@ -45,7 +45,7 @@ export function MessageEditor({
   const [attachments, setAttachments] = useState<Array<Attachment>>(
     message.experimental_attachments || [],
   );
-  const [data, setData] = useState<ChatRequestData>({
+  const [data, setData] = useState<ChatRequestToolsConfig>({
     deepResearch: false,
     webSearch: false,
     reason: false,
@@ -120,7 +120,13 @@ export function MessageEditor({
               experimental_attachments: attachments,
               parts: [{ type: 'text', text: input }],
             },
-            options,
+            {
+              ...options,
+              data: {
+                ...(options?.data as ChatRequestToolsConfig),
+                parentMessageId: lastMessageId,
+              },
+            },
           );
 
           if (!isAuthenticated) {

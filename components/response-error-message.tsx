@@ -1,13 +1,13 @@
 import { Button } from './ui/button';
 import { RefreshCcwIcon } from 'lucide-react';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import type { YourUIMessage } from '@/lib/types/ui';
 
 interface ErrorMessageProps {
   chatHelpers: UseChatHelpers;
   messages: Array<YourUIMessage>;
-  data: ChatRequestData;
+  data: ChatRequestToolsConfig;
 }
 
 export function ResponseErrorMessage({

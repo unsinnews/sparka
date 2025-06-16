@@ -8,14 +8,13 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
 import { dbMessageToUIMessage } from '@/lib/message-conversion';
 import { AnonymousChatLoader } from './anonymous-chat-loader';
+import { getDefaultThread } from '@/lib/thread-utils';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const { id } = params;
   const chat = await tryGetChatById({ id });
   const session = await auth();
-  console.log('session', session);
-  console.log('chat', chat);
 
   // If chat not found in DB
   if (!chat) {
@@ -58,11 +57,13 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get('chat-model');
 
+  const initialThreadMessages = getDefaultThread(messagesFromDb);
+
   return (
     <>
       <Chat
         id={chat.id}
-        initialMessages={messagesFromDb.map(dbMessageToUIMessage)}
+        initialMessages={initialThreadMessages.map(dbMessageToUIMessage)}
         selectedChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
         selectedVisibilityType={chat.visibility}
         isReadonly={session?.user?.id !== chat.userId}

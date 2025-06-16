@@ -16,7 +16,7 @@ import {
   getMessageById,
   getAllMessagesByChatId,
 } from '@/lib/db/queries';
-import { getDefaultThread } from '@/lib/message-utils';
+import { getDefaultThread } from '@/lib/thread-utils';
 import {
   generateUUID,
   getMostRecentUserMessage,
@@ -93,10 +93,13 @@ const streamContext = createResumableStreamContext({
     : {}),
 });
 
-export type ChatRequestData = {
+export type ChatRequestToolsConfig = {
   deepResearch: boolean;
   reason: boolean;
   webSearch: boolean;
+};
+export type ChatRequestData = ChatRequestToolsConfig & {
+  parentMessageId: string | null;
 };
 
 export async function GET(request: NextRequest) {
@@ -357,7 +360,7 @@ export async function POST(request: NextRequest) {
             createdAt: new Date(),
             annotations: userMessage.annotations,
             isPartial: false,
-            parentMessageId: userMessage.id,
+            parentMessageId: data.parentMessageId,
           },
         });
       }

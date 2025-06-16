@@ -28,9 +28,9 @@ import { textArtifact } from '@/artifacts/text/client';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
-import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 
 export const artifactDefinitions = [
   textArtifact,
@@ -76,8 +76,8 @@ function PureArtifact({
   messages: Array<YourUIMessage>;
   votes: Array<Vote> | undefined;
 
-  data: ChatRequestData;
-  setData: Dispatch<SetStateAction<ChatRequestData>>;
+  data: ChatRequestToolsConfig;
+  setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   selectedModelId: string;

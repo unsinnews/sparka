@@ -1,6 +1,7 @@
 'use client';
 import { Chat } from '@/components/chat';
 import { useMessagesQuery } from '@/hooks/use-chat-store';
+import { getDefaultThread } from '@/lib/thread-utils';
 import type { YourUIMessage } from '@/lib/types/ui';
 
 interface AnonymousChatLoaderProps {
@@ -22,11 +23,12 @@ export function AnonymousChatLoader({
       </div>
     );
   }
+  const initialThreadMessages = messages ? getDefaultThread(messages) : [];
 
   return (
     <Chat
       id={chatId}
-      initialMessages={messages as YourUIMessage[]}
+      initialMessages={initialThreadMessages as YourUIMessage[]}
       selectedChatModel={selectedChatModel}
       selectedVisibilityType="public"
       isReadonly={false}

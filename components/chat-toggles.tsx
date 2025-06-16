@@ -14,7 +14,7 @@ import {
 } from './ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
-import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
+import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { getModelDefinition } from '@/lib/ai/all-models';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 import {
@@ -79,8 +79,8 @@ export function ResponsiveToggles({
   setData,
   selectedModelId,
 }: {
-  data: ChatRequestData;
-  setData: Dispatch<SetStateAction<ChatRequestData>>;
+  data: ChatRequestToolsConfig;
+  setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   selectedModelId: string;
 }) {
   const { data: session } = useSession();

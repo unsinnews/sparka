@@ -17,6 +17,7 @@ import {
   useSaveMessageMutation,
 } from '@/hooks/use-chat-store';
 import { useSession } from 'next-auth/react';
+import { generateUUID } from '@/lib/utils';
 
 export type MessageEditorProps = {
   chatId: string;
@@ -97,15 +98,23 @@ export function MessageEditor({
           await deleteTrailingMessagesAsync({ messageId: message.id, chatId });
 
           // chatHelpers.setInput(input);
-          chatHelpers.setMessages((messages) => {
-            const index = messages.findIndex((m) => m.id === message.id);
-            return [...messages.slice(0, index)];
-          });
+
           setMode('view');
 
           // Let MultimodalInput handle the actual submission
+          const index = chatHelpers.messages.findIndex(
+            (m) => m.id === message.id,
+          );
+          chatHelpers.setMessages(chatHelpers.messages.slice(0, index));
+
+          const newMessagId = generateUUID();
+
+          const lastMessageId = chatHelpers.messages[index - 1]?.id || null;
+
+          console.log('chatHelpers.messages', chatHelpers.messages);
           chatHelpers.append(
             {
+              id: newMessagId,
               content: input,
               role: 'user',
               experimental_attachments: attachments,
@@ -119,13 +128,14 @@ export function MessageEditor({
             await saveMessageAsync({
               message: {
                 content: input,
-                id: message.id,
+                id: newMessagId,
                 role: 'user',
                 parts: [{ type: 'text', text: input }],
                 experimental_attachments: attachments,
                 createdAt: new Date(),
               },
               chatId,
+              parentMessageId: lastMessageId,
             });
           }
         }}

@@ -1,8 +1,13 @@
 'use client';
 
-import type { Attachment } from 'ai';
+import type {
+  Attachment,
+  ChatRequestOptions,
+  CreateMessage,
+  Message,
+} from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -59,6 +64,7 @@ export function Chat({
         chatId: id,
         parentMessageId: lastMessageId.current,
       });
+      lastMessageId.current = message.id;
     },
     onError: (error) => {
       console.error(error);
@@ -80,30 +86,46 @@ export function Chat({
     data: chatData,
   } = chatHelpers;
 
+  const appendWithUpdateLastMessageId = useCallback(
+    async (message: Message | CreateMessage, options?: ChatRequestOptions) => {
+      console.log('calling with messagesSetterArg', message, options);
+
+      append(message, options);
+      lastMessageId.current = message.id || null;
+      return null;
+    },
+    [append],
+  );
+
   // Wrapper around handleSubmit to save user messages for anonymous users
   const handleSubmit = useCallback(
     (event?: { preventDefault?: () => void }, options?: any) => {
+      const message: Message = {
+        id: generateUUID(),
+        parts: [
+          {
+            type: 'text',
+            text: input,
+          },
+        ],
+        experimental_attachments: options?.experimental_attachments || [],
+        createdAt: new Date(),
+        role: 'user',
+        content: input,
+      };
+
       saveChatMessage({
-        message: {
-          id: generateUUID(),
-          parts: [
-            {
-              type: 'text',
-              text: input,
-            },
-          ],
-          experimental_attachments: options?.experimental_attachments || [],
-          createdAt: new Date(),
-          role: 'user',
-          content: input,
-        },
+        message,
         chatId: id,
         parentMessageId: lastMessageId.current,
       });
 
-      return originalHandleSubmit(event, options);
+      lastMessageId.current = message.id;
+
+      append(message, options);
+      setInput('');
     },
-    [id, input, originalHandleSubmit, saveChatMessage],
+    [id, input, append, saveChatMessage, setInput, lastMessageId],
   );
 
   // Auto-resume functionality
@@ -115,13 +137,17 @@ export function Chat({
     setMessages,
   });
 
-  const lastMessage =
-    chatHelpers.messages[chatHelpers.messages.length - 1] || null;
-  useEffect(() => {
-    if (lastMessage && lastMessage.id !== lastMessageId.current) {
-      lastMessageId.current = lastMessage.id;
-    }
-  }, [lastMessage]);
+  // const lastMessage =
+  //   chatHelpers.messages[chatHelpers.messages.length - 1] || null;
+  // useEffect(() => {
+  //   if (
+  //     lastMessage &&
+  //     lastMessage.role === 'user' &&
+  //     lastMessage.id !== lastMessageId.current
+  //   ) {
+  //     lastMessageId.current = lastMessage.id;
+  //   }
+  // }, [lastMessage]);
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),
@@ -154,6 +180,13 @@ export function Chat({
     }
   };
 
+  const modifiedChatHelpers = useMemo(() => {
+    return {
+      ...chatHelpers,
+      append: appendWithUpdateLastMessageId,
+    };
+  }, [chatHelpers, appendWithUpdateLastMessageId]);
+
   return (
     <>
       <div
@@ -175,7 +208,7 @@ export function Chat({
           status={status}
           messages={chatHelperMessages as YourUIMessage[]}
           data={data}
-          chatHelpers={chatHelpers}
+          chatHelpers={modifiedChatHelpers}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
           selectedModelId={localSelectedModelId}
@@ -207,7 +240,7 @@ export function Chat({
 
       <Artifact
         chatId={id}
-        chatHelpers={chatHelpers}
+        chatHelpers={modifiedChatHelpers}
         attachments={attachments}
         setAttachments={setAttachments}
         data={data}

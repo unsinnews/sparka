@@ -70,7 +70,6 @@ export async function renameAnonymousChat(
   title: string,
 ): Promise<void> {
   try {
-    console.log('Renaming anonymous chat:', chatId, title);
     const session = getAnonymousSession();
     if (!session) return;
 
@@ -159,8 +158,6 @@ export async function deleteAnonymousTrailingMessages(
     const messagesToKeep = chatMessages.slice(0, targetIndex);
     const messageIdsToKeep = new Set(messagesToKeep.map((m) => m.id));
 
-    console.log('messagesToKeep', messagesToKeep);
-
     // Filter to keep messages from other chats and messages up to the target message
     const updated = allMessages.filter((m: AnonymousMessage) => {
       if (m.chatId !== targetMessage.chatId) {
@@ -168,8 +165,6 @@ export async function deleteAnonymousTrailingMessages(
       }
       return messageIdsToKeep.has(m.id); // Keep only messages up to and including target
     });
-
-    console.log('Delete saving', updated);
 
     // Update cache and save to localStorage
     localStorage.setItem(ANONYMOUS_MESSAGES_KEY, JSON.stringify(updated));
@@ -189,7 +184,6 @@ export async function saveAnonymousMessage(
 
     const allMessages = await loadAnonymousMessagesFromStorage();
     allMessages.push(message);
-    console.log('Saving all messages', allMessages);
 
     localStorage.setItem(ANONYMOUS_MESSAGES_KEY, JSON.stringify(allMessages));
   } catch (error) {

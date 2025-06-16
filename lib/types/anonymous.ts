@@ -30,7 +30,7 @@ export interface AnonymousMessage {
 }
 
 export const ANONYMOUS_LIMITS = {
-  MAX_MESSAGES: 1000,
+  MAX_MESSAGES: process.env.NODE_ENV === 'production' ? 10 : 1000,
   AVAILABLE_MODELS: [
     'openai/gpt-3.5-turbo',
     'xai/grok-3-mini-beta',

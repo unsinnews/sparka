@@ -76,6 +76,8 @@
 [ ] Sign in panel is not aligned horizontally
 [ ] Should generate title be on user message or on assistant message? At the moment it's on user for anonymous and on assistant for authenticated
 
+[ ] More Gemini models
+
 [x] Demo without logging in
    [x] /chat/[id] should load for cookies for unauthenticated users
    [x] deleteTrailingMessages should be in chat store and implemented for anonymous too

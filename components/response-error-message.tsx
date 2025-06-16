@@ -2,7 +2,7 @@ import { Button } from './ui/button';
 import { RefreshCcwIcon } from 'lucide-react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 
 interface ErrorMessageProps {
   chatHelpers: UseChatHelpers;

@@ -37,7 +37,7 @@ export function useGetAllChats() {
 
             const parsedChats = JSON.parse(savedChats) as Chat[];
             return parsedChats
-              .filter((chat: any) => chat.sessionId === session.id)
+              .filter((chat: any) => chat.userId === session.id)
               .map((chat: any) => ({
                 id: chat.id,
                 createdAt: new Date(chat.createdAt),

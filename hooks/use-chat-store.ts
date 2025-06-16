@@ -10,9 +10,12 @@ import { toast } from 'sonner';
 import { useCallback, useMemo } from 'react';
 
 import { useTRPC } from '@/trpc/react';
-import type { UIChat } from '@/lib/types/ui';
+import {
+  messageToDbMessage,
+  messageToYourUIMessage,
+} from '@/lib/message-conversion';
 import { useChatId } from '@/providers/chat-id-provider';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage, UIChat } from '@/lib/types/ui';
 import {
   loadLocalAnonymousMessagesByChatId,
   saveAnonymousMessage,
@@ -21,6 +24,7 @@ import {
   saveAnonymousChatToStorage,
   deleteAnonymousTrailingMessages,
 } from '@/lib/utils/anonymous-chat-storage';
+import type { Message } from 'ai';
 
 // Custom hook for chat mutations
 export function useSaveChat() {
@@ -317,25 +321,26 @@ export function useSaveMessageMutation() {
   const queryClient = useQueryClient();
   const { saveChat: saveChatWithTitle } = useSaveChat();
 
+  // TODO: Get the parent ID for the message
   return useMutation({
-    mutationFn: async (
-      message: YourUIMessage & { chatId: string; attachments?: any[] },
-    ) => {
+    mutationFn: async ({
+      message,
+      chatId,
+    }: { message: Message; chatId: string }) => {
       if (!isAuthenticated) {
         // Save message for anonymous users when completed (not partial)
-        await saveAnonymousMessage({
-          ...message,
-          attachments: message.attachments || [],
-          createdAt: message.createdAt || new Date(),
-          isPartial: message.isPartial || false,
-        });
+
+        await saveAnonymousMessage(
+          messageToDbMessage(message, chatId, null, false),
+        );
       }
       // For authenticated users, the API handles saving
     },
-    onMutate: async (message) => {
+    onMutate: async ({ message, chatId }) => {
       // Get the query key for messages
+
       const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
-        chatId: message.chatId,
+        chatId: chatId,
       });
 
       // Cancel outgoing refetches
@@ -348,8 +353,13 @@ export function useSaveMessageMutation() {
       queryClient.setQueryData(
         messagesQueryKey,
         (old: YourUIMessage[] | undefined) => {
-          if (!old) return [message];
-          return [...old, message];
+          const newMessage = messageToYourUIMessage(
+            message,
+            null, // TODO: Get the parent ID for the message
+            false,
+          );
+          if (!old) return [newMessage];
+          return [...old, newMessage];
         },
       );
 
@@ -363,9 +373,10 @@ export function useSaveMessageMutation() {
           context.previousMessages,
         );
       }
+      console.error('Failed to save message:', err);
       toast.error('Failed to save message');
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (data, { message, chatId }) => {
       if (isAuthenticated) {
         // Update credits
         queryClient.invalidateQueries({
@@ -379,15 +390,11 @@ export function useSaveMessageMutation() {
       } else {
         // Check if this this the fist message in the cache
         const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
-          chatId: variables.chatId,
+          chatId: chatId,
         });
         const messages = queryClient.getQueryData(messagesQueryKey);
         if (messages?.length === 1) {
-          saveChatWithTitle(
-            variables.chatId,
-            variables.content,
-            isAuthenticated,
-          );
+          saveChatWithTitle(chatId, message.content, isAuthenticated);
         }
       }
     },

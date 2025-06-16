@@ -1,5 +1,7 @@
 import type { YourToolName } from '../ai/tools/tools';
 import type { AvailableProviderModels } from '../ai/all-models';
+import type { DBMessage } from '../db/schema';
+import type { UIChat } from './ui';
 
 export interface AnonymousSession {
   id: string;
@@ -9,25 +11,10 @@ export interface AnonymousSession {
 }
 
 // Anonymous chat structure matching the DB chat structure
-export interface AnonymousChat {
-  id: string;
-  createdAt: Date;
-  title: string;
-  sessionId: string;
-  visibility: 'private' | 'public';
-}
+export interface AnonymousChat extends UIChat {}
 
 // Anonymous message structure matching the DB message structure
-export interface AnonymousMessage {
-  id: string;
-  chatId: string;
-  role: string;
-  parts: any;
-  attachments: any;
-  createdAt: Date;
-  annotations?: any;
-  isPartial: boolean;
-}
+export interface AnonymousMessage extends DBMessage {}
 
 export const ANONYMOUS_LIMITS = {
   MAX_MESSAGES: process.env.NODE_ENV === 'production' ? 10 : 1000,

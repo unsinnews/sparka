@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode, useMemo } from 'react';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 
 interface ActiveThreadContextType {
   messages: YourUIMessage[];

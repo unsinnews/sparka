@@ -41,7 +41,7 @@
 
 
 
-[ ] Cleanup YourUIMessage, DBMessage, AnonymousMessage, Message, UIMessage
+[x] Cleanup YourUIMessage, DBMessage, AnonymousMessage, Message, UIMessage
 
 
 [ ] Branching

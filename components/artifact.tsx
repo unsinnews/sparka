@@ -27,7 +27,7 @@ import { sheetArtifact } from '@/artifacts/sheet/client';
 import { textArtifact } from '@/artifacts/text/client';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';

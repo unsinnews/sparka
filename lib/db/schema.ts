@@ -44,6 +44,7 @@ export const message = pgTable('Message', {
     .references(() => chat.id, {
       onDelete: 'cascade',
     }),
+  parentMessageId: uuid('parentMessageId'),
   role: varchar('role').notNull(),
   parts: json('parts').notNull(),
   attachments: json('attachments').notNull(),

@@ -4,8 +4,7 @@ import { twMerge } from 'tailwind-merge';
 import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 
 import type { Document } from '@/lib/db/schema';
-import type { YourUIMessage } from './ai/tools/annotations';
-
+import type { YourUIMessage } from '@/lib/types/ui';
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }

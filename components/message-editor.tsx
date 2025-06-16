@@ -10,7 +10,7 @@ import {
 } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import {
   useDeleteTrailingMessages,
@@ -117,12 +117,14 @@ export function MessageEditor({
           if (!isAuthenticated) {
             // Append doesn't perform a new submission. Therefore, for local storage, we need to save the message manually.
             await saveMessageAsync({
-              content: input,
-              role: 'user',
-              experimental_attachments: attachments,
-              parts: [{ type: 'text', text: input }],
-              id: message.id,
-              createdAt: new Date(),
+              message: {
+                content: input,
+                id: message.id,
+                role: 'user',
+                parts: [{ type: 'text', text: input }],
+                experimental_attachments: attachments,
+                createdAt: new Date(),
+              },
               chatId,
             });
           }

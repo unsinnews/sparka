@@ -3,7 +3,7 @@ import { memo } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 import { ResponseErrorMessage } from './response-error-message';
 import { ThinkingMessage } from './thinking-message';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';

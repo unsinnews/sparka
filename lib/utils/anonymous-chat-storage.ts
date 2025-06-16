@@ -43,7 +43,7 @@ export async function deleteAnonymousChat(chatId: string): Promise<boolean> {
       localStorage.getItem(ANONYMOUS_CHATS_KEY) || '[]',
     );
     const filteredChats = existingChats.filter(
-      (c: AnonymousChat) => !(c.id === chatId && c.sessionId === session.id),
+      (c: AnonymousChat) => !(c.id === chatId && c.userId === session.id),
     );
     localStorage.setItem(ANONYMOUS_CHATS_KEY, JSON.stringify(filteredChats));
 
@@ -80,14 +80,16 @@ export async function renameAnonymousChat(
       localStorage.getItem(ANONYMOUS_CHATS_KEY) || '[]',
     );
     const updatedChats = existingChats.map((c: AnonymousChat) =>
-      c.id === chatId && c.sessionId === session.id ? { ...c, title } : c,
+      c.id === chatId && c.userId === session.id ? { ...c, title } : c,
     );
     localStorage.setItem(ANONYMOUS_CHATS_KEY, JSON.stringify(updatedChats));
   } catch (error) {
     console.error('Error renaming anonymous chat:', error);
   }
 } // Module-level functions for chat operations
-export async function saveAnonymousChatToStorage(chat: UIChat): Promise<void> {
+export async function saveAnonymousChatToStorage(
+  chat: Omit<UIChat, 'userId'>,
+): Promise<void> {
   try {
     const session = getAnonymousSession();
     if (!session) throw new Error('No anonymous session');

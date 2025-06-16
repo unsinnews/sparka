@@ -1,7 +1,7 @@
 'use client';
 import { Chat } from '@/components/chat';
 import { useMessagesQuery } from '@/hooks/use-chat-store';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 
 interface AnonymousChatLoaderProps {
   chatId: string;

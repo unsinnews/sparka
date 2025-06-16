@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 
 export type DataPart = { type: 'append-message'; message: string };
 

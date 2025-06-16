@@ -12,7 +12,7 @@ import { Messages } from './messages';
 import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 import type { ChatRequestData } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { useSession } from 'next-auth/react';
@@ -52,15 +52,7 @@ export function Chat({
     generateId: generateUUID,
 
     onFinish: (message) => {
-      saveChatMessage({
-        id: message.id,
-        chatId: id,
-        parts: message.parts as YourUIMessage['parts'],
-        experimental_attachments: message.experimental_attachments,
-        createdAt: message.createdAt || new Date(),
-        role: message.role,
-        content: message.content,
-      });
+      saveChatMessage({ message, chatId: id });
     },
     onError: (error) => {
       console.error(error);
@@ -86,18 +78,20 @@ export function Chat({
   const handleSubmit = useCallback(
     (event?: { preventDefault?: () => void }, options?: any) => {
       saveChatMessage({
-        id: generateUUID(),
+        message: {
+          id: generateUUID(),
+          parts: [
+            {
+              type: 'text',
+              text: input,
+            },
+          ],
+          experimental_attachments: options?.experimental_attachments || [],
+          createdAt: new Date(),
+          role: 'user',
+          content: input,
+        },
         chatId: id,
-        parts: [
-          {
-            type: 'text',
-            text: input,
-          },
-        ],
-        experimental_attachments: options?.experimental_attachments || [],
-        createdAt: new Date(),
-        role: 'user',
-        content: input,
       });
 
       return originalHandleSubmit(event, options);

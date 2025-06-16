@@ -3,10 +3,10 @@ import { notFound } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { Chat } from '@/components/chat';
-import { getMessagesByChatId, tryGetChatById } from '@/lib/db/queries';
+import { getAllMessagesByChatId, tryGetChatById } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
-import { dbMessageToUIMessage } from '@/lib/types/ui';
+import { dbMessageToUIMessage } from '@/lib/message-conversion';
 import { AnonymousChatLoader } from './anonymous-chat-loader';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
@@ -51,8 +51,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
     }
   }
 
-  const messagesFromDb = await getMessagesByChatId({
-    id,
+  const messagesFromDb = await getAllMessagesByChatId({
+    chatId: id,
   });
 
   const cookieStore = await cookies();

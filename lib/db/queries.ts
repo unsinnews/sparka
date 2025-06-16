@@ -148,6 +148,7 @@ export async function updateMessage({
         attachments: _message.attachments,
         createdAt: _message.createdAt,
         isPartial: _message.isPartial,
+        parentMessageId: _message.parentMessageId,
       })
       .where(eq(message.id, _message.id));
   } catch (error) {
@@ -156,15 +157,15 @@ export async function updateMessage({
   }
 }
 
-export async function getMessagesByChatId({ id }: { id: string }) {
+export async function getAllMessagesByChatId({ chatId }: { chatId: string }) {
   try {
     return await db
       .select()
       .from(message)
-      .where(eq(message.chatId, id))
+      .where(eq(message.chatId, chatId))
       .orderBy(asc(message.createdAt));
   } catch (error) {
-    console.error('Failed to get messages by chat id from database', error);
+    console.error('Failed to get all messages by chat ID', error);
     throw error;
   }
 }
@@ -458,7 +459,7 @@ export async function deleteMessagesByChatIdAfterMessageId({
       throw new Error('Target message not found in chat');
     }
 
-    // Get all messages after the target message (including the target itself)
+    // Delete all messages after the target message (including the target itself)
     const messagesToDelete = allMessages.slice(targetIndex);
     const messageIdsToDelete = messagesToDelete.map((msg) => msg.id);
 

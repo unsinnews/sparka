@@ -14,8 +14,9 @@ import {
   saveMessage,
   updateMessage,
   getMessageById,
-  getMessagesByChatId,
+  getAllMessagesByChatId,
 } from '@/lib/db/queries';
+import { getDefaultThread } from '@/lib/message-utils';
 import {
   generateUUID,
   getMostRecentUserMessage,
@@ -25,7 +26,7 @@ import { generateTitleFromUserMessage } from '../../actions';
 import type { YourToolName } from '@/lib/ai/tools/tools';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
 import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 import type { NextRequest } from 'next/server';
 import {
   determineStepTools as determineStepActiveTools,
@@ -187,7 +188,8 @@ export async function GET(request: NextRequest) {
      * resumable stream has concluded after reaching this point.
      */
 
-    const messages = await getMessagesByChatId({ id: chatId });
+    const allMessages = await getAllMessagesByChatId({ chatId });
+    const messages = getDefaultThread(allMessages);
     const mostRecentMessage = messages.at(-1);
 
     if (!mostRecentMessage || mostRecentMessage.role !== 'assistant') {
@@ -355,6 +357,7 @@ export async function POST(request: NextRequest) {
             createdAt: new Date(),
             annotations: userMessage.annotations,
             isPartial: false,
+            parentMessageId: userMessage.id,
           },
         });
       }
@@ -459,6 +462,7 @@ export async function POST(request: NextRequest) {
             createdAt: new Date(),
             annotations: [],
             isPartial: true,
+            parentMessageId: userMessage.id,
           },
         });
       }
@@ -541,6 +545,7 @@ export async function POST(request: NextRequest) {
                         createdAt: new Date(),
                         annotations: annotationStream.getAnnotations(),
                         isPartial: false,
+                        parentMessageId: userMessage.id,
                       },
                     });
                   }

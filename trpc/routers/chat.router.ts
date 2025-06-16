@@ -4,7 +4,7 @@ import {
   getChatById,
   getMessageById,
   deleteMessagesByChatIdAfterMessageId,
-  getMessagesByChatId,
+  getAllMessagesByChatId,
   updateChatVisiblityById,
 } from '@/lib/db/queries';
 import {
@@ -16,7 +16,7 @@ import { z } from 'zod';
 import { generateText } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
-import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/types/ui';
+import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/message-conversion';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -43,7 +43,7 @@ export const chatRouter = createTRPCRouter({
         });
       }
 
-      const dbMessages = await getMessagesByChatId({ id: input.chatId });
+      const dbMessages = await getAllMessagesByChatId({ chatId: input.chatId });
       return dbMessages.map(dbMessageToUIMessage);
     }),
 

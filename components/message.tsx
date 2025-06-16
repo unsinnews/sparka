@@ -20,7 +20,7 @@ import { Retrieve } from './retrieve';
 import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
-import type { YourUIMessage } from '@/lib/ai/tools/annotations';
+import type { YourUIMessage } from '@/lib/types/ui';
 import {
   SourcesAnnotations,
   ResearchUpdateAnnotations,

@@ -251,6 +251,7 @@ function PureMultimodalInput({
     setLocalStorageInput,
     width,
     chatId,
+    setChatId,
     data,
     isEditMode,
   ]);

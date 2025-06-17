@@ -14,6 +14,14 @@ const nextConfig: NextConfig = {
       {
         hostname: 'avatar.vercel.sh',
       },
+      {
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+        pathname: '**',
+      },
+      {
+        hostname: 'avatars.githubusercontent.com',
+      },
     ],
   },
   rewrites: async () => {

@@ -70,6 +70,7 @@
 [ ] Code
     [ ] Extend code editing and syntax hihglighting to typescript
     [ ] Add run support for JavaScript / TypeSCript
+[ ] Chat action buttons make smaller, remove borders
 
 [ ] Image generation
     [ ] Improve the tool description to make it more clear that it's an image generation tool
@@ -79,7 +80,7 @@
 [ ] Dont scroll to bottom when switching branches
 [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
 
-[ ] Chat action buttons make smaller, remove borders
+[ ] Prefetch chats in the background (the ones loaded in history)
 
 [ ] Create a menu in the assistant message actions to retry (creating a new branch)
 [ ] Optimize the Model Selector component

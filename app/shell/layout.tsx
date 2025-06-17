@@ -1,22 +1,23 @@
-import { cookies } from 'next/headers';
-import { SessionProvider } from 'next-auth/react';
-
-import { AppSidebar } from '@/components/app-sidebar';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { auth } from '../(auth)/auth';
 import Script from 'next/script';
 import { AnonymousSessionInit } from '@/components/anonymous-session-init';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { SessionProvider } from 'next-auth/react';
+import { auth } from '../(auth)/auth';
+import { cookies } from 'next/headers';
+import { DefaultModelProvider } from '@/providers/default-model-provider';
+import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
 
-export const experimental_ppr = true;
-
-export default async function Layout({
+export default async function ShellLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  console.log('Rendering Shell Layout');
   const [session, cookieStore] = await Promise.all([auth(), cookies()]);
   const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
 
+  const defaultModel =
+    cookieStore.get('chat-model')?.value ?? DEFAULT_CHAT_MODEL;
   return (
     <>
       <Script
@@ -27,8 +28,9 @@ export default async function Layout({
         <AnonymousSessionInit />
 
         <SidebarProvider defaultOpen={!isCollapsed}>
-          <AppSidebar user={session?.user} />
-          <SidebarInset>{children}</SidebarInset>
+          <DefaultModelProvider defaultModel={defaultModel}>
+            {children}
+          </DefaultModelProvider>
         </SidebarProvider>
       </SessionProvider>
     </>

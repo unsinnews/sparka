@@ -55,7 +55,7 @@ export function messageToYourUIMessage(
     role: message.role as YourUIMessage['role'],
     // Note: content will soon be deprecated in @ai-sdk/react
     content: '',
-    createdAt: message.createdAt,
+    createdAt: message.createdAt || new Date(),
     experimental_attachments: message.experimental_attachments ?? [],
     annotations: message.annotations as YourUIMessage['annotations'],
     parentMessageId: parentMessageId,

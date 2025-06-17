@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
-import { useParams } from 'next/navigation';
+import { useLocation } from 'react-router';
 
 interface ChatIdContextType {
   chatId: string | null;
@@ -10,8 +10,12 @@ interface ChatIdContextType {
 const ChatIdContext = createContext<ChatIdContextType | undefined>(undefined);
 
 export function ChatIdProvider({ children }: { children: ReactNode }) {
-  const params = useParams();
-  const chatId = (params?.id as string) || null;
+  const location = useLocation();
+
+  // Extract chat ID from path: /chat/[id] -> id, / -> null
+  const chatId = location.pathname.startsWith('/chat/')
+    ? location.pathname.split('/')[2] || null
+    : null;
 
   return (
     <ChatIdContext.Provider value={{ chatId }}>

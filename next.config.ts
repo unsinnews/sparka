@@ -16,6 +16,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  rewrites: async () => {
+    return [
+      {
+        source:
+          '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|auth|login|register|demo).*)',
+        destination: '/shell',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

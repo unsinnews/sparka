@@ -45,7 +45,6 @@
    [ ] Switch routes with react router instead of reloading site for them
 
 
-
 [ ] Chat sharing
     [ ] Shared chats should load from the db, even for unauthed users
         [ ] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
@@ -59,6 +58,12 @@
 
 
 ## Polishing
+
+
+[ ] When unauthed, the cookie should switch to default model if not in the free models
+[ ] Use image avatar from next-auth session
+
+[ ] React Query Prefetch for the selected route
 
 [ ] Code
     [ ] Extend code editing and syntax hihglighting to typescript

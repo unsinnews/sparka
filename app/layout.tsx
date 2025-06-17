@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { Providers } from './providers';
+import { GlobalProviders } from './globalproviders';
 
 import './globals.css';
 
@@ -69,7 +69,7 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <Providers>{children}</Providers>
+        <GlobalProviders>{children}</GlobalProviders>
       </body>
     </html>
   );

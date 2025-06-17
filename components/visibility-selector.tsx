@@ -23,8 +23,7 @@ import {
 } from './icons';
 import { useSession } from 'next-auth/react';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
-import { useGetAllChats } from '@/hooks/use-get-all-chats';
-import { useSetVisibility } from '@/hooks/use-chat-store';
+import { useGetAllChats, useSetVisibility } from '@/hooks/use-chat-store';
 
 export type VisibilityType = 'private' | 'public';
 

@@ -1,7 +1,6 @@
 'use client';
 
 import type { User } from 'next-auth';
-import { useRouter } from 'next/navigation';
 import { LogIn } from 'lucide-react';
 
 import { PlusIcon } from '@/components/icons';
@@ -19,11 +18,11 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import Link from 'next/link';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Link, useNavigate } from 'react-router';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -32,7 +31,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center">
             <Link
-              href="/"
+              to="/"
               onClick={() => {
                 setOpenMobile(false);
               }}
@@ -50,8 +49,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   className="p-2 h-fit"
                   onClick={() => {
                     setOpenMobile(false);
-                    router.push('/');
-                    router.refresh();
+                    navigate('/');
                   }}
                 >
                   <PlusIcon />
@@ -77,7 +75,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 className="bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground justify-start gap-3 h-10"
                 onClick={() => {
                   setOpenMobile(false);
-                  router.push('/login');
+                  navigate('/login');
                 }}
               >
                 <LogIn className="size-4" />

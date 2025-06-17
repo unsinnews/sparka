@@ -41,10 +41,16 @@
     [x] For thread switching, use setMessages from useChat
 
 
+[ ] Switch to client side navigation (like next-faster)
+   [ ] Switch routes with react router instead of reloading site for them
+
+
+
 [ ] Chat sharing
     [ ] Shared chats should load from the db, even for unauthed users
         [ ] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
     [ ] for authed users, trpc should prefetch the query for the chat message
+
 
 [ ] Define project Name
 [ ] Define project styles
@@ -54,7 +60,14 @@
 
 ## Polishing
 
+[ ] Code
+    [ ] Extend code editing and syntax hihglighting to typescript
+    [ ] Add run support for JavaScript / TypeSCript
 
+[ ] Image generation
+    [ ] Improve the tool description to make it more clear that it's an image generation tool
+
+[ ] Artifacts should belong to the current thread
 [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 [ ] Dont scroll to bottom when switching branches
 [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
@@ -65,8 +78,6 @@
 [ ] Optimize the Model Selector component
     [ ] with lazy loading 
     [ ] With memoization
-[ ] Switch to client side navigation (like next-faster)
-   [ ] Switch routes with react router instead of reloading site for them
 
 [ ] Anonymous message limits should be a number of credits.
     [ ] Increment message count for anyonymous on asssitant message finish

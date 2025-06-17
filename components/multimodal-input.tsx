@@ -44,7 +44,7 @@ import {
 import { MessageLimitDisplay } from './upgrade-cta/message-limit-display';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
-import { useNavigate } from 'react-router';
+import { useChatId } from '@/providers/chat-id-provider';
 
 function PureMultimodalInput({
   chatId,
@@ -85,7 +85,7 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<ChatInputTextAreaRef>(null);
   const { width } = useWindowSize();
-  const navigate = useNavigate();
+  const { setChatId } = useChatId();
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     'input',
     '',
@@ -217,8 +217,8 @@ function PureMultimodalInput({
   );
 
   const submitForm = useCallback(() => {
-    navigate(`/chat/${chatId}`);
-
+    window.history.replaceState({}, '', `/chat/${chatId}`);
+    setChatId(chatId);
     handleSubmit(undefined, {
       experimental_attachments: attachments,
       data,

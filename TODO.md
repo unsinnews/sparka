@@ -31,23 +31,14 @@
 [x] PDF models
 [x] Add Gemini
 
-[ ] Define project Name
-[ ] Define project styles
-[ ] Sign up with GitHub (auth block from shadcn)
-[ ] Update README.md
-
-
 [x] Restore model selector
-
-
 
 [x] Cleanup YourUIMessage, DBMessage, AnonymousMessage, Message, UIMessage
 
-
-[ ] Branching
+[x] Branching
     [x] User Message Edits should start a new branch
-    [ ] Allow user to switch branches in the UI
-    [ ] For thread switching, use setMessages from useChat
+    [x] Allow user to switch branches in the UI
+    [x] For thread switching, use setMessages from useChat
 
 
 [ ] Chat sharing
@@ -55,6 +46,10 @@
         [ ] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
     [ ] for authed users, trpc should prefetch the query for the chat message
 
+[ ] Define project Name
+[ ] Define project styles
+[ ] Sign up with GitHub (auth block from shadcn)
+[ ] Update README.md
 
 
 ## Polishing

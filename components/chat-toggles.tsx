@@ -35,19 +35,35 @@ function ToolToggle({
   disabled?: boolean;
 }) {
   const { data: session } = useSession();
-  const isAnonymous = !session?.user;
+  const isAuthenticated = !!session?.user;
   const [showLoginPopover, setShowLoginPopover] = useState(false);
 
   const handleToggle = (pressed: boolean) => {
     if (disabled) return;
-    if (isAnonymous) {
+    if (!isAuthenticated) {
       setShowLoginPopover(true);
-      return;
+    } else {
+      setEnabled(pressed);
     }
-    setEnabled(pressed);
   };
 
   const Icon = tool.icon;
+
+  if (isAuthenticated) {
+    return (
+      <Toggle
+        pressed={enabled}
+        onPressedChange={handleToggle}
+        variant="outline"
+        size="sm"
+        disabled={disabled}
+        className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50"
+      >
+        <Icon size={14} />
+        {tool.name}
+      </Toggle>
+    );
+  }
 
   return (
     <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>

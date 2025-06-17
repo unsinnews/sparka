@@ -62,6 +62,7 @@
 
 ## Polishing
 
+[ ] Get Chat by id in chat-page.tsx
 
 [ ] When unauthed, the cookie should switch to default model if not in the free models
 [ ] Use image avatar from next-auth session

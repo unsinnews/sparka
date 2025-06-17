@@ -52,7 +52,7 @@
 
 
 
-[ ] Rate limiting based on IP
+[x] Rate limiting based on IP
 
 [ ] Define project Name
 [ ] Define project styles

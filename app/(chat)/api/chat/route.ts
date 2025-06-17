@@ -52,6 +52,7 @@ import {
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
+import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 
 export const maxDuration = 60;
 
@@ -251,6 +252,32 @@ export async function POST(request: NextRequest) {
         return new Response('User not found', { status: 404 });
       }
     } else {
+      // Apply rate limiting for anonymous users
+      const clientIP = getClientIP(request);
+      const rateLimitResult = await checkAnonymousRateLimit(
+        clientIP,
+        redisPublisher,
+      );
+
+      if (!rateLimitResult.success) {
+        console.log(
+          `RESPONSE > POST /api/chat: Rate limit exceeded for IP ${clientIP}`,
+        );
+        return new Response(
+          JSON.stringify({
+            error: rateLimitResult.error,
+            type: 'RATE_LIMIT_EXCEEDED',
+          }),
+          {
+            status: 429,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(rateLimitResult.headers || {}),
+            },
+          },
+        );
+      }
+
       anonymousSession =
         (await getAnonymousSession()) || createAnonymousSession();
 
@@ -267,7 +294,10 @@ export async function POST(request: NextRequest) {
           }),
           {
             status: 402,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(rateLimitResult.headers || {}),
+            },
           },
         );
       }
@@ -286,7 +316,10 @@ export async function POST(request: NextRequest) {
           }),
           {
             status: 403,
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(rateLimitResult.headers || {}),
+            },
           },
         );
       }

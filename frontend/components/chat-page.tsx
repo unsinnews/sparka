@@ -28,13 +28,14 @@ export function ChatPage() {
     );
   }, [messages]);
 
-  if (!chat || !id) {
+  if ((!isChatLoading && !chat) || !id) {
     return notFound();
   }
 
   // Chat exists in DB - handle visibility and permissions
   // Note: In client-side rendering, we don't have server-side session
   // This would need to be adapted based on your auth strategy
+  // TODO: Chat sharing should be implemented with other strategy
 
   return (
     <>

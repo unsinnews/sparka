@@ -342,7 +342,6 @@ export function useSaveMessageMutation() {
     },
     onMutate: async ({ message, chatId, parentMessageId }) => {
       // Get the query key for messages
-
       const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
         chatId: chatId,
       });

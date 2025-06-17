@@ -85,7 +85,13 @@ const PurePreviewMessage = ({
           )}
         >
           {/* Content Column */}
-          <div className="flex flex-col gap-4 w-full">
+          <div
+            className={cn(
+              'flex flex-col gap-4 w-full',
+              message.role === 'user' && 'items-end',
+            )}
+          >
+            {' '}
             {message.isPartial && message.parts.length === 0 && (
               <div className="flex flex-col gap-2">
                 <Skeleton className="h-4 w-4/5 rounded-full" />
@@ -132,13 +138,10 @@ const PurePreviewMessage = ({
                             >
                               <div
                                 data-testid="message-content"
-                                className={cn(
-                                  'flex flex-col gap-4 w-full ml-4',
-                                  {
-                                    'bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700 text-left':
-                                      message.role === 'user',
-                                  },
-                                )}
+                                className={cn('flex flex-col gap-4 w-full', {
+                                  'bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700 text-left':
+                                    message.role === 'user',
+                                })}
                               >
                                 <AttachmentList
                                   attachments={
@@ -155,7 +158,7 @@ const PurePreviewMessage = ({
                       ) : (
                         <div
                           data-testid="message-content"
-                          className={cn('flex flex-col gap-4 w-full ml-4', {
+                          className={cn('flex flex-col gap-4 w-full', {
                             'bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700 text-left':
                               message.role === 'user',
                           })}
@@ -297,14 +300,12 @@ const PurePreviewMessage = ({
                 }
               }
             })}
-
             {message.annotations && (
               <SourcesAnnotations
                 annotations={message.annotations}
                 key={`sources-annotations-${message.id}`}
               />
             )}
-
             {!isReadonly && (
               <MessageActions
                 key={`action-${message.id}`}

@@ -7,8 +7,13 @@ import { getAllMessagesByChatId, tryGetChatById } from '@/lib/db/queries';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
 import { dbMessageToUIMessage } from '@/lib/message-conversion';
-import { AnonymousChatLoader } from './anonymous-chat-loader';
 import { getDefaultThread } from '@/lib/thread-utils';
+import { ChatIdProvider } from '@/providers/chat-id-provider';
+import { MessageTreeProvider } from '@/providers/message-tree-provider';
+import { trpc } from '@/trpc/server';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { makeQueryClient } from '@/trpc/query-client';
+import { AnonymousChatLoader } from './anonymous-chat-loader';
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
@@ -30,11 +35,17 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
     return (
       <>
-        <AnonymousChatLoader
-          chatId={id}
-          selectedChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
-        />
-        <DataStreamHandler id={id} />
+        <ChatIdProvider>
+          <MessageTreeProvider>
+            <AnonymousChatLoader
+              chatId={id}
+              selectedChatModel={
+                chatModelFromCookie?.value || DEFAULT_CHAT_MODEL
+              }
+            />
+            <DataStreamHandler id={id} />
+          </MessageTreeProvider>
+        </ChatIdProvider>
       </>
     );
   }
@@ -59,16 +70,34 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
 
   const initialThreadMessages = getDefaultThread(messagesFromDb);
 
+  const queryClient = makeQueryClient();
+
+  // Set the prefetched data directly in the query cache
+  queryClient.setQueryData(
+    trpc.chat.getMessagesByChatId.queryKey({
+      chatId: id,
+    }),
+    messagesFromDb.map(dbMessageToUIMessage),
+  );
+
   return (
     <>
-      <Chat
-        id={chat.id}
-        initialMessages={initialThreadMessages.map(dbMessageToUIMessage)}
-        selectedChatModel={chatModelFromCookie?.value || DEFAULT_CHAT_MODEL}
-        selectedVisibilityType={chat.visibility}
-        isReadonly={session?.user?.id !== chat.userId}
-      />
-      <DataStreamHandler id={id} />
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <ChatIdProvider>
+          <MessageTreeProvider>
+            <Chat
+              id={chat.id}
+              initialMessages={initialThreadMessages.map(dbMessageToUIMessage)}
+              selectedChatModel={
+                chatModelFromCookie?.value || DEFAULT_CHAT_MODEL
+              }
+              selectedVisibilityType={chat.visibility}
+              isReadonly={session?.user?.id !== chat.userId}
+            />
+            <DataStreamHandler id={id} />
+          </MessageTreeProvider>
+        </ChatIdProvider>
+      </HydrationBoundary>
     </>
   );
 }

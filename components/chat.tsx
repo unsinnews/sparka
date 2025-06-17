@@ -7,7 +7,7 @@ import type {
   Message,
 } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState, useCallback, useRef, useMemo } from 'react';
+import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -25,6 +25,7 @@ import { useSession } from 'next-auth/react';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { useSaveMessageMutation } from '@/hooks/use-chat-store';
+import { useMessageTree } from '@/providers/message-tree-provider';
 
 export function Chat({
   id,
@@ -42,6 +43,7 @@ export function Chat({
   const trpc = useTRPC();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
+  const { registerSetMessages } = useMessageTree();
 
   const lastMessageId = useRef<string | null>(
     initialMessages[initialMessages.length - 1]?.id || null,
@@ -85,6 +87,12 @@ export function Chat({
     experimental_resume,
     data: chatData,
   } = chatHelpers;
+
+  // Register setMessages with the MessageTreeProvider
+  useEffect(() => {
+    console.log('registering setMessages');
+    registerSetMessages(setMessages);
+  }, [setMessages, registerSetMessages]);
 
   const appendWithUpdateLastMessageId = useCallback(
     async (message: Message | CreateMessage, options?: ChatRequestOptions) => {

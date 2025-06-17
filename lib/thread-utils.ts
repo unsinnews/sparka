@@ -10,11 +10,6 @@ export interface MessageNode {
 export function getDefaultLeafMessage<T extends MessageNode>(
   allMessages: T[],
 ): T | null {
-  console.log(
-    '[getDefaultLeafMessage] Called with',
-    allMessages.length,
-    'messages',
-  );
   if (allMessages.length === 0) return null;
 
   // Sort by createdAt descending and return the first one
@@ -22,7 +17,6 @@ export function getDefaultLeafMessage<T extends MessageNode>(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
 
-  console.log('[getDefaultLeafMessage] Default leaf:', sorted[0]?.id);
   return sorted[0];
 }
 
@@ -31,12 +25,6 @@ export function buildThreadFromLeaf<T extends MessageNode>(
   allMessages: T[],
   leafMessageId: string,
 ): T[] {
-  console.log(
-    '[buildThreadFromLeaf] Starting with leaf:',
-    leafMessageId,
-    'total messages:',
-    allMessages.length,
-  );
   const messageMap = new Map<string, T>();
   allMessages.forEach((msg) => messageMap.set(msg.id, msg));
 
@@ -46,30 +34,16 @@ export function buildThreadFromLeaf<T extends MessageNode>(
 
   while (currentMessageId) {
     iteration++;
-    console.log(
-      `[buildThreadFromLeaf] Iteration ${iteration}, currentMessageId:`,
-      currentMessageId,
-    );
 
     if (iteration > 100) {
-      console.error(
-        '[buildThreadFromLeaf] INFINITE LOOP DETECTED - breaking after 100 iterations',
-      );
       break;
     }
 
     const currentMessage = messageMap.get(currentMessageId);
     if (!currentMessage) {
-      console.log('[buildThreadFromLeaf] Message not found, breaking');
       break;
     }
 
-    console.log(
-      '[buildThreadFromLeaf] Found message:',
-      currentMessage.id,
-      'parent:',
-      currentMessage.parentMessageId,
-    );
     thread.unshift(currentMessage);
 
     // Check for self-reference
@@ -84,18 +58,30 @@ export function buildThreadFromLeaf<T extends MessageNode>(
     currentMessageId = currentMessage.parentMessageId;
   }
 
-  console.log('[buildThreadFromLeaf] Final thread length:', thread.length);
   return thread;
 }
 
 // Get default thread (combination of the above two)
 export function getDefaultThread<T extends MessageNode>(allMessages: T[]): T[] {
-  console.log('[getDefaultThread] Called with', allMessages.length, 'messages');
   const defaultLeaf = getDefaultLeafMessage(allMessages);
   if (!defaultLeaf) {
-    console.log('[getDefaultThread] No default leaf found');
     return [];
   }
 
   return buildThreadFromLeaf(allMessages, defaultLeaf.id);
+}
+
+export function findLeafDfsToRightFromMessageId<T extends MessageNode>(
+  childrenMapSorted: Map<string | null, T[]>,
+  messageId: string,
+): T | null {
+  const children = childrenMapSorted.get(messageId);
+  if (!children || children.length === 0) return null;
+
+  const rightmostChild = children[children.length - 1];
+  const leaf = findLeafDfsToRightFromMessageId(
+    childrenMapSorted,
+    rightmostChild.id,
+  );
+  return leaf || rightmostChild;
 }

@@ -95,7 +95,7 @@ export function MessageEditor({
         handleSubmit={async (event, options) => {
           setIsSubmitting(true);
 
-          await deleteTrailingMessagesAsync({ messageId: message.id, chatId });
+          // await deleteTrailingMessagesAsync({ messageId: message.id, chatId });
 
           // chatHelpers.setInput(input);
 
@@ -129,21 +129,19 @@ export function MessageEditor({
             },
           );
 
-          if (!isAuthenticated) {
-            // Append doesn't perform a new submission. Therefore, for local storage, we need to save the message manually.
-            await saveMessageAsync({
-              message: {
-                content: input,
-                id: newMessagId,
-                role: 'user',
-                parts: [{ type: 'text', text: input }],
-                experimental_attachments: attachments,
-                createdAt: new Date(),
-              },
-              chatId,
-              parentMessageId: lastMessageId,
-            });
-          }
+          // Append doesn't perform a new submission. Therefore, we need to save manually to keep local state in sync.
+          await saveMessageAsync({
+            message: {
+              content: input,
+              id: newMessagId,
+              role: 'user',
+              parts: [{ type: 'text', text: input }],
+              experimental_attachments: attachments,
+              createdAt: new Date(),
+            },
+            chatId,
+            parentMessageId: lastMessageId,
+          });
         }}
         isEditMode={true}
         selectedModelId={selectedModelId}

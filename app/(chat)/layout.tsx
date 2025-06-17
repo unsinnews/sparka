@@ -3,10 +3,8 @@ import { SessionProvider } from 'next-auth/react';
 
 import { AppSidebar } from '@/components/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import { ChatIdProvider } from '@/providers/chat-id-provider';
 import { auth } from '../(auth)/auth';
 import Script from 'next/script';
-import { ActiveThreadProvider } from '@/providers/active-thread-provider';
 import { AnonymousSessionInit } from '@/components/anonymous-session-init';
 
 export const experimental_ppr = true;
@@ -27,14 +25,11 @@ export default async function Layout({
       />
       <SessionProvider session={session}>
         <AnonymousSessionInit />
-        <ChatIdProvider>
-          <ActiveThreadProvider>
-            <SidebarProvider defaultOpen={!isCollapsed}>
-              <AppSidebar user={session?.user} />
-              <SidebarInset>{children}</SidebarInset>
-            </SidebarProvider>
-          </ActiveThreadProvider>
-        </ChatIdProvider>
+
+        <SidebarProvider defaultOpen={!isCollapsed}>
+          <AppSidebar user={session?.user} />
+          <SidebarInset>{children}</SidebarInset>
+        </SidebarProvider>
       </SessionProvider>
     </>
   );

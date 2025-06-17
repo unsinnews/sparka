@@ -45,8 +45,7 @@
 
 
 [ ] Branching
-    [ ] User Message Edits should start a new branch
-    [ ] Createa a menu in the assistant message actions to retry (creating a new branch)
+    [x] User Message Edits should start a new branch
     [ ] Allow user to switch branches in the UI
     [ ] For thread switching, use setMessages from useChat
 
@@ -60,6 +59,12 @@
 
 ## Polishing
 
+[ ] Dont scroll to bottom when switching branches
+[ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
+
+[ ] Chat action buttons make smaller, remove borders
+
+[ ] Create a menu in the assistant message actions to retry (creating a new branch)
 [ ] Optimize the Model Selector component
     [ ] with lazy loading 
     [ ] With memoization

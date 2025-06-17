@@ -41,8 +41,8 @@
     [x] For thread switching, use setMessages from useChat
 
 
-[ ] Switch to client side navigation (like next-faster)
-   [ ] Switch routes with react router instead of reloading site for them
+[x] Switch to client side navigation (like next-faster)
+   [x] Switch routes with react router instead of reloading site for them
 
 
 [ ] Chat sharing
@@ -50,6 +50,9 @@
         [ ] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
     [ ] for authed users, trpc should prefetch the query for the chat message
 
+
+
+[ ] Rate limiting based on IP
 
 [ ] Define project Name
 [ ] Define project styles

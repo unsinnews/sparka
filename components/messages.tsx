@@ -67,6 +67,7 @@ function PureMessages({
                 ? votes.find((vote) => vote.messageId === message.id)
                 : undefined
             }
+            parentMessageId={messages[index - 1]?.id || null}
             chatHelpers={chatHelpers}
             isReadonly={isReadonly}
             selectedModelId={selectedModelId}

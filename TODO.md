@@ -59,6 +59,8 @@
 
 ## Polishing
 
+
+[ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 [ ] Dont scroll to bottom when switching branches
 [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
 

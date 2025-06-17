@@ -91,7 +91,10 @@ export function Chat({
   // Register setMessages with the MessageTreeProvider
   useEffect(() => {
     console.log('registering setMessages');
-    registerSetMessages(setMessages);
+    registerSetMessages((messages) => {
+      lastMessageId.current = messages[messages.length - 1]?.id || null;
+      return setMessages(messages);
+    });
   }, [setMessages, registerSetMessages]);
 
   const appendWithUpdateLastMessageId = useCallback(
@@ -147,18 +150,6 @@ export function Chat({
     data: chatData,
     setMessages,
   });
-
-  // const lastMessage =
-  //   chatHelpers.messages[chatHelpers.messages.length - 1] || null;
-  // useEffect(() => {
-  //   if (
-  //     lastMessage &&
-  //     lastMessage.role === 'user' &&
-  //     lastMessage.id !== lastMessageId.current
-  //   ) {
-  //     lastMessageId.current = lastMessage.id;
-  //   }
-  // }, [lastMessage]);
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),

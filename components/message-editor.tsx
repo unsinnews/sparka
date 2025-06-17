@@ -25,6 +25,7 @@ export type MessageEditorProps = {
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
   chatHelpers: UseChatHelpers;
   selectedModelId: string;
+  parentMessageId: string | null;
 };
 
 export function MessageEditor({
@@ -33,6 +34,7 @@ export function MessageEditor({
   setMode,
   chatHelpers,
   selectedModelId,
+  parentMessageId,
   onModelChange,
 }: MessageEditorProps & { onModelChange?: (modelId: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -102,14 +104,15 @@ export function MessageEditor({
           setMode('view');
 
           // Let MultimodalInput handle the actual submission
-          const index = chatHelpers.messages.findIndex(
-            (m) => m.id === message.id,
-          );
-          chatHelpers.setMessages(chatHelpers.messages.slice(0, index));
+
+          chatHelpers.setMessages((messages) => {
+            const index = chatHelpers.messages.findIndex(
+              (m) => m.id === message.id,
+            );
+            return messages.slice(0, index);
+          });
 
           const newMessagId = generateUUID();
-
-          const lastMessageId = chatHelpers.messages[index - 1]?.id || null;
 
           console.log('chatHelpers.messages', chatHelpers.messages);
           chatHelpers.append(
@@ -124,7 +127,7 @@ export function MessageEditor({
               ...options,
               data: {
                 ...(options?.data as ChatRequestToolsConfig),
-                parentMessageId: lastMessageId,
+                parentMessageId: parentMessageId,
               },
             },
           );
@@ -140,7 +143,7 @@ export function MessageEditor({
               createdAt: new Date(),
             },
             chatId,
-            parentMessageId: lastMessageId,
+            parentMessageId: parentMessageId,
           });
         }}
         isEditMode={true}

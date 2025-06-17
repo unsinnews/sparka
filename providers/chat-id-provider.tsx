@@ -28,8 +28,9 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
-    if (location.pathname) {
-      setChatId(location.pathname.split('/')[2] || null);
+    const pathname = location.pathname;
+    if (pathname?.startsWith('/chat/')) {
+      setChatId(pathname.split('/')[2] || null);
     } else {
       setChatId(null);
     }

@@ -55,12 +55,13 @@ export function PureMessageActions({
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex flex-row gap-1.5">
+      <div className="flex flex-row gap-0.5">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
-              className="py-1 px-1 h-fit text-muted-foreground"
-              variant="outline"
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
               onClick={async () => {
                 const textFromParts = message.parts
                   ?.filter((part) => part.type === 'text')
@@ -77,48 +78,50 @@ export function PureMessageActions({
                 toast.success('Copied to clipboard!');
               }}
             >
-              <CopyIcon />
+              <CopyIcon size={14} />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Copy</TooltipContent>
         </Tooltip>
 
         {hasSiblings && (
-          <>
+          <div className="flex gap-1 items-center justify-center">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  className="py-1 px-1 h-fit text-muted-foreground"
-                  variant="outline"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 px-0"
                   onClick={() => navigateToSibling(message.id, 'prev')}
                   disabled={siblingInfo.siblingIndex === 0}
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Previous version</TooltipContent>
             </Tooltip>
 
-            <div className="flex items-center justify-center px-0.5 py-1 h-fit text-xs text-muted-foreground rounded-md bg-background ">
+            <span className="text-muted-foreground text-xs">
               {siblingInfo.siblingIndex + 1}/{siblingInfo.siblings.length}
-            </div>
+            </span>
 
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  className="py-1 px-1 h-fit text-muted-foreground"
-                  variant="outline"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 px-0"
                   onClick={() => navigateToSibling(message.id, 'next')}
                   disabled={
                     siblingInfo.siblingIndex === siblingInfo.siblings.length - 1
                   }
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Next version</TooltipContent>
             </Tooltip>
-          </>
+          </div>
         )}
 
         {message.role === 'assistant' && (
@@ -127,9 +130,10 @@ export function PureMessageActions({
               <TooltipTrigger asChild>
                 <Button
                   data-testid="message-upvote"
-                  className="py-1 px-1 h-fit text-muted-foreground !pointer-events-auto"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 !pointer-events-auto"
                   disabled={vote?.isUpvoted || !session?.user}
-                  variant="outline"
                   onClick={() => {
                     toast.promise(
                       voteMessageMutation.mutateAsync({
@@ -145,7 +149,7 @@ export function PureMessageActions({
                     );
                   }}
                 >
-                  <ThumbUpIcon />
+                  <ThumbUpIcon size={14} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Upvote Response</TooltipContent>
@@ -155,8 +159,9 @@ export function PureMessageActions({
               <TooltipTrigger asChild>
                 <Button
                   data-testid="message-downvote"
-                  className="py-1 px-1 h-fit text-muted-foreground !pointer-events-auto"
-                  variant="outline"
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 !pointer-events-auto"
                   disabled={(vote && !vote.isUpvoted) || !session?.user}
                   onClick={() => {
                     toast.promise(
@@ -173,7 +178,7 @@ export function PureMessageActions({
                     );
                   }}
                 >
-                  <ThumbDownIcon />
+                  <ThumbDownIcon size={14} />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Downvote Response</TooltipContent>

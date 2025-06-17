@@ -20,9 +20,11 @@ import {
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Link, useNavigate } from 'react-router';
+import { useRouter } from 'next/navigation';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const navigate = useNavigate();
+  const router = useRouter();
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -75,7 +77,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 className="bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground justify-start gap-3 h-10"
                 onClick={() => {
                   setOpenMobile(false);
-                  navigate('/login');
+                  router.push('/login');
+                  router.refresh();
                 }}
               >
                 <LogIn className="size-4" />

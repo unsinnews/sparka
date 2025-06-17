@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
@@ -15,7 +14,6 @@ interface MessageLimitDisplayProps {
 }
 
 export function MessageLimitDisplay({ className }: MessageLimitDisplayProps) {
-  const router = useRouter();
   const { anonymousSession, isAuthenticated } = useAnonymousSession();
   const [dismissed, setDismissed] = useState(false);
 

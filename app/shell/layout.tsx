@@ -13,7 +13,6 @@ export default async function ShellLayout({
 }: {
   children: React.ReactNode;
 }) {
-  console.log('Rendering Shell Layout');
   const [session, cookieStore] = await Promise.all([auth(), cookies()]);
   const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
 

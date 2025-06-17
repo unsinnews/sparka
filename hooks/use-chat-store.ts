@@ -118,7 +118,6 @@ export function useMessagesQuery() {
       return {
         queryKey: options.queryKey, // Include chatId in query key for proper caching
         queryFn: async () => {
-          console.log('Loading anonymous messages for chatId:', chatId);
           // Load from localStorage for anonymous users
           try {
             // TODO: Replace with the actual function
@@ -495,7 +494,6 @@ export function useGetAllChats() {
             if (!savedChats) return [];
 
             const parsedChats = JSON.parse(savedChats) as AnonymousChat[];
-            console.log('parsedChats', parsedChats, session.id);
             return parsedChats
               .filter((chat: any) => chat.userId === session.id)
               .map((chat: any) => ({

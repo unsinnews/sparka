@@ -246,7 +246,6 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     [renameChatMutation],
   );
 
-  console.log('chatId', chatId);
   const handleDelete = async () => {
     if (!deleteId) return;
 

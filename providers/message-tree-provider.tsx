@@ -48,8 +48,6 @@ export function MessageTreeProvider({
     null,
   );
 
-  console.log('Rendering MessageTreeProvider');
-
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
     if (!chatId) return;

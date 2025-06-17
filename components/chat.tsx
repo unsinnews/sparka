@@ -77,7 +77,6 @@ export function Chat({
   const {
     messages: chatHelperMessages,
     setMessages,
-    handleSubmit: originalHandleSubmit,
     input,
     setInput,
     append,

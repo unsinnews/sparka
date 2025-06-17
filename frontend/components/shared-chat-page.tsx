@@ -4,22 +4,25 @@ import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
 import { useDefaultModel } from '@/providers/default-model-provider';
-import { useGetAllChats, useMessagesQuery } from '@/hooks/use-chat-store';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
+import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
 import { notFound } from 'next/navigation';
 
-export function ChatPage() {
+export function SharedChatPage() {
   const { id } = useParams<{ id: string }>();
   const defaultModel = useDefaultModel();
 
-  //   TODO: Replace by get Chat by id?
-  const { data: chats, isLoading: isChatLoading } = useGetAllChats();
-  const { data: messages, isLoading: isMessagesLoading } = useMessagesQuery();
-
-  const chat = chats?.find((c) => c.id === id);
-
-  // Get messages if chat exists
+  const {
+    data: chat,
+    isLoading: isChatLoading,
+    error: chatError,
+  } = usePublicChat(id as string);
+  const {
+    data: messages,
+    isLoading: isMessagesLoading,
+    error: messagesError,
+  } = usePublicChatMessages(id as string);
 
   const initialThreadMessages = useMemo(() => {
     if (!messages) return [];
@@ -28,14 +31,23 @@ export function ChatPage() {
     );
   }, [messages]);
 
-  if ((!isChatLoading && !chat) || !id) {
+  if (!id) {
     return notFound();
   }
 
-  // Chat exists in DB - handle visibility and permissions
-  // Note: In client-side rendering, we don't have server-side session
-  // This would need to be adapted based on your auth strategy
-  // TODO: Chat sharing should be implemented with other strategy
+  if (chatError || messagesError) {
+    return (
+      <div className="flex items-center justify-center h-dvh">
+        <div className="text-muted-foreground">
+          This chat is not available or has been set to private
+        </div>
+      </div>
+    );
+  }
+
+  if (!isChatLoading && !chat) {
+    return notFound();
+  }
 
   return (
     <>
@@ -47,8 +59,8 @@ export function ChatPage() {
           id={id}
           initialMessages={initialThreadMessages}
           selectedChatModel={defaultModel}
-          selectedVisibilityType={chat?.visibility ?? 'private'}
-          isReadonly={false} // You'll need to implement proper auth check here
+          selectedVisibilityType={chat?.visibility ?? 'public'}
+          isReadonly={true}
         />
       </WithSkeleton>
       <DataStreamHandler id={id} />

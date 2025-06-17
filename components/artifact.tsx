@@ -31,6 +31,7 @@ import type { YourUIMessage } from '@/lib/types/ui';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
+import { CloneChatButton } from '@/components/clone-chat-button';
 
 export const artifactDefinitions = [
   textArtifact,
@@ -395,7 +396,7 @@ function PureArtifact({
                   selectedModelId={selectedModelId}
                 />
 
-                {!isReadonly && (
+                {!isReadonly ? (
                   <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
                     <MultimodalInput
                       chatId={chatId}
@@ -416,6 +417,8 @@ function PureArtifact({
                       onModelChange={onModelChange}
                     />
                   </form>
+                ) : (
+                  <CloneChatButton chatId={chatId} />
                 )}
               </div>
             </motion.div>

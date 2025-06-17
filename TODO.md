@@ -46,13 +46,16 @@
 
 
 [ ] Chat sharing
-    [ ] Shared chats should load from the db, even for unauthed users
-        [ ] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
-    [ ] for authed users, trpc should prefetch the query for the chat message
+    [ ] Improve visibility selector with a modal 
+    [x] Shared chats should load from the db, even for unauthed users
+        [x] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
+    [ ] Artifacts sharing
 
 
 
 [x] Rate limiting based on IP
+
+[ ] History sidebar showing title is limited in size!
 
 [ ] Define project Name
 [ ] Define project styles

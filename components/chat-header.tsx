@@ -8,6 +8,7 @@ import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { type VisibilityType, VisibilitySelector } from './visibility-selector';
 import { useNavigate } from 'react-router';
+import { Share } from 'lucide-react';
 
 function PureChatHeader({
   chatId,
@@ -53,6 +54,24 @@ function PureChatHeader({
           selectedVisibilityType={selectedVisibilityType}
           className="order-1 md:order-3"
         />
+      )}
+      {isReadonly && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="order-1 md:order-3 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground text-sm">
+              <Share size={14} className="opacity-70" />
+              <span>Shared</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <div className="text-center">
+              <div className="font-medium">Shared Chat</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                This is a shared chat
+              </div>
+            </div>
+          </TooltipContent>
+        </Tooltip>
       )}
     </header>
   );

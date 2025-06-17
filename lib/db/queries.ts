@@ -134,6 +134,22 @@ export async function saveMessage({
   }
 }
 
+export async function saveMessages({
+  _messages,
+}: {
+  _messages: DBMessage[];
+}) {
+  try {
+    if (_messages.length === 0) {
+      return;
+    }
+    return await db.insert(message).values(_messages);
+  } catch (error) {
+    console.error('Failed to save messages in database', error);
+    throw error;
+  }
+}
+
 export async function updateMessage({
   _message,
 }: {

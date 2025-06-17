@@ -24,6 +24,7 @@ import {
 import { useSession } from 'next-auth/react';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { useGetAllChats, useSetVisibility } from '@/hooks/use-chat-store';
+import { toast } from 'sonner';
 
 export type VisibilityType = 'private' | 'public';
 
@@ -142,6 +143,37 @@ export function VisibilitySelector({
             </div>
           </DropdownMenuItem>
         ))}
+        {currentVisibilityType === 'public' && (
+          <DropdownMenuItem
+            onSelect={() => {
+              const shareUrl = `${window.location.origin}/share/${chatId}`;
+              navigator.clipboard.writeText(shareUrl);
+              toast.success('Share link copied to clipboard');
+              setOpen(false);
+            }}
+            className="gap-4 group/item flex flex-row justify-between items-center"
+          >
+            <div className="flex flex-col gap-1 items-start">
+              <div className="flex items-center gap-2">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                  <path d="m4 16 2-2v6a2 2 0 0 0 2 2h6l-2-2" />
+                </svg>
+                Copy Share Link
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Share this chat with others
+              </div>
+            </div>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

@@ -1,5 +1,6 @@
 import type { AnonymousChat, AnonymousMessage } from '@/lib/types/anonymous';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
+import { generateUUID } from '../utils';
 
 const ANONYMOUS_CHATS_KEY = 'anonymous-chats';
 const ANONYMOUS_MESSAGES_KEY = 'anonymous-messages';
@@ -198,4 +199,58 @@ export async function loadLocalAnonymousMessagesByChatId(
   return messages
     .filter((message) => message.chatId === chatId)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+}
+
+export async function copyAnonymousChat(
+  sourceChatId: string,
+  newChatId: string,
+): Promise<void> {
+  try {
+    const session = getAnonymousSession();
+    if (!session) {
+      throw new Error('No anonymous session found');
+    }
+
+    // Load all messages from the source chat
+    const sourceMessages =
+      await loadLocalAnonymousMessagesByChatId(sourceChatId);
+
+    if (sourceMessages.length === 0) {
+      throw new Error('Source chat has no messages to copy');
+    }
+
+    // Create new messages with the new chat ID
+    const copiedMessages = sourceMessages.map((message) => ({
+      ...message,
+      id: generateUUID(),
+      chatId: newChatId,
+      createdAt: new Date(),
+    }));
+
+    // Save all copied messages
+    const allMessages = await loadAnonymousMessagesFromStorage();
+    const updatedMessages = [...allMessages, ...copiedMessages];
+    localStorage.setItem(
+      ANONYMOUS_MESSAGES_KEY,
+      JSON.stringify(updatedMessages),
+    );
+
+    // Create a new chat entry
+    const firstMessage = sourceMessages[0];
+    const firstMessageContent =
+      Array.isArray(firstMessage.parts) && firstMessage.parts.length > 0
+        ? (firstMessage.parts[0] as any)?.text || 'New Chat'
+        : 'New Chat';
+    const newChat = {
+      id: newChatId,
+      title: `Copy of ${firstMessageContent.substring(0, 50)}...`,
+      createdAt: new Date(),
+      visibility: 'private' as const,
+    };
+
+    await saveAnonymousChatToStorage(newChat);
+  } catch (error) {
+    console.error('Error copying anonymous chat:', error);
+    throw error;
+  }
 }

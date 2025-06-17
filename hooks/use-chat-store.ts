@@ -23,10 +23,12 @@ import {
   renameAnonymousChat,
   saveAnonymousChatToStorage,
   deleteAnonymousTrailingMessages,
+  copyAnonymousChat,
 } from '@/lib/utils/anonymous-chat-storage';
 import type { Message } from 'ai';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
 import type { AnonymousChat } from '@/lib/types/anonymous';
+import { generateUUID } from '@/lib/utils';
 
 // Custom hook for chat mutations
 export function useSaveChat() {
@@ -313,6 +315,53 @@ export function useDeleteTrailingMessages() {
   });
 
   return deleteTrailingMessagesMutation;
+}
+
+export function useCopyChat() {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const getAllChatsQueryKey = useMemo(
+    () => trpc.chat.getAllChats.queryKey(),
+    [trpc.chat.getAllChats],
+  );
+
+  const copyPublicChatMutationOptions = useMemo(
+    () => trpc.chat.copyPublicChat.mutationOptions(),
+    [trpc.chat.copyPublicChat],
+  );
+
+  return useMutation({
+    mutationFn: async ({
+      chatId,
+    }: {
+      chatId: string;
+    }) => {
+      if (isAuthenticated) {
+        if (copyPublicChatMutationOptions?.mutationFn) {
+          return await copyPublicChatMutationOptions.mutationFn({ chatId });
+        } else {
+          throw new Error(
+            'Copy public chat mutation function is not available',
+          );
+        }
+      } else {
+        const newId = generateUUID();
+        await copyAnonymousChat(chatId, newId);
+        return { chatId: newId };
+      }
+    },
+    onSuccess: async () => {
+      await queryClient.refetchQueries({
+        queryKey: getAllChatsQueryKey,
+      });
+    },
+    onError: (error) => {
+      console.error('Failed to copy chat:', error);
+    },
+  });
 }
 
 export function useSaveMessageMutation() {

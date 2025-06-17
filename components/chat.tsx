@@ -26,6 +26,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { useSaveMessageMutation } from '@/hooks/use-chat-store';
 import { useMessageTree } from '@/providers/message-tree-provider';
+import { CloneChatButton } from '@/components/clone-chat-button';
 
 export function Chat({
   id,
@@ -226,7 +227,7 @@ export function Chat({
         />
 
         <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
-          {!isReadonly && (
+          {!isReadonly ? (
             <MultimodalInput
               chatId={id}
               input={input}
@@ -244,6 +245,8 @@ export function Chat({
               selectedModelId={localSelectedModelId}
               onModelChange={handleModelChange}
             />
+          ) : (
+            <CloneChatButton chatId={id} className="w-full" />
           )}
         </form>
       </div>

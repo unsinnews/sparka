@@ -248,7 +248,7 @@ export function PureModelSelector({
           <CommandGroup>
             <div className="flex">
               <ScrollArea className="max-h-[70vh]" type="scroll">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-2">
                   {filteredModels.map((chatModel) => {
                     const { id } = chatModel;
                     const modelDefinition = getModelDefinitionCached(id);

@@ -22,10 +22,10 @@ Sparka AI eliminates the need for multiple AI subscriptions by providing **unifi
 - **Code Execution**: Run Python, JavaScript, and more in secure sandboxes
 - **Document Creation**: Generate and edit documents, spreadsheets, and presentations
 
-### ⚡ **Enterprise-Ready Performance**
+### ⚡ **Other fEatures**
 - **Resumable Streams**: Never lose progress on long-running tasks
 - **Credit System**: Transparent, usage-based pricing model
-- **Real-time Collaboration**: Share and collaborate on AI conversations
+- **Share Chats**: Share and collaborate on AI conversations
 - **Anonymous Mode**: Try powerful features without account creation
 
 ---
@@ -45,25 +45,15 @@ Sparka AI eliminates the need for multiple AI subscriptions by providing **unifi
 - **Multi-Step Problem Solving**: Complex task decomposition
 - **Research Synthesis**: Combine information from multiple sources
 
-#### 💻 **Code & Development**
-- **Code Interpreter**: Execute Python, JavaScript, and shell commands
-- **Multi-Language Support**: Syntax highlighting for 20+ languages
-- **Interactive Development**: Real-time code execution and debugging
-- **File Processing**: Handle CSVs, documents, and data files
-
 #### 🔍 **Research & Knowledge**
 - **Web Search Integration**: Real-time web search with Tavily
-- **Document Processing**: Upload and analyze PDFs, images, and files
-- **Citation Tracking**: Proper source attribution and references
+- **Document Processing**: Upload and analyze PDFs and images
+- **Citation Tracking**: Proper source attribution with references
 
 #### 📊 **Content Creation**
 - **Interactive Artifacts**: Create documents, spreadsheets, and images
 - **Image Analysis**: Vision capabilities across multiple models
 
-### 🎨 **Modern User Experience**
-- **Responsive Design**: Optimized for desktop, tablet, and mobile
-- **Dark/Light Mode**: Seamless theme switching
-- **Real-time Updates**: Live streaming responses and notifications
 
 ---
 
@@ -104,8 +94,8 @@ Sparka AI is built with modern technologies for scalability and performance:
 
 1. **Clone and Install**
    ```bash
-   git clone https://github.com/franciscomoretti/sparka-ai.git
-   cd sparka-ai
+   git clone https://github.com/franciscomoretti/sparka.git
+   cd sparka
    bun install
    ```
 

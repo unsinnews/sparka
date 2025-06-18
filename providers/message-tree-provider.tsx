@@ -35,12 +35,18 @@ const MessageTreeContext = createContext<MessageTreeContextType | undefined>(
   undefined,
 );
 
+type QueryType = 'private' | 'public';
+
+interface MessageTreeProviderProps {
+  children: React.ReactNode;
+  queryType?: QueryType;
+}
+
 export function MessageTreeProvider({
   children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { chatId } = useChatId();
+  queryType = 'private',
+}: MessageTreeProviderProps) {
+  const { chatId, sharedChatId } = useChatId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [allMessages, setAllMessages] = useState<YourUIMessage[]>([]);
@@ -48,11 +54,17 @@ export function MessageTreeProvider({
     null,
   );
 
+  // Select the appropriate chat ID based on query type
+  const effectiveChatId = queryType === 'public' ? sharedChatId : chatId;
+
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
-    if (!chatId) return;
+    if (!effectiveChatId) return;
 
-    const queryKey = trpc.chat.getMessagesByChatId.queryKey({ chatId });
+    const queryKey =
+      queryType === 'public'
+        ? trpc.chat.getPublicChatMessages.queryKey({ chatId: effectiveChatId })
+        : trpc.chat.getMessagesByChatId.queryKey({ chatId: effectiveChatId });
 
     // Get initial data
     const initialData = queryClient.getQueryData<YourUIMessage[]>(queryKey);
@@ -80,7 +92,13 @@ export function MessageTreeProvider({
     });
 
     return unsubscribe;
-  }, [chatId, trpc.chat.getMessagesByChatId, queryClient]);
+  }, [
+    effectiveChatId,
+    queryType,
+    trpc.chat.getMessagesByChatId,
+    trpc.chat.getPublicChatMessages,
+    queryClient,
+  ]);
 
   const registerSetMessages = useCallback(
     (setMessages: (messages: YourUIMessage[]) => void) => {
@@ -134,7 +152,7 @@ export function MessageTreeProvider({
 
   const navigateToSibling = useCallback(
     (messageId: string, direction: 'prev' | 'next') => {
-      if (!allMessages || !setMessagesRef.current || !chatId) return;
+      if (!allMessages || !setMessagesRef.current || !effectiveChatId) return;
       const siblingInfo = getMessageSiblingInfo(messageId);
       if (!siblingInfo || siblingInfo.siblings.length <= 1) return;
 
@@ -155,7 +173,7 @@ export function MessageTreeProvider({
       );
       setMessagesRef.current(newThread);
     },
-    [allMessages, getMessageSiblingInfo, childrenMap, chatId],
+    [allMessages, getMessageSiblingInfo, childrenMap, effectiveChatId],
   );
 
   const value = useMemo(

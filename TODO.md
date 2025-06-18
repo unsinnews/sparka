@@ -65,28 +65,8 @@
 
 
 ## Polishing
-
-
-[x] When unauthed, the cookie should switch to default model if not in the free models
-[ ] Use image avatar from next-auth session
-
-
-[ ] Code
-    [ ] Extend code editing and syntax hihglighting to typescript
-    [ ] Add run support for JavaScript / TypeSCript
-[ ] Chat action buttons make smaller, remove borders
-
-[ ] Image generation
-    [ ] Improve the tool description to make it more clear that it's an image generation tool
-
-[ ] Artifacts should belong to the current thread
-[ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 [ ] Dont scroll to bottom when switching branches
-[ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
-
 [ ] Prefetch chats in the background (the ones loaded in history)
-
-[ ] Create a menu in the assistant message actions to retry (creating a new branch)
 [ ] Optimize the Model Selector component
     [ ] with lazy loading 
     [ ] With memoization
@@ -96,6 +76,26 @@
    [ ] Fix message Limits consistency between backend and frontend
        [ ] Disable send button when users reached the limit
        [ ] Create a better tooltip message when backend reaches rate-limit
+
+[x] When unauthed, the cookie should switch to default model if not in the free models
+[x] Chat action buttons make smaller, remove borders
+[x] Use image avatar from next-auth session
+
+
+[ ] Code
+    [ ] Extend code editing and syntax hihglighting to typescript
+    [ ] Add run support for JavaScript / TypeSCript
+
+[ ] Image generation
+    [ ] Improve the tool description to make it more clear that it's an image generation tool
+
+[ ] Artifacts should belong to the current thread
+[ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
+[ ] Perf optimization: On getQuery cache subscription, update the tree. Keep the message tree in a reference
+
+
+[ ] Create a menu in the assistant message actions to retry (creating a new branch)
+
 
 [ ] The useDeleteChat hook should use trpc, and have an optimistic mutation
 [ ] Should generate title be on user message or on assistant message? At the moment it's on user for anonymous and on assistant for authenticated
@@ -112,8 +112,8 @@
    [ ] Artifacts handling for anonymous users (how to support images, etc). Maybe tools are only for logged users
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
-[ ] Optimize the number of getVotes queries
-[ ] Why doe visibility selector takes chat visibility as a prop?
+[ ] Optimize the number of getVotes query calls
+[ ] Why does visibility selector takes chat visibility as a prop?
 [ ] Get Chat by id in chat-page.tsx
 [ ] React Query Prefetch for the selected route
 

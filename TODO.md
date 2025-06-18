@@ -54,17 +54,23 @@
 
 [x] Rate limiting based on IP
 
-[ ] Define project Name
+[x] Define project Name
 [x] Define project styles
-[ ] Sign up with GitHub (auth block from shadcn)
-    [ ] Sign in panel is not aligned horizontally
-[ ] OG Image
-[ ] Update README.md
-[ ] Add MIT License
+[x] Sign up with GitHub (auth block from shadcn)
+    [x] Sign in panel is not aligned horizontally
+[x] Update README.md
+[x] Add Apache License
 
+[ ] OG Image
 [ ] Fix vercel timing out
 
 [ ] Try functionality and do easy fixes for the happy paths
+
+
+
+
+
+
 
 
 ## Polishing

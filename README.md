@@ -130,3 +130,15 @@ Sparka AI is built with modern technologies for scalability and performance:
    ```
 
 Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI locally.
+
+---
+
+## 🙏 Acknowledgements
+
+Sparka AI was built on the shoulders of giants. We're deeply grateful to these outstanding open source projects that provided an excellent foundation:
+
+- **[Vercel AI Chatbot](https://github.com/vercel/ai-chatbot)** - A full-featured, hackable Next.js AI chatbot that provided the core architecture and AI SDK integration patterns that power Sparka AI's conversational interface.
+
+- **[Scira](https://github.com/zaidmukaddam/scira)** (formerly MiniPerplx) - A minimalistic AI-powered search engine that inspired our research capabilities and demonstrated elegant approaches to AI-powered information retrieval and citation.
+
+These projects exemplify the best of open source collaboration and have significantly accelerated our development. Thank you to all the contributors who made them possible! 🚀

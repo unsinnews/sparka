@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+    <div className="container mx-auto flex h-screen w-screen flex-col items-center justify-center">
       <Link
         href="/"
         className={cn(
@@ -26,7 +26,7 @@ export default function LoginPage() {
           Back
         </>
       </Link>
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6">
+      <div className="mx-auto flex w-full flex-col justify-center items-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
           {/* Assuming Icons.logo exists */}
           {/* <Icons.logo className="mx-auto h-6 w-6" /> */}

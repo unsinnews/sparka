@@ -579,13 +579,27 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
 export const MultimodalInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
+    // More specific equality checks to prevent unnecessary re-renders
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.status !== nextProps.status) return false;
-    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-    if (prevProps.data !== nextProps.data) return false;
     if (prevProps.isEditMode !== nextProps.isEditMode) return false;
     if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
     if (prevProps.onModelChange !== nextProps.onModelChange) return false;
+    if (prevProps.chatId !== nextProps.chatId) return false;
+    if (prevProps.className !== nextProps.className) return false;
+
+    // Deep comparison only for complex objects that actually change
+    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
+    if (!equal(prevProps.data, nextProps.data)) return false;
+
+    // Messages comparison - only check length and last message for performance
+    if (prevProps.messages.length !== nextProps.messages.length) return false;
+    if (prevProps.messages.length > 0 && nextProps.messages.length > 0) {
+      const prevLast = prevProps.messages[prevProps.messages.length - 1];
+      const nextLast = nextProps.messages[nextProps.messages.length - 1];
+      if (!equal(prevLast, nextLast)) return false;
+    }
+
     return true;
   },
 );

@@ -68,9 +68,9 @@
 ## Polishing
 [ ] Dont scroll to bottom when switching branches
 [ ] Prefetch chats in the background (the ones loaded in history)
-[ ] Optimize the Model Selector component
-    [ ] with lazy loading 
-    [ ] With memoization
+[x] Optimize the Model Selector component
+    [x] with lazy loading 
+    [x] With memoization
 
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 

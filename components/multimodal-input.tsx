@@ -435,6 +435,8 @@ function PureMultimodalInput({
                     toast.error(
                       'Please wait for the model to finish its response!',
                     );
+                  } else if (input.trim().length === 0) {
+                    toast.error('Please enter a message before sending!');
                   } else {
                     submitForm();
                   }
@@ -561,7 +563,7 @@ function PureSendButton({
         event.preventDefault();
         submitForm();
       }}
-      disabled={input.length === 0 || uploadQueue.length > 0}
+      disabled={input.trim().length === 0 || uploadQueue.length > 0}
     >
       <ArrowUpIcon size={14} />
     </Button>

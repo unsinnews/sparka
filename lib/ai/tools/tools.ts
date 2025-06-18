@@ -148,7 +148,7 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
   deepResearch: {
     name: 'deepResearch',
     description: 'Research a topic',
-    cost: 100,
+    cost: 50,
   },
 };
 

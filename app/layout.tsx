@@ -5,9 +5,10 @@ import { GlobalProviders } from './globalproviders';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
-  title: 'Next.js Chatbot Template',
-  description: 'Next.js chatbot template using the AI SDK.',
+  metadataBase: new URL('https://sparka.ai'),
+  title: 'Sparka AI - Unified AI Chat Platform',
+  description:
+    'Access powerful AI models from multiple providers in one unified interface. Code execution, web search, document creation, and advanced reasoning capabilities.',
 };
 
 export const viewport = {

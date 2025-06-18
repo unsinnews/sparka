@@ -1,85 +1,132 @@
-<a href="https://parlagen.com/">
-  <!-- <img alt="Next.js 14 and App Router-ready AI chatbot." src="app/(chat)/opengraph-image.png"> -->
-  <h1 align="center">Parlagen</h1>
-</a>
+<div align="center">
 
-<p align="center">
-  Multi-provider AI chat platform. Use models and features from multiple providers in a single interface.</p>
+# ⚡ Sparka AI
 
-<br/>
+**The most powerful unified AI platform for developers and power users**
 
-## Features
+*Access cutting-edge AI models, advanced reasoning, code execution, and research capabilities in one seamless interface*
 
-- [Next.js](https://nextjs.org) App Router
-  - Advanced routing for seamless navigation and performance
-  - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance
-- [AI SDK](https://sdk.vercel.ai/docs)
-  - Unified API for generating text, structured objects, and tool calls with LLMs
-  - Hooks for building dynamic chat and generative user interfaces
-  - Supports multiple model providers in a single interface
-- Multi-Provider AI Access
-  - Connect with AI models from various providers without multiple premium subscriptions
-  - Model selection and customization options
-  - Unified chat interface for different AI capabilities
-- [shadcn/ui](https://ui.shadcn.com)
-  - Styling with [Tailwind CSS](https://tailwindcss.com)
-  - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
-- Data Persistence
-  - Database integration for saving chat history and user data
-  - Efficient file storage capabilities
-- [NextAuth.js](https://github.com/nextauthjs/next-auth)
-  - Simple and secure authentication
-- Attachment Support
-- Web Search
-- Resumable Streams
-- Chat Sharing
+[**🚀 Try Sparka AI**](https://sparka.ai)
 
+</div>
 
-## Running locally
+---
 
-You will need to use the environment variables [defined in `.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
+## 🌟 Why Sparka AI?
 
-> Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various AI and authentication provider accounts.
+Sparka AI eliminates the need for multiple AI subscriptions by providing **unified access** to the most powerful AI models available today. Whether you're coding, researching, or creating, Sparka AI gives you enterprise-grade capabilities at your fingertips.
 
-1. Install Vercel CLI: `npm i -g vercel`
-2. Link local instance with Vercel and GitHub accounts (creates `.vercel` directory): `vercel link`
-3. Download your environment variables: `vercel env pull`
+### 🎯 **Built for Power Users**
+- **20+ AI Models**: Access Claude 4 Opus, GPT-4.1, Gemini 2.5, Grok 3, and more
+- **Advanced Reasoning**: Deep thinking models with extended reasoning capabilities
+- **Code Execution**: Run Python, JavaScript, and more in secure sandboxes
+- **Research Suite**: Deep research with web search and academic sources
+- **Document Creation**: Generate and edit documents, spreadsheets, and presentations
 
-```bash
-bun install
-bun dev
-```
+### ⚡ **Enterprise-Ready Performance**
+- **Resumable Streams**: Never lose progress on long-running tasks
+- **Credit System**: Transparent, usage-based pricing model
+- **Real-time Collaboration**: Share and collaborate on AI conversations
+- **Anonymous Mode**: Try powerful features without account creation
 
-Your app template should now be running on [localhost:3000](http://localhost:3000/).
+---
 
-## Cron Jobs
+## 🚀 Features
 
-The application includes automated cleanup jobs:
+### 🤖 **Multi-Provider AI Access**
+- **Anthropic**: Claude 4 Opus, Claude 3.7 Sonnet (Reasoning), Claude 3.5 Sonnet/Haiku
+- **OpenAI**: GPT-4.1 (1M context), o3/o3-mini (reasoning), GPT-4o, GPT-4 Turbo
+- **Google**: Gemini 2.5 Flash/Pro (reasoning), Gemini 2.0 Flash Lite
+- **xAI**: Grok 3 Beta (1M context), Grok 3 Fast/Mini, Grok 2 Vision
+- **Meta**: Llama models via multiple providers
+- **Mistral**: Pixtral, Ministral, and core Mistral models
 
-- **Attachment Cleanup**: Runs daily at 2 AM UTC to remove unused file attachments older than 1 hour
-- Requires `CRON_SECRET` environment variable for security
+### 🛠️ **Advanced Capabilities**
 
-To set up the cron job:
-1. Add `CRON_SECRET=your-secret-key` to your environment variables (generate with `openssl rand -hex 32`)
-2. The cron job is configured in `vercel.json` and will run automatically on Vercel
+#### 🧠 **Reasoning & Analysis**
+- **Extended Thinking**: Models that show their reasoning process
+- **Multi-Step Problem Solving**: Complex task decomposition
+- **Research Synthesis**: Combine information from multiple sources
 
-## Core Philosophy
+#### 💻 **Code & Development**
+- **Code Interpreter**: Execute Python, JavaScript, and shell commands
+- **Multi-Language Support**: Syntax highlighting for 20+ languages
+- **Interactive Development**: Real-time code execution and debugging
+- **File Processing**: Handle CSVs, documents, and data files
 
-Parlagen provides a unified platform for accessing the latest AI models and features from multiple providers in a single interface. Our goal is to eliminate the need for multiple premium subscriptions across different AI applications while offering powerful customization options for users to create their own AI workflows.
+#### 🔍 **Research & Knowledge**
+- **Web Search Integration**: Real-time web search with Tavily
+- **Deep Research**: Academic and comprehensive research capabilities
+- **Document Processing**: Upload and analyze PDFs, images, and files
+- **Citation Tracking**: Proper source attribution and references
 
-The platform emphasizes:
-- **Unified Access**: Connect with various AI model providers through one interface
-- **Cost Efficiency**: Avoid paying for multiple premium subscriptions 
-- **Customization**: Power users can create personalized AI workflows
-- **Simplicity**: Clean, intuitive interface that's easy to use and maintain
+#### 📊 **Content Creation**
+- **Interactive Artifacts**: Create documents, spreadsheets, and images
+- **Image Analysis**: Vision capabilities across multiple models
 
-## Inspiration
+### 🎨 **Modern User Experience**
+- **Responsive Design**: Optimized for desktop, tablet, and mobile
+- **Dark/Light Mode**: Seamless theme switching
+- **Real-time Updates**: Live streaming responses and notifications
 
-Parlagen draws inspiration from these excellent projects:
+---
 
-- [vercel/ai-chatbot](https://github.com/vercel/ai-chatbot/)
-- [zaidmukaddam/scira](https://github.com/zaidmukaddam/scira/)
+## 🏗️ Architecture
 
-## Principles
-- Simplicity for the user: The interface should be simple and easy to use.
-- Lean code that is easy to maintain and extend.
+Sparka AI is built with modern technologies for scalability and performance:
+
+### **Frontend**
+- **Next.js 15**: App Router with React Server Components
+- **TypeScript**: Full type safety and developer experience
+- **Tailwind CSS**: Responsive, utility-first styling
+- **Radix UI**: Accessible component primitives
+- **Framer Motion**: Smooth animations and transitions
+
+### **Backend**
+- **Vercel AI SDK**: Unified AI provider integration
+- **tRPC**: End-to-end typesafe APIs
+- **Drizzle ORM**: Type-safe database operations
+- **PostgreSQL**: Robust data persistence
+- **Redis**: Caching and real-time features
+
+### **AI Integration**
+- **Multi-Provider Architecture**: Seamless switching between AI providers
+- **Streaming Responses**: Real-time AI output with resumable streams
+- **Tool Integration**: Extensible system for AI capabilities
+- **Credit Management**: Fair usage tracking and billing
+
+---
+
+## 🚀 Getting Started
+
+### **Prerequisites**
+- Node.js 18+ or Bun
+- PostgreSQL database
+- Redis (optional, for scaling)
+
+### **Quick Start**
+
+1. **Clone and Install**
+   ```bash
+   git clone https://github.com/franciscomoretti/sparka-ai.git
+   cd sparka-ai
+   bun install
+   ```
+
+2. **Environment Setup**
+   ```bash
+   cp .env.example .env.local
+   # Configure your environment variables
+   ```
+
+3. **Database Setup**
+   ```bash
+   bun run db:migrate
+   ```
+
+4. **Development Server**
+   ```bash
+   bun dev
+   ```
+
+Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI locally.

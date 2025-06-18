@@ -92,7 +92,7 @@ export async function checkAnonymousRateLimit(
     limit: RATE_LIMIT.REQUESTS_PER_MINUTE,
     windowSize: RATE_LIMIT.WINDOW_SIZE_MINUTE,
     redisClient,
-    keyPrefix: 'parlagen:rate-limit:minute',
+    keyPrefix: 'sparka-ai:rate-limit:minute',
   });
 
   if (!minuteResult.success) {
@@ -113,7 +113,7 @@ export async function checkAnonymousRateLimit(
     limit: RATE_LIMIT.REQUESTS_PER_MONTH,
     windowSize: RATE_LIMIT.WINDOW_SIZE_MONTH,
     redisClient,
-    keyPrefix: 'parlagen:rate-limit:month',
+    keyPrefix: 'sparka-ai:rate-limit:month',
   });
 
   if (!monthResult.success) {

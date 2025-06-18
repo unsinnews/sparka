@@ -85,7 +85,7 @@ if (process.env.REDIS_URL) {
 
 const streamContext = createResumableStreamContext({
   waitUntil: after,
-  keyPrefix: 'parlagen:resumable-stream',
+  keyPrefix: 'sparka-ai:resumable-stream',
   ...(redisPublisher && redisSubscriber
     ? {
         publisher: redisPublisher,
@@ -149,8 +149,8 @@ export async function GET(request: NextRequest) {
     // Get streams from Redis for all users
     if (redisPublisher) {
       const keyPattern = isAnonymous
-        ? `parlagen:anonymous-stream:${chatId}:*`
-        : `parlagen:stream:${chatId}:*`;
+        ? `sparka-ai:anonymous-stream:${chatId}:*`
+        : `sparka-ai:stream:${chatId}:*`;
 
       const keys = await redisPublisher.keys(keyPattern);
       streamIds = keys
@@ -477,8 +477,8 @@ export async function POST(request: NextRequest) {
       // Record this new stream so we can resume later - use Redis for all users
       if (redisPublisher) {
         const keyPrefix = isAnonymous
-          ? `parlagen:anonymous-stream:${chatId}:${streamId}`
-          : `parlagen:stream:${chatId}:${streamId}`;
+          ? `sparka-ai:anonymous-stream:${chatId}:${streamId}`
+          : `sparka-ai:stream:${chatId}:${streamId}`;
 
         await redisPublisher.setEx(
           keyPrefix,
@@ -638,7 +638,7 @@ export async function POST(request: NextRequest) {
         // Set TTL on Redis keys to auto-expire after 10 minutes
         if (redisPublisher) {
           try {
-            const keyPattern = `parlagen:resumable-stream:rs:sentinel:${streamId}*`;
+            const keyPattern = `sparka-ai:resumable-stream:rs:sentinel:${streamId}*`;
             const keys = await redisPublisher.keys(keyPattern);
             if (keys.length > 0) {
               // Set 5 minute expiration on all stream-related keys
@@ -655,8 +655,8 @@ export async function POST(request: NextRequest) {
           // Clean up stream info from Redis for all users
           if (redisPublisher) {
             const keyPrefix = isAnonymous
-              ? `parlagen:anonymous-stream:${chatId}:${streamId}`
-              : `parlagen:stream:${chatId}:${streamId}`;
+              ? `sparka-ai:anonymous-stream:${chatId}:${streamId}`
+              : `sparka-ai:stream:${chatId}:${streamId}`;
 
             await redisPublisher.del(keyPrefix);
           }

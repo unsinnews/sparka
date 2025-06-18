@@ -42,7 +42,6 @@ export function Chat({
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const { registerSetMessages } = useMessageTree();
-
   const lastMessageId = useRef<string | null>(
     initialMessages[initialMessages.length - 1]?.id || null,
   );
@@ -142,7 +141,7 @@ export function Chat({
   // Auto-resume functionality
   useAutoResume({
     autoResume: true,
-    initialMessages: chatHelperMessages as YourUIMessage[],
+    initialMessages: initialMessages as YourUIMessage[],
     experimental_resume,
     data: chatData,
     setMessages,

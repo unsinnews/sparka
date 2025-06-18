@@ -37,6 +37,17 @@ export function ChatPage() {
   // This would need to be adapted based on your auth strategy
   // TODO: Chat sharing should be implemented with other strategy
 
+  if (isMessagesLoading || isChatLoading) {
+    return (
+      <WithSkeleton
+        isLoading={isChatLoading || isMessagesLoading}
+        className="w-full h-full"
+      >
+        <div className="flex h-screen w-full " />;
+      </WithSkeleton>
+    );
+  }
+
   return (
     <>
       <WithSkeleton

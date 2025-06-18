@@ -658,7 +658,7 @@ export async function POST(request: NextRequest) {
               ? `sparka-ai:anonymous-stream:${chatId}:${streamId}`
               : `sparka-ai:stream:${chatId}:${streamId}`;
 
-            await redisPublisher.del(keyPrefix);
+            await redisPublisher.expire(keyPrefix, 300);
           }
         } catch (cleanupError) {
           console.error('Failed to cleanup stream record:', cleanupError);

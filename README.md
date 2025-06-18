@@ -34,12 +34,10 @@ Sparka AI eliminates the need for multiple AI subscriptions by providing **unifi
 ## 🚀 Features
 
 ### 🤖 **Multi-Provider AI Access**
-- **Anthropic**: Claude 4 Opus, Claude 3.7 Sonnet (Reasoning), Claude 3.5 Sonnet/Haiku
-- **OpenAI**: GPT-4.1 (1M context), o3/o3-mini (reasoning), GPT-4o, GPT-4 Turbo
-- **Google**: Gemini 2.5 Flash/Pro (reasoning), Gemini 2.0 Flash Lite
-- **xAI**: Grok 3 Beta (1M context), Grok 3 Fast/Mini, Grok 2 Vision
-- **Meta**: Llama models via multiple providers
-- **Mistral**: Pixtral, Ministral, and core Mistral models
+- **Anthropic**: Claude 4 Opus, Claude 4 Sonnet, Claude 3.7 Sonnet (Reasoning), Claude 3.5 Sonnet, Claude 3.5 Haiku, Claude 3 Opus
+- **OpenAI**: GPT-4o, GPT-4o mini, GPT-4 Turbo, GPT-3.5 Turbo, GPT-3.5 Turbo Instruct
+- **Google**: Gemini 2.5 Flash Preview, Gemini 2.0 Flash Lite
+- **xAI**: Grok 3 Beta, Grok 3 Fast Beta, Grok 3 Mini Beta, Grok 3 Mini Fast Beta, Grok 2, Grok 2 Vision, Grok Vision Beta, Grok Beta
 
 ### 🛠️ **Advanced Capabilities**
 

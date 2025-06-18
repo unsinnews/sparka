@@ -55,12 +55,14 @@
 [x] Rate limiting based on IP
 
 [ ] Define project Name
-[ ] Define project styles
+[x] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
     [ ] Sign in panel is not aligned horizontally
 [ ] OG Image
 [ ] Update README.md
 [ ] Add MIT License
+
+[ ] Fix vercel timing out
 
 [ ] Try functionality and do easy fixes for the happy paths
 

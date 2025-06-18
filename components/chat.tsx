@@ -207,6 +207,7 @@ export function Chat({
           chatId={id}
           selectedModelId={localSelectedModelId}
           isReadonly={isReadonly}
+          hasMessages={chatHelperMessages.length > 0}
         />
 
         <Messages

@@ -460,11 +460,6 @@ export async function POST(request: NextRequest) {
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
     const contextForLLM = convertToCoreMessages(messages.slice(-5));
 
-    console.log('explicitlyRequestedTool', explicitlyRequestedTool);
-    console.log(
-      'contextForLLM',
-      contextForLLM[contextForLLM.length - 1].content,
-    );
     // Create AbortController with 55s timeout for credit cleanup
     const abortController = new AbortController();
     const timeoutId = setTimeout(async () => {

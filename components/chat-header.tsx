@@ -14,10 +14,12 @@ function PureChatHeader({
   chatId,
   selectedModelId,
   isReadonly,
+  hasMessages,
 }: {
   chatId: string;
   selectedModelId: string;
   isReadonly: boolean;
+  hasMessages: boolean;
 }) {
   const { open } = useSidebar();
   const navigate = useNavigate();
@@ -46,7 +48,7 @@ function PureChatHeader({
         </Tooltip>
       )}
 
-      {!isReadonly && (
+      {!isReadonly && hasMessages && (
         <ShareButton chatId={chatId} className="order-1 md:order-3" />
       )}
       {isReadonly && (
@@ -72,5 +74,8 @@ function PureChatHeader({
 }
 
 export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
-  return prevProps.selectedModelId === nextProps.selectedModelId;
+  return (
+    prevProps.selectedModelId === nextProps.selectedModelId &&
+    prevProps.hasMessages === nextProps.hasMessages
+  );
 });

@@ -2,7 +2,7 @@
 import { useWindowSize } from 'usehooks-ts';
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
-import { PlusIcon } from './icons';
+import { PlusIcon, GitIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -35,7 +35,7 @@ function PureChatHeader({
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
+              className="order-1 md:order-1 md:px-2 px-2 md:h-fit"
               onClick={() => {
                 navigate('/');
               }}
@@ -49,12 +49,12 @@ function PureChatHeader({
       )}
 
       {!isReadonly && hasMessages && (
-        <ShareButton chatId={chatId} className="order-1 md:order-3" />
+        <ShareButton chatId={chatId} className="order-2 md:order-2" />
       )}
       {isReadonly && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="order-1 md:order-3 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground text-sm">
+            <div className="order-2 md:order-2 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground text-sm">
               <Share size={14} className="opacity-70" />
               <span>Shared</span>
             </div>
@@ -69,6 +69,22 @@ function PureChatHeader({
           </TooltipContent>
         </Tooltip>
       )}
+
+      <Button
+        variant="ghost"
+        size="sm"
+        className="order-3 md:order-3 p-2 h-8 w-8 ml-auto"
+        asChild
+      >
+        <a
+          href="https://github.com/franciscomoretti/sparka"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center"
+        >
+          <GitIcon />
+        </a>
+      </Button>
     </header>
   );
 }

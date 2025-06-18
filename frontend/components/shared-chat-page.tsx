@@ -36,6 +36,7 @@ export function SharedChatPage() {
   }
 
   if (chatError || messagesError) {
+    // TODO: Replace for error page
     return (
       <div className="flex items-center justify-center h-dvh">
         <div className="text-muted-foreground">

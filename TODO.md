@@ -55,12 +55,13 @@
 
 [x] Rate limiting based on IP
 
-[ ] History sidebar showing title is limited in size!
-
 [ ] Define project Name
 [ ] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
+    [ ] Sign in panel is not aligned horizontally
 [ ] Update README.md
+
+[ ] Try functionality and do easy fixes for the happy paths
 
 
 ## Polishing
@@ -97,7 +98,6 @@
        [ ] Create a better tooltip message when backend reaches rate-limit
 
 [ ] The useDeleteChat hook should use trpc, and have an optimistic mutation
-[ ] Sign in panel is not aligned horizontally
 [ ] Should generate title be on user message or on assistant message? At the moment it's on user for anonymous and on assistant for authenticated
 
 [ ] More Gemini models

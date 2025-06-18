@@ -348,8 +348,20 @@ export function useCopyChat() {
           );
         }
       } else {
+        // Get original chat and messages from cache
+        const originalChat = queryClient.getQueryData(
+          trpc.chat.getPublicChat.queryKey({ chatId }),
+        );
+        const originalMessages = queryClient.getQueryData(
+          trpc.chat.getPublicChatMessages.queryKey({ chatId }),
+        );
+
+        if (!originalChat || !originalMessages) {
+          throw new Error('Original chat data not found in cache');
+        }
+
         const newId = generateUUID();
-        await copyAnonymousChat(chatId, newId);
+        await copyAnonymousChat(originalMessages, originalChat, newId);
         return { chatId: newId };
       }
     },

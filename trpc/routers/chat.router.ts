@@ -19,8 +19,7 @@ import { generateText } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
 import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/message-conversion';
-import { generateUUID } from '@/lib/utils';
-import type { DBMessage } from '@/lib/db/schema';
+import { generateUUID, cloneMessages } from '@/lib/utils';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -224,22 +223,11 @@ export const chatRouter = createTRPCRouter({
       await saveChat({
         id: newChatId,
         userId: ctx.user.id,
-        title: `${sourceChat.title}...`,
+        title: `${sourceChat.title}`,
       });
 
       // Copy all messages to the new chat
-      const messagesToInsert: typeof sourceMessages = [];
-      let lastUUID = null;
-      for (let i = 0; i < sourceMessages.length; i++) {
-        const newMessage: DBMessage = {
-          ...sourceMessages[i],
-          id: generateUUID(),
-          chatId: newChatId,
-          parentMessageId: lastUUID,
-        };
-        messagesToInsert.push(newMessage);
-        lastUUID = newMessage.id;
-      }
+      const messagesToInsert = cloneMessages(sourceMessages, newChatId);
 
       await saveMessages({ _messages: messagesToInsert });
 

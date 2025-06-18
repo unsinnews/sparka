@@ -309,15 +309,14 @@ const PurePreviewMessage = ({
                 key={`sources-annotations-${message.id}`}
               />
             )}
-            {!isReadonly && (
-              <MessageActions
-                key={`action-${message.id}`}
-                chatId={chatId}
-                message={message}
-                vote={vote}
-                isLoading={isLoading}
-              />
-            )}
+            <MessageActions
+              key={`action-${message.id}`}
+              chatId={chatId}
+              message={message}
+              vote={vote}
+              isLoading={isLoading}
+              isReadOnly={isReadonly}
+            />
           </div>
         </div>
       </motion.div>

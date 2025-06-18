@@ -25,17 +25,21 @@ export function PureMessageActions({
   message,
   vote,
   isLoading,
+  isReadOnly,
 }: {
   chatId: string;
   message: Message;
   vote: Vote | undefined;
   isLoading: boolean;
+  isReadOnly: boolean;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [_, copyToClipboard] = useCopyToClipboard();
   const { data: session } = useSession();
   const { getMessageSiblingInfo, navigateToSibling } = useMessageTree();
+
+  const isAuthenticated = !!session?.user;
 
   const voteMessageMutation = useMutation(
     trpc.vote.voteMessage.mutationOptions({
@@ -124,7 +128,7 @@ export function PureMessageActions({
           </div>
         )}
 
-        {message.role === 'assistant' && (
+        {message.role === 'assistant' && !isReadOnly && isAuthenticated && (
           <>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -133,7 +137,7 @@ export function PureMessageActions({
                   variant="ghost"
                   size="sm"
                   className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 !pointer-events-auto"
-                  disabled={vote?.isUpvoted || !session?.user}
+                  disabled={vote?.isUpvoted || !isAuthenticated}
                   onClick={() => {
                     toast.promise(
                       voteMessageMutation.mutateAsync({
@@ -195,6 +199,7 @@ export const MessageActions = memo(
   (prevProps, nextProps) => {
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
+    if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
     return true;
   },
 );

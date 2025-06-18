@@ -90,7 +90,7 @@ const PurePreviewMessage = ({
           <div
             className={cn(
               'flex flex-col gap-4 w-full',
-              message.role === 'user' && 'items-end',
+              message.role === 'user' && mode !== 'edit' && 'items-end',
             )}
           >
             {' '}

@@ -47,7 +47,7 @@ const ConcurrencyLimit = 1; // TODO: Create limits per service
 // take en user query, return a list of SERP queries
 async function generateNextStepQueries({
   query,
-  numQueries = 3,
+  numQueries = 2,
   learnings,
 }: {
   query: string;

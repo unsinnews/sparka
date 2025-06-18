@@ -97,6 +97,12 @@ This document provides comprehensive testing instructions for all major features
      - "What are the current stock prices for tech companies?"
     - Open the search info panel (above the assistant message)
 
+## Links in prompt
+
+- Prompt: "What's https://cloneathon.t3.chat?"
+- https://www.sparka.ai/chat/bcc91bb0-d255-4d2b-ac9a-d6a839f6248e
+
+
 ## 8. Edit Message Plus
 
 ### Testing Message Editing

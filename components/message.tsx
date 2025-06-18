@@ -234,9 +234,9 @@ const PurePreviewMessage = ({
                         <StockChartMessage result={null} args={args} />
                       ) : toolName === 'codeInterpreter' ? (
                         <CodeInterpreterMessage result={null} args={args} />
-                      ) : toolName !== 'deepResearch' &&
-                        // toolName !== 'reasonSearch' &&
-                        toolName !== 'webSearch' ? (
+                      ) : // toolName !== 'deepResearch' &&
+                      // toolName !== 'reasonSearch' &&
+                      toolName !== 'webSearch' ? (
                         <pre>{JSON.stringify(toolInvocation, null, 2)}</pre>
                       ) : null}
                     </div>
@@ -251,16 +251,16 @@ const PurePreviewMessage = ({
                     <div key={toolCallId}>
                       {toolName === 'getWeather' ? (
                         <Weather weatherAtLocation={result} />
-                      ) : (toolName === 'createDocument' ||
-                          toolName === 'deepResearch') &&
+                      ) : toolName === 'createDocument' &&
+                        //  ||   toolName === 'deepResearch'
                         shouldShowFullPreview ? (
                         <DocumentPreview
                           isReadonly={isReadonly}
                           result={result}
                           args={args}
                         />
-                      ) : toolName === 'createDocument' ||
-                        toolName === 'deepResearch' ? (
+                      ) : toolName === 'createDocument' ? (
+                        //  ||  toolName === 'deepResearch'
                         <DocumentToolResult
                           type="create"
                           // @ts-expect-error // TODO: fix this

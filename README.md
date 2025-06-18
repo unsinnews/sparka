@@ -18,9 +18,8 @@ Sparka AI eliminates the need for multiple AI subscriptions by providing **unifi
 
 ### 🎯 **Built for Power Users**
 - **20+ AI Models**: Access Claude 4 Opus, GPT-4.1, Gemini 2.5, Grok 3, and more
-- **Advanced Reasoning**: Deep thinking models with extended reasoning capabilities
+- **Advanced Reasoning**: Models with extended reasoning capabilities
 - **Code Execution**: Run Python, JavaScript, and more in secure sandboxes
-- **Research Suite**: Deep research with web search and academic sources
 - **Document Creation**: Generate and edit documents, spreadsheets, and presentations
 
 ### ⚡ **Enterprise-Ready Performance**
@@ -54,7 +53,6 @@ Sparka AI eliminates the need for multiple AI subscriptions by providing **unifi
 
 #### 🔍 **Research & Knowledge**
 - **Web Search Integration**: Real-time web search with Tavily
-- **Deep Research**: Academic and comprehensive research capabilities
 - **Document Processing**: Upload and analyze PDFs, images, and files
 - **Citation Tracking**: Proper source attribution and references
 

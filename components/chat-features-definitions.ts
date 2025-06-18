@@ -30,4 +30,4 @@ export const toolDefinitions: Record<ToolName, ToolDefinition> = {
   },
 };
 
-export const enabledTools: ToolName[] = ['webSearch', 'deepResearch'];
+export const enabledTools: ToolName[] = ['webSearch' /* 'deepResearch' */];

@@ -397,9 +397,10 @@ export async function POST(request: NextRequest) {
     }
 
     let explicitlyRequestedTool: YourToolName | null = null;
-    if (deepResearch) explicitlyRequestedTool = 'deepResearch';
-    // else if (reason) explicitlyRequestedTool = 'reasonSearch';
-    else if (webSearch) explicitlyRequestedTool = 'webSearch';
+    // if (deepResearch) explicitlyRequestedTool = 'deepResearch';
+    // // else if (reason) explicitlyRequestedTool = 'reasonSearch';
+    // else
+    if (webSearch) explicitlyRequestedTool = 'webSearch';
 
     const baseModelCost = getBaseModelCost(selectedChatModel);
 

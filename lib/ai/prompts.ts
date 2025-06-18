@@ -125,17 +125,17 @@ const getToolsPrompt = (activeTools: YourToolName[]) => {
 **When NOT to use \`readDocument\`:**
 - Do not use this for documents that haven't been created in the current conversation
 `,
-    deepResearch: `
-**When to use \`deepResearch\`:**
-- Use this for complex queries requiring:
-  - Multi-step research planning
-  - Parallel web and academic searches
-  - Deep analysis of findings
-  - Cross-referencing and validation
+    //     deepResearch: `
+    // **When to use \`deepResearch\`:**
+    // - Use this for complex queries requiring:
+    //   - Multi-step research planning
+    //   - Parallel web and academic searches
+    //   - Deep analysis of findings
+    //   - Cross-referencing and validation
 
-**When NOT to use \`deepResearch\`:**
-- Do not use this tool for simple queries that can be answered straight away.
-`,
+    // **When NOT to use \`deepResearch\`:**
+    // - Do not use this tool for simple queries that can be answered straight away.
+    // `,
   };
 
   return `

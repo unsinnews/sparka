@@ -47,7 +47,6 @@ export function ChatPage() {
           id={id}
           initialMessages={initialThreadMessages}
           selectedChatModel={defaultModel}
-          selectedVisibilityType={chat?.visibility ?? 'private'}
           isReadonly={false} // You'll need to implement proper auth check here
         />
       </WithSkeleton>

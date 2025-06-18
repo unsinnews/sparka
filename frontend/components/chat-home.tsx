@@ -15,7 +15,6 @@ export function ChatHome() {
         id={id}
         initialMessages={[]}
         selectedChatModel={defaultModel}
-        selectedVisibilityType="private"
         isReadonly={false}
       />
       <DataStreamHandler id={id} />

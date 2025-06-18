@@ -14,7 +14,6 @@ import { cn, generateUUID } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
-import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/types/ui';
@@ -32,13 +31,11 @@ export function Chat({
   id,
   initialMessages,
   selectedChatModel,
-  selectedVisibilityType,
   isReadonly,
 }: {
   id: string;
   initialMessages: Array<YourUIMessage>;
   selectedChatModel: string;
-  selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
   const trpc = useTRPC();
@@ -209,7 +206,6 @@ export function Chat({
         <ChatHeader
           chatId={id}
           selectedModelId={localSelectedModelId}
-          selectedVisibilityType={selectedVisibilityType}
           isReadonly={isReadonly}
         />
 

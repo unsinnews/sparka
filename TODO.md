@@ -45,11 +45,10 @@
    [x] Switch routes with react router instead of reloading site for them
 
 
-[ ] Chat sharing
-    [ ] Improve visibility selector with a modal 
+[x] Chat sharing
+    [x] Improve visibility selector with a modal 
     [x] Shared chats should load from the db, even for unauthed users
         [x] Share link should be different from normal url link. It should load the conversation into the session of the viewer.
-    [ ] Artifacts sharing
 
 
 
@@ -59,7 +58,9 @@
 [ ] Define project styles
 [ ] Sign up with GitHub (auth block from shadcn)
     [ ] Sign in panel is not aligned horizontally
+[ ] OG Image
 [ ] Update README.md
+[ ] Add MIT License
 
 [ ] Try functionality and do easy fixes for the happy paths
 
@@ -70,6 +71,8 @@
 [ ] Optimize the Model Selector component
     [ ] with lazy loading 
     [ ] With memoization
+
+[ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
 [ ] Anonymous message limits should be a number of credits.
     [ ] Increment message count for anyonymous on asssitant message finish
@@ -96,6 +99,12 @@
 
 [ ] Create a menu in the assistant message actions to retry (creating a new branch)
 
+
+
+[ ] Chat sharing
+    [ ] Artifacts sharing
+    [ ] Add "Make this chat discoverable" option to share modal
+    [ ] Add social media sharing buttons (LinkedIn, Reddit, X) to share modal
 
 [ ] The useDeleteChat hook should use trpc, and have an optimistic mutation
 [ ] Should generate title be on user message or on assistant message? At the moment it's on user for anonymous and on assistant for authenticated
@@ -127,7 +136,7 @@
 [ ] Add manus-like plan as a document
 [ ] Security: User should only be able to see their own chats.
 [ ] Migrate routes to TRPC (and use it in the frontend)
-[ ] Organize authorization as a layer at the beggining of each trpc
+[ ] Organize authorization as a layer at the beggining of each trpc procedure
 
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
 [ ] Propagate model selection to deep research / reason tools (and create new selectables for them)

@@ -60,7 +60,6 @@ export function SharedChatPage() {
           id={id}
           initialMessages={initialThreadMessages}
           selectedChatModel={defaultModel}
-          selectedVisibilityType={chat?.visibility ?? 'public'}
           isReadonly={true}
         />
       </WithSkeleton>

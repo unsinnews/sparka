@@ -7,9 +7,6 @@ import { memo, useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 import {
-  CheckCircleFillIcon,
-  GlobeIcon,
-  LockIcon,
   MoreHorizontalIcon,
   ShareIcon,
   TrashIcon,
@@ -29,10 +26,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuPortal,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -47,14 +40,13 @@ import {
 import { Input } from '@/components/ui/input';
 import type { UIChat } from '@/lib/types/ui';
 import { useSession } from 'next-auth/react';
-import { cn } from '@/lib/utils';
 import {
   useDeleteChat,
   useRenameChat,
-  useSetVisibility,
   useGetAllChats,
 } from '@/hooks/use-chat-store';
 import { useChatId } from '@/providers/chat-id-provider';
+import { ShareDialog } from '@/components/share-button';
 
 type GroupedChats = {
   today: UIChat[];
@@ -79,10 +71,10 @@ const PureChatItem = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(chat.title);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
-  const { mutate: setVisibility } = useSetVisibility();
 
   const handleRename = async () => {
     if (editTitle.trim() === '' || editTitle === chat.title) {
@@ -155,88 +147,13 @@ const PureChatItem = ({
             <span>Rename</span>
           </DropdownMenuItem>
 
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger
-              className={cn(
-                'cursor-pointer',
-                !isAuthenticated && 'opacity-50 cursor-not-allowed',
-              )}
-              disabled={!isAuthenticated}
-            >
-              <ShareIcon />
-              <span>Share</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem
-                  className="cursor-pointer flex-row justify-between"
-                  onClick={() => {
-                    setVisibility({
-                      chatId: chat.id,
-                      visibility: 'private',
-                    });
-                  }}
-                >
-                  <div className="flex flex-row gap-2 items-center">
-                    <LockIcon size={12} />
-                    <span>Private</span>
-                  </div>
-                  {chat.visibility === 'private' ? (
-                    <CheckCircleFillIcon />
-                  ) : null}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer flex-row justify-between"
-                  onClick={() => {
-                    setVisibility({
-                      chatId: chat.id,
-                      visibility: 'public',
-                    });
-                  }}
-                >
-                  <div className="flex flex-row gap-2 items-center">
-                    <GlobeIcon />
-                    <span>Public</span>
-                  </div>
-                  {chat.visibility === 'public' ? (
-                    <CheckCircleFillIcon />
-                  ) : null}
-                </DropdownMenuItem>
-                {chat.visibility === 'public' && (
-                  <DropdownMenuItem
-                    className="cursor-pointer"
-                    onClick={() => {
-                      const shareUrl = `${window.location.origin}/share/${chat.id}`;
-                      navigator.clipboard.writeText(shareUrl);
-                      toast.success('Share link copied to clipboard');
-                    }}
-                  >
-                    <div className="flex flex-row gap-2 items-center">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <rect
-                          width="14"
-                          height="14"
-                          x="8"
-                          y="8"
-                          rx="2"
-                          ry="2"
-                        />
-                        <path d="m4 16 2-2v6a2 2 0 0 0 2 2h6l-2-2" />
-                      </svg>
-                      <span>Copy Share Link</span>
-                    </div>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => setShareDialogOpen(true)}
+          >
+            <ShareIcon />
+            <span>Share</span>
+          </DropdownMenuItem>
 
           <DropdownMenuItem
             className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
@@ -247,6 +164,12 @@ const PureChatItem = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <ShareDialog
+        chatId={chat.id}
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+      />
     </SidebarMenuItem>
   );
 };

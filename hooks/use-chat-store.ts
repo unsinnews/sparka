@@ -486,31 +486,7 @@ export function useSetVisibility() {
         }: { chatId: string; visibility: 'private' | 'public' }) => {
           throw new Error('Not implemented');
         },
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({
-        queryKey: getAllChatsQueryKey,
-      });
-
-      const previousChats = queryClient.getQueryData(getAllChatsQueryKey);
-
-      queryClient.setQueryData(
-        getAllChatsQueryKey,
-        (old: UIChat[] | undefined) => {
-          if (!old) return old;
-          return old.map((c) =>
-            c.id === variables.chatId
-              ? { ...c, visibility: variables.visibility }
-              : c,
-          );
-        },
-      );
-
-      return { previousChats };
-    },
-    onError: (err, variables, context) => {
-      if (context?.previousChats) {
-        queryClient.setQueryData(getAllChatsQueryKey, context.previousChats);
-      }
+    onError: (err) => {
       toast.error('Failed to update chat visibility');
     },
     onSettled: () => {

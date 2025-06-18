@@ -6,19 +6,17 @@ import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { type VisibilityType, VisibilitySelector } from './visibility-selector';
+import { ShareButton } from './share-button';
 import { useNavigate } from 'react-router';
 import { Share } from 'lucide-react';
 
 function PureChatHeader({
   chatId,
   selectedModelId,
-  selectedVisibilityType,
   isReadonly,
 }: {
   chatId: string;
   selectedModelId: string;
-  selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
 }) {
   const { open } = useSidebar();
@@ -49,11 +47,7 @@ function PureChatHeader({
       )}
 
       {!isReadonly && (
-        <VisibilitySelector
-          chatId={chatId}
-          selectedVisibilityType={selectedVisibilityType}
-          className="order-1 md:order-3"
-        />
+        <ShareButton chatId={chatId} className="order-1 md:order-3" />
       )}
       {isReadonly && (
         <Tooltip>

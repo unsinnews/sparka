@@ -8,6 +8,7 @@ import { webSearch } from '@/lib/ai/tools/web-search';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
+import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
@@ -53,7 +54,7 @@ export function getTools({
     webSearch: webSearch({ session, dataStream }),
     stockChart,
     codeInterpreter,
-    // deepResearch: deepResearch({ session, dataStream, messageId }),
+    deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }
 
@@ -144,11 +145,11 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
     description: 'Interpret code in a virtual environment',
     cost: 10,
   },
-  // deepResearch: {
-  //   name: 'deepResearch',
-  //   description: 'Research a topic',
-  //   cost: 50,
-  // },
+  deepResearch: {
+    name: 'deepResearch',
+    description: 'Research a topic',
+    cost: 50,
+  },
 };
 
 export const allTools: YourToolName[] = Object.keys(

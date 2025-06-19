@@ -25,9 +25,8 @@ export function findLastArtifact(
         const toolInvocation = part.toolInvocation as YourToolInvocation;
         if (
           toolInvocation.state === 'result' &&
-          toolInvocation.toolName === 'createDocument'
-          // ||
-          // toolInvocation.toolName === 'deepResearch'
+          (toolInvocation.toolName === 'createDocument' ||
+            toolInvocation.toolName === 'deepResearch')
         ) {
           allArtifacts.push({
             messageIndex,

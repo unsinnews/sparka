@@ -68,6 +68,10 @@
 
 
 
+## Beta
+[ ] Switch queries to public agents for shared chats 
+[ ] Clone artifacts on message chat cloning, changing ownership
+[ ] Artifacts should belong to the current thread
 
 
 
@@ -100,7 +104,6 @@
 [ ] Image generation
     [ ] Improve the tool description to make it more clear that it's an image generation tool
 
-[ ] Artifacts should belong to the current thread
 [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 [ ] Perf optimization: On getQuery cache subscription, update the tree. Keep the message tree in a reference
 

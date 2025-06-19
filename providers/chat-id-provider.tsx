@@ -13,6 +13,7 @@ import { useLocation } from 'react-router';
 interface ChatIdContextType {
   chatId: string | null;
   sharedChatId: string | null;
+  isShared: boolean;
   setChatId: (chatId: string | null) => void;
 }
 
@@ -50,7 +51,12 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
   }, [location.pathname]);
 
   const value = useMemo(
-    () => ({ chatId, sharedChatId, setChatId }),
+    () => ({ 
+      chatId, 
+      sharedChatId, 
+      isShared: sharedChatId !== null,
+      setChatId 
+    }),
     [chatId, sharedChatId, setChatId],
   );
 

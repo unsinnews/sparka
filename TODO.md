@@ -71,6 +71,9 @@
     [ ] Artifacts should belong to the current thread
 
 
+[ ] Anonymous users artifacts
+    [ ] Store documents locally for anonymous users
+    [ ] Enable the generate document tool
 
 
 [ ] Images are treated as a document, and tool thinks it's not able to use them
@@ -82,6 +85,8 @@
 [ ] Prefetch chats in the background (the ones loaded in history)
 
 [ ] Try functionality and do easy fixes for the happy paths
+[ ] Favourite / Pinned chats
+
 
 
 ## Polishing

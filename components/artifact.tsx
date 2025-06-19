@@ -30,6 +30,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useDocuments } from '@/hooks/use-chat-store';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { CloneChatButton } from '@/components/clone-chat-button';
 
@@ -88,16 +89,11 @@ function PureArtifact({
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
-  const { data: documents, isLoading: isDocumentsFetching } = useQuery(
-    trpc.document.getDocuments.queryOptions(
-      {
-        id: artifact.documentId,
-      },
-      {
-        enabled:
-          artifact.documentId !== 'init' && artifact.status !== 'streaming',
-      },
-    ),
+  const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
+    artifact.documentId,
+    { 
+      enabled: artifact.documentId !== 'init' && artifact.status !== 'streaming' 
+    }
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');

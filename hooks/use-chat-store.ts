@@ -108,7 +108,7 @@ export function useMessagesQuery() {
 
   // Memoize the tRPC query options for messages by chat ID
   const getMessagesByChatIdQueryOptions = useMemo(() => {
-    const options = trpc.chat.getMessagesByChatId.queryOptions({
+    const options = trpc.chat.getChatMessages.queryOptions({
       chatId: chatId || '',
     });
     if (isAuthenticated) {
@@ -135,7 +135,7 @@ export function useMessagesQuery() {
         enabled: !!chatId,
       };
     }
-  }, [trpc.chat.getMessagesByChatId, isAuthenticated, chatId]);
+  }, [trpc.chat.getChatMessages, isAuthenticated, chatId]);
 
   // Query for messages by chat ID (only when chatId is available)
   return useQuery(getMessagesByChatIdQueryOptions);
@@ -254,10 +254,10 @@ export function useDeleteTrailingMessages() {
   const invalidateMessagesByChatId = useCallback(
     (chatId: string) => {
       queryClient.invalidateQueries({
-        queryKey: trpc.chat.getMessagesByChatId.queryKey({ chatId }),
+        queryKey: trpc.chat.getChatMessages.queryKey({ chatId }),
       });
     },
-    [queryClient, trpc.chat.getMessagesByChatId],
+    [queryClient, trpc.chat.getChatMessages],
   );
 
   // Delete trailing messages mutation
@@ -275,7 +275,7 @@ export function useDeleteTrailingMessages() {
         },
     onMutate: async (variables) => {
       const { messageId, chatId } = variables;
-      const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+      const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
         chatId,
       });
 
@@ -404,7 +404,7 @@ export function useSaveMessageMutation() {
     },
     onMutate: async ({ message, chatId, parentMessageId }) => {
       // Get the query key for messages
-      const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+      const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
         chatId: chatId,
       });
 
@@ -454,7 +454,7 @@ export function useSaveMessageMutation() {
         });
       } else {
         // Check if this this the fist message in the cache
-        const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+        const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
           chatId: chatId,
         });
         const messages = queryClient.getQueryData(messagesQueryKey);
@@ -504,6 +504,31 @@ export function useSetVisibility() {
     },
   });
 }
+export function useDocuments(id?: string, options?: { enabled?: boolean }) {
+  const trpc = useTRPC();
+  const { isShared } = useChatId();
+  
+  const documentsQueryOptions = useMemo(() => {
+    if (isShared) {
+      return trpc.document.getPublicDocuments.queryOptions(
+        { id: id || '' },
+        {
+          enabled: options?.enabled ?? !!id,
+        }
+      );
+    } else {
+      return trpc.document.getDocuments.queryOptions(
+        { id: id || '' },
+        {
+          enabled: options?.enabled ?? !!id,
+        }
+      );
+    }
+  }, [trpc.document.getDocuments, trpc.document.getPublicDocuments, id, options?.enabled, isShared]);
+
+  return useQuery(documentsQueryOptions);
+}
+
 export function useGetAllChats() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;

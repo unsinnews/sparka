@@ -27,7 +27,7 @@ export const chatRouter = createTRPCRouter({
     return chats.map(dbChatToUIChat);
   }),
 
-  getMessagesByChatId: protectedProcedure
+  getChatMessages: protectedProcedure
     .input(
       z.object({
         chatId: z.string().uuid(),

@@ -319,6 +319,31 @@ export async function getDocumentsById({
   }
 }
 
+export async function getPublicDocumentsById({ id }: { id: string }) {
+  try {
+    const documents = await db
+      .select({
+        id: document.id,
+        createdAt: document.createdAt,
+        title: document.title,
+        content: document.content,
+        kind: document.kind,
+        userId: document.userId,
+        messageId: document.messageId,
+      })
+      .from(document)
+      .innerJoin(message, eq(document.messageId, message.id))
+      .innerJoin(chat, eq(message.chatId, chat.id))
+      .where(and(eq(document.id, id), eq(chat.visibility, 'public')))
+      .orderBy(asc(document.createdAt));
+
+    return documents;
+  } catch (error) {
+    console.error('Failed to get public documents by id from database');
+    throw error;
+  }
+}
+
 export async function getDocumentById({ id }: { id: string }) {
   try {
     const [selectedDocument] = await db

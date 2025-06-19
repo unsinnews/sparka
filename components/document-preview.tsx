@@ -22,6 +22,7 @@ import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
 import { useTRPC } from '@/trpc/react';
 import { useQuery } from '@tanstack/react-query';
+import { useDocuments } from '@/hooks/use-chat-store';
 
 interface DocumentPreviewProps {
   isReadonly: boolean;
@@ -37,10 +38,10 @@ export function DocumentPreview({
   const { artifact, setArtifact } = useArtifact();
   const trpc = useTRPC();
 
-  const { data: documents, isLoading: isDocumentsFetching } = useQuery({
-    ...trpc.document.getDocuments.queryOptions({ id: result?.id }),
-    enabled: !!result?.id,
-  });
+  const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
+    result?.id,
+    { enabled: !!result?.id }
+  );
 
   const previewDocument = useMemo(() => documents?.[0], [documents]);
   const hitboxRef = useRef<HTMLDivElement>(null);

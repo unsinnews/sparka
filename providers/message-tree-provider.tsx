@@ -64,7 +64,7 @@ export function MessageTreeProvider({
     const queryKey =
       queryType === 'public'
         ? trpc.chat.getPublicChatMessages.queryKey({ chatId: effectiveChatId })
-        : trpc.chat.getMessagesByChatId.queryKey({ chatId: effectiveChatId });
+        : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
 
     // Get initial data
     const initialData = queryClient.getQueryData<YourUIMessage[]>(queryKey);
@@ -95,7 +95,7 @@ export function MessageTreeProvider({
   }, [
     effectiveChatId,
     queryType,
-    trpc.chat.getMessagesByChatId,
+    trpc.chat.getChatMessages,
     trpc.chat.getPublicChatMessages,
     queryClient,
   ]);

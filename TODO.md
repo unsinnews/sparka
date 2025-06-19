@@ -65,9 +65,12 @@
 
 
 ## Beta
+
 [ ] Sharing
-    [ ] Switch queries to public agents for shared chats 
+    [x] Switch queries to public for shared chats 
     [ ] Clone artifacts on message chat cloning, changing ownership
+    [ ] Apply the isShared flag to the MessageTreeProvider
+    [ ] Move the MessageTreeProvider back to the all routes layout level
     [ ] Artifacts should belong to the current thread
 
 

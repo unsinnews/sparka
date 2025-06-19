@@ -72,9 +72,12 @@
 
 
 
+
 [ ] Images are treated as a document, and tool thinks it's not able to use them
 
 [ ] OG Image
+[ ] Favicon
+[ ] Revamp theme (color, borders, rounding, etc)
 [ ] Fix vercel timing out
 [ ] Prefetch chats in the background (the ones loaded in history)
 

@@ -329,8 +329,8 @@ export function useCopyChat() {
   );
 
   const copyPublicChatMutationOptions = useMemo(
-    () => trpc.chat.copyPublicChat.mutationOptions(),
-    [trpc.chat.copyPublicChat],
+    () => trpc.chat.cloneSharedChat.mutationOptions(),
+    [trpc.chat.cloneSharedChat],
   );
 
   return useMutation({

@@ -187,7 +187,7 @@ export const chatRouter = createTRPCRouter({
       return dbMessages.map(dbMessageToUIMessage);
     }),
 
-  copyPublicChat: protectedProcedure
+  cloneSharedChat: protectedProcedure
     .input(
       z.object({
         chatId: z.string().uuid(),

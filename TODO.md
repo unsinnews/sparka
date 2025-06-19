@@ -61,25 +61,28 @@
 [x] Update README.md
 [x] Add Apache License
 
-[ ] OG Image
-[ ] Fix vercel timing out
-
-[ ] Try functionality and do easy fixes for the happy paths
 
 
 
 ## Beta
-[ ] Switch queries to public agents for shared chats 
-[ ] Clone artifacts on message chat cloning, changing ownership
-[ ] Artifacts should belong to the current thread
+[ ] Sharing
+    [ ] Switch queries to public agents for shared chats 
+    [ ] Clone artifacts on message chat cloning, changing ownership
+    [ ] Artifacts should belong to the current thread
 
 
 
+[ ] Images are treated as a document, and tool thinks it's not able to use them
+
+[ ] OG Image
+[ ] Fix vercel timing out
+[ ] Prefetch chats in the background (the ones loaded in history)
+
+[ ] Try functionality and do easy fixes for the happy paths
 
 
 ## Polishing
 [ ] Dont scroll to bottom when switching branches
-[ ] Prefetch chats in the background (the ones loaded in history)
 [x] Optimize the Model Selector component
     [x] with lazy loading 
     [x] With memoization

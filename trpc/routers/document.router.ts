@@ -72,6 +72,6 @@ export const documentRouter = createTRPCRouter({
         messageId: lastDocument.messageId,
       });
 
-      return document;
+      return {success: true};
     }),
 });

@@ -27,6 +27,7 @@ import {
   cloneAnonymousChat,
   loadAnonymousDocumentsByMessageIds,
   loadAnonymousDocumentsByDocumentId,
+  saveAnonymousDocument,
 } from '@/lib/utils/anonymous-chat-storage';
 import type { Message } from 'ai';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
@@ -539,54 +540,67 @@ export function useSaveDocument(
   const isAuthenticated = !!session?.user;
   const anonymousSession = getAnonymousSession();
 
-  return useMutation(
-    trpc.document.saveDocument.mutationOptions({
-      onMutate: async (newDocument) => {
-        const queryKey = trpc.document.getDocuments.queryKey({ id: newDocument.id });
-        
-        // Cancel any outgoing refetches
-        await queryClient.cancelQueries({ queryKey });
-
-        // Snapshot the previous value
-        const previousDocuments =
-          queryClient.getQueryData<Document[]>(queryKey) ?? [];
-
-        // Optimistically add the new document to the list
-        const optimisticData = [
-          ...previousDocuments,
-          {
+  return useMutation({
+    mutationFn: isAuthenticated
+      ? trpc.document.saveDocument.mutationOptions().mutationFn
+      : async (newDocument: any) => {
+          const documentToSave = {
             id: newDocument.id,
             createdAt: new Date(),
             title: newDocument.title,
             content: newDocument.content,
             kind: newDocument.kind,
-            userId: isAuthenticated ? (userId || '') : (anonymousSession?.id || ''), // Ensure always string
+            userId: anonymousSession?.id || '',
             messageId: messageId,
-          },
-        ];
-        
-        queryClient.setQueryData(queryKey, optimisticData);
+          };
+          await saveAnonymousDocument(documentToSave);
+          return {success: true};
+        },
+    onMutate: async (newDocument) => {
+      const queryKey = trpc.document.getDocuments.queryKey({ id: newDocument.id });
+      
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
 
-        return { previousDocuments, newDocument };
-      },
-      onError: (err, newDocument, context) => {
-        // Rollback to previous documents on error
-        if (context?.previousDocuments) {
-          const queryKey = trpc.document.getDocuments.queryKey({ id: newDocument.id });
-          queryClient.setQueryData(queryKey, context.previousDocuments);
-        }
-      },
-      onSettled: (result, error, params) => {
-        // Invalidate queries to ensure consistency
-        queryClient.invalidateQueries({
-          queryKey: trpc.document.getDocuments.queryKey({ id: params.id }),
-        });
-        
-        // Call custom onSettled if provided
-        options?.onSettled?.(result, error, params);
-      },
-    }),
-  );
+      // Snapshot the previous value
+      const previousDocuments =
+        queryClient.getQueryData<Document[]>(queryKey) ?? [];
+
+      // Optimistically add the new document to the list
+      const optimisticData = [
+        ...previousDocuments,
+        {
+          id: newDocument.id,
+          createdAt: new Date(),
+          title: newDocument.title,
+          content: newDocument.content,
+          kind: newDocument.kind,
+          userId: isAuthenticated ? (userId || '') : (anonymousSession?.id || ''), // Ensure always string
+          messageId: messageId,
+        },
+      ];
+      
+      queryClient.setQueryData(queryKey, optimisticData);
+
+      return { previousDocuments, newDocument };
+    },
+    onError: (err, newDocument, context) => {
+      // Rollback to previous documents on error
+      if (context?.previousDocuments) {
+        const queryKey = trpc.document.getDocuments.queryKey({ id: newDocument.id });
+        queryClient.setQueryData(queryKey, context.previousDocuments);
+      }
+    },
+    onSettled: (result, error, params) => {
+      // Invalidate queries to ensure consistency
+      queryClient.invalidateQueries({
+        queryKey: trpc.document.getDocuments.queryKey({ id: params.id }),
+      });
+      
+      // Call custom onSettled if provided
+      options?.onSettled?.(result, error, params);
+    },
+  });
 }
 
 export function useDocuments(id: string, disable: boolean) {

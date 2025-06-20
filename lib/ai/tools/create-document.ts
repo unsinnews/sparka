@@ -97,11 +97,6 @@ export async function createDocument({
   });
 
   dataStream.writeData({
-    type: 'message-id',
-    content: messageId,
-  });
-
-  dataStream.writeData({
     type: 'title',
     content: title,
   });
@@ -134,9 +129,9 @@ export async function createDocument({
 
   return {
     id,
-    messageId,
     title,
     kind,
     content: 'A document was created and is now visible to the user.',
+    success: true as const, 
   };
 }

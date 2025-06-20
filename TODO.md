@@ -68,7 +68,9 @@
 
 [ ] Sharing
     [x] Switch queries to public for shared chats 
-    [ ] Clone artifacts on message chat cloning, changing ownership
+    [x] Clone artifacts on message chat cloning, changing ownership
+    [ ] Update artifact save mutation to work locally
+    [ ] Clone attachments on message chat cloning, changing ownership
     [ ] Apply the isShared flag to the MessageTreeProvider
     [ ] Move the MessageTreeProvider back to the all routes layout level
     [ ] Artifacts should belong to the current thread
@@ -79,7 +81,15 @@
     [ ] Enable the generate document tool
 
 
+[ ] Bug: Plus button doesn't change to home Sparka sometimes (after getting an artifact/error?)
+[ ] Bug: On mobile, Text and spacing in multimodal input footer should be smaller
+
+
+
 [ ] Images are treated as a document, and tool thinks it's not able to use them
+
+[ ] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 
+    [ ] Decouple from chat so that typing experience can be faster
 
 [ ] OG Image
 [ ] Favicon
@@ -90,6 +100,10 @@
 [ ] Try functionality and do easy fixes for the happy paths
 [ ] Favourite / Pinned chats
 
+[ ] Showing preview of last document in chat, should also consider updated document
+
+
+[ ] Replace Anonymous Session ID by hardcoded "anonymous" userID ? What's are the pros/cons?
 
 
 ## Polishing
@@ -151,6 +165,8 @@
 [ ] Get Chat by id in chat-page.tsx
 [ ] React Query Prefetch for the selected route
 
+
+[ ] Migrate artifacts to ID + version or just ID as the main key
 
 ### Backend
 [x] Create a button to Deep Research

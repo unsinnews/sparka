@@ -29,6 +29,7 @@ export const updateDocument = ({
 
       if (!document) {
         return {
+          success: false as const,
           error: 'Document not found',
         };
       }
@@ -36,11 +37,6 @@ export const updateDocument = ({
       dataStream.writeData({
         type: 'clear',
         content: document.title,
-      });
-
-      dataStream.writeData({
-        type: 'message-id',
-        content: messageId,
       });
 
       const documentHandler = documentHandlersByArtifactKind.find(
@@ -64,10 +60,10 @@ export const updateDocument = ({
 
       return {
         id,
-        messageId,
         title: document.title,
         kind: document.kind,
         content: 'The document has been updated successfully.',
+        success: true as const,
       };
     },
   });

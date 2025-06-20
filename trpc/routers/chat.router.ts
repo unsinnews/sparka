@@ -8,6 +8,8 @@ import {
   updateChatVisiblityById,
   saveChat,
   saveMessages,
+  getDocumentsByMessageIds,
+  saveDocuments,
 } from '@/lib/db/queries';
 import {
   createTRPCRouter,
@@ -19,7 +21,8 @@ import { generateText } from 'ai';
 import { myProvider } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
 import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/message-conversion';
-import { generateUUID, cloneMessages } from '@/lib/utils';
+import { generateUUID } from '@/lib/utils';
+import { cloneMessagesWithDocuments } from '@/lib/clone-messages';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -216,6 +219,12 @@ export const chatRouter = createTRPCRouter({
         });
       }
 
+      // Get all documents associated with the source messages
+      const sourceMessageIds = sourceMessages.map(msg => msg.id);
+      const sourceDocuments = await getDocumentsByMessageIds({
+        messageIds: sourceMessageIds,
+      });
+
       // Create a new chat for the user
       const newChatId = generateUUID();
 
@@ -226,10 +235,19 @@ export const chatRouter = createTRPCRouter({
         title: `${sourceChat.title}`,
       });
 
-      // Copy all messages to the new chat
-      const messagesToInsert = cloneMessages(sourceMessages, newChatId);
+      // Clone messages and documents with updated IDs
+      const { clonedMessages, clonedDocuments } = cloneMessagesWithDocuments(
+        sourceMessages,
+        sourceDocuments,
+        newChatId,
+        ctx.user.id
+      );
 
-      await saveMessages({ _messages: messagesToInsert });
+      // Save cloned messages first, then documents due to foreign key dependency
+      await saveMessages({ _messages: clonedMessages });
+      if (clonedDocuments.length > 0) {
+        await saveDocuments({ documents: clonedDocuments });
+      }
 
       return { chatId: newChatId };
     }),

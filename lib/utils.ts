@@ -72,39 +72,6 @@ export function generateUUID(): string {
   });
 }
 
-function addToolMessageToChat({
-  toolMessage,
-  messages,
-}: {
-  toolMessage: CoreToolMessage;
-  messages: Array<Message>;
-}): Array<Message> {
-  return messages.map((message) => {
-    if (message.toolInvocations) {
-      return {
-        ...message,
-        toolInvocations: message.toolInvocations.map((toolInvocation) => {
-          const toolResult = toolMessage.content.find(
-            (tool) => tool.toolCallId === toolInvocation.toolCallId,
-          );
-
-          if (toolResult) {
-            return {
-              ...toolInvocation,
-              state: 'result',
-              result: toolResult.result,
-            };
-          }
-
-          return toolInvocation;
-        }),
-      };
-    }
-
-    return message;
-  });
-}
-
 type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage;
 type ResponseMessage = ResponseMessageWithoutId & { id: string };
 
@@ -183,41 +150,4 @@ export function getTrailingMessageId({
   return trailingMessage.id;
 }
 
-export function cloneMessages<
-  T extends { id: string; chatId: string; parentMessageId?: string | null },
->(sourceMessages: T[], newChatId: string): T[] {
-  // First pass: Create mapping from old IDs to new IDs
-  const idMap = new Map<string, string>();
-  for (const message of sourceMessages) {
-    idMap.set(message.id, generateUUID());
-  }
 
-  // Second pass: Clone messages using the ID mapping
-  const clonedMessages: T[] = [];
-  for (const message of sourceMessages) {
-    const newId = idMap.get(message.id);
-    if (!newId) {
-      throw new Error(`Message ID ${message.id} not found in mapping`);
-    }
-
-    let newParentId: string | null = null;
-    if (message.parentMessageId) {
-      newParentId = idMap.get(message.parentMessageId) || null;
-      if (!newParentId) {
-        throw new Error(
-          `Parent message ID ${message.parentMessageId} not found in mapping`,
-        );
-      }
-    }
-
-    const clonedMessage: T = {
-      ...message,
-      id: newId,
-      chatId: newChatId,
-      parentMessageId: newParentId,
-    };
-    clonedMessages.push(clonedMessage);
-  }
-
-  return clonedMessages;
-}

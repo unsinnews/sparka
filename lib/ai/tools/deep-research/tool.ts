@@ -101,7 +101,10 @@ export const deepResearch = ({
         //   learnings,
         //   visitedUrls,
         // };
-        return report;
+        return {
+          ...report,
+          format: 'report' as const,
+        };
       } else {
         const answer = await writeFinalAnswer({
           prompt: combinedQuery,
@@ -111,10 +114,11 @@ export const deepResearch = ({
         console.log(`\n\nFinal Answer:\n\n${answer}`);
         console.log('\nAnswer has been saved to answer.md');
         return {
-          success: true,
+          success: true as const,
           answer,
           learnings,
           visitedUrls,
+          format: 'learnings' as const,
         };
       }
     },

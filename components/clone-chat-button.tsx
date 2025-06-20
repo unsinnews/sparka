@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useCopyChat } from '@/hooks/use-chat-store';
+import { useCloneChat } from '@/hooks/use-chat-store';
 import { Loader2, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ interface CloneChatButtonProps {
 
 export function CloneChatButton({ chatId, className }: CloneChatButtonProps) {
   const navigate = useNavigate();
-  const copyChat = useCopyChat();
+  const copyChat = useCloneChat();
 
   const handleCloneChat = async () => {
     try {

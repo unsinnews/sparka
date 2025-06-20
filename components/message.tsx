@@ -213,7 +213,7 @@ const PurePreviewMessage = ({
                       {toolName === 'getWeather' ? (
                         <Weather />
                       ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
+                        <DocumentPreview isReadonly={isReadonly} args={args} messageId={message.id} />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall
                           type="update"
@@ -258,6 +258,7 @@ const PurePreviewMessage = ({
                           isReadonly={isReadonly}
                           result={result}
                           args={args}
+                          messageId={message.id}
                         />
                       ) : toolName === 'createDocument' ||
                         toolName === 'deepResearch' ? (
@@ -266,6 +267,7 @@ const PurePreviewMessage = ({
                           // @ts-expect-error // TODO: fix this
                           result={result}
                           isReadonly={isReadonly}
+                          messageId={message.id}
                         />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolResult
@@ -273,6 +275,7 @@ const PurePreviewMessage = ({
                           // @ts-expect-error // TODO: fix this
                           result={result}
                           isReadonly={isReadonly}
+                          messageId={message.id}
                         />
                       ) : toolName === 'requestSuggestions' ? (
                         <DocumentToolResult
@@ -280,7 +283,8 @@ const PurePreviewMessage = ({
                           // @ts-expect-error // TODO: fix this
                           result={result}
                           isReadonly={isReadonly}
-                        />
+                          messageId={message.id}
+                          />
                       ) : toolName === 'retrieve' ? (
                         // @ts-expect-error // TODO: fix this
                         <Retrieve result={result} />

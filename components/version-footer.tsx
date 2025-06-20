@@ -10,8 +10,7 @@ import { getDocumentTimestampByIndex } from '@/lib/utils';
 import { LoaderIcon } from './icons';
 import { Button } from './ui/button';
 import { useArtifact } from '@/hooks/use-artifact';
-import { useTRPC } from '@/trpc/react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useSaveDocument } from '@/hooks/use-chat-store';
 
 interface VersionFooterProps {
   handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
@@ -25,71 +24,11 @@ export const VersionFooter = ({
   currentVersionIndex,
 }: VersionFooterProps) => {
   const { artifact } = useArtifact();
-  const trpc = useTRPC();
-  const queryClient = useQueryClient();
 
   const { width } = useWindowSize();
   const isMobile = width < 768;
 
-  const saveDocumentMutation = useMutation(
-    trpc.document.saveDocument.mutationOptions({
-      onMutate: async (newDoc) => {
-        const queryKey = trpc.document.getDocuments.queryKey({
-          id: artifact.documentId,
-        });
-        await queryClient.cancelQueries({ queryKey });
-
-        const previousDocuments =
-          queryClient.getQueryData<Document[]>(queryKey);
-
-        if (previousDocuments && documents) {
-          const optimisticData = documents.filter((document) =>
-            isAfter(
-              new Date(document.createdAt),
-              new Date(
-                getDocumentTimestampByIndex(documents, currentVersionIndex),
-              ),
-            ),
-          );
-
-          // Add the restored version as a new document
-          const versionToRestore = documents[currentVersionIndex];
-          if (versionToRestore) {
-            const restoredDocument: Document = {
-              ...versionToRestore,
-              createdAt: new Date(),
-              content: newDoc.content,
-              title: newDoc.title,
-              kind: newDoc.kind,
-              messageId: artifact.messageId,
-            };
-            optimisticData.push(restoredDocument);
-          }
-
-          queryClient.setQueryData<Document[]>(queryKey, optimisticData);
-        }
-
-        return { previousDocuments };
-      },
-      onError: (err, newDoc, context) => {
-        if (context?.previousDocuments) {
-          const queryKey = trpc.document.getDocuments.queryKey({
-            id: artifact.documentId,
-          });
-          queryClient.setQueryData<Document[]>(
-            queryKey,
-            context.previousDocuments,
-          );
-        }
-      },
-      onSettled: () => {
-        const queryKey = trpc.document.getDocuments.queryKey({
-          id: artifact.documentId,
-        });
-        queryClient.invalidateQueries({ queryKey });
-      },
-    }),
-  );
+  const saveDocumentMutation = useSaveDocument(artifact.documentId, artifact.messageId);
 
   if (!documents) return;
 

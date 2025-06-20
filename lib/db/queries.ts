@@ -418,6 +418,48 @@ export async function getSuggestionsByDocumentId({
   }
 }
 
+export async function getDocumentsByMessageIds({
+  messageIds,
+}: {
+  messageIds: string[];
+}) {
+  if (messageIds.length === 0) return [];
+  
+  try {
+    return await db
+      .select()
+      .from(document)
+      .where(inArray(document.messageId, messageIds))
+      .orderBy(asc(document.createdAt));
+  } catch (error) {
+    console.error('Failed to get documents by message IDs from database');
+    throw error;
+  }
+}
+
+export async function saveDocuments({
+  documents,
+}: {
+  documents: Array<{
+    id: string;
+    title: string;
+    kind: ArtifactKind;
+    content: string | null;
+    userId: string;
+    messageId: string;
+    createdAt: Date;
+  }>;
+}) {
+  if (documents.length === 0) return;
+  
+  try {
+    return await db.insert(document).values(documents);
+  } catch (error) {
+    console.error('Failed to save documents in database', error);
+    throw error;
+  }
+}
+
 export async function getMessageById({ id }: { id: string }) {
   try {
     return await db.select().from(message).where(eq(message.id, id));

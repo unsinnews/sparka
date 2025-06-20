@@ -14,7 +14,6 @@ export type DataStreamDelta = {
     | 'image-delta'
     | 'title'
     | 'id'
-    | 'message-id'
     | 'suggestion'
     | 'clear'
     | 'finish'
@@ -56,13 +55,6 @@ export function DataStreamHandler({ id }: { id: string }) {
             return {
               ...draftArtifact,
               documentId: delta.content as string,
-              status: 'streaming',
-            };
-
-          case 'message-id':
-            return {
-              ...draftArtifact,
-              messageId: delta.content as string,
               status: 'streaming',
             };
 

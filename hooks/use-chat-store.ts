@@ -16,6 +16,7 @@ import {
 } from '@/lib/message-conversion';
 import { useChatId } from '@/providers/chat-id-provider';
 import type { YourUIMessage, UIChat } from '@/lib/types/ui';
+import type { Document } from '@/lib/db/schema';
 import {
   loadLocalAnonymousMessagesByChatId,
   saveAnonymousMessage,
@@ -23,7 +24,9 @@ import {
   renameAnonymousChat,
   saveAnonymousChatToStorage,
   deleteAnonymousTrailingMessages,
-  copyAnonymousChat,
+  cloneAnonymousChat,
+  loadAnonymousDocumentsByMessageIds,
+  loadAnonymousDocumentsByDocumentId,
 } from '@/lib/utils/anonymous-chat-storage';
 import type { Message } from 'ai';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
@@ -317,7 +320,7 @@ export function useDeleteTrailingMessages() {
   return deleteTrailingMessagesMutation;
 }
 
-export function useCopyChat() {
+export function useCloneChat() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const trpc = useTRPC();
@@ -356,12 +359,29 @@ export function useCopyChat() {
           trpc.chat.getPublicChatMessages.queryKey({ chatId }),
         );
 
+
         if (!originalChat || !originalMessages) {
           throw new Error('Original chat data not found in cache');
         }
 
+        const originalMessagesIds = originalMessages.map((message: any) => message.id);
+        
+        // Get all getPublicDocuments queries from cache and filter documents by messageId
+        const allDocumentQueries = queryClient.getQueriesData({
+          queryKey: trpc.document.getPublicDocuments.queryKey({ id: '' }).slice(0, -1) // Remove the specific id filter to match all
+        });
+        
+        
+        const originalDocuments = allDocumentQueries
+        .flatMap(([_, data]) => data || [])
+        .filter((document: any) => originalMessagesIds.includes(document.messageId));
+        console.log(originalMessages)
+        console.log(originalDocuments);
+          
+
+        
         const newId = generateUUID();
-        await copyAnonymousChat(originalMessages, originalChat, newId);
+        await cloneAnonymousChat(originalMessages, originalChat, originalDocuments, newId);
         return { chatId: newId };
       }
     },
@@ -504,27 +524,105 @@ export function useSetVisibility() {
     },
   });
 }
-export function useDocuments(id?: string, options?: { enabled?: boolean }) {
+
+export function useSaveDocument(
+  documentId: string, 
+  messageId: string,
+  options?: {
+    onSettled?: (result: any, error: any, params: any) => void;
+  }
+) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const isAuthenticated = !!session?.user;
+  const anonymousSession = getAnonymousSession();
+
+  return useMutation(
+    trpc.document.saveDocument.mutationOptions({
+      onMutate: async (newDocument) => {
+        const queryKey = trpc.document.getDocuments.queryKey({ id: newDocument.id });
+        
+        // Cancel any outgoing refetches
+        await queryClient.cancelQueries({ queryKey });
+
+        // Snapshot the previous value
+        const previousDocuments =
+          queryClient.getQueryData<Document[]>(queryKey) ?? [];
+
+        // Optimistically add the new document to the list
+        const optimisticData = [
+          ...previousDocuments,
+          {
+            id: newDocument.id,
+            createdAt: new Date(),
+            title: newDocument.title,
+            content: newDocument.content,
+            kind: newDocument.kind,
+            userId: isAuthenticated ? (userId || '') : (anonymousSession?.id || ''), // Ensure always string
+            messageId: messageId,
+          },
+        ];
+        
+        queryClient.setQueryData(queryKey, optimisticData);
+
+        return { previousDocuments, newDocument };
+      },
+      onError: (err, newDocument, context) => {
+        // Rollback to previous documents on error
+        if (context?.previousDocuments) {
+          const queryKey = trpc.document.getDocuments.queryKey({ id: newDocument.id });
+          queryClient.setQueryData(queryKey, context.previousDocuments);
+        }
+      },
+      onSettled: (result, error, params) => {
+        // Invalidate queries to ensure consistency
+        queryClient.invalidateQueries({
+          queryKey: trpc.document.getDocuments.queryKey({ id: params.id }),
+        });
+        
+        // Call custom onSettled if provided
+        options?.onSettled?.(result, error, params);
+      },
+    }),
+  );
+}
+
+export function useDocuments(id: string, disable: boolean) {
   const trpc = useTRPC();
   const { isShared } = useChatId();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
   
   const documentsQueryOptions = useMemo(() => {
     if (isShared) {
       return trpc.document.getPublicDocuments.queryOptions(
-        { id: id || '' },
+        { id: id},
         {
-          enabled: options?.enabled ?? !!id,
+          enabled: !disable && !!id,
         }
       );
     } else {
-      return trpc.document.getDocuments.queryOptions(
-        { id: id || '' },
-        {
-          enabled: options?.enabled ?? !!id,
+      if(isAuthenticated){
+        return trpc.document.getDocuments.queryOptions(
+          { id: id  },
+          {
+            enabled: !disable && !!id,
+          }
+        );
+      }else{
+        return {
+          queryKey: trpc.document.getDocuments.queryKey({ id: id }),
+          queryFn: async () => {
+            const documents = await loadAnonymousDocumentsByDocumentId(id || '');
+            return documents;
+          },
+          enabled: !disable && !!id,
         }
-      );
+      }
     }
-  }, [trpc.document.getDocuments, trpc.document.getPublicDocuments, id, options?.enabled, isShared]);
+  }, [trpc.document.getDocuments, trpc.document.getPublicDocuments, id, disable, isShared, isAuthenticated]);
 
   return useQuery(documentsQueryOptions);
 }

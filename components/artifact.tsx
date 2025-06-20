@@ -30,7 +30,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useDocuments } from '@/hooks/use-chat-store';
+import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { CloneChatButton } from '@/components/clone-chat-button';
 
@@ -90,10 +90,8 @@ function PureArtifact({
   const trpc = useTRPC();
 
   const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
-    artifact.documentId,
-    { 
-      enabled: artifact.documentId !== 'init' && artifact.status !== 'streaming' 
-    }
+    artifact.documentId || '',
+    artifact.documentId === 'init' || artifact.status === 'streaming'
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
@@ -135,78 +133,11 @@ function PureArtifact({
 
   const [isContentDirty, setIsContentDirty] = useState(false);
 
-  const saveDocumentMutation = useMutation(
-    trpc.document.saveDocument.mutationOptions({
-      // When mutate is called:
-      onMutate: async (newDocument) => {
-        // Skip optimistic update if this isn't the latest save request
-        if (newDocument.content !== lastSavedContentRef.current) {
-          return;
-        }
-
-        // Cancel any outgoing refetches
-        // (so they don't overwrite our optimistic update)
-        await queryClient.cancelQueries({
-          queryKey: trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-        });
-
-        // Snapshot the previous value
-        const previousDocuments =
-          queryClient.getQueryData<Document[]>(
-            trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-          ) ?? [];
-
-        // Optimistically update to the new value
-        const lastDocument = previousDocuments.at(-1);
-        if (!lastDocument) {
-          return;
-        }
-        const optimisticData = [
-          ...previousDocuments,
-          {
-            ...lastDocument,
-            createdAt: new Date(),
-            content: newDocument.content,
-            title: newDocument.title,
-            kind: newDocument.kind,
-            messageId: artifact.messageId,
-          },
-        ];
-        queryClient.setQueryData(
-          trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-          optimisticData,
-        );
-
-        // Return a context with the previous and new todo
-        return { previousDocuments, newDocument };
-      },
-      // If the mutation fails, use the context we returned above
-      onError: (err, newDocument, context) => {
-        if (context?.previousDocuments) {
-          queryClient.setQueryData(
-            trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-            context.previousDocuments,
-          );
-        }
-        // Only clear dirty flag if this was the latest save request
-        if (newDocument.content === lastSavedContentRef.current) {
-          setIsContentDirty(false);
-        }
-      },
-      // Always refetch after error or success:
-      onSettled: (result, error, params) => {
-        // Only invalidate and clear dirty flag if this was the latest save request
-        if (params.content === lastSavedContentRef.current) {
-          if (saveDocumentMutation.isIdle) {
-            queryClient.invalidateQueries({
-              queryKey: trpc.document.getDocuments.queryKey({ id: params.id }),
-            });
-          }
-          setIsContentDirty(false);
-        }
-      },
-    }),
-  );
+  const saveDocumentMutation = useSaveDocument(artifact.documentId, artifact.messageId, {
+    onSettled: () => {
+      setIsContentDirty(false);
+    },
+  });
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {
@@ -219,6 +150,7 @@ function PureArtifact({
         lastDocument?.content !== updatedContent &&
         lastSavedContentRef.current === updatedContent
       ) {
+        setIsContentDirty(true);
         saveDocumentMutation.mutate({
           id: lastDocument.id,
           title: lastDocument.title,

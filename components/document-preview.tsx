@@ -27,20 +27,22 @@ import { useDocuments } from '@/hooks/use-chat-store';
 interface DocumentPreviewProps {
   isReadonly: boolean;
   result?: any;
-  args?: any;
+  args?: any; 
+  messageId: string;
 }
 
 export function DocumentPreview({
   isReadonly,
   result,
   args,
+  messageId,
 }: DocumentPreviewProps) {
   const { artifact, setArtifact } = useArtifact();
   const trpc = useTRPC();
 
   const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
-    result?.id,
-    { enabled: !!result?.id }
+    result?.id || '',
+    result?.id === 'init' || artifact.status === 'streaming'
   );
 
   const previewDocument = useMemo(() => documents?.[0], [documents]);
@@ -71,8 +73,8 @@ export function DocumentPreview({
             id: result.id,
             title: result.title,
             kind: result.kind,
-            messageId: result.messageId,
           }}
+          messageId={messageId}
           isReadonly={isReadonly}
         />
       );
@@ -115,6 +117,7 @@ export function DocumentPreview({
         hitboxRef={hitboxRef}
         result={result}
         setArtifact={setArtifact}
+        messageId={messageId}
       />
       <DocumentHeader
         title={document.title}
@@ -155,12 +158,14 @@ const PureHitboxLayer = ({
   hitboxRef,
   result,
   setArtifact,
+  messageId,
 }: {
   hitboxRef: React.RefObject<HTMLDivElement>;
   result: any;
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
   ) => void;
+  messageId: string;
 }) => {
   const handleClick = useCallback(
     (event: MouseEvent<HTMLElement>) => {
@@ -173,7 +178,7 @@ const PureHitboxLayer = ({
               ...artifact,
               title: result.title,
               documentId: result.id,
-              messageId: result.messageId,
+              messageId: messageId,
               kind: result.kind,
               isVisible: true,
               boundingBox: {

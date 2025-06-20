@@ -69,7 +69,7 @@
 [ ] Sharing
     [x] Switch queries to public for shared chats 
     [x] Clone artifacts on message chat cloning, changing ownership
-    [ ] Update artifact save mutation to work locally
+    [x] Update artifact save mutation to work locally
     [ ] Clone attachments on message chat cloning, changing ownership
     [ ] Apply the isShared flag to the MessageTreeProvider
     [ ] Move the MessageTreeProvider back to the all routes layout level

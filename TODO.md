@@ -77,7 +77,8 @@
 
 
 [ ] Anonymous users artifacts
-    [ ] Store documents locally for anonymous users
+    [x] Store documents locally for anonymous users
+    [ ] Store attachments locally for anonymous users
     [ ] Enable the generate document tool
 
 

@@ -29,7 +29,7 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { useTRPC } from '@/trpc/react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { CloneChatButton } from '@/components/clone-chat-button';
@@ -91,7 +91,7 @@ function PureArtifact({
 
   const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
     artifact.documentId || '',
-    artifact.documentId === 'init' || artifact.status === 'streaming'
+    artifact.documentId === 'init' || artifact.status === 'streaming',
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
@@ -133,11 +133,15 @@ function PureArtifact({
 
   const [isContentDirty, setIsContentDirty] = useState(false);
 
-  const saveDocumentMutation = useSaveDocument(artifact.documentId, artifact.messageId, {
-    onSettled: () => {
-      setIsContentDirty(false);
+  const saveDocumentMutation = useSaveDocument(
+    artifact.documentId,
+    artifact.messageId,
+    {
+      onSettled: () => {
+        setIsContentDirty(false);
+      },
     },
-  });
+  );
 
   const handleContentChange = useCallback(
     (updatedContent: string) => {
@@ -310,7 +314,7 @@ function PureArtifact({
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col h-full justify-between items-center">
+              <div className="flex flex-col h-full justify-between items-center @container">
                 <ArtifactMessages
                   data={data}
                   chatId={chatId}
@@ -325,7 +329,7 @@ function PureArtifact({
                 />
 
                 {!isReadonly ? (
-                  <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
+                  <form className="flex flex-row gap-2  relative items-end w-full  p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6">
                     <MultimodalInput
                       chatId={chatId}
                       input={chatHelpers.input}

@@ -81,7 +81,7 @@
 
 
 [x] Bug: Plus button doesn't change to home Sparka sometimes (after getting an artifact/error?)
-[ ] Bug: On mobile, Text and spacing in multimodal input footer should be smaller
+[x] Bug: On mobile, Text and spacing in multimodal input footer should be smaller
 
 
 

@@ -316,7 +316,7 @@ function PureMultimodalInput({
   const handlePaste = useCallback(
     async (event: React.ClipboardEvent) => {
       if (status !== 'ready') return;
-      
+
       const clipboardData = event.clipboardData;
       if (!clipboardData) return;
 
@@ -330,7 +330,7 @@ function PureMultimodalInput({
         toast.error('Sign in to attach files from clipboard');
         return;
       }
-      
+
       const validFiles = processFiles(files);
       if (validFiles.length === 0) return;
 
@@ -348,7 +348,9 @@ function PureMultimodalInput({
           ...successfullyUploadedAttachments,
         ]);
 
-        toast.success(`${successfullyUploadedAttachments.length} file(s) pasted from clipboard`);
+        toast.success(
+          `${successfullyUploadedAttachments.length} file(s) pasted from clipboard`,
+        );
       } catch (error) {
         console.error('Error uploading pasted files!', error);
       } finally {
@@ -430,7 +432,7 @@ function PureMultimodalInput({
 
       <div className="relative">
         <ChatInputContainer
-          className={`${className} transition-colors ${
+          className={`${className} transition-colors px-1.5 @container  @[400px]:px-3  ${
             isDragActive ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20' : ''
           }`}
           {...getRootProps()}
@@ -498,11 +500,11 @@ function PureMultimodalInput({
             />
           </ScrollArea>
 
-          <ChatInputBottomRow className="@container flex flex-row justify-between">
-            <div className="flex items-center gap-2">
+          <ChatInputBottomRow className="flex flex-row justify-between min-w-0">
+            <div className="flex items-center gap-1 @[400px]:gap-2 min-w-0 flex-1">
               <ModelSelector
                 selectedModelId={selectedModelId}
-                className="h-fit"
+                className="h-fit text-xs @[400px]:text-sm min-w-0 shrink max-w-none px-2 @[400px]:px-3 py-1 @[400px]:py-1.5 truncate flex-1"
                 onModelChange={handleModelChange}
               />
               <ResponsiveToggles
@@ -511,7 +513,7 @@ function PureMultimodalInput({
                 selectedModelId={selectedModelId}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 @[400px]:gap-2 flex-shrink-0">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
               {status === 'submitted' ? (
                 <StopButton stop={stop} setMessages={setMessages} />
@@ -555,7 +557,7 @@ function PureAttachmentsButton({
       <PopoverTrigger asChild>
         <Button
           data-testid="attachments-button"
-          className="rounded-md p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+          className="rounded-md p-1 @[400px]:p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
           onClick={handleClick}
           disabled={status !== 'ready'}
           variant="ghost"
@@ -585,7 +587,7 @@ function PureStopButton({
   return (
     <Button
       data-testid="stop-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-1 @[400px]:p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
         stop();
@@ -611,7 +613,7 @@ function PureSendButton({
   return (
     <Button
       data-testid="send-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-1 @[400px]:p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
         submitForm();

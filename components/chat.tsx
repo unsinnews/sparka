@@ -177,7 +177,7 @@ export function Chat({
     <>
       <div
         className={cn(
-          'flex flex-col min-w-0 h-dvh bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
+          '@container flex flex-col min-w-0 h-dvh bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
           state === 'collapsed' && 'md:max-w-screen',
         )}
       >
@@ -201,7 +201,7 @@ export function Chat({
           onModelChange={handleModelChange}
         />
 
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        <form className="flex mx-auto p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6 bg-background gap-2 w-full md:max-w-3xl">
           {!isReadonly ? (
             <MultimodalInput
               chatId={id}

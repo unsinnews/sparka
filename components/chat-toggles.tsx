@@ -57,7 +57,7 @@ function ToolToggle({
         variant="outline"
         size="sm"
         disabled={disabled}
-        className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50"
+        className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50 text-xs"
       >
         <Icon size={14} />
         {tool.name}
@@ -74,7 +74,7 @@ function ToolToggle({
           variant="outline"
           size="sm"
           disabled={disabled}
-          className="gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50"
+          className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit border-zinc-700 rounded-full items-center disabled:opacity-50 text-xs"
         >
           <Icon size={14} />
           {tool.name}
@@ -137,14 +137,14 @@ export function ResponsiveToggles({
 
   return (
     <>
-      <div className="flex items-center gap-2 @[500px]:hidden">
+      <div className="flex items-center gap-1 @[400px]:gap-2 @[500px]:hidden">
         {isAnonymous ? (
           <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
             <PopoverTrigger asChild>
               <Button
                 variant="ghost"
-                size="sm"
-                className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+                size="icon"
+                className="gap-1 @[400px]:gap-2 p-1.5 h-fit rounded-full"
               >
                 <Settings2 size={14} />
                 <span className="hidden @[400px]:inline">Tools</span>
@@ -163,7 +163,7 @@ export function ResponsiveToggles({
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+                className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit rounded-full"
               >
                 <Settings2 size={14} />
                 <span className="hidden @[400px]:inline">Tools</span>
@@ -213,12 +213,12 @@ export function ResponsiveToggles({
               variant="outline"
               size="sm"
               onClick={() => setTool(null)}
-              className="gap-2 p-1.5 px-2.5 h-fit rounded-full"
+              className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit rounded-full"
             >
               {React.createElement(toolDefinitions[activeTool].icon, {
                 size: 14,
               })}
-              <span className="hidden @[400px]:inline">
+              <span className="hidden @[500px]:inline">
                 {toolDefinitions[activeTool].name}
               </span>
               <span className="text-xs opacity-70">×</span>
@@ -227,7 +227,7 @@ export function ResponsiveToggles({
         )}
       </div>
 
-      <div className="hidden @[500px]:flex items-center gap-2">
+      <div className="hidden @[500px]:flex items-center gap-1 @[400px]:gap-2">
         {enabledTools.map((key) => {
           const tool = toolDefinitions[key];
           const isDisabled = key === 'deepResearch' && hasReasoningModel;

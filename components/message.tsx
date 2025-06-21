@@ -151,7 +151,11 @@ const PurePreviewMessage = ({
                                   }
                                   testId="message-attachments"
                                 />
-                                <Markdown>{part.text}</Markdown>
+                                {/* User message renndering withotu Markdown */}
+
+                                <pre className="whitespace-pre-wrap font-sans text-sm">
+                                  {part.text}
+                                </pre>
                               </div>
                             </button>
                           </TooltipTrigger>
@@ -169,7 +173,13 @@ const PurePreviewMessage = ({
                             attachments={message.experimental_attachments || []}
                             testId="message-attachments"
                           />
-                          <Markdown>{part.text}</Markdown>
+                          {message.role === 'assistant' ? (
+                            <Markdown>{part.text}</Markdown>
+                          ) : (
+                            <pre className="whitespace-pre-wrap font-sans text-sm">
+                              {part.text}
+                            </pre>
+                          )}
                         </div>
                       )}
                     </div>
@@ -213,7 +223,11 @@ const PurePreviewMessage = ({
                       {toolName === 'getWeather' ? (
                         <Weather />
                       ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} messageId={message.id} />
+                        <DocumentPreview
+                          isReadonly={isReadonly}
+                          args={args}
+                          messageId={message.id}
+                        />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall
                           type="update"
@@ -284,7 +298,7 @@ const PurePreviewMessage = ({
                           result={result}
                           isReadonly={isReadonly}
                           messageId={message.id}
-                          />
+                        />
                       ) : toolName === 'retrieve' ? (
                         // @ts-expect-error // TODO: fix this
                         <Retrieve result={result} />

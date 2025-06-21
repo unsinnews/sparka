@@ -153,7 +153,7 @@ const PurePreviewMessage = ({
                                 />
                                 {/* User message renndering withotu Markdown */}
 
-                                <pre className="whitespace-pre-wrap font-sans text-sm">
+                                <pre className="whitespace-pre-wrap font-sans">
                                   {part.text}
                                 </pre>
                               </div>
@@ -176,7 +176,7 @@ const PurePreviewMessage = ({
                           {message.role === 'assistant' ? (
                             <Markdown>{part.text}</Markdown>
                           ) : (
-                            <pre className="whitespace-pre-wrap font-sans text-sm">
+                            <pre className="whitespace-pre-wrap font-sans ">
                               {part.text}
                             </pre>
                           )}

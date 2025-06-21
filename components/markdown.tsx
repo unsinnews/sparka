@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import React, { memo } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,6 +8,7 @@ import {
   CodeBlockCode,
   CodeBlockGroup,
 } from '@/components/prompt-kit/code-block';
+import { LinkMarkdown } from '@/components/chat/link-markdown';
 
 function extractLanguage(className?: string): string {
   if (!className) return 'plaintext';
@@ -85,15 +85,9 @@ const components: Partial<Components> = {
   },
   a: ({ node, children, ...props }) => {
     return (
-      // @ts-expect-error
-      <Link
-        className="text-blue-500 hover:underline"
-        target="_blank"
-        rel="noreferrer"
-        {...props}
-      >
+      <LinkMarkdown href={props.href || '#'} {...props}>
         {children}
-      </Link>
+      </LinkMarkdown>
     );
   },
   h1: ({ node, children, ...props }) => {

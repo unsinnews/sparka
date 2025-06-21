@@ -43,7 +43,7 @@ export function ChatPage() {
         isLoading={isChatLoading || isMessagesLoading}
         className="w-full h-full"
       >
-        <div className="flex h-screen w-full " />;
+        <div className="flex h-screen w-full" />
       </WithSkeleton>
     );
   }

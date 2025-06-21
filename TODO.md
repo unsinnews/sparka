@@ -170,8 +170,8 @@
 [ ] Optimize the number of getVotes query calls
 [ ] Why does visibility selector takes chat visibility as a prop?
 [ ] Get Chat by id in chat-page.tsx
-[ ] React Query Prefetch for the selected route
-
+[x] React Query Prefetch for the selected route
+[ ] React Query Prefetch for the selected route with SSR
 
 [ ] Migrate artifacts to ID + version or just ID as the main key
 

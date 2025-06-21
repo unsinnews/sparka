@@ -37,18 +37,12 @@ const MessageTreeContext = createContext<MessageTreeContextType | undefined>(
   undefined,
 );
 
-type QueryType = 'private' | 'public';
-
 interface MessageTreeProviderProps {
   children: React.ReactNode;
-  queryType?: QueryType;
 }
 
-export function MessageTreeProvider({
-  children,
-  queryType = 'private',
-}: MessageTreeProviderProps) {
-  const { chatId, sharedChatId } = useChatId();
+export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
+  const { chatId, sharedChatId, isShared } = useChatId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [allMessages, setAllMessages] = useState<YourUIMessage[]>([]);
@@ -57,8 +51,8 @@ export function MessageTreeProvider({
   );
   const lastMessageIdRef = useRef<string | null>(null);
 
-  // Select the appropriate chat ID based on query type
-  const effectiveChatId = queryType === 'public' ? sharedChatId : chatId;
+  // Select the appropriate chat ID based on isShared flag
+  const effectiveChatId = isShared ? sharedChatId : chatId;
 
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
@@ -69,10 +63,9 @@ export function MessageTreeProvider({
       return;
     }
 
-    const queryKey =
-      queryType === 'public'
-        ? trpc.chat.getPublicChatMessages.queryKey({ chatId: effectiveChatId })
-        : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
+    const queryKey = isShared
+      ? trpc.chat.getPublicChatMessages.queryKey({ chatId: effectiveChatId })
+      : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
 
     // Get initial data
     const initialData = queryClient.getQueryData<YourUIMessage[]>(queryKey);
@@ -108,7 +101,7 @@ export function MessageTreeProvider({
     return unsubscribe;
   }, [
     effectiveChatId,
-    queryType,
+    isShared,
     trpc.chat.getChatMessages,
     trpc.chat.getPublicChatMessages,
     queryClient,

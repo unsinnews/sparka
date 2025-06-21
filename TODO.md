@@ -71,8 +71,8 @@
     [x] Clone artifacts on message chat cloning, changing ownership
     [x] Update artifact save mutation to work locally
     [x] Clone attachments on message chat cloning, changing ownership
-    [ ] Apply the isShared flag to the MessageTreeProvider
-    [ ] Move the MessageTreeProvider back to the all routes layout level
+    [x] Apply the isShared flag to the MessageTreeProvider
+    [x] Move the MessageTreeProvider back to the all routes layout level
     [ ] Artifacts should belong to the current thread
 
 

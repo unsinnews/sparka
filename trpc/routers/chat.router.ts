@@ -220,7 +220,7 @@ export const chatRouter = createTRPCRouter({
       }
 
       // Get all documents associated with the source messages
-      const sourceMessageIds = sourceMessages.map(msg => msg.id);
+      const sourceMessageIds = sourceMessages.map((msg) => msg.id);
       const sourceDocuments = await getDocumentsByMessageIds({
         messageIds: sourceMessageIds,
       });
@@ -240,11 +240,14 @@ export const chatRouter = createTRPCRouter({
         sourceMessages,
         sourceDocuments,
         newChatId,
-        ctx.user.id
+        ctx.user.id,
       );
 
+      // Wait for attachment cloning to complete
+      const finalClonedMessages = await clonedMessages;
+
       // Save cloned messages first, then documents due to foreign key dependency
-      await saveMessages({ _messages: clonedMessages });
+      await saveMessages({ _messages: finalClonedMessages });
       if (clonedDocuments.length > 0) {
         await saveDocuments({ documents: clonedDocuments });
       }

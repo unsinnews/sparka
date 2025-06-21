@@ -76,6 +76,12 @@
     [ ] Artifacts should belong to the current thread
 
 
+[ ] Durable streams
+    [x] Create a message-continues data part and call resume from the frontend
+    [ ] Fix tree Provider with resumed messages
+    
+
+
 [ ] Anonymous users artifacts
     [x] Store documents locally for anonymous users
     [ ] Enable the generate document tool

@@ -22,7 +22,10 @@ import { myProvider } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
 import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/message-conversion';
 import { generateUUID } from '@/lib/utils';
-import { cloneMessagesWithDocuments } from '@/lib/clone-messages';
+import {
+  cloneMessagesWithDocuments,
+  cloneAttachmentsInMessages,
+} from '@/lib/clone-messages';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -243,11 +246,12 @@ export const chatRouter = createTRPCRouter({
         ctx.user.id,
       );
 
-      // Wait for attachment cloning to complete
-      const finalClonedMessages = await clonedMessages;
+      // Clone attachments in messages (this has side effects - network calls to blob storage)
+      const messagesWithClonedAttachments =
+        await cloneAttachmentsInMessages(clonedMessages);
 
       // Save cloned messages first, then documents due to foreign key dependency
-      await saveMessages({ _messages: finalClonedMessages });
+      await saveMessages({ _messages: messagesWithClonedAttachments });
       if (clonedDocuments.length > 0) {
         await saveDocuments({ documents: clonedDocuments });
       }

@@ -196,8 +196,14 @@ export async function deleteAnonymousTrailingMessages(
     );
 
     // Update cache and save to localStorage
-    localStorage.setItem(ANONYMOUS_MESSAGES_KEY, JSON.stringify(updatedMessages));
-    localStorage.setItem(ANONYMOUS_DOCUMENTS_KEY, JSON.stringify(updatedDocuments));
+    localStorage.setItem(
+      ANONYMOUS_MESSAGES_KEY,
+      JSON.stringify(updatedMessages),
+    );
+    localStorage.setItem(
+      ANONYMOUS_DOCUMENTS_KEY,
+      JSON.stringify(updatedDocuments),
+    );
   } catch (error) {
     console.error('Error deleting anonymous trailing messages:', error);
     throw error;
@@ -251,8 +257,12 @@ export async function cloneAnonymousChat(
       originalMessages,
       originalDocuments,
       newChatId,
-      session.id // Use anonymous session ID as user ID
+      session.id, // Use anonymous session ID as user ID
     );
+
+    // Note: Attachments are not cloned for anonymous/local users
+    // Anonymous users rely on localStorage and don't have blob storage access
+    // Original attachment URLs will remain in the cloned messages
 
     // Save all cloned messages
     const allMessages = await loadAnonymousMessagesFromStorage();
@@ -328,13 +338,18 @@ export async function saveAnonymousDocument(document: any): Promise<void> {
   }
 }
 
-export async function loadAnonymousDocumentsByMessageIds(messageIds: string[]): Promise<any[]> {
+export async function loadAnonymousDocumentsByMessageIds(
+  messageIds: string[],
+): Promise<any[]> {
   const documents = await loadAnonymousDocumentsFromStorage();
-  return documents.filter((document) => messageIds.includes(document.messageId));
+  return documents.filter((document) =>
+    messageIds.includes(document.messageId),
+  );
 }
 
-
-export async function loadAnonymousDocumentsByDocumentId(documentId: string): Promise<any[]> {
+export async function loadAnonymousDocumentsByDocumentId(
+  documentId: string,
+): Promise<any[]> {
   const documents = await loadAnonymousDocumentsFromStorage();
   return documents.filter((document) => document.id === documentId);
 }

@@ -164,7 +164,9 @@ function cloneDocuments<
   return clonedDocuments;
 }
 
-async function cloneAttachment(attachment: Attachment): Promise<Attachment> {
+export async function cloneAttachment(
+  attachment: Attachment,
+): Promise<Attachment> {
   try {
     // Skip if no URL is provided
     if (!attachment.url) {
@@ -218,9 +220,9 @@ async function cloneAttachment(attachment: Attachment): Promise<Attachment> {
   }
 }
 
-async function cloneAttachmentsInMessages<T extends { attachments: any }>(
-  messages: T[],
-): Promise<T[]> {
+export async function cloneAttachmentsInMessages<
+  T extends { attachments: any },
+>(messages: T[]): Promise<T[]> {
   const clonedMessages: T[] = [];
 
   for (const message of messages) {
@@ -252,7 +254,6 @@ export function cloneMessagesWithDocuments<
     chatId: string;
     parentMessageId?: string | null;
     parts: any;
-    attachments: any;
   },
   TDocument extends {
     id: string;
@@ -269,7 +270,7 @@ export function cloneMessagesWithDocuments<
   newChatId: string,
   newUserId: string,
 ): {
-  clonedMessages: Promise<TMessage[]>;
+  clonedMessages: TMessage[];
   clonedDocuments: TDocument[];
   messageIdMap: Map<string, string>;
   documentIdMap: Map<string, string>;
@@ -292,12 +293,7 @@ export function cloneMessagesWithDocuments<
     documentIdMap,
   );
 
-  // Step 5: Clone attachments in messages
-  const messagesWithClonedAttachments = cloneAttachmentsInMessages(
-    messagesWithUpdatedDocRefs,
-  );
-
-  // Step 6: Clone documents
+  // Step 5: Clone documents
   const clonedDocuments = cloneDocuments(
     sourceDocuments,
     documentIdMap,
@@ -306,7 +302,7 @@ export function cloneMessagesWithDocuments<
   );
 
   return {
-    clonedMessages: messagesWithClonedAttachments,
+    clonedMessages: messagesWithUpdatedDocRefs,
     clonedDocuments,
     messageIdMap,
     documentIdMap,

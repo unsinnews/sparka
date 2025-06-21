@@ -29,6 +29,8 @@ interface MessageTreeContextType {
   registerSetMessages: (
     setMessages: (messages: YourUIMessage[]) => void,
   ) => void;
+  getLastMessageId: () => string | null;
+  setLastMessageId: (messageId: string | null) => void;
 }
 
 const MessageTreeContext = createContext<MessageTreeContextType | undefined>(
@@ -53,13 +55,19 @@ export function MessageTreeProvider({
   const setMessagesRef = useRef<((messages: YourUIMessage[]) => void) | null>(
     null,
   );
+  const lastMessageIdRef = useRef<string | null>(null);
 
   // Select the appropriate chat ID based on query type
   const effectiveChatId = queryType === 'public' ? sharedChatId : chatId;
 
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
-    if (!effectiveChatId) return;
+    if (!effectiveChatId) {
+      // New chat
+      setAllMessages([]);
+      lastMessageIdRef.current = null;
+      return;
+    }
 
     const queryKey =
       queryType === 'public'
@@ -71,6 +79,9 @@ export function MessageTreeProvider({
     if (initialData) {
       console.log('initialData', initialData);
       setAllMessages(initialData);
+      // Initialize lastMessageId with the last message of the initial data
+      const lastMessage = initialData[initialData.length - 1];
+      lastMessageIdRef.current = lastMessage?.id || null;
     }
 
     // Subscribe to cache changes
@@ -86,6 +97,9 @@ export function MessageTreeProvider({
           const newData = event.query.state.data as YourUIMessage[] | undefined;
           if (newData) {
             setAllMessages(newData);
+            // Update lastMessageId when data changes
+            const lastMessage = newData[newData.length - 1];
+            lastMessageIdRef.current = lastMessage?.id || null;
           }
         }
       }
@@ -102,10 +116,23 @@ export function MessageTreeProvider({
 
   const registerSetMessages = useCallback(
     (setMessages: (messages: YourUIMessage[]) => void) => {
-      setMessagesRef.current = setMessages;
+      setMessagesRef.current = (messages: YourUIMessage[]) => {
+        // Update lastMessageId to track the head of the active thread
+        const lastMessage = messages[messages.length - 1];
+        lastMessageIdRef.current = lastMessage?.id || null;
+        setMessages(messages);
+      };
     },
     [],
   );
+
+  const getLastMessageId = useCallback(() => {
+    return lastMessageIdRef.current;
+  }, []);
+
+  const setLastMessageId = useCallback((messageId: string | null) => {
+    lastMessageIdRef.current = messageId;
+  }, []);
 
   // Build parent->children mapping once
   const childrenMap = useMemo(() => {
@@ -172,8 +199,15 @@ export function MessageTreeProvider({
         leaf ? leaf.id : targetSibling.id,
       );
       setMessagesRef.current(newThread);
+      setLastMessageId(newThread[newThread.length - 1]?.id || null);
     },
-    [allMessages, getMessageSiblingInfo, childrenMap, effectiveChatId],
+    [
+      allMessages,
+      getMessageSiblingInfo,
+      childrenMap,
+      effectiveChatId,
+      setLastMessageId,
+    ],
   );
 
   const value = useMemo(
@@ -181,8 +215,16 @@ export function MessageTreeProvider({
       getMessageSiblingInfo,
       navigateToSibling,
       registerSetMessages,
+      getLastMessageId,
+      setLastMessageId,
     }),
-    [getMessageSiblingInfo, navigateToSibling, registerSetMessages],
+    [
+      getMessageSiblingInfo,
+      navigateToSibling,
+      registerSetMessages,
+      getLastMessageId,
+      setLastMessageId,
+    ],
   );
 
   return (

@@ -1,13 +1,8 @@
 'use client';
 
-import type {
-  Attachment,
-  ChatRequestOptions,
-  CreateMessage,
-  Message,
-} from 'ai';
+import type { Attachment, ChatRequestOptions, Message } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -41,10 +36,7 @@ export function Chat({
   const trpc = useTRPC();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
-  const { registerSetMessages } = useMessageTree();
-  const lastMessageId = useRef<string | null>(
-    initialMessages[initialMessages.length - 1]?.id || null,
-  );
+  const { registerSetMessages, getLastMessageId } = useMessageTree();
   const [localSelectedModelId, setLocalSelectedModelId] =
     useState<string>(selectedChatModel);
 
@@ -61,9 +53,8 @@ export function Chat({
       saveChatMessage({
         message,
         chatId: id,
-        parentMessageId: lastMessageId.current,
+        parentMessageId: getLastMessageId(),
       });
-      lastMessageId.current = message.id;
     },
     onError: (error) => {
       console.error(error);
@@ -87,19 +78,8 @@ export function Chat({
   // Register setMessages with the MessageTreeProvider
   useEffect(() => {
     console.log('registering setMessages');
-    registerSetMessages((messages) => {
-      lastMessageId.current = messages[messages.length - 1]?.id || null;
-      return setMessages(messages);
-    });
+    registerSetMessages(setMessages);
   }, [setMessages, registerSetMessages]);
-
-  const appendWithUpdateLastMessageId = useCallback(
-    async (message: Message | CreateMessage, options?: ChatRequestOptions) => {
-      lastMessageId.current = message.id || null;
-      return append(message, options);
-    },
-    [append],
-  );
 
   // Wrapper around handleSubmit to save user messages for anonymous users
   const handleSubmit = useCallback(
@@ -118,24 +98,24 @@ export function Chat({
         content: input,
       };
 
+      const parentMessageId = getLastMessageId();
       saveChatMessage({
         message,
         chatId: id,
-        parentMessageId: lastMessageId.current,
+        parentMessageId,
       });
 
       append(message, {
         ...options,
         data: {
           ...options?.data,
-          parentMessageId: lastMessageId.current,
+          parentMessageId,
         },
       });
-      lastMessageId.current = message.id;
 
       setInput('');
     },
-    [id, input, append, saveChatMessage, setInput, lastMessageId],
+    [id, input, append, saveChatMessage, setInput, getLastMessageId],
   );
 
   // Auto-resume functionality
@@ -181,18 +161,17 @@ export function Chat({
   const modifiedChatHelpers = useMemo(() => {
     return {
       ...chatHelpers,
-      append: appendWithUpdateLastMessageId,
       reload: async (options?: ChatRequestOptions) => {
         return reload({
           ...options,
           data: {
             ...(options?.data as ChatRequestToolsConfig),
-            parentMessageId: lastMessageId.current,
+            parentMessageId: getLastMessageId(),
           },
         });
       },
     };
-  }, [chatHelpers, appendWithUpdateLastMessageId, lastMessageId, reload]);
+  }, [chatHelpers, getLastMessageId, reload]);
 
   return (
     <>

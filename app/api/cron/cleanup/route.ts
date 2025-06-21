@@ -1,7 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import { list, del } from '@vercel/blob';
 import { getAllAttachmentUrls } from '@/lib/db/queries';
-import { BLOB_FILE_PREFIX } from '@/lib/constants';
+import { listFiles, deleteFilesByUrls } from '@/lib/blob';
 
 const ORPHANED_ATTACHMENTS_RETENTION_TIME = 4 * 60 * 60 * 1000; // 4 hours
 
@@ -41,9 +40,7 @@ async function cleanupOrphanedAttachments() {
     const usedAttachmentUrls = new Set(await getAllAttachmentUrls());
 
     // Get all blobs from Vercel Blob storage
-    const { blobs } = await list({
-      prefix: BLOB_FILE_PREFIX,
-    });
+    const { blobs } = await listFiles();
 
     // Find orphaned blobs (older than 1 hour and not referenced in any message)
     const oneHourAgo = new Date(
@@ -63,7 +60,7 @@ async function cleanupOrphanedAttachments() {
 
     // Delete orphaned attachments
     if (orphanedUrls.length > 0) {
-      await del(orphanedUrls);
+      await deleteFilesByUrls(orphanedUrls);
       console.log(`Deleted ${orphanedUrls.length} orphaned attachments`);
     }
 

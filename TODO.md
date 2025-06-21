@@ -70,7 +70,7 @@
     [x] Switch queries to public for shared chats 
     [x] Clone artifacts on message chat cloning, changing ownership
     [x] Update artifact save mutation to work locally
-    [ ] Clone attachments on message chat cloning, changing ownership
+    [x] Clone attachments on message chat cloning, changing ownership
     [ ] Apply the isShared flag to the MessageTreeProvider
     [ ] Move the MessageTreeProvider back to the all routes layout level
     [ ] Artifacts should belong to the current thread
@@ -78,7 +78,6 @@
 
 [ ] Anonymous users artifacts
     [x] Store documents locally for anonymous users
-    [ ] Store attachments locally for anonymous users
     [ ] Enable the generate document tool
 
 

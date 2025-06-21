@@ -1,8 +1,7 @@
 import type { YourUIMessage } from './types/ui';
 import { generateUUID } from './utils';
 import type { Attachment } from './ai/types';
-import { put } from '@vercel/blob';
-import { BLOB_FILE_PREFIX } from './constants';
+import { uploadFile } from './blob';
 
 function cloneMessages<
   T extends { id: string; chatId: string; parentMessageId?: string | null },
@@ -204,10 +203,10 @@ export async function cloneAttachment(
       filename = filename.replace('sparka-ai/files/', '');
     }
 
-    const newBlob = await put(`${BLOB_FILE_PREFIX}${filename}`, blob, {
-      access: 'public',
-      addRandomSuffix: true,
-    });
+    const newBlob = await uploadFile(
+      filename,
+      Buffer.from(await blob.arrayBuffer()),
+    );
 
     return {
       ...attachment,

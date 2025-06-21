@@ -312,6 +312,45 @@ function PureMultimodalInput({
     [setAttachments, processFiles],
   );
 
+  const handlePaste = useCallback(
+    async (event: React.ClipboardEvent) => {
+      if (status !== 'ready') return;
+      
+      const clipboardData = event.clipboardData;
+      if (!clipboardData) return;
+
+      const files = Array.from(clipboardData.files);
+      if (files.length === 0) return;
+
+      event.preventDefault();
+      
+      const validFiles = processFiles(files);
+      if (validFiles.length === 0) return;
+
+      setUploadQueue(validFiles.map((file) => file.name));
+
+      try {
+        const uploadPromises = validFiles.map((file) => uploadFile(file));
+        const uploadedAttachments = await Promise.all(uploadPromises);
+        const successfullyUploadedAttachments = uploadedAttachments.filter(
+          (attachment) => attachment !== undefined,
+        );
+
+        setAttachments((currentAttachments) => [
+          ...currentAttachments,
+          ...successfullyUploadedAttachments,
+        ]);
+
+        toast.success(`${successfullyUploadedAttachments.length} file(s) pasted from clipboard`);
+      } catch (error) {
+        console.error('Error uploading pasted files!', error);
+      } finally {
+        setUploadQueue([]);
+      }
+    },
+    [setAttachments, processFiles, status],
+  );
+
   const removeAttachment = useCallback(
     (attachmentToRemove: Attachment) => {
       setAttachments((currentAttachments) =>
@@ -423,6 +462,7 @@ function PureMultimodalInput({
               value={input}
               onChange={handleInput}
               autoFocus
+              onPaste={handlePaste}
               onKeyDown={(event) => {
                 if (
                   event.key === 'Enter' &&

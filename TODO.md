@@ -75,13 +75,6 @@
     [x] Move the MessageTreeProvider back to the all routes layout level
     [ ] Artifacts should belong to the current thread
 
-
-[ ] Durable streams
-    [x] Create a message-continues data part and call resume from the frontend
-    [ ] Fix tree Provider with resumed messages
-    
-
-
 [ ] Anonymous users artifacts
     [x] Store documents locally for anonymous users
     [ ] Enable the generate document tool
@@ -113,6 +106,14 @@
 
 
 ## Polishing
+
+[ ] Durable streams
+    [x] Create a message-continues data part and call resume from the frontend
+    [ ] Fix tree Provider with resumed messages
+
+[ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in
+
+
 [ ] Dont scroll to bottom when switching branches
 [x] Optimize the Model Selector component
     [x] with lazy loading 

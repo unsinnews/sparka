@@ -86,6 +86,7 @@ function PureMultimodalInput({
   const textareaRef = useRef<ChatInputTextAreaRef>(null);
   const { width } = useWindowSize();
   const { setChatId } = useChatId();
+  const { data: session } = useSession();
   const [localStorageInput, setLocalStorageInput] = useLocalStorage(
     'input',
     '',
@@ -323,6 +324,12 @@ function PureMultimodalInput({
       if (files.length === 0) return;
 
       event.preventDefault();
+
+      // Check if user is anonymous
+      if (!session?.user) {
+        toast.error('Sign in to attach files from clipboard');
+        return;
+      }
       
       const validFiles = processFiles(files);
       if (validFiles.length === 0) return;
@@ -348,7 +355,7 @@ function PureMultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments, processFiles, status],
+    [setAttachments, processFiles, status, session],
   );
 
   const removeAttachment = useCallback(
@@ -365,6 +372,12 @@ function PureMultimodalInput({
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: async (acceptedFiles) => {
       if (acceptedFiles.length === 0) return;
+
+      // Check if user is anonymous
+      if (!session?.user) {
+        toast.error('Sign in to attach files');
+        return;
+      }
 
       const validFiles = processFiles(acceptedFiles);
       if (validFiles.length === 0) return;

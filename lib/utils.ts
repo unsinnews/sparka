@@ -1,4 +1,4 @@
-import type { CoreAssistantMessage, CoreToolMessage, Message } from 'ai';
+import type { CoreAssistantMessage, CoreToolMessage } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { YourToolInvocation } from '@/lib/ai/tools/tools';
@@ -26,6 +26,7 @@ export function findLastArtifact(
         if (
           toolInvocation.state === 'result' &&
           (toolInvocation.toolName === 'createDocument' ||
+            toolInvocation.toolName === 'updateDocument' ||
             toolInvocation.toolName === 'deepResearch')
         ) {
           allArtifacts.push({
@@ -149,5 +150,3 @@ export function getTrailingMessageId({
 
   return trailingMessage.id;
 }
-
-

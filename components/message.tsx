@@ -273,6 +273,7 @@ const PurePreviewMessage = ({
                           result={result}
                           args={args}
                           messageId={message.id}
+                          type="create"
                         />
                       ) : toolName === 'createDocument' ||
                         toolName === 'deepResearch' ? (
@@ -283,7 +284,17 @@ const PurePreviewMessage = ({
                           isReadonly={isReadonly}
                           messageId={message.id}
                         />
-                      ) : toolName === 'updateDocument' ? (
+                      ) : toolName === 'updateDocument' &&
+                        shouldShowFullPreview ? (
+                        <DocumentPreview
+                          isReadonly={isReadonly}
+                          result={result}
+                          args={args}
+                          messageId={message.id}
+                          type="update"
+                        />
+                      ) : toolName === 'updateDocument' &&
+                        !shouldShowFullPreview ? (
                         <DocumentToolResult
                           type="update"
                           // @ts-expect-error // TODO: fix this

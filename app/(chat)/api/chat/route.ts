@@ -48,7 +48,7 @@ import {
   getAnonymousSession,
   createAnonymousSession,
   setAnonymousSession,
-} from '@/lib/anonymous-session';
+} from '@/lib/anonymous-session-server';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
@@ -278,11 +278,13 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      anonymousSession =
-        (await getAnonymousSession()) || createAnonymousSession();
+      anonymousSession = await getAnonymousSession();
+      if (!anonymousSession) {
+        anonymousSession = await createAnonymousSession();
+      }
 
       // Check message limits
-      if (anonymousSession.messageCount >= ANONYMOUS_LIMITS.MAX_MESSAGES) {
+      if (anonymousSession.remainingCredits <= 0) {
         console.log(
           'RESPONSE > POST /api/chat: Anonymous message limit reached',
         );
@@ -290,7 +292,7 @@ export async function POST(request: NextRequest) {
           JSON.stringify({
             error: 'Message limit reached',
             type: 'ANONYMOUS_LIMIT_EXCEEDED',
-            maxMessages: ANONYMOUS_LIMITS.MAX_MESSAGES,
+            maxMessages: ANONYMOUS_LIMITS.CREDITS,
           }),
           {
             status: 402,
@@ -422,7 +424,7 @@ export async function POST(request: NextRequest) {
       reservation = res;
     } else if (anonymousSession) {
       // Increment message count and update session
-      anonymousSession.messageCount++;
+      anonymousSession.remainingCredits -= baseModelCost;
       await setAnonymousSession(anonymousSession);
     }
 
@@ -626,7 +628,7 @@ export async function POST(request: NextRequest) {
             reservation.cleanup();
           }
           if (anonymousSession) {
-            anonymousSession.messageCount--;
+            anonymousSession.remainingCredits += baseModelCost;
             setAnonymousSession(anonymousSession);
           }
           return 'Oops, an error occured!';
@@ -675,7 +677,7 @@ export async function POST(request: NextRequest) {
         await reservation.cleanup();
       }
       if (anonymousSession) {
-        anonymousSession.messageCount--;
+        anonymousSession.remainingCredits += baseModelCost;
         setAnonymousSession(anonymousSession);
       }
       throw error;

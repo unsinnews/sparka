@@ -41,7 +41,7 @@ import {
   DEFAULT_PDF_MODEL,
   DEFAULT_IMAGE_MODEL,
 } from '@/lib/ai/all-models';
-import { MessageLimitDisplay } from './upgrade-cta/message-limit-display';
+import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { useChatId } from '@/providers/chat-id-provider';
@@ -418,7 +418,7 @@ function PureMultimodalInput({
         uploadQueue.length === 0 &&
         !isEditMode && <SuggestedActions append={append} chatId={chatId} />}
 
-      {!isEditMode && <MessageLimitDisplay />}
+      {!isEditMode && <CreditLimitDisplay />}
 
       <input
         type="file"

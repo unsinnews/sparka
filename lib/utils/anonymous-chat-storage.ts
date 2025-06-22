@@ -338,15 +338,6 @@ export async function saveAnonymousDocument(document: any): Promise<void> {
   }
 }
 
-export async function loadAnonymousDocumentsByMessageIds(
-  messageIds: string[],
-): Promise<any[]> {
-  const documents = await loadAnonymousDocumentsFromStorage();
-  return documents.filter((document) =>
-    messageIds.includes(document.messageId),
-  );
-}
-
 export async function loadAnonymousDocumentsByDocumentId(
   documentId: string,
 ): Promise<any[]> {

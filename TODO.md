@@ -92,11 +92,11 @@
     [ ] Decouple from chat so that typing experience can be faster
 
 
-[ ] Anonymous message limits should be a number of credits.
-    [ ] Increment message count for anyonymous on asssitant message finish
-   [ ] Fix message Limits consistency between backend and frontend
-       [ ] Disable send button when users reached the limit
-       [ ] Create a better tooltip message when backend reaches rate-limit
+[x] Anonymous message limits should be a number of credits.
+    [x] The sggerver side should be the source of thruth for anonymous session credits
+    [x] In use-chat-store, the useCredits query should use anonymous credits if unauthenticated
+    [x] Fix message Limits consistency between backend and frontend
+    [ ] Create a better toast message when backend reaches rate-limit
 
 
 [ ] OG Image
@@ -119,10 +119,15 @@
 
 [ ] Durable streams
     [x] Create a message-continues data part and call resume from the frontend
+    [ ] Restore from the branch named `background-tasks`
     [ ] Fix tree Provider with resumed messages
 
-[ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in
+[ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
 
+
+[ ] Retry Assistant message with a new model
+    [ ] Model selected needs to be part of the message info
+    [ ] Model needs to be part of the request data
 
 [ ] Dont scroll to bottom when switching branches
 [x] Optimize the Model Selector component
@@ -131,11 +136,7 @@
 
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
-[ ] Anonymous message limits should be a number of credits.
-    [ ] Increment message count for anyonymous on asssitant message finish
-   [ ] Fix message Limits consistency between backend and frontend
-       [ ] Disable send button when users reached the limit
-       [ ] Create a better tooltip message when backend reaches rate-limit
+
 
 [x] When unauthed, the cookie should switch to default model if not in the free models
 [x] Chat action buttons make smaller, remove borders

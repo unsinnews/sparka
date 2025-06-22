@@ -76,6 +76,9 @@ async function checkRateLimit({
   }
 }
 
+const WINDOW_SIZE_MINUTE = 60;
+const WINDOW_SIZE_MONTH = 30 * 24 * 60 * 60;
+
 export async function checkAnonymousRateLimit(
   ip: string,
   redisClient: any,
@@ -90,7 +93,7 @@ export async function checkAnonymousRateLimit(
   const minuteResult = await checkRateLimit({
     identifier: ip,
     limit: RATE_LIMIT.REQUESTS_PER_MINUTE,
-    windowSize: RATE_LIMIT.WINDOW_SIZE_MINUTE,
+    windowSize: WINDOW_SIZE_MINUTE,
     redisClient,
     keyPrefix: 'sparka-ai:rate-limit:minute',
   });
@@ -111,7 +114,7 @@ export async function checkAnonymousRateLimit(
   const monthResult = await checkRateLimit({
     identifier: ip,
     limit: RATE_LIMIT.REQUESTS_PER_MONTH,
-    windowSize: RATE_LIMIT.WINDOW_SIZE_MONTH,
+    windowSize: WINDOW_SIZE_MONTH,
     redisClient,
     keyPrefix: 'sparka-ai:rate-limit:month',
   });

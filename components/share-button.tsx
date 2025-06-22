@@ -254,13 +254,10 @@ export function ShareButton({
   const isAuthenticated = !!session?.user;
 
   const triggerButton = (
-    <Button
-      variant="outline"
-      size="sm"
-      className={cn('h-8 w-8 p-0', className)}
-    >
+    <Button variant="outline" size="sm" className={cn('', className)}>
       <Share size={16} />
       <span className="sr-only">Share chat</span>
+      <p>Share</p>
     </Button>
   );
 

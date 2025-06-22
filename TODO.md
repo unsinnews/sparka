@@ -112,8 +112,6 @@
 
 [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
-[ ] Replace Anonymous Session ID by hardcoded "anonymous" userID ? What's are the pros/cons?
-
 
 ## Polishing
 

@@ -41,7 +41,7 @@ import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
 import { AnthropicIcon, GoogleIcon, OpenAIIcon, XAIIcon } from './icons';
 
-import { ChevronUpIcon, FilterIcon, Building, CheckCircle } from 'lucide-react';
+import { ChevronUpIcon, FilterIcon, Building } from 'lucide-react';
 
 type FeatureFilter = Record<string, boolean>;
 
@@ -320,7 +320,7 @@ export function PureModelSelector({
         >
           <CommandEmpty>No model found.</CommandEmpty>
           <CommandGroup>
-            <ScrollArea className="max-h-[350px]">
+            <ScrollArea className="[&>[data-radix-scroll-area-viewport]]:max-h-[350px]">
               <TooltipProvider delayDuration={300}>
                 {filteredModels.map((chatModel) => {
                   const { id } = chatModel;
@@ -369,9 +369,6 @@ export function PureModelSelector({
                                 <div className="flex items-center gap-1 flex-shrink-0">
                                   {featureIcons}
                                 </div>
-                              )}
-                              {isSelected && (
-                                <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" />
                               )}
                             </div>
                           </CommandItem>

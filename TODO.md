@@ -85,6 +85,8 @@
 
 
 
+[ ] Model Selector should be a selectable list. The cards should be for a more detailed view (not used as often)
+
 [ ] Images are treated as a document, and tool thinks it's not able to use them
 
 [ ] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 

@@ -2204,7 +2204,33 @@ export type ModelDefinition = ModelDefinitionInternal & {
   providerModelId: AvailableProviderModels;
 };
 
-export const allImplementedModels = allModels.filter((model) => model.enabled);
+// Preferred provider order
+const PROVIDER_ORDER = ['openai', 'google', 'anthropic', 'xai'] as const;
+
+export const allImplementedModels = allModels
+  .filter((model) => model.enabled)
+  .sort((a, b) => {
+    const aProviderIndex = PROVIDER_ORDER.indexOf(
+      a.specification.provider as any,
+    );
+    const bProviderIndex = PROVIDER_ORDER.indexOf(
+      b.specification.provider as any,
+    );
+
+    // If provider is not in the preferred list, put it at the end
+    const aIndex =
+      aProviderIndex === -1 ? PROVIDER_ORDER.length : aProviderIndex;
+    const bIndex =
+      bProviderIndex === -1 ? PROVIDER_ORDER.length : bProviderIndex;
+
+    // Sort by provider order first
+    if (aIndex !== bIndex) {
+      return aIndex - bIndex;
+    }
+
+    // Within same provider, maintain original order from allModels array
+    return 0;
+  });
 
 // Memoized dictionary of models by ID for efficient lookups
 const _modelsByIdCache = new Map<string, ModelDefinitionInternal>();

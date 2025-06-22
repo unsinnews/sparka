@@ -11,14 +11,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCcw } from 'lucide-react';
 import { useMessageTree } from '@/providers/message-tree-provider';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 export function PureMessageActions({
   chatId,
@@ -26,12 +27,16 @@ export function PureMessageActions({
   vote,
   isLoading,
   isReadOnly,
+  chatHelpers,
+  parentMessageId,
 }: {
   chatId: string;
   message: Message;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
+  chatHelpers?: UseChatHelpers;
+  parentMessageId: string | null;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -54,6 +59,50 @@ export function PureMessageActions({
   // Get sibling info for navigation
   const siblingInfo = getMessageSiblingInfo(message.id);
   const hasSiblings = siblingInfo && siblingInfo.siblings.length > 1;
+
+  // Function to handle retry by finding parent user message and resending
+  const handleRetry = useCallback(() => {
+    if (!chatHelpers || !parentMessageId) {
+      toast.error('Cannot retry this message');
+      return;
+    }
+
+    // Find the parent user message
+    const parentMessage = chatHelpers.messages.find(
+      (msg) => msg.id === parentMessageId,
+    );
+
+    if (!parentMessage || parentMessage.role !== 'user') {
+      toast.error('Cannot find the user message to retry');
+      return;
+    }
+
+    // Remove the current assistant message and any messages after it
+    const messageIndex = chatHelpers.messages.findIndex(
+      (msg) => msg.id === message.id,
+    );
+
+    if (messageIndex === -1) {
+      toast.error('Cannot find message in conversation');
+      return;
+    }
+
+    // Remove this assistant message and all subsequent messages
+    const newMessages = chatHelpers.messages.slice(0, messageIndex - 1);
+    chatHelpers.setMessages(newMessages);
+
+    // Resend the parent user message
+    chatHelpers.append(parentMessage, {
+      data: {
+        deepResearch: false,
+        webSearch: false,
+        reason: false,
+        parentMessageId,
+      },
+    });
+
+    toast.success('Retrying message...');
+  }, [message, chatHelpers, parentMessageId]);
 
   if (isLoading) return null;
 
@@ -87,6 +136,22 @@ export function PureMessageActions({
           </TooltipTrigger>
           <TooltipContent>Copy</TooltipContent>
         </Tooltip>
+
+        {message.role === 'assistant' && !isReadOnly && chatHelpers && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
+                onClick={handleRetry}
+              >
+                <RefreshCcw className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Retry</TooltipContent>
+          </Tooltip>
+        )}
 
         {hasSiblings && (
           <div className="flex gap-1 items-center justify-center">
@@ -200,6 +265,8 @@ export const MessageActions = memo(
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
+    if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
+    if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
     return true;
   },
 );

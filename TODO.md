@@ -145,12 +145,12 @@
 [ ] Perf optimization: On getQuery cache subscription, update the tree. Keep the message tree in a reference
 
 
-[ ] Create a menu in the assistant message actions to retry (creating a new branch)
+[x] Create a menu in the assistant message actions to retry (creating a new branch)
 
 
 
 [ ] Chat sharing
-    [ ] Artifacts sharing
+    [x] Artifacts sharing
     [ ] Add "Make this chat discoverable" option to share modal
     [ ] Add social media sharing buttons (LinkedIn, Reddit, X) to share modal
 

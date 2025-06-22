@@ -500,8 +500,8 @@ function PureMultimodalInput({
             />
           </ScrollArea>
 
-          <ChatInputBottomRow className="flex flex-row justify-between min-w-0">
-            <div className="flex items-center gap-1 @[400px]:gap-2 min-w-0 flex-1">
+          <ChatInputBottomRow className="flex flex-row justify-between min-w-0 w-full">
+            <div className="flex items-center gap-1 @[400px]:gap-2 min-w-0 flex-0">
               <ModelSelector
                 selectedModelId={selectedModelId}
                 className="h-fit text-xs @[400px]:text-sm min-w-0 shrink max-w-none px-2 @[400px]:px-3 py-1 @[400px]:py-1.5 truncate flex-1"
@@ -513,7 +513,7 @@ function PureMultimodalInput({
                 selectedModelId={selectedModelId}
               />
             </div>
-            <div className="flex items-center gap-1 @[400px]:gap-2 flex-shrink-0">
+            <div className="flex gap-1 @[400px]:gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
               {status === 'submitted' ? (
                 <StopButton stop={stop} setMessages={setMessages} />

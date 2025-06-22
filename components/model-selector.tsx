@@ -311,10 +311,7 @@ export function PureModelSelector({
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className={cn(
-            'w-fit justify-between md:px-2 md:h-[34px] gap-0',
-            className,
-          )}
+          className={cn('w-fit md:px-2 md:h-[34px] gap-0', className)}
         >
           <p className="truncate">{selectedChatModel?.name}</p>
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />

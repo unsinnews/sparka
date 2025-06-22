@@ -42,7 +42,8 @@ export function PureMessageActions({
   const queryClient = useQueryClient();
   const [_, copyToClipboard] = useCopyToClipboard();
   const { data: session } = useSession();
-  const { getMessageSiblingInfo, navigateToSibling } = useMessageTree();
+  const { getMessageSiblingInfo, navigateToSibling, setLastMessageId } =
+    useMessageTree();
 
   const isAuthenticated = !!session?.user;
 
@@ -67,10 +68,14 @@ export function PureMessageActions({
       return;
     }
 
-    // Find the parent user message
-    const parentMessage = chatHelpers.messages.find(
+    // We re-send the parent message to cause a retry
+
+    const parentMessageIdx = chatHelpers.messages.findIndex(
       (msg) => msg.id === parentMessageId,
     );
+
+    // Find the parent user message
+    const parentMessage = chatHelpers.messages[parentMessageIdx];
 
     if (!parentMessage || parentMessage.role !== 'user') {
       toast.error('Cannot find the user message to retry');
@@ -78,17 +83,10 @@ export function PureMessageActions({
     }
 
     // Remove the current assistant message and any messages after it
-    const messageIndex = chatHelpers.messages.findIndex(
-      (msg) => msg.id === message.id,
-    );
+    const newMessages = chatHelpers.messages.slice(0, parentMessageIdx);
 
-    if (messageIndex === -1) {
-      toast.error('Cannot find message in conversation');
-      return;
-    }
+    const grandParentMessageId = newMessages[parentMessageIdx - 1]?.id || null;
 
-    // Remove this assistant message and all subsequent messages
-    const newMessages = chatHelpers.messages.slice(0, messageIndex - 1);
     chatHelpers.setMessages(newMessages);
 
     // Resend the parent user message
@@ -97,12 +95,14 @@ export function PureMessageActions({
         deepResearch: false,
         webSearch: false,
         reason: false,
-        parentMessageId,
+        parentMessageId: grandParentMessageId,
       },
     });
 
+    setLastMessageId(parentMessage.id);
+
     toast.success('Retrying message...');
-  }, [message, chatHelpers, parentMessageId]);
+  }, [chatHelpers, parentMessageId, setLastMessageId]);
 
   if (isLoading) return null;
 

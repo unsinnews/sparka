@@ -85,12 +85,19 @@
 
 
 
-[ ] Model Selector should be a selectable list. The cards should be for a more detailed view (not used as often)
+[x] Model Selector should be a selectable list. The cards should be for a more detailed view (not used as often)
 
-[ ] Images are treated as a document, and tool thinks it's not able to use them
 
 [ ] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 
     [ ] Decouple from chat so that typing experience can be faster
+
+
+[ ] Anonymous message limits should be a number of credits.
+    [ ] Increment message count for anyonymous on asssitant message finish
+   [ ] Fix message Limits consistency between backend and frontend
+       [ ] Disable send button when users reached the limit
+       [ ] Create a better tooltip message when backend reaches rate-limit
+
 
 [ ] OG Image
 [ ] Favicon
@@ -103,6 +110,7 @@
 
 [ ] Showing preview of last document in chat, should also consider updated document
 
+[ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
 [ ] Replace Anonymous Session ID by hardcoded "anonymous" userID ? What's are the pros/cons?
 

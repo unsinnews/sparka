@@ -344,3 +344,64 @@ export async function loadAnonymousDocumentsByDocumentId(
   const documents = await loadAnonymousDocumentsFromStorage();
   return documents.filter((document) => document.id === documentId);
 }
+
+export async function loadAnonymousChatsFromStorage(): Promise<
+  AnonymousChat[]
+> {
+  try {
+    const session = getAnonymousSession();
+    if (!session) {
+      return [];
+    }
+
+    const savedChats = localStorage.getItem(ANONYMOUS_CHATS_KEY);
+    if (!savedChats) {
+      return [];
+    }
+
+    const parsedChats = JSON.parse(savedChats) as AnonymousChat[];
+    return parsedChats
+      .filter((chat: AnonymousChat) => chat.userId === session.id)
+      .map((chat: AnonymousChat) => ({
+        ...chat,
+        createdAt: new Date(chat.createdAt),
+      }))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  } catch (error) {
+    console.error('Error loading anonymous chats:', error);
+    return [];
+  }
+}
+
+export async function loadAnonymousChatById(
+  chatId: string,
+): Promise<AnonymousChat | null> {
+  try {
+    const session = getAnonymousSession();
+    if (!session) {
+      return null;
+    }
+
+    const savedChats = localStorage.getItem(ANONYMOUS_CHATS_KEY);
+    if (!savedChats) {
+      return null;
+    }
+
+    const parsedChats = JSON.parse(savedChats) as AnonymousChat[];
+    const chat = parsedChats.find(
+      (chat: AnonymousChat) => chat.id === chatId && chat.userId === session.id,
+    );
+
+    if (!chat) {
+      return null;
+    }
+
+    return {
+      ...chat,
+      createdAt: new Date(chat.createdAt),
+    };
+  } catch (error) {
+    console.error('Error loading anonymous chat by ID:', error);
+    return null;
+  }
+}

@@ -27,10 +27,11 @@ import {
   cloneAnonymousChat,
   loadAnonymousDocumentsByDocumentId,
   saveAnonymousDocument,
+  loadAnonymousChatsFromStorage,
+  loadAnonymousChatById,
 } from '@/lib/utils/anonymous-chat-storage';
 import type { Message } from 'ai';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
-import type { AnonymousChat } from '@/lib/types/anonymous';
 import { generateUUID } from '@/lib/utils';
 
 // Custom hook for chat mutations
@@ -691,32 +692,14 @@ export function useGetAllChats() {
         queryKey: options.queryKey,
         select: (data: UIChat[]) => data.slice(0, 10),
         queryFn: async () => {
-          // Load from localStorage for anonymous users
-          try {
-            const session = getAnonymousSession();
-            if (!session) return [];
-
-            const savedChats = localStorage.getItem('anonymous-chats');
-            if (!savedChats) return [];
-
-            const parsedChats = JSON.parse(savedChats) as AnonymousChat[];
-            return parsedChats
-              .filter((chat: any) => chat.userId === session.id)
-              .map((chat: any) => ({
-                id: chat.id,
-                createdAt: new Date(chat.createdAt),
-                title: chat.title,
-                visibility: chat.visibility,
-                userId: '',
-              }))
-              .sort(
-                (a: any, b: any) =>
-                  b.createdAt.getTime() - a.createdAt.getTime(),
-              );
-          } catch (error) {
-            console.error('Error loading anonymous chats:', error);
-            return [];
-          }
+          const chats = await loadAnonymousChatsFromStorage();
+          return chats.map((chat: any) => ({
+            id: chat.id,
+            createdAt: chat.createdAt,
+            title: chat.title,
+            visibility: chat.visibility,
+            userId: '',
+          }));
         },
       };
     }
@@ -725,6 +708,43 @@ export function useGetAllChats() {
   // Combined query for both authenticated and anonymous chats
   return useQuery(getAllChatsQueryOptions);
 }
+
+export function useGetChatById(chatId: string) {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+
+  const getChatByIdQueryOptions = useMemo(() => {
+    const options = trpc.chat.getChatById.queryOptions({ chatId });
+    if (isAuthenticated) {
+      return {
+        ...options,
+        enabled: !!chatId,
+      };
+    } else {
+      return {
+        queryKey: trpc.chat.getChatById.queryKey({ chatId }),
+        queryFn: async (): Promise<UIChat> => {
+          const chat = await loadAnonymousChatById(chatId);
+          // TODO: Change for trpc error
+          if (!chat) throw new Error('Chat not found');
+
+          return {
+            id: chat.id,
+            createdAt: chat.createdAt,
+            title: chat.title,
+            visibility: chat.visibility,
+            userId: '',
+          } satisfies UIChat;
+        },
+        enabled: !!chatId,
+      };
+    }
+  }, [trpc.chat.getChatById, isAuthenticated, chatId]);
+
+  return useQuery(getChatByIdQueryOptions);
+}
+
 export function useGetCredits() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;

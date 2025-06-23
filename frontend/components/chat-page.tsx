@@ -4,7 +4,7 @@ import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
 import { useDefaultModel } from '@/providers/default-model-provider';
-import { useGetAllChats, useMessagesQuery } from '@/hooks/use-chat-store';
+import { useGetChatById, useMessagesQuery } from '@/hooks/use-chat-store';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
@@ -14,11 +14,8 @@ export function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const defaultModel = useDefaultModel();
 
-  //   TODO: Replace by get Chat by id?
-  const { data: chats, isLoading: isChatLoading } = useGetAllChats();
+  const { data: chat, isLoading: isChatLoading } = useGetChatById(id || '');
   const { data: messages, isLoading: isMessagesLoading } = useMessagesQuery();
-
-  const chat = chats?.find((c) => c.id === id);
 
   // Get messages if chat exists
 

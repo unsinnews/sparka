@@ -33,6 +33,25 @@ export const chatRouter = createTRPCRouter({
     return chats.map(dbChatToUIChat);
   }),
 
+  getChatById: protectedProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const chat = await getChatById({ id: input.chatId });
+
+      if (!chat || chat.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found',
+        });
+      }
+
+      return dbChatToUIChat(chat);
+    }),
+
   getChatMessages: protectedProcedure
     .input(
       z.object({

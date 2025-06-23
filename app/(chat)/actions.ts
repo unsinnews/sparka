@@ -2,8 +2,6 @@
 
 import { generateText, type Message } from 'ai';
 
-import { updateChatVisiblityById } from '@/lib/db/queries';
-import type { VisibilityType } from '@/components/visibility-selector';
 import { myProvider } from '@/lib/ai/providers';
 
 export async function generateTitleFromUserMessage({
@@ -23,14 +21,4 @@ export async function generateTitleFromUserMessage({
   });
 
   return title;
-}
-
-export async function updateChatVisibility({
-  chatId,
-  visibility,
-}: {
-  chatId: string;
-  visibility: VisibilityType;
-}) {
-  await updateChatVisiblityById({ chatId, visibility });
 }

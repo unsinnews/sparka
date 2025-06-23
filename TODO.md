@@ -126,6 +126,7 @@
 [ ] Retry Assistant message with a new model
     [ ] Model selected needs to be part of the message info
     [ ] Model needs to be part of the request data
+    [ ] Current model that generated the message should be detailed in the message actions (like t3)
 
 [ ] Dont scroll to bottom when switching branches
 [x] Optimize the Model Selector component
@@ -140,6 +141,7 @@
 [x] Chat action buttons make smaller, remove borders
 [x] Use image avatar from next-auth session
 
+[ ] Change Sparka Google Oauth to Sparka AI
 
 [ ] Code
     [ ] Extend code editing and syntax hihglighting to typescript

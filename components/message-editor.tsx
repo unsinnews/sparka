@@ -1,11 +1,6 @@
 'use client';
 
-import type {
-  Attachment,
-  ChatRequestOptions,
-  CreateMessage,
-  Message,
-} from 'ai';
+import type { ChatRequestOptions, CreateMessage, Message } from 'ai';
 import {
   type Dispatch,
   type SetStateAction,
@@ -38,9 +33,6 @@ function MessageEditorContent({
   onModelChange,
 }: MessageEditorProps & { onModelChange?: (modelId: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [attachments, setAttachments] = useState<Array<Attachment>>(
-    message.experimental_attachments || [],
-  );
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -84,8 +76,6 @@ function MessageEditorContent({
         chatId={chatId}
         status={isSubmitting ? 'submitted' : 'ready'}
         stop={() => setIsSubmitting(false)}
-        attachments={attachments}
-        setAttachments={setAttachments}
         messages={[]}
         setMessages={chatHelpers.setMessages}
         append={handleAppend}
@@ -111,6 +101,7 @@ export function MessageEditor(
     <ChatInputProvider
       key={`edit-${props.message.id}`}
       initialInput={initialInput}
+      initialAttachments={props.message.experimental_attachments || []}
       localStorageEnabled={false}
     >
       <MessageEditorContent {...props} />

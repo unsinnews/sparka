@@ -7,8 +7,6 @@ import {
   useEffect,
   useState,
   useCallback,
-  type Dispatch,
-  type SetStateAction,
   type ChangeEvent,
   memo,
 } from 'react';
@@ -53,8 +51,6 @@ function PureMultimodalInput({
   chatId,
   status,
   stop,
-  attachments,
-  setAttachments,
   messages,
   setMessages,
   append,
@@ -67,8 +63,6 @@ function PureMultimodalInput({
   chatId: string;
   status: UseChatHelpers['status'];
   stop: () => void;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<YourUIMessage>;
   setMessages: UseChatHelpers['setMessages'];
   append: UseChatHelpers['append'];
@@ -84,8 +78,17 @@ function PureMultimodalInput({
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const { getLastMessageId } = useMessageTree();
-  const { input, setInput, data, setData, clearInput, resetData } =
-    useChatInput();
+  const {
+    input,
+    setInput,
+    data,
+    setData,
+    attachments,
+    setAttachments,
+    clearInput,
+    resetData,
+    clearAttachments,
+  } = useChatInput();
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -264,7 +267,7 @@ function PureMultimodalInput({
       },
     });
 
-    setAttachments([]);
+    clearAttachments();
     if (!isEditMode) {
       clearInput();
     }
@@ -282,7 +285,7 @@ function PureMultimodalInput({
   }, [
     attachments,
     append,
-    setAttachments,
+    clearAttachments,
     clearInput,
     resetData,
     width,
@@ -683,9 +686,6 @@ export const MultimodalInput = memo(
     if (prevProps.onModelChange !== nextProps.onModelChange) return false;
     if (prevProps.chatId !== nextProps.chatId) return false;
     if (prevProps.className !== nextProps.className) return false;
-
-    // Deep comparison only for complex objects that actually change
-    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
 
     // Messages comparison - only check length and last message for performance
     if (prevProps.messages.length !== nextProps.messages.length) return false;

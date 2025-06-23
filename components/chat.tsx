@@ -1,6 +1,6 @@
 'use client';
 
-import type { Attachment, ChatRequestOptions } from 'ai';
+import type { ChatRequestOptions } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -93,7 +93,6 @@ export function Chat({
   });
 
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   const handleModelChange = async (modelId: string) => {
@@ -162,8 +161,6 @@ export function Chat({
               chatId={id}
               status={status}
               stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
               messages={chatHelperMessages as YourUIMessage[]}
               setMessages={setMessages}
               append={append}
@@ -180,8 +177,6 @@ export function Chat({
       <Artifact
         chatId={id}
         chatHelpers={modifiedChatHelpers}
-        attachments={attachments}
-        setAttachments={setAttachments}
         messages={chatHelperMessages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}

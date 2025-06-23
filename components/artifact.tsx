@@ -1,15 +1,6 @@
-import type { Attachment } from 'ai';
 import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'motion/react';
-import {
-  type Dispatch,
-  memo,
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 import type { Document, Vote } from '@/lib/db/schema';
 import { MultimodalInput } from './multimodal-input';
@@ -60,8 +51,6 @@ export interface UIArtifact {
 
 function PureArtifact({
   chatId,
-  attachments,
-  setAttachments,
   messages,
   chatHelpers,
   votes,
@@ -70,8 +59,6 @@ function PureArtifact({
   onModelChange,
 }: {
   chatId: string;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<YourUIMessage>;
   votes: Array<Vote> | undefined;
   chatHelpers: UseChatHelpers;
@@ -328,8 +315,6 @@ function PureArtifact({
                       chatId={chatId}
                       status={chatHelpers.status}
                       stop={chatHelpers.stop}
-                      attachments={attachments}
-                      setAttachments={setAttachments}
                       messages={messages}
                       append={chatHelpers.append}
                       className="bg-background dark:bg-muted"

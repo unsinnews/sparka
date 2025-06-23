@@ -9,6 +9,7 @@ import React, {
   type Dispatch,
   type SetStateAction,
 } from 'react';
+import type { Attachment } from 'ai';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { useLocalStorage } from 'usehooks-ts';
 
@@ -17,8 +18,11 @@ interface ChatInputContextType {
   setInput: Dispatch<SetStateAction<string>>;
   data: ChatRequestToolsConfig;
   setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
+  attachments: Array<Attachment>;
+  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   clearInput: () => void;
   resetData: () => void;
+  clearAttachments: () => void;
 }
 
 const ChatInputContext = createContext<ChatInputContextType | undefined>(
@@ -29,6 +33,7 @@ interface ChatInputProviderProps {
   children: ReactNode;
   initialInput?: string;
   initialData?: ChatRequestToolsConfig;
+  initialAttachments?: Array<Attachment>;
   localStorageEnabled?: boolean;
 }
 
@@ -40,6 +45,7 @@ export function ChatInputProvider({
     webSearch: false,
     reason: false,
   },
+  initialAttachments = [],
   localStorageEnabled = true,
 }: ChatInputProviderProps) {
   const [localStorageInput, setLocalStorageInput] = useLocalStorage<string>(
@@ -54,6 +60,8 @@ export function ChatInputProvider({
   });
 
   const [data, setData] = useState<ChatRequestToolsConfig>(initialData);
+  const [attachments, setAttachments] =
+    useState<Array<Attachment>>(initialAttachments);
 
   const setInput = useCallback(
     (value: SetStateAction<string>) => {
@@ -79,6 +87,10 @@ export function ChatInputProvider({
     setData(initialData);
   }, [initialData]);
 
+  const clearAttachments = useCallback(() => {
+    setAttachments([]);
+  }, []);
+
   return (
     <ChatInputContext.Provider
       value={{
@@ -86,8 +98,11 @@ export function ChatInputProvider({
         setInput,
         data,
         setData,
+        attachments,
+        setAttachments,
         clearInput,
         resetData,
+        clearAttachments,
       }}
     >
       {children}

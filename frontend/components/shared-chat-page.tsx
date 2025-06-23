@@ -56,6 +56,7 @@ export function SharedChatPage() {
         isLoading={isChatLoading || isMessagesLoading}
         className="w-full"
       >
+        {/* // Shared chats don't need chat input provider */}
         <Chat
           id={id}
           initialMessages={initialThreadMessages}

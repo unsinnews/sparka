@@ -88,11 +88,11 @@
 
 
 [ ] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 
-    [ ] Decouple from chat so that typing experience can be faster
-    [ ] The edit message should have its own context
+    [x] Decouple from chat so that typing experience can be faster
+    [x] The edit message should have its own context
     [ ] Chat bottom row should not update on type
 
-    [ ] Attachements should be part of the Chat-input-context
+    [x] Attachements should be part of the Chat-input-context
     [ ] Selected model should be part of the Chat-input-context
     [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
 

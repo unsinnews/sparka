@@ -8,6 +8,7 @@ import { useGetAllChats, useMessagesQuery } from '@/hooks/use-chat-store';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
+import { ChatInputProvider } from '@/providers/chat-input-provider';
 
 export function ChatPage() {
   const { id } = useParams<{ id: string }>();
@@ -54,12 +55,14 @@ export function ChatPage() {
         isLoading={isChatLoading || isMessagesLoading}
         className="w-full"
       >
-        <Chat
-          id={id}
-          initialMessages={initialThreadMessages}
-          selectedChatModel={defaultModel}
-          isReadonly={false} // You'll need to implement proper auth check here
-        />
+        <ChatInputProvider localStorageEnabled={true}>
+          <Chat
+            id={id}
+            initialMessages={initialThreadMessages}
+            selectedChatModel={defaultModel}
+            isReadonly={false} // You'll need to implement proper auth check here
+          />
+        </ChatInputProvider>
       </WithSkeleton>
       <DataStreamHandler id={id} />
     </>

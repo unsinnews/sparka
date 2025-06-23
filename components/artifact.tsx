@@ -31,8 +31,8 @@ import type { YourUIMessage } from '@/lib/types/ui';
 import { useTRPC } from '@/trpc/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { CloneChatButton } from '@/components/clone-chat-button';
+import { useMessageTree } from '@/providers/message-tree-provider';
 
 export const artifactDefinitions = [
   textArtifact,
@@ -60,8 +60,6 @@ export interface UIArtifact {
 
 function PureArtifact({
   chatId,
-  data,
-  setData,
   attachments,
   setAttachments,
   messages,
@@ -72,14 +70,10 @@ function PureArtifact({
   onModelChange,
 }: {
   chatId: string;
-
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<YourUIMessage>;
   votes: Array<Vote> | undefined;
-
-  data: ChatRequestToolsConfig;
-  setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   selectedModelId: string;
@@ -98,6 +92,7 @@ function PureArtifact({
   const [document, setDocument] = useState<Document | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
   const lastSavedContentRef = useRef<string>('');
+  const { getLastMessageId } = useMessageTree();
 
   const { open: isSidebarOpen } = useSidebar();
 
@@ -316,7 +311,6 @@ function PureArtifact({
 
               <div className="flex flex-col h-full justify-between items-center @container">
                 <ArtifactMessages
-                  data={data}
                   chatId={chatId}
                   status={chatHelpers.status}
                   votes={votes}
@@ -332,11 +326,6 @@ function PureArtifact({
                   <form className="flex flex-row gap-2  relative items-end w-full  p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6">
                     <MultimodalInput
                       chatId={chatId}
-                      input={chatHelpers.input}
-                      setInput={chatHelpers.setInput}
-                      handleSubmit={chatHelpers.handleSubmit}
-                      data={data}
-                      setData={setData}
                       status={chatHelpers.status}
                       stop={chatHelpers.stop}
                       attachments={attachments}
@@ -347,6 +336,7 @@ function PureArtifact({
                       setMessages={chatHelpers.setMessages}
                       selectedModelId={selectedModelId}
                       onModelChange={onModelChange}
+                      parentMessageId={getLastMessageId()}
                     />
                   </form>
                 ) : (
@@ -521,7 +511,6 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
-  if (prevProps.data !== nextProps.data) return false;
   if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
 

@@ -89,6 +89,15 @@
 
 [ ] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 
     [ ] Decouple from chat so that typing experience can be faster
+    [ ] The edit message should have its own context
+    [ ] Chat bottom row should not update on type
+
+    [ ] Attachements should be part of the Chat-input-context
+    [ ] Selected model should be part of the Chat-input-context
+    [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
+
+[ ] getParentMessageID should be part of the MessageTreeProvider and return the parent message based on a reference Map 
+
 
 
 [x] Anonymous message limits should be a number of credits.
@@ -104,15 +113,25 @@
 [ ] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)
 [ ] Fix vercel timing out
-[ ] Prefetch chats in the background (the ones loaded in history)
 
 [ ] Try functionality and do easy fixes for the happy paths
-[ ] Favourite / Pinned chats
+
+
+[ ] Chat history: 
+- [ ] Search Chats
+- [ ] Virtual list for previous chats
+- [ ] Favourite / Pinned chats
+- [ ] Get Chat by id in chat-page.tsx
+
+
+[ ] Optimization: The message streaming re-renders the whole message conversation / chat
 
 [x] Showing preview of last document in chat, should also consider updated document
 
 [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
+
+[ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 
 ## Polishing
 
@@ -122,9 +141,13 @@
     [ ] Fix tree Provider with resumed messages
 
 [ ] Threads
+    [ ] A chat request with parentMessageId, should return a stream that indicats whats the parentMesssageId for that request
     [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
     [ ] Artifacts should belong to the current thread
+    [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 
+
+[ ] Copy code button is too close to language / filename top header
 
 [ ] Retry Assistant message with a new model
     [ ] Model selected needs to be part of the message info
@@ -153,7 +176,6 @@
 [ ] Image generation
     [ ] Improve the tool description to make it more clear that it's an image generation tool
 
-[ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 [ ] Perf optimization: On getQuery cache subscription, update the tree. Keep the message tree in a reference
 
 
@@ -182,8 +204,7 @@
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 [ ] Optimize the number of getVotes query calls
-[ ] Why does visibility selector takes chat visibility as a prop?
-[ ] Get Chat by id in chat-page.tsx
+[x] Why does visibility selector takes chat visibility as a prop?
 [x] React Query Prefetch for the selected route
 [ ] React Query Prefetch for the selected route with SSR
 
@@ -220,9 +241,7 @@
 [x] Multimodal input on artifact should be hidden in shared chat
 [ ] Only render last document as preview, others as pill
 [ ] Migrate to tailwind 4 (and migrate container queries)
-[ ] Chat history: 
-- [ ] Search Chats
-- [ ] Virtual list for previous chats
+
 [ ] Reduce number of re-renders (memoization)
 [ ] Open canvas button on navbar like chatgpt
 [ ] Open canvas button like chatgpt

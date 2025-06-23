@@ -6,7 +6,6 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { ResponseErrorMessage } from './response-error-message';
 import { ThinkingMessage } from './thinking-message';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { cn, findLastArtifact } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useStickToBottom } from 'use-stick-to-bottom';
@@ -23,7 +22,6 @@ export interface MessagesProps {
   isReadonly: boolean;
   isVisible: boolean;
   selectedModelId: string;
-  data: ChatRequestToolsConfig;
   onModelChange?: (modelId: string) => void;
 }
 
@@ -35,7 +33,6 @@ function PureMessages({
   chatHelpers,
   isReadonly,
   selectedModelId,
-  data,
   onModelChange,
 }: MessagesProps) {
   const { scrollRef, contentRef, scrollToBottom, isNearBottom, state } =
@@ -81,11 +78,7 @@ function PureMessages({
           messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
 
         {status === 'error' && (
-          <ResponseErrorMessage
-            chatHelpers={chatHelpers}
-            messages={messages}
-            data={data}
-          />
+          <ResponseErrorMessage chatHelpers={chatHelpers} messages={messages} />
         )}
 
         <div className="shrink-0 min-w-[24px] min-h-[24px]" />
@@ -117,7 +110,7 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (!equal(prevProps.messages, nextProps.messages)) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
-  if (prevProps.data !== nextProps.data) return false;
+
   if (prevProps.onModelChange !== nextProps.onModelChange) return false;
 
   return true;

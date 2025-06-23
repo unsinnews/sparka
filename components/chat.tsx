@@ -1,8 +1,8 @@
 'use client';
 
-import type { Attachment, ChatRequestOptions, Message } from 'ai';
+import type { Attachment, ChatRequestOptions } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -12,7 +12,6 @@ import { Messages } from './messages';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/types/ui';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { useSession } from 'next-auth/react';
 
@@ -65,8 +64,6 @@ export function Chat({
   const {
     messages: chatHelperMessages,
     setMessages,
-    input,
-    setInput,
     append,
     status,
     stop,
@@ -80,43 +77,6 @@ export function Chat({
     console.log('registering setMessages');
     registerSetMessages(setMessages);
   }, [setMessages, registerSetMessages]);
-
-  // Wrapper around handleSubmit to save user messages for anonymous users
-  const handleSubmit = useCallback(
-    (event?: { preventDefault?: () => void }, options?: any) => {
-      const message: Message = {
-        id: generateUUID(),
-        parts: [
-          {
-            type: 'text',
-            text: input,
-          },
-        ],
-        experimental_attachments: options?.experimental_attachments || [],
-        createdAt: new Date(),
-        role: 'user',
-        content: input,
-      };
-
-      const parentMessageId = getLastMessageId();
-      saveChatMessage({
-        message,
-        chatId: id,
-        parentMessageId,
-      });
-
-      append(message, {
-        ...options,
-        data: {
-          ...options?.data,
-          parentMessageId,
-        },
-      });
-
-      setInput('');
-    },
-    [id, input, append, saveChatMessage, setInput, getLastMessageId],
-  );
 
   // Auto-resume functionality
   useAutoResume({
@@ -135,11 +95,6 @@ export function Chat({
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-  const [data, setData] = useState<ChatRequestToolsConfig>({
-    deepResearch: false,
-    webSearch: false,
-    reason: false,
-  });
 
   const handleModelChange = async (modelId: string) => {
     setLocalSelectedModelId(modelId);
@@ -161,11 +116,12 @@ export function Chat({
   const modifiedChatHelpers = useMemo(() => {
     return {
       ...chatHelpers,
+      // TODO: Does reload need to be modified?
       reload: async (options?: ChatRequestOptions) => {
         return reload({
           ...options,
           data: {
-            ...(options?.data as ChatRequestToolsConfig),
+            ...(options?.data as any),
             parentMessageId: getLastMessageId(),
           },
         });
@@ -193,7 +149,6 @@ export function Chat({
           votes={votes}
           status={status}
           messages={chatHelperMessages as YourUIMessage[]}
-          data={data}
           chatHelpers={modifiedChatHelpers}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
@@ -205,11 +160,6 @@ export function Chat({
           {!isReadonly ? (
             <MultimodalInput
               chatId={id}
-              input={input}
-              setInput={setInput}
-              data={data}
-              setData={setData}
-              handleSubmit={handleSubmit}
               status={status}
               stop={stop}
               attachments={attachments}
@@ -219,6 +169,7 @@ export function Chat({
               append={append}
               selectedModelId={localSelectedModelId}
               onModelChange={handleModelChange}
+              parentMessageId={getLastMessageId()}
             />
           ) : (
             <CloneChatButton chatId={id} className="w-full" />
@@ -231,8 +182,6 @@ export function Chat({
         chatHelpers={modifiedChatHelpers}
         attachments={attachments}
         setAttachments={setAttachments}
-        data={data}
-        setData={setData}
         messages={chatHelperMessages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}

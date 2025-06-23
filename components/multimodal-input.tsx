@@ -1,6 +1,6 @@
 'use client';
 
-import type { Attachment } from 'ai';
+import type { Attachment, Message } from 'ai';
 import type React from 'react';
 import {
   useRef,
@@ -13,7 +13,7 @@ import {
   memo,
 } from 'react';
 import { toast } from 'sonner';
-import { useLocalStorage, useWindowSize } from 'usehooks-ts';
+import { useWindowSize } from 'usehooks-ts';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'motion/react';
 import { useSession } from 'next-auth/react';
@@ -32,7 +32,7 @@ import { SuggestedActions } from './suggested-actions';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
+import { useChatInput } from '@/providers/chat-input-provider';
 import { ModelSelector } from './model-selector';
 import { ResponsiveToggles } from './chat-toggles';
 import { ScrollArea } from './ui/scroll-area';
@@ -45,78 +45,69 @@ import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { useChatId } from '@/providers/chat-id-provider';
+import { generateUUID } from '@/lib/utils';
+import { useSaveMessageMutation } from '@/hooks/use-chat-store';
+import { useMessageTree } from '@/providers/message-tree-provider';
 
 function PureMultimodalInput({
   chatId,
-  input,
-  setInput,
   status,
   stop,
   attachments,
   setAttachments,
-  data,
-  setData,
   messages,
   setMessages,
   append,
-  handleSubmit,
   className,
   isEditMode = false,
   selectedModelId,
   onModelChange,
+  parentMessageId,
 }: {
   chatId: string;
-  input: UseChatHelpers['input'];
-  setInput: UseChatHelpers['setInput'];
   status: UseChatHelpers['status'];
   stop: () => void;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-  data: ChatRequestToolsConfig;
-  setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   messages: Array<YourUIMessage>;
   setMessages: UseChatHelpers['setMessages'];
   append: UseChatHelpers['append'];
-  handleSubmit: UseChatHelpers['handleSubmit'];
   className?: string;
   isEditMode?: boolean;
   selectedModelId: string;
   onModelChange?: (modelId: string) => void;
+  parentMessageId: string | null;
 }) {
   const textareaRef = useRef<ChatInputTextAreaRef>(null);
   const { width } = useWindowSize();
   const { setChatId } = useChatId();
   const { data: session } = useSession();
-  const [localStorageInput, setLocalStorageInput] = useLocalStorage(
-    'input',
-    '',
-  );
+  const { mutate: saveChatMessage } = useSaveMessageMutation();
+  const { getLastMessageId } = useMessageTree();
+  const { input, setInput, data, setData, clearInput, resetData } =
+    useChatInput();
 
   useEffect(() => {
     if (textareaRef.current) {
       const domValue = textareaRef.current.value;
-      // Prefer DOM value over localStorage to handle hydration, but only use localStorage if not in edit mode
-      const finalValue =
-        domValue || (!isEditMode ? localStorageInput : '') || '';
-      setInput(finalValue);
+      // Prefer DOM value over context to handle hydration, but only use context if not in edit mode
+      const finalValue = domValue || (!isEditMode ? input : '') || '';
+      if (finalValue !== input) {
+        setInput(finalValue);
+      }
     }
     // Only run once after hydration
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    // Only save to localStorage if not in edit mode
-    if (!isEditMode) {
-      setLocalStorageInput(input);
-    }
-
     // Reset height when input is cleared
     if (input === '' && textareaRef.current?.adjustHeight) {
       setTimeout(() => {
         textareaRef.current?.adjustHeight();
       }, 0);
     }
-  }, [input, setLocalStorageInput, isEditMode]);
+  }, [input]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
@@ -220,20 +211,64 @@ function PureMultimodalInput({
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
     setChatId(chatId);
-    handleSubmit(undefined, {
+
+    // Get the appropriate parent message ID
+    const effectiveParentMessageId = isEditMode
+      ? parentMessageId
+      : getLastMessageId();
+
+    // In edit mode, trim messages to the parent message
+    if (isEditMode) {
+      if (parentMessageId === null) {
+        // If no parent, clear all messages
+        setMessages([]);
+      } else {
+        // Find the parent message and trim to that point
+        setMessages((currentMessages) => {
+          const parentIndex = currentMessages.findIndex(
+            (msg) => msg.id === parentMessageId,
+          );
+          if (parentIndex !== -1) {
+            // Keep messages up to and including the parent
+            return currentMessages.slice(0, parentIndex + 1);
+          }
+          return currentMessages;
+        });
+      }
+    }
+
+    const message: Message = {
+      id: generateUUID(),
+      parts: [
+        {
+          type: 'text',
+          text: input,
+        },
+      ],
       experimental_attachments: attachments,
-      data,
+      createdAt: new Date(),
+      role: 'user',
+      content: input,
+    };
+
+    saveChatMessage({
+      message,
+      chatId,
+      parentMessageId: effectiveParentMessageId,
+    });
+
+    append(message, {
+      data: {
+        ...data,
+        parentMessageId: effectiveParentMessageId,
+      },
     });
 
     setAttachments([]);
     if (!isEditMode) {
-      setLocalStorageInput('');
+      clearInput();
     }
-    setData({
-      deepResearch: false,
-      webSearch: false,
-      reason: false,
-    });
+    resetData();
 
     // Reset textarea height after form submission
     setTimeout(() => {
@@ -246,15 +281,20 @@ function PureMultimodalInput({
     }
   }, [
     attachments,
-    handleSubmit,
+    append,
     setAttachments,
-    setData,
-    setLocalStorageInput,
+    clearInput,
+    resetData,
     width,
     chatId,
     setChatId,
     data,
     isEditMode,
+    input,
+    saveChatMessage,
+    getLastMessageId,
+    parentMessageId,
+    setMessages,
   ]);
 
   const uploadFile = async (file: File) => {
@@ -637,7 +677,6 @@ export const MultimodalInput = memo(
   PureMultimodalInput,
   (prevProps, nextProps) => {
     // More specific equality checks to prevent unnecessary re-renders
-    if (prevProps.input !== nextProps.input) return false;
     if (prevProps.status !== nextProps.status) return false;
     if (prevProps.isEditMode !== nextProps.isEditMode) return false;
     if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
@@ -647,7 +686,6 @@ export const MultimodalInput = memo(
 
     // Deep comparison only for complex objects that actually change
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
-    if (!equal(prevProps.data, nextProps.data)) return false;
 
     // Messages comparison - only check length and last message for performance
     if (prevProps.messages.length !== nextProps.messages.length) return false;

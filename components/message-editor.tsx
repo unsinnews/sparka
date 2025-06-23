@@ -1,23 +1,23 @@
 'use client';
 
-import type { Attachment } from 'ai';
+import type {
+  Attachment,
+  ChatRequestOptions,
+  CreateMessage,
+  Message,
+} from 'ai';
 import {
   type Dispatch,
   type SetStateAction,
   useState,
   useEffect,
   useRef,
+  useCallback,
 } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
 import type { YourUIMessage } from '@/lib/types/ui';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
-import {
-  useDeleteTrailingMessages,
-  useSaveMessageMutation,
-} from '@/hooks/use-chat-store';
-import { useSession } from 'next-auth/react';
-import { generateUUID } from '@/lib/utils';
+import { ChatInputProvider } from '@/providers/chat-input-provider';
 
 export type MessageEditorProps = {
   chatId: string;
@@ -28,7 +28,7 @@ export type MessageEditorProps = {
   parentMessageId: string | null;
 };
 
-export function MessageEditor({
+function MessageEditorContent({
   chatId,
   message,
   setMode,
@@ -38,28 +38,10 @@ export function MessageEditor({
   onModelChange,
 }: MessageEditorProps & { onModelChange?: (modelId: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [input, setInput] = useState<string>(() =>
-    message.parts
-      .filter((part) => part.type === 'text')
-      .map((part) => part.text)
-      .join(''),
-  );
   const [attachments, setAttachments] = useState<Array<Attachment>>(
     message.experimental_attachments || [],
   );
-  const [data, setData] = useState<ChatRequestToolsConfig>({
-    deepResearch: false,
-    webSearch: false,
-    reason: false,
-  });
 
-  const { mutateAsync: saveMessageAsync } = useSaveMessageMutation();
-
-  const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
-
-  const { mutateAsync: deleteTrailingMessagesAsync } =
-    useDeleteTrailingMessages();
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,77 +61,59 @@ export function MessageEditor({
     };
   }, [setMode]);
 
+  const handleAppend = useCallback(
+    async (message: Message | CreateMessage, options?: ChatRequestOptions) => {
+      setIsSubmitting(true);
+
+      setMode('view');
+
+      // Save the message manually to keep local state in sync
+      const res = await chatHelpers.append(message, {
+        ...options,
+      });
+
+      setIsSubmitting(false);
+      return res;
+    },
+    [setIsSubmitting, setMode, chatHelpers.append],
+  );
+
   return (
     <div ref={containerRef} className="flex bg-background w-full">
       <MultimodalInput
         chatId={chatId}
-        input={input}
-        setInput={setInput}
         status={isSubmitting ? 'submitted' : 'ready'}
-        stop={stop}
+        stop={() => setIsSubmitting(false)}
         attachments={attachments}
         setAttachments={setAttachments}
-        data={data}
-        setData={setData}
         messages={[]}
         setMessages={chatHelpers.setMessages}
-        append={chatHelpers.append}
-        handleSubmit={async (event, options) => {
-          setIsSubmitting(true);
-
-          // await deleteTrailingMessagesAsync({ messageId: message.id, chatId });
-
-          // chatHelpers.setInput(input);
-
-          setMode('view');
-
-          // Let MultimodalInput handle the actual submission
-
-          chatHelpers.setMessages((messages) => {
-            const index = chatHelpers.messages.findIndex(
-              (m) => m.id === message.id,
-            );
-            return messages.slice(0, index);
-          });
-
-          const newMessagId = generateUUID();
-
-          console.log('chatHelpers.messages', chatHelpers.messages);
-          chatHelpers.append(
-            {
-              id: newMessagId,
-              content: input,
-              role: 'user',
-              experimental_attachments: attachments,
-              parts: [{ type: 'text', text: input }],
-            },
-            {
-              ...options,
-              data: {
-                ...(options?.data as ChatRequestToolsConfig),
-                parentMessageId: parentMessageId,
-              },
-            },
-          );
-
-          // Append doesn't perform a new submission. Therefore, we need to save manually to keep local state in sync.
-          await saveMessageAsync({
-            message: {
-              content: input,
-              id: newMessagId,
-              role: 'user',
-              parts: [{ type: 'text', text: input }],
-              experimental_attachments: attachments,
-              createdAt: new Date(),
-            },
-            chatId,
-            parentMessageId: parentMessageId,
-          });
-        }}
+        append={handleAppend}
         isEditMode={true}
         selectedModelId={selectedModelId}
         onModelChange={onModelChange}
+        parentMessageId={parentMessageId}
       />
     </div>
+  );
+}
+
+export function MessageEditor(
+  props: MessageEditorProps & { onModelChange?: (modelId: string) => void },
+) {
+  // Get the initial input value from the message content
+  const initialInput = props.message.parts
+    .filter((part) => part.type === 'text')
+    .map((part) => part.text)
+    .join('');
+
+  return (
+    <ChatInputProvider
+      key={`edit-${props.message.id}`}
+      initialInput={initialInput}
+      localStorageEnabled={false}
+    >
+      <MessageEditorContent {...props} />
+    </ChatInputProvider>
   );
 }

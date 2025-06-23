@@ -25,11 +25,11 @@ import {
 import { generateTitleFromUserMessage } from '../../actions';
 import type { YourToolName } from '@/lib/ai/tools/tools';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
-import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
+import { getTools, toolsDefinitions, allTools } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/types/ui';
 import type { NextRequest } from 'next/server';
 import {
-  determineStepTools as determineStepActiveTools,
+  filterAffordableTools,
   getBaseModelCost,
 } from '@/lib/credits/credits-utils';
 import { getModelProvider, getModelProviderOptions } from '@/lib/ai/providers';
@@ -428,13 +428,14 @@ export async function POST(request: NextRequest) {
       await setAnonymousSession(anonymousSession);
     }
 
-    const activeTools = isAnonymous
-      ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS
-      : reservation
-        ? determineStepActiveTools({
-            toolBudget: reservation.budget - baseModelCost,
-          })
-        : [];
+    const activeTools = filterAffordableTools(
+      isAnonymous ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS : allTools,
+      isAnonymous
+        ? ANONYMOUS_LIMITS.CREDITS
+        : reservation
+          ? reservation.budget - baseModelCost
+          : 0,
+    );
 
     if (
       explicitlyRequestedTool &&

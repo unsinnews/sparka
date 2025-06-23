@@ -5,6 +5,8 @@ import { useEffect, useRef } from 'react';
 import { artifactDefinitions, type ArtifactKind } from './artifact';
 import type { Suggestion } from '@/lib/db/schema';
 import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
+import { useSaveDocument } from '@/hooks/use-chat-store';
+import { useSession } from 'next-auth/react';
 
 export type DataStreamDelta = {
   type:
@@ -14,6 +16,7 @@ export type DataStreamDelta = {
     | 'image-delta'
     | 'title'
     | 'id'
+    | 'message-id'
     | 'suggestion'
     | 'clear'
     | 'finish'
@@ -25,6 +28,12 @@ export function DataStreamHandler({ id }: { id: string }) {
   const { data: dataStream } = useChat({ id });
   const { artifact, setArtifact, setMetadata } = useArtifact();
   const lastProcessedIndex = useRef(-1);
+  const { data: session } = useSession();
+  const saveDocumentMutation = useSaveDocument(
+    artifact.documentId,
+    artifact.messageId,
+  );
+  const isAuthenticated = !!session;
 
   useEffect(() => {
     if (!dataStream?.length) return;
@@ -55,6 +64,13 @@ export function DataStreamHandler({ id }: { id: string }) {
             return {
               ...draftArtifact,
               documentId: delta.content as string,
+              status: 'streaming',
+            };
+
+          case 'message-id':
+            return {
+              ...draftArtifact,
+              messageId: delta.content as string,
               status: 'streaming',
             };
 
@@ -89,8 +105,25 @@ export function DataStreamHandler({ id }: { id: string }) {
             return draftArtifact;
         }
       });
+
+      // Artifacts need to be saved locally for anonymous users
+      if (delta.type === 'finish' && !isAuthenticated) {
+        saveDocumentMutation.mutate({
+          id: artifact.documentId,
+          title: artifact.title,
+          content: artifact.content,
+          kind: artifact.kind,
+        });
+      }
     });
-  }, [dataStream, setArtifact, setMetadata, artifact]);
+  }, [
+    dataStream,
+    setArtifact,
+    setMetadata,
+    artifact,
+    saveDocumentMutation,
+    isAuthenticated,
+  ]);
 
   return null;
 }

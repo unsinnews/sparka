@@ -35,6 +35,16 @@ export const updateDocument = ({
       }
 
       dataStream.writeData({
+        type: 'id',
+        content: document.id,
+      });
+
+      dataStream.writeData({
+        type: 'message-id',
+        content: messageId,
+      });
+
+      dataStream.writeData({
         type: 'clear',
         content: document.title,
       });

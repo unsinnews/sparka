@@ -22,7 +22,10 @@ export const ANONYMOUS_LIMITS = {
     'xai/grok-3-mini-beta',
     'openai/gpt-4o-mini',
   ] as const satisfies readonly AvailableProviderModels[],
-  AVAILABLE_TOOLS: [] as YourToolName[],
+  AVAILABLE_TOOLS: [
+    'createDocument',
+    'updateDocument',
+  ] satisfies YourToolName[],
   SESSION_DURATION: 2147483647, // Max session time
   // Rate limiting for anonymous users based on IP
   RATE_LIMIT: {

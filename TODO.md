@@ -66,14 +66,13 @@
 
 ## Beta
 
-[ ] Sharing
+[x] Sharing
     [x] Switch queries to public for shared chats 
     [x] Clone artifacts on message chat cloning, changing ownership
     [x] Update artifact save mutation to work locally
     [x] Clone attachments on message chat cloning, changing ownership
     [x] Apply the isShared flag to the MessageTreeProvider
     [x] Move the MessageTreeProvider back to the all routes layout level
-    [ ] Artifacts should belong to the current thread
 
 [ ] Anonymous users artifacts
     [x] Store documents locally for anonymous users
@@ -120,7 +119,9 @@
     [ ] Restore from the branch named `background-tasks`
     [ ] Fix tree Provider with resumed messages
 
-[ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
+[ ] Threads
+    [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
+    [ ] Artifacts should belong to the current thread
 
 
 [ ] Retry Assistant message with a new model

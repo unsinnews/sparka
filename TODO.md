@@ -74,13 +74,13 @@
     [x] Apply the isShared flag to the MessageTreeProvider
     [x] Move the MessageTreeProvider back to the all routes layout level
 
-[ ] Anonymous users artifacts
+[x] Anonymous users artifacts
     [x] Store documents locally for anonymous users
-    [ ] Enable the generate document tool
+    [x] Enable the generate document tool
 
 
 [x] Bug: Plus button doesn't change to home Sparka sometimes (after getting an artifact/error?)
-[x] Bug: On mobile, Text and spacing in multimodal input footer should be smaller
+[x] Bug: On mobile, Text and **spacing** in multimodal input footer should be smaller
 
 
 

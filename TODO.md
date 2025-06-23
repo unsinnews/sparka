@@ -98,6 +98,8 @@
     [ ] Create a better toast message when backend reaches rate-limit
 
 
+[ ] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
+
 [ ] OG Image
 [ ] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)

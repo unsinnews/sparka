@@ -109,7 +109,7 @@
 [ ] Try functionality and do easy fixes for the happy paths
 [ ] Favourite / Pinned chats
 
-[ ] Showing preview of last document in chat, should also consider updated document
+[x] Showing preview of last document in chat, should also consider updated document
 
 [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 

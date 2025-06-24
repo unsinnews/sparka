@@ -117,7 +117,7 @@
 - [ ] Search Chats
 - [ ] Virtual list for previous chats
 - [ ] Favourite / Pinned chats
-- [ ] Get Chat by id in chat-page.tsx
+- [x] Get Chat by id in chat-page.tsx
 
 
 

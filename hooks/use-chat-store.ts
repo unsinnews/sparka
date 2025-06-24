@@ -674,7 +674,7 @@ export function useDocuments(id: string, disable: boolean) {
   return useQuery(documentsQueryOptions);
 }
 
-export function useGetAllChats() {
+export function useGetAllChats(limit?: number) {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const trpc = useTRPC();
@@ -685,12 +685,12 @@ export function useGetAllChats() {
     if (isAuthenticated) {
       return {
         ...options,
-        select: (data: UIChat[]) => data.slice(0, 10),
+        select: limit ? (data: UIChat[]) => data.slice(0, limit) : undefined,
       };
     } else {
       return {
         queryKey: options.queryKey,
-        select: (data: UIChat[]) => data.slice(0, 10),
+        select: limit ? (data: UIChat[]) => data.slice(0, limit) : undefined,
         queryFn: async () => {
           const chats = await loadAnonymousChatsFromStorage();
           return chats.map((chat: any) => ({
@@ -703,7 +703,7 @@ export function useGetAllChats() {
         },
       };
     }
-  }, [trpc.chat.getAllChats, isAuthenticated]);
+  }, [trpc.chat.getAllChats, isAuthenticated, limit]);
 
   // Combined query for both authenticated and anonymous chats
   return useQuery(getAllChatsQueryOptions);

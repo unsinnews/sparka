@@ -6,6 +6,7 @@ import { LogIn } from 'lucide-react';
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
+import { SearchChatsButton } from '@/components/search-chats';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -60,6 +61,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               <TooltipContent align="end">New Chat</TooltipContent>
             </Tooltip>
           </div>
+
+          <SidebarMenuItem>
+            <SearchChatsButton />
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <ScrollArea className="h-full">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,12 +16,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { LoginPrompt } from './upgrade-cta/login-prompt';
-import { useGetAllChats, useSetVisibility } from '@/hooks/use-chat-store';
+import { useGetChatById, useSetVisibility } from '@/hooks/use-chat-store';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { GlobeIcon, LockIcon } from './icons';
-import { Share, Copy, Loader2 } from 'lucide-react';
+import { Copy, GlobeIcon, Loader2, LockIcon, Share } from 'lucide-react';
+import { LoginPrompt } from './upgrade-cta/login-prompt';
 
 type ShareStep = 'info' | 'shared';
 
@@ -36,14 +35,10 @@ export function ShareDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [step, setStep] = useState<ShareStep>('info');
-  const { data: allChats } = useGetAllChats();
+  const { data: chat } = useGetChatById(chatId);
   const setVisibilityMutation = useSetVisibility();
 
-  const currentChat = useMemo(() => {
-    return allChats?.find((chat) => chat.id === chatId);
-  }, [allChats, chatId]);
-
-  const isPublic = currentChat?.visibility === 'public';
+  const isPublic = chat?.visibility === 'public';
   const isPending = setVisibilityMutation.isPending;
 
   const handleShare = () => {

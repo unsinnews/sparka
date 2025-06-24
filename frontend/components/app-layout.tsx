@@ -18,7 +18,7 @@ interface AppLayoutProps {
 
 // Custom hook to prefetch messages for all chats in history (runs once)
 function usePrefetchChatMessages() {
-  const { data: chats } = useGetAllChats();
+  const { data: chats } = useGetAllChats(10);
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const queryClient = useQueryClient();

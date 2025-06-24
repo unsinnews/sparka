@@ -120,11 +120,11 @@
 
 [x] Showing preview of last document in chat, should also consider updated document
 
-[ ] AI Tools Quality
-    [ ] Tool Descriptions should be all there's needed to know about the tool.
-    [ ] Get rid of getToolsPrompt
-    [ ] Improve tool description formats
-    [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
+[x] AI Tools Quality
+    [x] Tool Descriptions should be all there's needed to know about the tool.
+    [x] Get rid of getToolsPrompt
+    [x] Improve tool description formats
+    [x] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
 
 [x] Document alignment should be in the middle

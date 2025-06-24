@@ -51,7 +51,7 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
   // Clear manual override when pathname actually changes through navigation
   useEffect(() => {
     setManualChatId(null);
-  }, [location.pathname]);
+  }, [location.pathname, location.key]);
 
   const chatId = manualChatId ?? urlChatId;
 

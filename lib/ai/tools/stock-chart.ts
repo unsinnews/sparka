@@ -3,16 +3,15 @@ import { tool } from 'ai';
 import CodeInterpreter from '@e2b/code-interpreter';
 
 export const stockChart = tool({
-  description: `Write and execute Python code to find stock data and generate a stock chart.
+  description: `Generate a line stock chart and fetch price data via Python (yfinance + matplotlib).
 
-**When to use \`stockChart\`:**
-- Use this for line stock chart generation.
-- Use this getting financial data of a stock.
+Usage:
+- Create line charts for publicly traded stocks
+- Fetch historical price data for investment analysis
 
-**When NOT to use \`stockChart\`:**
-- Do not use this tool for other chart types.
-- Do not use this for non-stock data.
-- Do not use this for private companies.`,
+Avoid:
+- Non-line or non-stock charts
+- Private-company or non-stock datasets`,
   parameters: z.object({
     title: z.string().describe('The title of the chart.'),
     code: z

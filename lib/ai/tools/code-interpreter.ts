@@ -3,21 +3,19 @@ import { tool } from 'ai';
 import CodeInterpreter from '@e2b/code-interpreter';
 
 export const codeInterpreter = tool({
-  description: `Write and execute Python code.
+  description: `Python-only sandbox for calculations, data analysis & simple visualisations.
 
-**When to use \`codeInterpreter\`:**
-- Use this Python-only sandbox for calculations, data analysis, or gevisualizations
-- matplotlib, pandas, numpy, sympy, and yfinance are available
-- Remember to add the necessary imports for the libraries you use as they are not pre-imported
-- Include library installations (!pip install <library_name>) in the code where required
-- You can generate line, scatter or bar charts for data analysis.
-  - If you generate a line chart, you must use the 'plt.show()' function to display the chart.
-  - Be sure to select adequate 
-- Images are not allowed in the response! Do not create images.
+Usage:
+- Execute Python (matplotlib, pandas, numpy, sympy, yfinance pre-installed)
+- Produce line / scatter / bar charts (must call 'plt.show()' for line charts)
+- Install extra libs inline with '!pip install pkg'
 
-**When NOT to use \`codeInterpreter\`:**
-- Do not use this tool for other languages.
-- Do not use this tool for other chart types.`,
+Restrictions:
+- No images in the assistant response; don't embed them
+
+Avoid:
+- Any non-Python language
+- Chart types other than line / scatter / bar`,
   parameters: z.object({
     title: z.string().describe('The title of the code snippet.'),
     code: z

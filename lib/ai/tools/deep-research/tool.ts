@@ -22,17 +22,13 @@ export const deepResearch = ({
   messageId: string;
 }) =>
   tool({
-    description: `Perform deep research on a topic.
+    description: `End-to-end multi-step research assistant.
 
-**When to use \`deepResearch\`:**
-- Use this for complex queries requiring:
-  - Multi-step research planning
-  - Parallel web and academic searches
-  - Deep analysis of findings
-  - Cross-referencing and validation
+Usage:
+- Complex topics that need planning, web+academic searches and synthesis
 
-**When NOT to use \`deepResearch\`:**
-- Do not use this tool for simple queries that can be answered straight away.`,
+Avoid:
+- Simple questions that can be answered directly`,
     parameters: z.object({
       query: z.string().describe('The query to research'),
       isReport: z

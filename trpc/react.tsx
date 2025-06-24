@@ -8,6 +8,7 @@ import {
 } from '@tanstack/react-query';
 import { loggerLink, httpBatchLink, createTRPCClient } from '@trpc/client';
 import { createTRPCContext } from '@trpc/tanstack-react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 import SuperJSON from 'superjson';
 import { makeQueryClient } from './query-client';
@@ -68,7 +69,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
       <TRPCProvider trpcClient={trpcClient} queryClient={queryClient}>
         {props.children}
       </TRPCProvider>
-      {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );
 }

@@ -130,6 +130,8 @@
     [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
 
+[x] Document alignment should be in the middle
+[ ] Pasted links in the prompt should have rich formatting 
 
 ## Polishing
 

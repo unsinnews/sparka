@@ -11,16 +11,13 @@ interface ReadDocumentProps {
 
 export const readDocument = ({ session, dataStream }: ReadDocumentProps) =>
   tool({
-    description: `Read the content of a document that has been created in the conversation.
+    description: `Read the contents of a document created earlier in this chat.
 
-**When to use \`readDocument\`:**
-- Use this to read the content of documents that have been created in the conversation
-- Useful for follow-up requests after creating a document
-- When you need to reference or analyze existing document content
-- When the user asks questions about a document they've created
+Usage:
+- Retrieve document text for follow-up analysis or questions
 
-**When NOT to use \`readDocument\`:**
-- Do not use this for documents that haven't been created in the current conversation`,
+Avoid:
+- Documents that were not produced in the current conversation`,
     parameters: z.object({
       id: z.string().describe('The ID of the document to read'),
     }),

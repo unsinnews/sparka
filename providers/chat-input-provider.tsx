@@ -12,6 +12,8 @@ import React, {
 import type { Attachment } from 'ai';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { useLocalStorage } from 'usehooks-ts';
+import { toast } from 'sonner';
+import { getModelDefinition } from '@/lib/ai/all-models';
 
 interface ChatInputContextType {
   input: string;
@@ -20,6 +22,8 @@ interface ChatInputContextType {
   setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
+  selectedModelId: string;
+  handleModelChange: (modelId: string) => Promise<void>;
   clearInput: () => void;
   resetData: () => void;
   clearAttachments: () => void;
@@ -34,6 +38,7 @@ interface ChatInputProviderProps {
   initialInput?: string;
   initialData?: ChatRequestToolsConfig;
   initialAttachments?: Array<Attachment>;
+  initialSelectedModelId?: string;
   localStorageEnabled?: boolean;
 }
 
@@ -46,6 +51,7 @@ export function ChatInputProvider({
     reason: false,
   },
   initialAttachments = [],
+  initialSelectedModelId = '',
   localStorageEnabled = true,
 }: ChatInputProviderProps) {
   const [localStorageInput, setLocalStorageInput] = useLocalStorage<string>(
@@ -62,6 +68,9 @@ export function ChatInputProvider({
   const [data, setData] = useState<ChatRequestToolsConfig>(initialData);
   const [attachments, setAttachments] =
     useState<Array<Attachment>>(initialAttachments);
+  const [selectedModelId, setSelectedModelIdState] = useState<string>(
+    initialSelectedModelId,
+  );
 
   const setInput = useCallback(
     (value: SetStateAction<string>) => {
@@ -74,6 +83,37 @@ export function ChatInputProvider({
       }
     },
     [input, setLocalStorageInput, localStorageEnabled],
+  );
+
+  const handleModelChange = useCallback(
+    async (modelId: string) => {
+      const modelDef = getModelDefinition(modelId as any);
+      const hasReasoning = modelDef.features?.reasoning === true;
+
+      // If switching to a reasoning model and deep research is enabled, disable it
+      if (hasReasoning && data.deepResearch) {
+        setData((prev) => ({
+          ...prev,
+          deepResearch: false,
+        }));
+      }
+
+      setSelectedModelIdState(modelId);
+
+      try {
+        await fetch('/api/chat-model', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ model: modelId }),
+        });
+      } catch (error) {
+        console.error('Failed to save chat model:', error);
+        toast.error('Failed to save model preference');
+      }
+    },
+    [data.deepResearch, setData],
   );
 
   const clearInput = useCallback(() => {
@@ -100,6 +140,8 @@ export function ChatInputProvider({
         setData,
         attachments,
         setAttachments,
+        selectedModelId,
+        handleModelChange,
         clearInput,
         resetData,
         clearAttachments,

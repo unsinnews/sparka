@@ -51,20 +51,16 @@ export interface UIArtifact {
 
 function PureArtifact({
   chatId,
-  messages,
   chatHelpers,
+  messages,
   votes,
   isReadonly,
-  selectedModelId,
-  onModelChange,
 }: {
   chatId: string;
   messages: Array<YourUIMessage>;
   votes: Array<Vote> | undefined;
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
   const queryClient = useQueryClient();
@@ -306,7 +302,6 @@ function PureArtifact({
                   isReadonly={isReadonly}
                   isVisible={true}
                   artifactStatus={artifact.status}
-                  selectedModelId={selectedModelId}
                 />
 
                 {!isReadonly ? (
@@ -319,8 +314,6 @@ function PureArtifact({
                       append={chatHelpers.append}
                       className="bg-background dark:bg-muted"
                       setMessages={chatHelpers.setMessages}
-                      selectedModelId={selectedModelId}
-                      onModelChange={onModelChange}
                       parentMessageId={getLastMessageId()}
                     />
                   </form>
@@ -496,7 +489,6 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
-  if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
 
   return true;

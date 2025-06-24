@@ -36,9 +36,7 @@ const PurePreviewMessage = ({
   isLoading,
   isReadonly,
   chatHelpers,
-  selectedModelId,
   lastArtifact,
-  onModelChange,
   parentMessageId,
 }: {
   chatId: string;
@@ -47,9 +45,7 @@ const PurePreviewMessage = ({
   isLoading: boolean;
   isReadonly: boolean;
   chatHelpers: UseChatHelpers;
-  selectedModelId: string;
   lastArtifact: { messageIndex: number; toolCallId: string } | null;
-  onModelChange?: (modelId: string) => void;
   parentMessageId: string | null;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
@@ -195,8 +191,6 @@ const PurePreviewMessage = ({
                         message={message}
                         setMode={setMode}
                         chatHelpers={chatHelpers}
-                        selectedModelId={selectedModelId}
-                        onModelChange={onModelChange}
                         parentMessageId={parentMessageId}
                       />
                     </div>
@@ -365,9 +359,7 @@ export const PreviewMessage = memo(
     if (!equal(prevProps.message.annotations, nextProps.message.annotations))
       return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
-    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
     if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
-    if (prevProps.onModelChange !== nextProps.onModelChange) return false;
     if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
 
     return true;

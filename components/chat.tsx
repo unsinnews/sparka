@@ -1,8 +1,6 @@
 'use client';
-
-import type { ChatRequestOptions } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState, useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -24,25 +22,21 @@ import { CloneChatButton } from '@/components/clone-chat-button';
 export function Chat({
   id,
   initialMessages,
-  selectedChatModel,
   isReadonly,
 }: {
   id: string;
   initialMessages: Array<YourUIMessage>;
-  selectedChatModel: string;
   isReadonly: boolean;
 }) {
   const trpc = useTRPC();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const { registerSetMessages, getLastMessageId } = useMessageTree();
-  const [localSelectedModelId, setLocalSelectedModelId] =
-    useState<string>(selectedChatModel);
 
   console.log('chat.tsx', id);
   const chatHelpers = useChat({
     id,
-    body: { id, selectedChatModel: localSelectedModelId },
+    body: { id },
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -64,10 +58,8 @@ export function Chat({
   const {
     messages: chatHelperMessages,
     setMessages,
-    append,
     status,
     stop,
-    reload,
     experimental_resume,
     data: chatData,
   } = chatHelpers;
@@ -92,41 +84,8 @@ export function Chat({
     enabled: chatHelperMessages.length >= 2 && !isReadonly && !!session?.user,
   });
 
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+  const { state } = useSidebar();
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-
-  const handleModelChange = async (modelId: string) => {
-    setLocalSelectedModelId(modelId);
-
-    try {
-      await fetch('/api/chat-model', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ model: modelId }),
-      });
-    } catch (error) {
-      console.error('Failed to save chat model:', error);
-      toast.error('Failed to save model preference');
-    }
-  };
-
-  const modifiedChatHelpers = useMemo(() => {
-    return {
-      ...chatHelpers,
-      // TODO: Does reload need to be modified?
-      reload: async (options?: ChatRequestOptions) => {
-        return reload({
-          ...options,
-          data: {
-            ...(options?.data as any),
-            parentMessageId: getLastMessageId(),
-          },
-        });
-      },
-    };
-  }, [chatHelpers, getLastMessageId, reload]);
 
   return (
     <>
@@ -138,7 +97,6 @@ export function Chat({
       >
         <ChatHeader
           chatId={id}
-          selectedModelId={localSelectedModelId}
           isReadonly={isReadonly}
           hasMessages={chatHelperMessages.length > 0}
         />
@@ -148,11 +106,9 @@ export function Chat({
           votes={votes}
           status={status}
           messages={chatHelperMessages as YourUIMessage[]}
-          chatHelpers={modifiedChatHelpers}
+          chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
-          selectedModelId={localSelectedModelId}
-          onModelChange={handleModelChange}
         />
 
         <form className="flex mx-auto p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6 bg-background gap-2 w-full md:max-w-3xl">
@@ -163,9 +119,7 @@ export function Chat({
               stop={stop}
               messages={chatHelperMessages as YourUIMessage[]}
               setMessages={setMessages}
-              append={append}
-              selectedModelId={localSelectedModelId}
-              onModelChange={handleModelChange}
+              append={chatHelpers.append}
               parentMessageId={getLastMessageId()}
             />
           ) : (
@@ -176,12 +130,10 @@ export function Chat({
 
       <Artifact
         chatId={id}
-        chatHelpers={modifiedChatHelpers}
+        chatHelpers={chatHelpers}
         messages={chatHelperMessages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}
-        selectedModelId={localSelectedModelId}
-        onModelChange={handleModelChange}
       />
     </>
   );

@@ -52,11 +52,13 @@ export function ChatPage() {
         isLoading={isChatLoading || isMessagesLoading}
         className="w-full"
       >
-        <ChatInputProvider localStorageEnabled={true}>
+        <ChatInputProvider
+          localStorageEnabled={true}
+          initialSelectedModelId={defaultModel}
+        >
           <Chat
             id={id}
             initialMessages={initialThreadMessages}
-            selectedChatModel={defaultModel}
             isReadonly={false} // You'll need to implement proper auth check here
           />
         </ChatInputProvider>

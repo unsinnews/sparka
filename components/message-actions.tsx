@@ -20,6 +20,7 @@ import { useSession } from 'next-auth/react';
 import { ChevronLeft, ChevronRight, RefreshCcw } from 'lucide-react';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { useChatInput } from '@/providers/chat-input-provider';
 
 export function PureMessageActions({
   chatId,
@@ -44,6 +45,7 @@ export function PureMessageActions({
   const { data: session } = useSession();
   const { getMessageSiblingInfo, navigateToSibling, setLastMessageId } =
     useMessageTree();
+  const { selectedModelId } = useChatInput();
 
   const isAuthenticated = !!session?.user;
 
@@ -90,6 +92,7 @@ export function PureMessageActions({
     chatHelpers.setMessages(newMessages);
 
     // Resend the parent user message
+    // TODO: This should obtain data from the parent message
     chatHelpers.append(parentMessage, {
       data: {
         deepResearch: false,
@@ -97,12 +100,15 @@ export function PureMessageActions({
         reason: false,
         parentMessageId: grandParentMessageId,
       },
+      body: {
+        selectedChatModel: selectedModelId,
+      },
     });
 
     setLastMessageId(parentMessage.id);
 
     toast.success('Retrying message...');
-  }, [chatHelpers, parentMessageId, setLastMessageId]);
+  }, [chatHelpers, parentMessageId, setLastMessageId, selectedModelId]);
 
   if (isLoading) return null;
 

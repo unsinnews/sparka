@@ -21,7 +21,6 @@ export interface MessagesProps {
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
   isVisible: boolean;
-  selectedModelId: string;
   onModelChange?: (modelId: string) => void;
 }
 
@@ -32,8 +31,7 @@ function PureMessages({
   messages,
   chatHelpers,
   isReadonly,
-  selectedModelId,
-  onModelChange,
+  isVisible,
 }: MessagesProps) {
   const { scrollRef, contentRef, scrollToBottom, isNearBottom, state } =
     useStickToBottom();
@@ -67,9 +65,7 @@ function PureMessages({
             parentMessageId={messages[index - 1]?.id || null}
             chatHelpers={chatHelpers}
             isReadonly={isReadonly}
-            selectedModelId={selectedModelId}
             lastArtifact={lastArtifact}
-            onModelChange={onModelChange}
           />
         ))}
 
@@ -102,16 +98,14 @@ function PureMessages({
 }
 
 export const Messages = memo(PureMessages, (prevProps, nextProps) => {
-  if (!prevProps.isVisible && !nextProps.isVisible) return true;
-  if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
+  if (prevProps.chatId !== nextProps.chatId) return false;
+  if (prevProps.votes !== nextProps.votes) return false;
   if (prevProps.status !== nextProps.status) return false;
-  if (prevProps.status && nextProps.status) return false;
-  if (prevProps.messages.length !== nextProps.messages.length) return false;
-  if (!equal(prevProps.messages, nextProps.messages)) return false;
-  if (!equal(prevProps.votes, nextProps.votes)) return false;
-  if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
+  if (prevProps.isReadonly !== nextProps.isReadonly) return false;
+  if (prevProps.isVisible !== nextProps.isVisible) return false;
 
-  if (prevProps.onModelChange !== nextProps.onModelChange) return false;
+  if (!equal(prevProps.messages, nextProps.messages)) return false;
+  if (!equal(prevProps.chatHelpers, nextProps.chatHelpers)) return false;
 
   return true;
 });

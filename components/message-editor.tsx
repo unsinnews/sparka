@@ -12,14 +12,16 @@ import {
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
 import type { YourUIMessage } from '@/lib/types/ui';
-import { ChatInputProvider } from '@/providers/chat-input-provider';
+import {
+  ChatInputProvider,
+  useChatInput,
+} from '@/providers/chat-input-provider';
 
 export type MessageEditorProps = {
   chatId: string;
   message: YourUIMessage;
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
   chatHelpers: UseChatHelpers;
-  selectedModelId: string;
   parentMessageId: string | null;
 };
 
@@ -28,9 +30,7 @@ function MessageEditorContent({
   message,
   setMode,
   chatHelpers,
-  selectedModelId,
   parentMessageId,
-  onModelChange,
 }: MessageEditorProps & { onModelChange?: (modelId: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
@@ -60,14 +60,12 @@ function MessageEditorContent({
       setMode('view');
 
       // Save the message manually to keep local state in sync
-      const res = await chatHelpers.append(message, {
-        ...options,
-      });
+      const res = await chatHelpers.append(message, options);
 
       setIsSubmitting(false);
       return res;
     },
-    [setIsSubmitting, setMode, chatHelpers.append],
+    [setIsSubmitting, setMode, chatHelpers],
   );
 
   return (
@@ -80,8 +78,6 @@ function MessageEditorContent({
         setMessages={chatHelpers.setMessages}
         append={handleAppend}
         isEditMode={true}
-        selectedModelId={selectedModelId}
-        onModelChange={onModelChange}
         parentMessageId={parentMessageId}
       />
     </div>
@@ -91,6 +87,8 @@ function MessageEditorContent({
 export function MessageEditor(
   props: MessageEditorProps & { onModelChange?: (modelId: string) => void },
 ) {
+  const { selectedModelId } = useChatInput(); // TODO: IT should get the model from the UI MEssage
+
   // Get the initial input value from the message content
   const initialInput = props.message.parts
     .filter((part) => part.type === 'text')
@@ -103,6 +101,7 @@ export function MessageEditor(
       initialInput={initialInput}
       initialAttachments={props.message.experimental_attachments || []}
       localStorageEnabled={false}
+      initialSelectedModelId={selectedModelId}
     >
       <MessageEditorContent {...props} />
     </ChatInputProvider>

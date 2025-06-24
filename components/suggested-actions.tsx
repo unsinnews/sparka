@@ -8,9 +8,14 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 interface SuggestedActionsProps {
   chatId: string;
   append: UseChatHelpers['append'];
+  selectedModelId: string;
 }
 
-function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
+function PureSuggestedActions({
+  chatId,
+  append,
+  selectedModelId,
+}: SuggestedActionsProps) {
   const suggestedActions = [
     {
       title: 'What are the advantages',
@@ -63,6 +68,9 @@ function PureSuggestedActions({ chatId, append }: SuggestedActionsProps) {
                     deepResearch: false,
                     webSearch: false,
                     reason: false,
+                  },
+                  body: {
+                    selectedChatModel: selectedModelId,
                   },
                 },
               );

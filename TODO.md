@@ -87,14 +87,12 @@
 [x] Model Selector should be a selectable list. The cards should be for a more detailed view (not used as often)
 
 
-[ ] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 
+[x] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 
     [x] Decouple from chat so that typing experience can be faster
     [x] The edit message should have its own context
-    [ ] Chat bottom row should not update on type
-
     [x] Attachements should be part of the Chat-input-context
-    [ ] Selected model should be part of the Chat-input-context
-    [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
+    [x] Modified chat helpers are not needed. We should just pass append and reload to the multimodal input and add the selected model there
+
 
 [ ] getParentMessageID should be part of the MessageTreeProvider and return the parent message based on a reference Map 
 
@@ -146,6 +144,10 @@
     [ ] Artifacts should belong to the current thread
     [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 
+[ ] MultiModalInput
+    [ ] Selected model should be part of the Chat-input-context
+    [ ] Chat bottom row should not update on type
+    [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
 
 [ ] Copy code button is too close to language / filename top header
 
@@ -162,6 +164,11 @@
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
 
+[ ] Extended messages
+    [ ] Each user message should save the selected model, data, etc.
+    [ ] Each assistant message should save the model used to generate it
+
+[ ] Build a store fore Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
 
 [x] When unauthed, the cookie should switch to default model if not in the free models
 [x] Chat action buttons make smaller, remove borders

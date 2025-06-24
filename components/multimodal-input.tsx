@@ -27,7 +27,6 @@ import {
   type ChatInputTextAreaRef,
 } from './ui/chat-input';
 import { SuggestedActions } from './suggested-actions';
-import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { useChatInput } from '@/providers/chat-input-provider';
@@ -56,8 +55,6 @@ function PureMultimodalInput({
   append,
   className,
   isEditMode = false,
-  selectedModelId,
-  onModelChange,
   parentMessageId,
 }: {
   chatId: string;
@@ -68,8 +65,6 @@ function PureMultimodalInput({
   append: UseChatHelpers['append'];
   className?: string;
   isEditMode?: boolean;
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
   parentMessageId: string | null;
 }) {
   const textareaRef = useRef<ChatInputTextAreaRef>(null);
@@ -85,6 +80,8 @@ function PureMultimodalInput({
     setData,
     attachments,
     setAttachments,
+    selectedModelId,
+    handleModelChange,
     clearInput,
     resetData,
     clearAttachments,
@@ -116,41 +113,21 @@ function PureMultimodalInput({
     setInput(event.target.value);
   };
 
-  // Handle model changes and disable deep research if switching to reasoning model
-  const handleModelChange = useCallback(
-    (modelId: string) => {
-      const modelDef = getModelDefinition(modelId as any);
-      const hasReasoning = modelDef.features?.reasoning === true;
-
-      // If switching to a reasoning model and deep research is enabled, disable it
-      if (hasReasoning && data.deepResearch) {
-        setData((prev) => ({
-          ...prev,
-          deepResearch: false,
-        }));
-      }
-
-      // Call the original model change handler
-      onModelChange?.(modelId);
-    },
-    [data.deepResearch, setData, onModelChange],
-  );
-
   // Helper function to auto-switch to PDF-compatible model
   const switchToPdfCompatibleModel = useCallback(() => {
     const defaultPdfModelDef = getModelDefinition(DEFAULT_PDF_MODEL);
     toast.success(`Switched to ${defaultPdfModelDef.name} (supports PDF)`);
-    onModelChange?.(DEFAULT_PDF_MODEL);
+    handleModelChange(DEFAULT_PDF_MODEL);
     return defaultPdfModelDef;
-  }, [onModelChange]);
+  }, [handleModelChange]);
 
   // Helper function to auto-switch to image-compatible model
   const switchToImageCompatibleModel = useCallback(() => {
     const defaultImageModelDef = getModelDefinition(DEFAULT_IMAGE_MODEL);
     toast.success(`Switched to ${defaultImageModelDef.name} (supports images)`);
-    onModelChange?.(DEFAULT_IMAGE_MODEL);
+    handleModelChange(DEFAULT_IMAGE_MODEL);
     return defaultImageModelDef;
-  }, [onModelChange]);
+  }, [handleModelChange]);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
@@ -265,6 +242,9 @@ function PureMultimodalInput({
         ...data,
         parentMessageId: effectiveParentMessageId,
       },
+      body: {
+        selectedChatModel: selectedModelId,
+      },
     });
 
     clearAttachments();
@@ -298,6 +278,7 @@ function PureMultimodalInput({
     getLastMessageId,
     parentMessageId,
     setMessages,
+    selectedModelId,
   ]);
 
   const uploadFile = async (file: File) => {
@@ -459,7 +440,13 @@ function PureMultimodalInput({
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 &&
-        !isEditMode && <SuggestedActions append={append} chatId={chatId} />}
+        !isEditMode && (
+          <SuggestedActions
+            append={append}
+            chatId={chatId}
+            selectedModelId={selectedModelId}
+          />
+        )}
 
       {!isEditMode && <CreditLimitDisplay />}
 
@@ -682,18 +669,11 @@ export const MultimodalInput = memo(
     // More specific equality checks to prevent unnecessary re-renders
     if (prevProps.status !== nextProps.status) return false;
     if (prevProps.isEditMode !== nextProps.isEditMode) return false;
-    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
-    if (prevProps.onModelChange !== nextProps.onModelChange) return false;
     if (prevProps.chatId !== nextProps.chatId) return false;
     if (prevProps.className !== nextProps.className) return false;
 
     // Messages comparison - only check length and last message for performance
     if (prevProps.messages.length !== nextProps.messages.length) return false;
-    if (prevProps.messages.length > 0 && nextProps.messages.length > 0) {
-      const prevLast = prevProps.messages[prevProps.messages.length - 1];
-      const nextLast = nextProps.messages[nextProps.messages.length - 1];
-      if (!equal(prevLast, nextLast)) return false;
-    }
 
     return true;
   },

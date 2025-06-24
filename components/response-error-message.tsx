@@ -13,7 +13,7 @@ export function ResponseErrorMessage({
   chatHelpers,
   messages,
 }: ErrorMessageProps) {
-  const { data } = useChatInput();
+  const { data, selectedModelId } = useChatInput();
   return (
     <div className="flex flex-col items-center mx-auto px-6 py-8 rounded-lg shadow-sm gap-4 w-full md:max-w-2xl">
       <div className="flex items-center gap-2 ">
@@ -41,6 +41,10 @@ export function ResponseErrorMessage({
 
           chatHelpers.reload({
             data,
+            body: {
+              ...data,
+              selectedChatModel: selectedModelId,
+            },
           });
         }}
         variant="outline"

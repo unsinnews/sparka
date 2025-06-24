@@ -12,12 +12,10 @@ import { Share } from 'lucide-react';
 
 function PureChatHeader({
   chatId,
-  selectedModelId,
   isReadonly,
   hasMessages,
 }: {
   chatId: string;
-  selectedModelId: string;
   isReadonly: boolean;
   hasMessages: boolean;
 }) {
@@ -90,8 +88,5 @@ function PureChatHeader({
 }
 
 export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
-  return (
-    prevProps.selectedModelId === nextProps.selectedModelId &&
-    prevProps.hasMessages === nextProps.hasMessages
-  );
+  return prevProps.hasMessages === nextProps.hasMessages;
 });

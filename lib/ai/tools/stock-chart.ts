@@ -3,8 +3,16 @@ import { tool } from 'ai';
 import CodeInterpreter from '@e2b/code-interpreter';
 
 export const stockChart = tool({
-  description:
-    'Write and execute Python code to find stock data and generate a stock chart.',
+  description: `Write and execute Python code to find stock data and generate a stock chart.
+
+**When to use \`stockChart\`:**
+- Use this for line stock chart generation.
+- Use this getting financial data of a stock.
+
+**When NOT to use \`stockChart\`:**
+- Do not use this tool for other chart types.
+- Do not use this for non-stock data.
+- Do not use this for private companies.`,
   parameters: z.object({
     title: z.string().describe('The title of the chart.'),
     code: z

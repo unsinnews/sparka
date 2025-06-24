@@ -125,6 +125,8 @@
 
 [ ] AI Tools Quality
     [ ] Tool Descriptions should be all there's needed to know about the tool.
+    [ ] Get rid of getToolsPrompt
+    [ ] Improve tool description formats
     [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
 

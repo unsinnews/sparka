@@ -514,7 +514,7 @@ export async function POST(request: NextRequest) {
 
           const result = streamText({
             model: getModelProvider(selectedChatModel),
-            system: systemPrompt({ activeTools }),
+            system: systemPrompt(),
             messages: contextForLLM,
             maxSteps: 5,
             experimental_activeTools: activeTools,

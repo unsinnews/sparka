@@ -73,8 +73,20 @@ interface WebSearchProps {
 
 export const webSearch = ({ session, dataStream }: WebSearchProps) =>
   tool({
-    description:
-      'Search the web for information with multiple queries, max results and search depth.',
+    description: `Search the web for information with multiple queries, max results and search depth.
+
+**When to use \`webSearch\`:**
+- Use this for general web searches.
+- When using webSearch, you must cite your sources:
+  - Place citations directly after relevant sentences or paragraphs. Do not put them in the answer's footer!
+  - Format: [Source Title](URL)
+  - Ensure citations adhere strictly to the required format to avoid response errors
+  - Never say that you are saying something based on the source, just provide the information
+  - Cite only the most relevant results that answer the question
+  - Avoid citing irrelevant results
+
+**When NOT to use \`webSearch\`:**
+- Do not use this tool for extracting information from specific URLs provided.`,
     parameters: z.object({
       search_queries: z
         .array(

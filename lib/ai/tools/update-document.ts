@@ -17,7 +17,16 @@ export const updateDocument = ({
   messageId,
 }: UpdateDocumentProps) =>
   tool({
-    description: 'Update a document with the given description.',
+    description: `Update a document with the given description.
+
+**Using \`updateDocument\`:**
+- Default to full document rewrites for major changes
+- Use targeted updates only for specific, isolated changes
+- Follow user instructions for which parts to modify
+- DO NOT UPDATE DOCUMENTS IMMEDIATELY AFTER CREATING THEM. WAIT FOR USER FEEDBACK OR REQUEST TO UPDATE IT.
+
+**When NOT to use \`updateDocument\`:**
+- Immediately after creating a document (wait for user feedback or request to update it)`,
     parameters: z.object({
       id: z.string().describe('The ID of the document to update'),
       description: z

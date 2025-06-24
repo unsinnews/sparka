@@ -7,7 +7,13 @@ const app = new FirecrawlApp({
 });
 
 export const retrieve = tool({
-  description: 'Retrieve the information from a URL using Firecrawl.',
+  description: `Retrieve the information from a URL using Firecrawl.
+
+**When to use \`retrieve\`:**
+- Use this for extracting information from specific URLs provided.
+
+**When NOT to use \`retrieve\`:**
+- Do not use this tool for general web searches.`,
   parameters: z.object({
     url: z.string().describe('The URL to retrieve the information from.'),
   }),

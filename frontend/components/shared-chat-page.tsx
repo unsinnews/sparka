@@ -60,7 +60,6 @@ export function SharedChatPage() {
         <Chat
           id={id}
           initialMessages={initialThreadMessages}
-          selectedChatModel={defaultModel}
           isReadonly={true}
         />
       </WithSkeleton>

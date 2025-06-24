@@ -109,7 +109,6 @@
 [ ] OG Image
 [ ] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)
-[ ] Fix vercel timing out
 
 [x] Try functionality and do easy fixes for the happy paths
 
@@ -124,13 +123,17 @@
 
 [x] Showing preview of last document in chat, should also consider updated document
 
-[ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
+[ ] AI Tools Quality
+    [ ] Tool Descriptions should be all there's needed to know about the tool.
+    [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
 
 
 ## Polishing
 
 [ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
+
+[ ] Is last artifact detection in messages is more complex than needed.
 
 [ ] Durable streams
     [x] Create a message-continues data part and call resume from the frontend
@@ -162,6 +165,13 @@
 
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
+[ ] Deep Research
+    [ ] Fix vercel timing out
+    [ ] Background execution and resuming
+
+
+
+[ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.
 
 [ ] Extended messages
     [ ] Each user message should save the selected model, data, etc.

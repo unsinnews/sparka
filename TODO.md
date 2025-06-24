@@ -94,7 +94,6 @@
     [x] Modified chat helpers are not needed. We should just pass append and reload to the multimodal input and add the selected model there
 
 
-[ ] getParentMessageID should be part of the MessageTreeProvider and return the parent message based on a reference Map 
 
 
 
@@ -112,7 +111,7 @@
 [ ] Revamp theme (color, borders, rounding, etc)
 [ ] Fix vercel timing out
 
-[ ] Try functionality and do easy fixes for the happy paths
+[x] Try functionality and do easy fixes for the happy paths
 
 
 [ ] Chat history: 
@@ -122,16 +121,16 @@
 - [ ] Get Chat by id in chat-page.tsx
 
 
-[ ] Optimization: The message streaming re-renders the whole message conversation / chat
 
 [x] Showing preview of last document in chat, should also consider updated document
 
 [ ] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
 
-[ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 
 ## Polishing
+
+[ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 
 [ ] Durable streams
     [x] Create a message-continues data part and call resume from the frontend
@@ -168,7 +167,10 @@
     [ ] Each user message should save the selected model, data, etc.
     [ ] Each assistant message should save the model used to generate it
 
-[ ] Build a store fore Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
+[ ] Reactive updates
+    [ ] Build a stor fore Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
+    [ ] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
+    [ ] Optimization: The message streaming re-renders the whole message conversation / chat
 
 [x] When unauthed, the cookie should switch to default model if not in the free models
 [x] Chat action buttons make smaller, remove borders
@@ -188,6 +190,8 @@
 
 [x] Create a menu in the assistant message actions to retry (creating a new branch)
 
+
+[ ] BYOK (Bring Your Own Key)
 
 
 [ ] Chat sharing

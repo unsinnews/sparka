@@ -424,7 +424,7 @@ export async function getDocumentsByMessageIds({
   messageIds: string[];
 }) {
   if (messageIds.length === 0) return [];
-  
+
   try {
     return await db
       .select()
@@ -451,7 +451,7 @@ export async function saveDocuments({
   }>;
 }) {
   if (documents.length === 0) return;
-  
+
   try {
     return await db.insert(document).values(documents);
   } catch (error) {

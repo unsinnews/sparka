@@ -179,7 +179,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const { mutate: renameChatMutation } = useRenameChat();
   const { deleteChat } = useDeleteChat();
 
-  const { data: chats, isLoading } = useGetAllChats(10);
+  const { data: chats, isLoading } = useGetAllChats(100);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);

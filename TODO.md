@@ -112,11 +112,8 @@
 
 [x] Try functionality and do easy fixes for the happy paths
 
-
-[ ] Chat history: 
-- [ ] Search Chats
-- [ ] Virtual list for previous chats
-- [ ] Favourite / Pinned chats
+[x] Chat history: 
+- [x] Search Chats
 - [x] Get Chat by id in chat-page.tsx
 
 
@@ -134,6 +131,9 @@
 [ ] Pasted links in the prompt should have rich formatting 
 
 ## Polishing
+[ ] Chat history: 
+- [ ] Favourite / Pinned chats
+- [ ] Virtual list for previous chats
 
 [ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 

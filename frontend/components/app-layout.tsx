@@ -1,10 +1,6 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/app-sidebar';
-import { ChatIdProvider } from '@/providers/chat-id-provider';
-import { MessageTreeProvider } from '@/providers/message-tree-provider';
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTRPC } from '@/trpc/react';
@@ -84,19 +80,8 @@ function usePrefetchChatMessages() {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const { data: session } = useSession();
-
   // Prefetch messages for all chats in the background (runs once)
   usePrefetchChatMessages();
 
-  return (
-    <>
-      <ChatIdProvider>
-        <MessageTreeProvider>
-          <AppSidebar user={session?.user} />
-          <SidebarInset>{children}</SidebarInset>
-        </MessageTreeProvider>
-      </ChatIdProvider>
-    </>
-  );
+  return <>{children}</>;
 }

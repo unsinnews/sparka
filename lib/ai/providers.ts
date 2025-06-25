@@ -45,6 +45,12 @@ export const models = {
     tools: true,
     image: false,
   },
+  'gpt-image-1': {
+    provider: openai.image('gpt-image-1'),
+    text: false,
+    tools: false,
+    image: true,
+  },
 };
 
 export const myProvider = isTestEnvironment
@@ -68,7 +74,7 @@ export const myProvider = isTestEnvironment
         'artifact-model': models['gpt-4o'].provider,
       },
       imageModels: {
-        'small-model': models['dall-e-3'].provider,
+        'small-model': models['gpt-image-1'].provider,
       },
       ...telemetryConfig,
     });

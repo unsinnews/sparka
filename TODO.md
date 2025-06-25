@@ -130,10 +130,20 @@
 [x] Document alignment should be in the middle
 [ ] Pasted links in the prompt should have rich formatting 
 
+[ ] Images
+    [x] Create with gpt-image-1
+    [ ] Pass messages to the create-document tools
+    [ ] gpt-image-1 is able to interpret input images as context
+    [ ] Move images from artifact to main thread
+    [ ] Disable image generation for anonymous users ?
+
 ## Polishing
 [ ] Chat history: 
 - [ ] Favourite / Pinned chats
 - [ ] Virtual list for previous chats
+
+[ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal
+
 
 [ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 
@@ -246,6 +256,7 @@
 [ ] Migrate routes to TRPC (and use it in the frontend)
 [ ] Organize authorization as a layer at the beggining of each trpc procedure
 
+[ ] Cleanup up the providers.ts file
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
 [ ] Propagate model selection to deep research / reason tools (and create new selectables for them)
 [ ] Save file uploads in Blob with non-public access

@@ -132,10 +132,8 @@
 
 [ ] Images
     [x] Create with gpt-image-1
-    [ ] Pass messages to the create-document tools
-    [ ] gpt-image-1 is able to interpret input images as context
-    [ ] Move images from artifact to main thread
     [ ] Disable image generation for anonymous users ?
+
 
 ## Polishing
 [ ] Chat history: 
@@ -144,6 +142,10 @@
 
 [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal
 
+[ ] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
+    [ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")
+    [ ] gpt-image-1 is able to interpret input images as context
+    [ ] Move images from artifact to main thread
 
 [ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 

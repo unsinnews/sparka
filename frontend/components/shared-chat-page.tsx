@@ -2,7 +2,6 @@
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
-import { useDefaultModel } from '@/providers/default-model-provider';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
@@ -11,7 +10,6 @@ import { useChatId } from '@/providers/chat-id-provider';
 
 export function SharedChatPage() {
   const { chatId: id } = useChatId();
-  const defaultModel = useDefaultModel();
 
   const {
     data: chat,

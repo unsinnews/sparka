@@ -1,7 +1,6 @@
 'use client';
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import { Link, useNavigate } from 'react-router';
 import type { User } from 'next-auth';
 import { memo, useCallback, useState } from 'react';
 import { toast } from 'sonner';
@@ -43,9 +42,9 @@ import {
   useRenameChat,
   useGetAllChats,
 } from '@/hooks/use-chat-store';
-import { useChatId } from '@/providers/chat-id-provider';
 import { ShareDialog } from '@/components/share-button';
 import { ShareMenuItem } from '@/components/upgrade-cta/share-menu-item';
+import { useChatId } from '@/providers/chat-id-provider';
 
 type GroupedChats = {
   today: UIChat[];
@@ -71,7 +70,7 @@ const PureChatItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(chat.title);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-
+  const { setChatId } = useChatId();
   const handleRename = async () => {
     if (editTitle.trim() === '' || editTitle === chat.title) {
       setIsEditing(false);
@@ -114,9 +113,16 @@ const PureChatItem = ({
         </div>
       ) : (
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link to={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+          <button
+            type="button"
+            // to={`/chat/${chat.id}`}
+            onClick={() => {
+              setChatId(chat.id);
+              setOpenMobile(false);
+            }}
+          >
             <span>{chat.title}</span>
-          </Link>
+          </button>
         </SidebarMenuButton>
       )}
 
@@ -173,8 +179,7 @@ export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
 
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
-  const { chatId } = useChatId();
-  const navigate = useNavigate();
+  const { chatId, setChatId } = useChatId();
 
   const { mutate: renameChatMutation } = useRenameChat();
   const { deleteChat } = useDeleteChat();
@@ -206,7 +211,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     setShowDeleteDialog(false);
 
     if (deleteId === chatId) {
-      navigate('/');
+      setChatId(null);
     }
   };
 

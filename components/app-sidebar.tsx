@@ -20,22 +20,23 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { Link, useNavigate } from 'react-router';
 import { useRouter } from 'next/navigation';
+import { useChatId } from '@/providers/chat-id-provider';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
-  const navigate = useNavigate();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+  const { setChatId } = useChatId();
 
   return (
     <Sidebar className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen">
       <SidebarHeader>
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center">
-            <Link
-              to="/"
+            <button
+              type="button"
               onClick={() => {
+                setChatId(null);
                 setOpenMobile(false);
               }}
               className="flex flex-row gap-3 items-center"
@@ -43,7 +44,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
                 Sparka ✨
               </span>
-            </Link>
+            </button>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -52,7 +53,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   className="p-2 h-fit"
                   onClick={() => {
                     setOpenMobile(false);
-                    navigate('/');
+                    setChatId(null);
                   }}
                 >
                   <PlusIcon />

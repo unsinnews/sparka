@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { useChatId } from '@/providers/chat-id-provider';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -16,6 +17,8 @@ function PureSuggestedActions({
   append,
   selectedModelId,
 }: SuggestedActionsProps) {
+  const { setChatId } = useChatId();
+
   const suggestedActions = [
     {
       title: 'What are the advantages',
@@ -56,7 +59,7 @@ function PureSuggestedActions({
           <Button
             variant="ghost"
             onClick={async () => {
-              window.history.replaceState({}, '', `/chat/${chatId}`);
+              setChatId(chatId);
 
               append(
                 {

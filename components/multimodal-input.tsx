@@ -189,7 +189,6 @@ function PureMultimodalInput({
   );
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, '', `/chat/${chatId}`);
     setChatId(chatId);
 
     // Get the appropriate parent message ID

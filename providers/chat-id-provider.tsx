@@ -1,9 +1,7 @@
 'use client';
-
 import {
   createContext,
   useContext,
-  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -23,50 +21,47 @@ const ChatIdContext = createContext<ChatIdContextType | undefined>(undefined);
 export function ChatIdProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
 
-  // Use useMemo to derive state from pathname instead of useState + useEffect
-  const { chatId: urlChatId, sharedChatId } = useMemo(() => {
+  // Initialize chatId from location, then manage independently
+  const [chatId, setChatIdState] = useState<string | null>(() => {
     const pathname = location.pathname;
-
     if (pathname?.startsWith('/chat/')) {
-      return {
-        chatId: pathname.split('/')[2] || null,
-        sharedChatId: null,
-      };
-    } else if (pathname?.startsWith('/share/')) {
-      return {
-        chatId: null,
-        sharedChatId: pathname.split('/')[2] || null,
-      };
-    } else {
-      return {
-        chatId: null,
-        sharedChatId: null,
-      };
+      return pathname.split('/')[2] || null;
     }
+    return null;
+  });
+
+  // Parse pathname only for isShared state
+  const isShared = useMemo(() => {
+    return location.pathname?.startsWith('/share/') ?? false;
   }, [location.pathname]);
 
-  // State for manual chatId updates (like after replaceState)
-  const [manualChatId, setManualChatId] = useState<string | null>(null);
+  // Extract sharedChatId independently from share URL
+  const sharedChatId = useMemo(() => {
+    if (location.pathname?.startsWith('/share/')) {
+      return location.pathname.split('/')[2] || null;
+    }
+    return null;
+  }, [location.pathname]);
 
-  // Clear manual override when pathname actually changes through navigation
-  useEffect(() => {
-    setManualChatId(null);
-  }, [location.pathname, location.key]);
+  const setChatId = useCallback((newChatId: string | null) => {
+    setChatIdState(newChatId);
 
-  const chatId = manualChatId ?? urlChatId;
-
-  const setChatId = useCallback((id: string | null) => {
-    setManualChatId(id);
+    // Handle URL updates internally
+    if (newChatId) {
+      window.history.replaceState({}, '', `/chat/${newChatId}`);
+    } else {
+      window.history.replaceState({}, '', '/');
+    }
   }, []);
 
   const value = useMemo(
     () => ({
       chatId,
       sharedChatId,
-      isShared: sharedChatId !== null,
+      isShared,
       setChatId,
     }),
-    [chatId, sharedChatId, setChatId],
+    [chatId, sharedChatId, isShared, setChatId],
   );
 
   return (

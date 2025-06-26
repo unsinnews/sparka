@@ -410,6 +410,7 @@ export function useSaveMessageMutation() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { saveChat: saveChatWithTitle } = useSaveChat();
+  const { setChatId } = useChatId();
 
   return useMutation({
     mutationFn: async ({
@@ -470,6 +471,16 @@ export function useSaveMessageMutation() {
       toast.error('Failed to save message');
     },
     onSuccess: (data, { message, chatId, parentMessageId }) => {
+      // If chat is new and we just saved messages, we set setChatIsNew to false. We need to check the messages cache for that chatId
+
+      const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
+        chatId: chatId,
+      });
+      const messages = queryClient.getQueryData(messagesQueryKey);
+      if (messages?.length === 1) {
+        setChatId(null);
+      }
+
       if (isAuthenticated) {
         // Update credits
         if (message.role !== 'assistant') {

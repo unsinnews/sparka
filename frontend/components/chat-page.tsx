@@ -1,5 +1,4 @@
 'use client';
-import { useParams } from 'react-router-dom';
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
@@ -9,9 +8,10 @@ import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
+import { useChatId } from '@/providers/chat-id-provider';
 
 export function ChatPage() {
-  const { id } = useParams<{ id: string }>();
+  const { chatId: id } = useChatId();
   const defaultModel = useDefaultModel();
 
   const { data: chat, isLoading: isChatLoading } = useGetChatById(id || '');
@@ -57,6 +57,7 @@ export function ChatPage() {
           initialSelectedModelId={defaultModel}
         >
           <Chat
+            key={id}
             id={id}
             initialMessages={initialThreadMessages}
             isReadonly={false} // You'll need to implement proper auth check here

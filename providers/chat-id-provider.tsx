@@ -1,7 +1,9 @@
 'use client';
+
 import {
   createContext,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
@@ -21,47 +23,50 @@ const ChatIdContext = createContext<ChatIdContextType | undefined>(undefined);
 export function ChatIdProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
 
-  // Initialize chatId from location, then manage independently
-  const [chatId, setChatIdState] = useState<string | null>(() => {
+  // Use useMemo to derive state from pathname instead of useState + useEffect
+  const { chatId: urlChatId, sharedChatId } = useMemo(() => {
     const pathname = location.pathname;
+
     if (pathname?.startsWith('/chat/')) {
-      return pathname.split('/')[2] || null;
-    }
-    return null;
-  });
-
-  // Parse pathname only for isShared state
-  const isShared = useMemo(() => {
-    return location.pathname?.startsWith('/share/') ?? false;
-  }, [location.pathname]);
-
-  // Extract sharedChatId independently from share URL
-  const sharedChatId = useMemo(() => {
-    if (location.pathname?.startsWith('/share/')) {
-      return location.pathname.split('/')[2] || null;
-    }
-    return null;
-  }, [location.pathname]);
-
-  const setChatId = useCallback((newChatId: string | null) => {
-    setChatIdState(newChatId);
-
-    // Handle URL updates internally
-    if (newChatId) {
-      window.history.replaceState({}, '', `/chat/${newChatId}`);
+      return {
+        chatId: pathname.split('/')[2] || null,
+        sharedChatId: null,
+      };
+    } else if (pathname?.startsWith('/share/')) {
+      return {
+        chatId: null,
+        sharedChatId: pathname.split('/')[2] || null,
+      };
     } else {
-      window.history.replaceState({}, '', '/');
+      return {
+        chatId: null,
+        sharedChatId: null,
+      };
     }
+  }, [location.pathname]);
+
+  // State for manual chatId updates (like after replaceState)
+  const [manualChatId, setManualChatId] = useState<string | null>(null);
+
+  // Clear manual override when pathname actually changes through navigation
+  useEffect(() => {
+    setManualChatId(null);
+  }, [location.pathname, location.key]);
+
+  const chatId = manualChatId ?? urlChatId;
+
+  const setChatId = useCallback((id: string | null) => {
+    setManualChatId(id);
   }, []);
 
   const value = useMemo(
     () => ({
       chatId,
       sharedChatId,
-      isShared,
+      isShared: sharedChatId !== null,
       setChatId,
     }),
-    [chatId, sharedChatId, isShared, setChatId],
+    [chatId, sharedChatId, setChatId],
   );
 
   return (

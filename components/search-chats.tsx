@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { MessageSquare, SearchIcon } from 'lucide-react';
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 
@@ -12,10 +13,10 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { useSidebar, SidebarMenuButton } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/ui/sidebar';
 import { useGetAllChats } from '@/hooks/use-chat-store';
 import type { UIChat } from '@/lib/types/ui';
-import { useChatId } from '@/providers/chat-id-provider';
+import { SidebarMenuButton } from './ui/sidebar';
 
 type GroupedChats = {
   today: UIChat[];
@@ -60,7 +61,7 @@ const groupChatsByDate = (chats: UIChat[]): GroupedChats => {
 
 export function SearchChatsButton() {
   const [open, setOpen] = useState(false);
-  const { setChatId } = useChatId();
+  const navigate = useNavigate();
   const { setOpenMobile } = useSidebar();
 
   const { data: chats, isLoading } = useGetAllChats();
@@ -74,9 +75,9 @@ export function SearchChatsButton() {
     (chatId: string) => {
       setOpen(false);
       setOpenMobile(false);
-      setChatId(chatId);
+      navigate(`/chat/${chatId}`);
     },
-    [setOpenMobile, setChatId],
+    [navigate, setOpenMobile],
   );
 
   // Global keyboard shortcut

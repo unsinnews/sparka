@@ -165,6 +165,7 @@
     [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
     [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
 
+[ ] Artifacts should use the selected model to generate the document
 
 [ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 

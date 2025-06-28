@@ -82,10 +82,16 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
       // Check if this event is for our specific query
       if (event.type === 'updated' && event.query.queryKey) {
         const eventQueryKey = event.query.queryKey;
-        const ourQueryKey = queryKey;
+
+        // Get current query key to avoid stale closure issues
+        const currentQueryKey = isShared
+          ? trpc.chat.getPublicChatMessages.queryKey({
+              chatId: effectiveChatId,
+            })
+          : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
 
         // Compare query keys (simple deep comparison for this case)
-        if (JSON.stringify(eventQueryKey) === JSON.stringify(ourQueryKey)) {
+        if (JSON.stringify(eventQueryKey) === JSON.stringify(currentQueryKey)) {
           console.log('event.query.state.data', event.query.state.data);
           const newData = event.query.state.data as YourUIMessage[] | undefined;
           if (newData) {

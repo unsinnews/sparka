@@ -1,5 +1,6 @@
 'use client';
 
+import { generateUUID } from '@/lib/utils';
 import {
   createContext,
   useContext,
@@ -14,7 +15,9 @@ import { useLocation } from 'react-router';
 interface ChatIdContextType {
   chatId: string | null;
   sharedChatId: string | null;
+  provisionalChatId: string | null;
   isShared: boolean;
+  refreshChatID: () => void;
   setChatId: (chatId: string | null) => void;
 }
 
@@ -48,6 +51,10 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
   // State for manual chatId updates (like after replaceState)
   const [manualChatId, setManualChatId] = useState<string | null>(null);
 
+  const [provisionalChatId, setProvisionalChatId] = useState<string | null>(
+    () => (urlChatId ? null : generateUUID()),
+  );
+
   // Clear manual override when pathname actually changes through navigation
   useEffect(() => {
     setManualChatId(null);
@@ -59,14 +66,20 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
     setManualChatId(id);
   }, []);
 
+  const refreshChatID = useCallback(() => {
+    setProvisionalChatId(generateUUID());
+  }, []);
+
   const value = useMemo(
     () => ({
       chatId,
       sharedChatId,
+      provisionalChatId,
+      refreshChatID,
       isShared: sharedChatId !== null,
       setChatId,
     }),
-    [chatId, sharedChatId, setChatId],
+    [chatId, sharedChatId, setChatId, provisionalChatId, refreshChatID],
   );
 
   return (

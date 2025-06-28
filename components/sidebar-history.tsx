@@ -155,11 +155,13 @@ const PureChatItem = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ShareDialog
-        chatId={chat.id}
-        open={shareDialogOpen}
-        onOpenChange={setShareDialogOpen}
-      />
+      {shareDialogOpen && (
+        <ShareDialog
+          chatId={chat.id}
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+        />
+      )}
     </SidebarMenuItem>
   );
 };
@@ -173,7 +175,7 @@ export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
 
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
-  const { chatId } = useChatId();
+  const { chatId, refreshChatID } = useChatId();
   const navigate = useNavigate();
 
   const { mutate: renameChatMutation } = useRenameChat();
@@ -206,6 +208,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     setShowDeleteDialog(false);
 
     if (deleteId === chatId) {
+      refreshChatID();
       navigate('/');
     }
   };

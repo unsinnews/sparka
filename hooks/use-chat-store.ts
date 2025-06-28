@@ -469,24 +469,25 @@ export function useSaveMessageMutation() {
       console.error('Failed to save message:', err);
       toast.error('Failed to save message');
     },
-    onSuccess: (data, { message, chatId, parentMessageId }) => {
+    onSuccess: (
+      data,
+      { message, chatId, parentMessageId },
+      { previousMessages },
+    ) => {
       if (isAuthenticated) {
         // Update credits
-        if (message.role !== 'assistant') {
+        if (message.role === 'assistant') {
           queryClient.invalidateQueries({
             queryKey: trpc.credits.getAvailableCredits.queryKey(),
           });
         }
         // Invalidate chats (for chat title)
         // Only invalidate chats if this is the first assistant message
-        const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
-          chatId: chatId,
-        });
-        const messages = queryClient.getQueryData(messagesQueryKey);
-        const hasAssistantMessage = messages?.some(
+        const hasAssistantMessage = previousMessages?.some(
           (msg) => msg.role === 'assistant',
         );
         if (!hasAssistantMessage && message.role === 'assistant') {
+          console.log('invalidating chats');
           queryClient.invalidateQueries({
             queryKey: trpc.chat.getAllChats.queryKey(),
           });

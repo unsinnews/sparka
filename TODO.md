@@ -104,7 +104,10 @@
     [ ] Create a better toast message when backend reaches rate-limit
 
 
+[ ] Stop button in multimodal input not showing
+
 [ ] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
+     [ ]  Also rece condition when changing to chatId when the response has a tool message (takes some time)
 
 [ ] OG Image
 [ ] Favicon
@@ -133,6 +136,10 @@
 [ ] Images
     [x] Create with gpt-image-1
     [ ] Disable image generation for anonymous users ?
+
+
+[ ] Last Model selected and used should be the new default model
+[ ] Do Non-thinking variants of models
 
 
 ## Polishing
@@ -182,7 +189,7 @@
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
 [ ] Deep Research
-    [ ] Fix vercel timing out
+    [ ] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
     [ ] Background execution and resuming
 
 

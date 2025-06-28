@@ -10,10 +10,15 @@ interface ImageModalProps {
   imageName?: string;
 }
 
-export function ImageModal({ isOpen, onClose, imageUrl, imageName }: ImageModalProps) {
+export function ImageModal({
+  isOpen,
+  onClose,
+  imageUrl,
+  imageName,
+}: ImageModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-none bg-transparent shadow-none">
+      <DialogContent>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imageUrl}

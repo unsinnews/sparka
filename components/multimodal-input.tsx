@@ -2,14 +2,7 @@
 
 import type { Attachment, Message } from 'ai';
 import type React from 'react';
-import {
-  useRef,
-  useEffect,
-  useState,
-  useCallback,
-  type ChangeEvent,
-  memo,
-} from 'react';
+import { useRef, useState, useCallback, type ChangeEvent, memo } from 'react';
 import { toast } from 'sonner';
 import { useWindowSize } from 'usehooks-ts';
 import { useDropzone } from 'react-dropzone';
@@ -87,19 +80,6 @@ function PureMultimodalInput({
     resetData,
     clearAttachments,
   } = useChatInput();
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      const domValue = textareaRef.current.value;
-      // Prefer DOM value over context to handle hydration, but only use context if not in edit mode
-      const finalValue = domValue || (!isEditMode ? input : '') || '';
-      if (finalValue !== input) {
-        setInput(finalValue);
-      }
-    }
-    // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);

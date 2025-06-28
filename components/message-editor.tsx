@@ -101,7 +101,7 @@ export function MessageEditor(
       initialInput={initialInput}
       initialAttachments={props.message.experimental_attachments || []}
       localStorageEnabled={false}
-      initialSelectedModelId={selectedModelId}
+      overrideModelId={selectedModelId}
     >
       <MessageEditorContent {...props} />
     </ChatInputProvider>

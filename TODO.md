@@ -131,7 +131,10 @@
 
 
 [x] Document alignment should be in the middle
-[ ] Pasted links in the prompt should have rich formatting 
+
+[ ] User Message ++
+    [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
+    [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
 
 [ ] Images
     [x] Create with gpt-image-1
@@ -142,7 +145,6 @@
 
 
 [ ] Last Model selected and used should be the new default model
-[ ] Do Non-thinking variants of models
 
 
 ## Polishing
@@ -184,6 +186,7 @@
     [ ] Model needs to be part of the request data
     [ ] Current model that generated the message should be detailed in the message actions (like t3)
 
+[ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
 [ ] Dont scroll to bottom when switching branches
 [x] Optimize the Model Selector component
     [x] with lazy loading 

@@ -12,7 +12,7 @@ import React, {
 import type { Attachment } from 'ai';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { useLocalStorage } from 'usehooks-ts';
-import { toast } from 'sonner';
+import { useDefaultModel, useModelChange } from './default-model-provider';
 import { getModelDefinition } from '@/lib/ai/all-models';
 
 interface ChatInputContextType {
@@ -38,7 +38,7 @@ interface ChatInputProviderProps {
   initialInput?: string;
   initialData?: ChatRequestToolsConfig;
   initialAttachments?: Array<Attachment>;
-  initialSelectedModelId?: string;
+  overrideModelId?: string; // For message editing where we want to use the original model
   localStorageEnabled?: boolean;
 }
 
@@ -51,7 +51,7 @@ export function ChatInputProvider({
     reason: false,
   },
   initialAttachments = [],
-  initialSelectedModelId = '',
+  overrideModelId,
   localStorageEnabled = true,
 }: ChatInputProviderProps) {
   const [localStorageInput, setLocalStorageInput] = useLocalStorage<string>(
@@ -59,18 +59,23 @@ export function ChatInputProvider({
     '',
   );
 
+  const defaultModel = useDefaultModel();
+  const changeModel = useModelChange();
+
+  // Initialize selectedModelId from override or default model
+  const [selectedModelId, setSelectedModelId] = useState<string>(
+    overrideModelId || defaultModel,
+  );
+
   // Use localStorage value if enabled and no initial input provided, otherwise use initialInput
   const [input, setInputState] = useState(() => {
-    if (!useLocalStorage) return initialInput;
+    if (!localStorageEnabled) return initialInput;
     return initialInput || localStorageInput;
   });
 
   const [data, setData] = useState<ChatRequestToolsConfig>(initialData);
   const [attachments, setAttachments] =
     useState<Array<Attachment>>(initialAttachments);
-  const [selectedModelId, setSelectedModelIdState] = useState<string>(
-    initialSelectedModelId,
-  );
 
   const setInput = useCallback(
     (value: SetStateAction<string>) => {
@@ -98,22 +103,13 @@ export function ChatInputProvider({
         }));
       }
 
-      setSelectedModelIdState(modelId);
+      // Update local state immediately
+      setSelectedModelId(modelId);
 
-      try {
-        await fetch('/api/chat-model', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ model: modelId }),
-        });
-      } catch (error) {
-        console.error('Failed to save chat model:', error);
-        toast.error('Failed to save model preference');
-      }
+      // Update global default model (which handles cookie persistence)
+      await changeModel(modelId as any);
     },
-    [data.deepResearch, setData],
+    [data.deepResearch, setData, changeModel],
   );
 
   const clearInput = useCallback(() => {

@@ -2,7 +2,6 @@
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
-import { useDefaultModel } from '@/providers/default-model-provider';
 import { useGetChatById, useMessagesQuery } from '@/hooks/use-chat-store';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
@@ -12,7 +11,6 @@ import { useChatId } from '@/providers/chat-id-provider';
 
 export function ChatPage() {
   const { chatId: id } = useChatId();
-  const defaultModel = useDefaultModel();
 
   const { data: chat, isLoading: isChatLoading } = useGetChatById(id || '');
   const { data: messages, isLoading: isMessagesLoading } = useMessagesQuery();
@@ -52,10 +50,7 @@ export function ChatPage() {
         isLoading={isChatLoading || isMessagesLoading}
         className="w-full"
       >
-        <ChatInputProvider
-          localStorageEnabled={true}
-          initialSelectedModelId={defaultModel}
-        >
+        <ChatInputProvider localStorageEnabled={true}>
           <Chat
             id={id}
             initialMessages={initialThreadMessages}

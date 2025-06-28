@@ -1,26 +1,25 @@
 'use client';
 
-import { exampleSetup } from 'prosemirror-example-setup';
-import { inputRules } from 'prosemirror-inputrules';
-import { EditorState } from 'prosemirror-state';
-import { EditorView } from 'prosemirror-view';
-import React, { memo, useEffect, useRef } from 'react';
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
+import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { ContentEditable } from '@lexical/react/LexicalContentEditable';
+import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
+import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
+import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
+import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
+import { TRANSFORMERS } from '@lexical/markdown';
+import { ListPlugin } from '@lexical/react/LexicalListPlugin';
+import React, { memo, useEffect } from 'react';
+import { $convertFromMarkdownString } from '@lexical/markdown';
+import { $getRoot } from 'lexical';
 
 import type { Suggestion } from '@/lib/db/schema';
-import {
-  documentSchema,
-  handleTransaction,
-  headingRule,
-} from '@/lib/editor/config';
-import {
-  buildContentFromDocument,
-  buildDocumentFromContent,
-  createDecorations,
-} from '@/lib/editor/functions';
+import { createEditorConfig, handleEditorChange } from '@/lib/editor/config';
 import {
   projectWithPositions,
-  suggestionsPlugin,
-  suggestionsPluginKey,
+  registerSuggestions,
+  SuggestionNode,
 } from '@/lib/editor/suggestions';
 
 type EditorProps = {
@@ -33,6 +32,101 @@ type EditorProps = {
   isReadonly?: boolean;
 };
 
+// Content update plugin
+function ContentUpdatePlugin({
+  content,
+  status,
+  onSaveContent,
+  isReadonly,
+}: {
+  content: string;
+  status: 'streaming' | 'idle';
+  onSaveContent: (content: string, debounce: boolean) => void;
+  isReadonly?: boolean;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (content) {
+      let currentContent = '';
+
+      editor.getEditorState().read(() => {
+        const root = $getRoot();
+        currentContent = root.getTextContent();
+      });
+
+      if (status === 'streaming') {
+        editor.update(
+          () => {
+            const root = $getRoot();
+            const children = root.getChildren();
+            // Clear existing content
+            for (const child of children) {
+              child.remove();
+            }
+            $convertFromMarkdownString(content);
+          },
+          { discrete: true },
+        );
+        return;
+      }
+
+      if (currentContent !== content) {
+        editor.update(
+          () => {
+            const root = $getRoot();
+            const children = root.getChildren();
+            // Clear existing content
+            for (const child of children) {
+              child.remove();
+            }
+            $convertFromMarkdownString(content);
+          },
+          { discrete: true },
+        );
+      }
+    }
+  }, [content, status, editor]);
+
+  const handleChange = (editorState: any) => {
+    if (!isReadonly) {
+      handleEditorChange({
+        editorState,
+        editor,
+        onSaveContent,
+      });
+    }
+  };
+
+  return <OnChangePlugin onChange={handleChange} />;
+}
+
+// Suggestions plugin
+function SuggestionsPlugin({
+  suggestions,
+  content,
+}: {
+  suggestions: Array<Suggestion>;
+  content: string;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  useEffect(() => {
+    if (content) {
+      const projectedSuggestions = projectWithPositions(
+        editor,
+        suggestions,
+      ).filter(
+        (suggestion) => suggestion.selectionStart && suggestion.selectionEnd,
+      );
+
+      registerSuggestions(editor, projectedSuggestions);
+    }
+  }, [suggestions, content, editor]);
+
+  return null;
+}
+
 function PureEditor({
   content,
   onSaveContent,
@@ -40,117 +134,37 @@ function PureEditor({
   status,
   isReadonly,
 }: EditorProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<EditorView | null>(null);
+  const initialConfig = createEditorConfig();
 
-  useEffect(() => {
-    if (containerRef.current && !editorRef.current) {
-      const state = EditorState.create({
-        doc: buildDocumentFromContent(content),
-        plugins: [
-          ...exampleSetup({ schema: documentSchema, menuBar: false }),
-          inputRules({
-            rules: [
-              headingRule(1),
-              headingRule(2),
-              headingRule(3),
-              headingRule(4),
-              headingRule(5),
-              headingRule(6),
-            ],
-          }),
-          suggestionsPlugin,
-        ],
-      });
-
-      editorRef.current = new EditorView(containerRef.current, {
-        state,
-        editable: () => !isReadonly,
-      });
-    }
-
-    return () => {
-      if (editorRef.current) {
-        editorRef.current.destroy();
-        editorRef.current = null;
-      }
-    };
-    // NOTE: we only want to run this effect once
-    // eslint-disable-next-line
-  }, []);
-
-  useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.setProps({
-        editable: () => !isReadonly,
-        dispatchTransaction: (transaction) => {
-          handleTransaction({
-            transaction,
-            editorRef,
-            onSaveContent: isReadonly ? () => {} : onSaveContent,
-          });
-        },
-      });
-    }
-  }, [onSaveContent, isReadonly]);
-
-  useEffect(() => {
-    if (editorRef.current && content) {
-      const currentContent = buildContentFromDocument(
-        editorRef.current.state.doc,
-      );
-
-      if (status === 'streaming') {
-        const newDocument = buildDocumentFromContent(content);
-
-        const transaction = editorRef.current.state.tr.replaceWith(
-          0,
-          editorRef.current.state.doc.content.size,
-          newDocument.content,
-        );
-
-        transaction.setMeta('no-save', true);
-        editorRef.current.dispatch(transaction);
-        return;
-      }
-
-      if (currentContent !== content) {
-        const newDocument = buildDocumentFromContent(content);
-
-        const transaction = editorRef.current.state.tr.replaceWith(
-          0,
-          editorRef.current.state.doc.content.size,
-          newDocument.content,
-        );
-
-        transaction.setMeta('no-save', true);
-        editorRef.current.dispatch(transaction);
-      }
-    }
-  }, [content, status]);
-
-  useEffect(() => {
-    if (editorRef.current?.state.doc && content) {
-      const projectedSuggestions = projectWithPositions(
-        editorRef.current.state.doc,
-        suggestions,
-      ).filter(
-        (suggestion) => suggestion.selectionStart && suggestion.selectionEnd,
-      );
-
-      const decorations = createDecorations(
-        projectedSuggestions,
-        editorRef.current,
-      );
-
-      const transaction = editorRef.current.state.tr;
-      transaction.setMeta(suggestionsPluginKey, { decorations });
-      editorRef.current.dispatch(transaction);
-    }
-  }, [suggestions, content]);
+  // Add SuggestionNode to the editor config
+  const editorConfig = {
+    ...initialConfig,
+    nodes: [...initialConfig.nodes, SuggestionNode],
+    editable: !isReadonly,
+  };
 
   return (
-    <div className="relative prose dark:prose-invert" ref={containerRef} />
+    <div className="relative prose dark:prose-invert text-left">
+      <LexicalComposer initialConfig={editorConfig}>
+        <RichTextPlugin
+          contentEditable={
+            <ContentEditable className="outline-none lexical-editor text-left" />
+          }
+          placeholder={<div className="text-gray-400">Start typing...</div>}
+          ErrorBoundary={LexicalErrorBoundary}
+        />
+        <HistoryPlugin />
+        <ListPlugin />
+        <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
+        <ContentUpdatePlugin
+          content={content}
+          status={status}
+          onSaveContent={onSaveContent}
+          isReadonly={isReadonly}
+        />
+        <SuggestionsPlugin suggestions={suggestions} content={content} />
+      </LexicalComposer>
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,10 +29,12 @@ export function ShareDialog({
   chatId,
   open,
   onOpenChange,
+  children,
 }: {
   chatId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  children?: React.ReactNode;
 }) {
   const [step, setStep] = useState<ShareStep>('info');
   const { data: chat } = useGetChatById(chatId);
@@ -85,6 +87,7 @@ export function ShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+      {children}
       <DialogContent className="sm:max-w-md">
         {step === 'info' && (
           <>
@@ -271,11 +274,8 @@ export function ShareButton({
   }
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>{triggerButton}</DialogTrigger>
-      </Dialog>
-      <ShareDialog chatId={chatId} open={open} onOpenChange={setOpen} />
-    </>
+    <ShareDialog chatId={chatId} open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
+    </ShareDialog>
   );
 }

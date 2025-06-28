@@ -104,7 +104,7 @@
     [ ] Create a better toast message when backend reaches rate-limit
 
 
-[ ] Stop button in multimodal input not showing
+[ ] Stop button in multimodal input not showing when streaming starts. It's showing only after clicking submit and before receiving the first token..
 
 [ ] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
      [ ]  Also rece condition when changing to chatId when the response has a tool message (takes some time)

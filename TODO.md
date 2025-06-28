@@ -144,7 +144,7 @@
     [ ] Disable image generation for anonymous users ?
 
 
-[ ] Last Model selected and used should be the new default model
+[x] Last Model selected and used should be the new default model
 
 
 ## Polishing

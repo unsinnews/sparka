@@ -109,10 +109,10 @@
 [x] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
      [ ]  Race condition when changing to chatId when the response is streaming and we switch chat
 
+[ ] Deep Research
+    [ ] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
+    [ ] Background execution and resuming
 
-[ ] Models
-    [ ] Claude 3.7 reasoning not found
-    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid
 [ ] OG Image
 [ ] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)
@@ -149,6 +149,13 @@
 
 
 ## Polishing
+
+[ ] Models
+    [ ] Claude 3.7 reasoning not found
+    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid
+
+
+
 [ ] Chat history: 
 - [ ] Favourite / Pinned chats
 - [ ] Virtual list for previous chats
@@ -202,9 +209,7 @@
 
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
-[ ] Deep Research
-    [ ] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
-    [ ] Background execution and resuming
+
 
 
 

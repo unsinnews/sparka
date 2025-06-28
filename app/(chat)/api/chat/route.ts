@@ -470,7 +470,7 @@ export async function POST(request: NextRequest) {
         await reservation.cleanup();
       }
       abortController.abort();
-    }, 55000); // 55 seconds
+    }, 290000); // 290 seconds
 
     // Ensure cleanup on any unhandled errors
     try {

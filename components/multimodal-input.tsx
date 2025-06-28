@@ -101,15 +101,6 @@ function PureMultimodalInput({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    // Reset height when input is cleared
-    if (input === '' && textareaRef.current?.adjustHeight) {
-      setTimeout(() => {
-        textareaRef.current?.adjustHeight();
-      }, 0);
-    }
-  }, [input]);
-
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
   };

@@ -1,7 +1,8 @@
 import { smoothStream, streamText } from 'ai';
-import { myProvider } from '@/lib/ai/providers';
 import { createDocumentHandler } from '@/lib/artifacts/server';
 import { updateDocumentPrompt } from '@/lib/ai/prompts';
+import { getLanguageModel } from '@/lib/ai/providers';
+import { DEFAULT_ARTIFACT_MODEL } from '@/lib/ai/all-models';
 
 export const textDocumentHandler = createDocumentHandler<'text'>({
   kind: 'text',
@@ -9,7 +10,7 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
     let draftContent = '';
 
     const { fullStream } = streamText({
-      model: myProvider.languageModel('artifact-model'),
+      model: getLanguageModel(DEFAULT_ARTIFACT_MODEL),
       providerOptions: {
         experimental_telemetry: { isEnabled: true },
       },
@@ -40,7 +41,7 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
     let draftContent = '';
 
     const { fullStream } = streamText({
-      model: myProvider.languageModel('artifact-model'),
+      model: getLanguageModel(DEFAULT_ARTIFACT_MODEL),
       system: updateDocumentPrompt(document.content, 'text'),
       experimental_transform: smoothStream({ chunking: 'word' }),
       prompt: description,

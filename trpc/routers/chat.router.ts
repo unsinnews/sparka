@@ -18,7 +18,7 @@ import {
 } from '@/trpc/init';
 import { z } from 'zod';
 import { generateText } from 'ai';
-import { myProvider } from '@/lib/ai/providers';
+import { getLanguageModel } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
 import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/message-conversion';
 import { generateUUID } from '@/lib/utils';
@@ -26,6 +26,7 @@ import {
   cloneMessagesWithDocuments,
   cloneAttachmentsInMessages,
 } from '@/lib/clone-messages';
+import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -159,7 +160,7 @@ export const chatRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { text: title } = await generateText({
-        model: myProvider.languageModel('title-model'),
+        model: getLanguageModel(DEFAULT_TITLE_MODEL),
         system: `\n
         - you will generate a short title based on the first message a user begins a conversation with
         - ensure it is not more than 80 characters long

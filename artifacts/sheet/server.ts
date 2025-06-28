@@ -1,5 +1,6 @@
-import { myProvider } from '@/lib/ai/providers';
+import { DEFAULT_ARTIFACT_MODEL } from '@/lib/ai/all-models';
 import { sheetPrompt, updateDocumentPrompt } from '@/lib/ai/prompts';
+import { getLanguageModel } from '@/lib/ai/providers';
 import { createDocumentHandler } from '@/lib/artifacts/server';
 import { streamObject } from 'ai';
 import { z } from 'zod';
@@ -10,7 +11,7 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: myProvider.languageModel('artifact-model'),
+      model: getLanguageModel(DEFAULT_ARTIFACT_MODEL),
       system: sheetPrompt,
       experimental_telemetry: { isEnabled: true },
       prompt,
@@ -48,7 +49,7 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: myProvider.languageModel('artifact-model'),
+      model: getLanguageModel(DEFAULT_ARTIFACT_MODEL),
       system: updateDocumentPrompt(document.content, 'sheet'),
       experimental_telemetry: { isEnabled: true },
       prompt: description,

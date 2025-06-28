@@ -2258,3 +2258,6 @@ export function getModelDefinition(
 export const DEFAULT_CHAT_MODEL: string = 'openai/gpt-4o-mini';
 export const DEFAULT_PDF_MODEL: string = 'openai/gpt-4o-mini';
 export const DEFAULT_IMAGE_MODEL: string = 'openai/gpt-4o-mini';
+export const DEFAULT_TITLE_MODEL: string = 'openai/gpt-4o-mini';
+export const DEFAULT_ARTIFACT_MODEL: string = 'openai/gpt-4.1-nano';
+export const DEFAULT_ARTIFACT_SUGGESTION_MODEL: string = 'openai/gpt-4o-mini';

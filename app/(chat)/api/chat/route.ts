@@ -32,7 +32,7 @@ import {
   filterAffordableTools,
   getBaseModelCost,
 } from '@/lib/credits/credits-utils';
-import { getModelProvider, getModelProviderOptions } from '@/lib/ai/providers';
+import { getLanguageModel, getModelProviderOptions } from '@/lib/ai/providers';
 import {
   reserveCreditsWithCleanup,
   type CreditReservation,
@@ -513,7 +513,7 @@ export async function POST(request: NextRequest) {
           const annotationStream = new AnnotationDataStreamWriter(dataStream);
 
           const result = streamText({
-            model: getModelProvider(selectedChatModel),
+            model: getLanguageModel(selectedChatModel as any),
             system: systemPrompt(),
             messages: contextForLLM,
             maxSteps: 5,

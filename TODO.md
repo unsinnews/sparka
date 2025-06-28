@@ -107,8 +107,12 @@
 [x] Stop button in multimodal input not showing when streaming starts. It's showing only after clicking submit and before receiving the first token..
 
 [x] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
-     [x]  Also rece condition when changing to chatId when the response has a tool message (takes some time)
+     [ ]  Race condition when changing to chatId when the response is streaming and we switch chat
 
+
+[ ] Models
+    [ ] Claude 3.7 reasoning not found
+    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid
 [ ] OG Image
 [ ] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)
@@ -132,9 +136,6 @@
 
 [x] Document alignment should be in the middle
 
-[ ] User Message ++
-    [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
-    [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
 
 [ ] Images
     [x] Create with gpt-image-1
@@ -158,6 +159,12 @@
     [ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")
     [ ] gpt-image-1 is able to interpret input images as context
     [ ] Move images from artifact to main thread
+
+
+[ ] User Message ++
+    [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
+    [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
+
 
 [ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 

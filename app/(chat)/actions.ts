@@ -2,7 +2,8 @@
 
 import { generateText, type Message } from 'ai';
 
-import { myProvider } from '@/lib/ai/providers';
+import { getLanguageModel } from '@/lib/ai/providers';
+import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
 
 export async function generateTitleFromUserMessage({
   message,
@@ -10,7 +11,7 @@ export async function generateTitleFromUserMessage({
   message: Message;
 }) {
   const { text: title } = await generateText({
-    model: myProvider.languageModel('title-model'),
+    model: getLanguageModel(DEFAULT_TITLE_MODEL),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long

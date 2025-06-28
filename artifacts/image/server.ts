@@ -1,4 +1,4 @@
-import { myProvider } from '@/lib/ai/providers';
+import { getImageModel } from '@/lib/ai/providers';
 import { createDocumentHandler } from '@/lib/artifacts/server';
 import { experimental_generateImage } from 'ai';
 
@@ -8,7 +8,7 @@ export const imageDocumentHandler = createDocumentHandler<'image'>({
     let draftContent = '';
 
     const { image } = await experimental_generateImage({
-      model: myProvider.imageModel('small-model'),
+      model: getImageModel('alias/image-model'),
       prompt,
       n: 1,
       providerOptions: {
@@ -29,7 +29,7 @@ export const imageDocumentHandler = createDocumentHandler<'image'>({
     let draftContent = '';
 
     const { image } = await experimental_generateImage({
-      model: myProvider.imageModel('small-model'),
+      model: getImageModel('alias/image-model'),
       prompt: description,
       n: 1,
       providerOptions: {

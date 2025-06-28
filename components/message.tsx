@@ -28,6 +28,7 @@ import {
 import { ReadDocument } from './read-document';
 import { AttachmentList } from './attachment-list';
 import { Skeleton } from './ui/skeleton';
+import { ImageModal } from './image-modal';
 
 const PurePreviewMessage = ({
   chatId,
@@ -49,6 +50,15 @@ const PurePreviewMessage = ({
   parentMessageId: string | null;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [imageModal, setImageModal] = useState<{
+    isOpen: boolean;
+    imageUrl: string;
+    imageName?: string;
+  }>({
+    isOpen: false,
+    imageUrl: '',
+    imageName: undefined,
+  });
 
   // Helper function to check if this is the last artifact
   const isLastArtifact = (currentToolCallId: string) => {
@@ -63,6 +73,22 @@ const PurePreviewMessage = ({
       lastArtifact.messageIndex === currentMessageIndex &&
       lastArtifact.toolCallId === currentToolCallId
     );
+  };
+
+  const handleImageClick = (imageUrl: string, imageName?: string) => {
+    setImageModal({
+      isOpen: true,
+      imageUrl,
+      imageName,
+    });
+  };
+
+  const handleImageModalClose = () => {
+    setImageModal({
+      isOpen: false,
+      imageUrl: '',
+      imageName: undefined,
+    });
   };
 
   return (
@@ -145,6 +171,7 @@ const PurePreviewMessage = ({
                                   attachments={
                                     message.experimental_attachments || []
                                   }
+                                  onImageClick={handleImageClick}
                                   testId="message-attachments"
                                 />
                                 {/* User message renndering withotu Markdown */}
@@ -167,6 +194,7 @@ const PurePreviewMessage = ({
                         >
                           <AttachmentList
                             attachments={message.experimental_attachments || []}
+                            onImageClick={handleImageClick}
                             testId="message-attachments"
                           />
                           {message.role === 'assistant' ? (
@@ -345,6 +373,13 @@ const PurePreviewMessage = ({
           </div>
         </div>
       </motion.div>
+
+      <ImageModal
+        isOpen={imageModal.isOpen}
+        onClose={handleImageModalClose}
+        imageUrl={imageModal.imageUrl}
+        imageName={imageModal.imageName}
+      />
     </AnimatePresence>
   );
 };

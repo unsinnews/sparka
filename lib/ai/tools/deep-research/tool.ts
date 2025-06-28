@@ -9,8 +9,8 @@ import {
 import type { AnnotationDataStreamWriter } from '../annotation-stream';
 
 // TODO: Restore both to 3 or make configurable. It needs to fit in 1m execution
-const BREADTH = 1;
-const DEPTH = 1;
+const BREADTH = 3;
+const DEPTH = 2;
 
 export const deepResearch = ({
   session,

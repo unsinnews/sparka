@@ -109,9 +109,6 @@
 [x] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
      [ ]  Race condition when changing to chatId when the response is streaming and we switch chat
 
-[ ] Deep Research
-    [ ] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
-    [ ] Background execution and resuming
 
 [ ] OG Image
 [ ] Favicon
@@ -161,7 +158,10 @@
 - [ ] Favourite / Pinned chats
 - [ ] Virtual list for previous chats
 
-[ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal
+
+[ ] Deep Research
+    [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
+    [ ] Background execution and resuming
 
 [ ] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
     [ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")
@@ -172,6 +172,7 @@
 [ ] User Message ++
     [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
     [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
+    [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
 
 [ ] Artifacts should use the selected model to generate the document
 

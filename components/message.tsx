@@ -372,14 +372,13 @@ const PurePreviewMessage = ({
             />
           </div>
         </div>
+        <ImageModal
+          isOpen={imageModal.isOpen}
+          onClose={handleImageModalClose}
+          imageUrl={imageModal.imageUrl}
+          imageName={imageModal.imageName}
+        />
       </motion.div>
-
-      <ImageModal
-        isOpen={imageModal.isOpen}
-        onClose={handleImageModalClose}
-        imageUrl={imageModal.imageUrl}
-        imageName={imageModal.imageName}
-      />
     </AnimatePresence>
   );
 };

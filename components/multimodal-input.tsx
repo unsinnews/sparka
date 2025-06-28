@@ -405,13 +405,16 @@ function PureMultimodalInput({
     [setAttachments],
   );
 
-  const handleImageClick = useCallback((imageUrl: string, imageName?: string) => {
-    setImageModal({
-      isOpen: true,
-      imageUrl,
-      imageName,
-    });
-  }, []);
+  const handleImageClick = useCallback(
+    (imageUrl: string, imageName?: string) => {
+      setImageModal({
+        isOpen: true,
+        imageUrl,
+        imageName,
+      });
+    },
+    [],
+  );
 
   const handleImageModalClose = useCallback(() => {
     setImageModal({

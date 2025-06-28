@@ -104,10 +104,10 @@
     [ ] Create a better toast message when backend reaches rate-limit
 
 
-[ ] Stop button in multimodal input not showing when streaming starts. It's showing only after clicking submit and before receiving the first token..
+[x] Stop button in multimodal input not showing when streaming starts. It's showing only after clicking submit and before receiving the first token..
 
-[ ] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
-     [ ]  Also rece condition when changing to chatId when the response has a tool message (takes some time)
+[x] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
+     [x]  Also rece condition when changing to chatId when the response has a tool message (takes some time)
 
 [ ] OG Image
 [ ] Favicon
@@ -135,6 +135,9 @@
 
 [ ] Images
     [x] Create with gpt-image-1
+    [ ] Images shouldn't be artifacts. They should be just a response.
+       [ ] Add gpt-image-1 to @all-models
+       [ ] If user selects that model, we should use experimental_generateImage instead of stream text
     [ ] Disable image generation for anonymous users ?
 
 

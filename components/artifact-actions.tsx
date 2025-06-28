@@ -67,10 +67,16 @@ function PureArtifactActions({
           <Tooltip key={action.description}>
             <TooltipTrigger asChild>
               <Button
-                variant="outline"
+                variant={
+                  action.description === 'View changes' && mode === 'diff'
+                    ? 'default'
+                    : 'outline'
+                }
                 className={cn('h-fit dark:hover:bg-zinc-700', {
                   'p-2': !action.label,
                   'py-1.5 px-2': action.label,
+                  'bg-primary text-primary-foreground hover:bg-primary/90':
+                    action.description === 'View changes' && mode === 'diff',
                 })}
                 onClick={async () => {
                   setIsLoading(true);

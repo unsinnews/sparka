@@ -19,6 +19,7 @@ import { useSession } from 'next-auth/react';
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { AttachmentList } from './attachment-list';
 import { Button } from './ui/button';
+import { ImageModal } from './image-modal';
 import {
   ChatInputContainer,
   ChatInputTopRow,
@@ -131,6 +132,15 @@ function PureMultimodalInput({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+  const [imageModal, setImageModal] = useState<{
+    isOpen: boolean;
+    imageUrl: string;
+    imageName?: string;
+  }>({
+    isOpen: false,
+    imageUrl: '',
+    imageName: undefined,
+  });
 
   // Helper function to process and validate files
   const processFiles = useCallback(
@@ -395,6 +405,22 @@ function PureMultimodalInput({
     [setAttachments],
   );
 
+  const handleImageClick = useCallback((imageUrl: string, imageName?: string) => {
+    setImageModal({
+      isOpen: true,
+      imageUrl,
+      imageName,
+    });
+  }, []);
+
+  const handleImageModalClose = useCallback(() => {
+    setImageModal({
+      isOpen: false,
+      imageUrl: '',
+      imageName: undefined,
+    });
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: async (acceptedFiles) => {
       if (acceptedFiles.length === 0) return;
@@ -492,6 +518,7 @@ function PureMultimodalInput({
                   attachments={attachments}
                   uploadQueue={uploadQueue}
                   onRemove={removeAttachment}
+                  onImageClick={handleImageClick}
                   testId="attachments-preview"
                   className="px-3 py-2"
                 />
@@ -558,6 +585,13 @@ function PureMultimodalInput({
           </ChatInputBottomRow>
         </ChatInputContainer>
       </div>
+
+      <ImageModal
+        isOpen={imageModal.isOpen}
+        onClose={handleImageModalClose}
+        imageUrl={imageModal.imageUrl}
+        imageName={imageModal.imageName}
+      />
     </div>
   );
 }

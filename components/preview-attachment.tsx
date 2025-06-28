@@ -8,10 +8,12 @@ export const PreviewAttachment = ({
   attachment,
   isUploading = false,
   onRemove,
+  onImageClick,
 }: {
   attachment: Attachment;
   isUploading?: boolean;
   onRemove?: () => void;
+  onImageClick?: (imageUrl: string, imageName?: string) => void;
 }) => {
   const { name, url, contentType } = attachment;
 
@@ -41,7 +43,8 @@ export const PreviewAttachment = ({
               key={url}
               src={url}
               alt={name ?? 'An image attachment'}
-              className="rounded-md size-full object-cover"
+              className="rounded-md size-full object-cover cursor-pointer"
+              onClick={() => onImageClick?.(url, name)}
             />
           ) : isPdf ? (
             <div className="flex flex-col items-center justify-center h-full">

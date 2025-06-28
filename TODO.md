@@ -152,9 +152,10 @@
 
 [ ] Models
     [ ] Claude 3.7 reasoning not found
-    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid
+    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
 
 
+[ ] View Changes Button should be a toggle (should have a visible active state when active)
 
 [ ] Chat history: 
 - [ ] Favourite / Pinned chats

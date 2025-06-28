@@ -572,7 +572,7 @@ function PureMultimodalInput({
             </div>
             <div className="flex gap-1 @[400px]:gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-              {status === 'submitted' ? (
+              {status !== 'ready' ? (
                 <StopButton stop={stop} setMessages={setMessages} />
               ) : (
                 <SendButton

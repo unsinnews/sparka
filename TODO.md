@@ -262,6 +262,7 @@
 
 [ ] BYOK (Bring Your Own Key)
 
+[ ] MCP Support
 
 [ ] Chat sharing
     [x] Artifacts sharing
@@ -305,7 +306,7 @@
 
 [ ] Cleanup up the providers.ts file
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
-[ ] Propagate model selection to deep research / reason tools (and create new selectables for them)
+[ ] Propagate model selection to deep research (and create new selectables for them)
 [ ] Save file uploads in Blob with non-public access
 [ ] Deleting a chat should delete all the images and PDFs uploaded to blobs
 [ ] Create a layer to coordinate queries (db related) and other funcions (e.g. blob deletion)
@@ -322,7 +323,7 @@
 [x] Artifact editing should be disabled on shared chats (isEditable is false)
 [x] Only show the last artifact in the chat as a big preview, others as pills
 [x] Multimodal input on artifact should be hidden in shared chat
-[ ] Only render last document as preview, others as pill
+[x] Only render last document as preview, others as pill
 [ ] Migrate to tailwind 4 (and migrate container queries)
 
 [ ] Reduce number of re-renders (memoization)
@@ -335,7 +336,7 @@
 [x] TBD Create limits per accounts with a few credits
 
 [ ] Syntax Highlighting
-[ ] Image Generation Support
+[x] Image Generation Support
 [ ] Chat Branching
     [ ] Chat should be forkable (even shared ones)
 
@@ -350,3 +351,4 @@
 [ ] Optiomize all-models by only using allImplementedModels. Needs to propagate discriminated unions typing correctly
 [ ] Model definitions need more flexibility (or model variants). E.g. google provider have different tiers size, reasoning, etc
 
+[ ] Migrate to Biome 2.0

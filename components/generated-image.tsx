@@ -47,7 +47,7 @@ export function GeneratedImage({
       <div className="flex flex-col gap-4 w-full justify-center items-center border rounded-lg p-8">
         <div className="animate-pulse rounded-lg bg-muted-foreground/20 w-full h-64" />
         <div className="text-muted-foreground">
-          Generating image: "{args?.prompt}"
+          Generating image: &quot;{args?.prompt}&quot;
         </div>
       </div>
     );
@@ -75,7 +75,7 @@ export function GeneratedImage({
       </div>
       <div className="p-4 pt-0">
         <p className="text-sm text-muted-foreground">
-          Generated from: "{result.prompt}"
+          Generated from: &quot;{result.prompt}&quot;
         </p>
       </div>
     </div>

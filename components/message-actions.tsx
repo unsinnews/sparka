@@ -29,7 +29,6 @@ export function PureMessageActions({
   isLoading,
   isReadOnly,
   chatHelpers,
-  parentMessageId,
 }: {
   chatId: string;
   message: Message;
@@ -37,14 +36,17 @@ export function PureMessageActions({
   isLoading: boolean;
   isReadOnly: boolean;
   chatHelpers?: UseChatHelpers;
-  parentMessageId: string | null;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [_, copyToClipboard] = useCopyToClipboard();
   const { data: session } = useSession();
-  const { getMessageSiblingInfo, navigateToSibling, setLastMessageId } =
-    useMessageTree();
+  const {
+    getMessageSiblingInfo,
+    navigateToSibling,
+    setLastMessageId,
+    getParentMessage,
+  } = useMessageTree();
   const { selectedModelId } = useChatInput();
 
   const isAuthenticated = !!session?.user;
@@ -65,31 +67,36 @@ export function PureMessageActions({
 
   // Function to handle retry by finding parent user message and resending
   const handleRetry = useCallback(() => {
-    if (!chatHelpers || !parentMessageId) {
+    if (!chatHelpers) {
       toast.error('Cannot retry this message');
       return;
     }
 
-    // We re-send the parent message to cause a retry
-
-    const parentMessageIdx = chatHelpers.messages.findIndex(
-      (msg) => msg.id === parentMessageId,
-    );
-
-    // Find the parent user message
-    const parentMessage = chatHelpers.messages[parentMessageIdx];
+    // Get parent message from message tree
+    const parentMessage = getParentMessage(message.id);
 
     if (!parentMessage || parentMessage.role !== 'user') {
       toast.error('Cannot find the user message to retry');
       return;
     }
 
+    // Get grandparent message ID
+    const grandParentMessage = getParentMessage(parentMessage.id);
+    const grandParentMessageId = grandParentMessage?.id || null;
+
+    // Find the parent message index in chatHelpers.messages for slicing
+
     // Remove the current assistant message and any messages after it
-    const newMessages = chatHelpers.messages.slice(0, parentMessageIdx);
-
-    const grandParentMessageId = newMessages[parentMessageIdx - 1]?.id || null;
-
-    chatHelpers.setMessages(newMessages);
+    chatHelpers.setMessages((messages) => {
+      const parentMessageIdx = messages.findIndex(
+        (msg) => msg.id === parentMessage.id,
+      );
+      if (parentMessageIdx === -1) {
+        toast.error('Cannot find the user message to retry');
+        return messages;
+      }
+      return messages.slice(0, parentMessageIdx);
+    });
 
     // Resend the parent user message
     // TODO: This should obtain data from the parent message
@@ -108,7 +115,13 @@ export function PureMessageActions({
     setLastMessageId(parentMessage.id);
 
     toast.success('Retrying message...');
-  }, [chatHelpers, parentMessageId, setLastMessageId, selectedModelId]);
+  }, [
+    chatHelpers,
+    getParentMessage,
+    message.id,
+    setLastMessageId,
+    selectedModelId,
+  ]);
 
   if (isLoading) return null;
 
@@ -272,7 +285,6 @@ export const MessageActions = memo(
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
     if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
-    if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
     return true;
   },
 );

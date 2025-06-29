@@ -31,6 +31,7 @@ interface MessageTreeContextType {
   ) => void;
   getLastMessageId: () => string | null;
   setLastMessageId: (messageId: string | null) => void;
+  getParentMessage: (messageId: string) => YourUIMessage | null;
 }
 
 const MessageTreeContext = createContext<MessageTreeContextType | undefined>(
@@ -209,6 +210,21 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     ],
   );
 
+  const getParentMessage = useCallback(
+    (messageId: string): YourUIMessage | null => {
+      if (!allMessages) return null;
+      const message = allMessages.find((m) => m.id === messageId);
+      if (!message) return null;
+
+      const parentId = message.parentMessageId;
+      if (!parentId) return null;
+
+      const parentMessage = allMessages.find((m) => m.id === parentId);
+      return parentMessage ?? null;
+    },
+    [allMessages],
+  );
+
   const value = useMemo(
     () => ({
       getMessageSiblingInfo,
@@ -216,6 +232,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
       registerSetMessages,
       getLastMessageId,
       setLastMessageId,
+      getParentMessage,
     }),
     [
       getMessageSiblingInfo,
@@ -223,6 +240,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
       registerSetMessages,
       getLastMessageId,
       setLastMessageId,
+      getParentMessage,
     ],
   );
 

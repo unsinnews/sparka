@@ -151,3 +151,66 @@ export function getTrailingMessageId({
 
   return trailingMessage.id;
 }
+
+export function getLanguageFromFileName(fileName: string): string {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+
+  const extensionToLanguage: Record<string, string> = {
+    // JavaScript/TypeScript
+    js: 'javascript',
+    jsx: 'jsx',
+    ts: 'typescript',
+    tsx: 'tsx',
+    mjs: 'javascript',
+    cjs: 'javascript',
+
+    // Python
+    py: 'python',
+    pyw: 'python',
+    pyi: 'python',
+
+    // Web
+    html: 'html',
+    htm: 'html',
+    css: 'css',
+    scss: 'css',
+    sass: 'css',
+    less: 'css',
+
+    // Data formats
+    json: 'json',
+    xml: 'xml',
+    yaml: 'yaml',
+    yml: 'yaml',
+    toml: 'toml',
+
+    // Shell
+    sh: 'shell',
+    bash: 'shell',
+    zsh: 'shell',
+    fish: 'shell',
+
+    // Other languages
+    sql: 'sql',
+    md: 'markdown',
+    mdx: 'markdown',
+    java: 'java',
+    c: 'c',
+    cpp: 'cpp',
+    cc: 'cpp',
+    cxx: 'cpp',
+    h: 'c',
+    hpp: 'cpp',
+    cs: 'csharp',
+    php: 'php',
+    rb: 'ruby',
+    go: 'go',
+    rs: 'rust',
+    swift: 'swift',
+    kt: 'kotlin',
+    r: 'r',
+    R: 'r',
+  };
+
+  return extensionToLanguage[extension] || 'python'; // Default to python
+}

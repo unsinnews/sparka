@@ -1,4 +1,5 @@
 import { Button } from './ui/button';
+import { Toggle } from './ui/toggle';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { artifactDefinitions, type UIArtifact } from './artifact';
 import { type Dispatch, memo, type SetStateAction, useState } from 'react';
@@ -66,40 +67,67 @@ function PureArtifactActions({
         .map((action) => (
           <Tooltip key={action.description}>
             <TooltipTrigger asChild>
-              <Button
-                variant={
-                  action.description === 'View changes' && mode === 'diff'
-                    ? 'default'
-                    : 'outline'
-                }
-                className={cn('h-fit dark:hover:bg-zinc-700', {
-                  'p-2': !action.label,
-                  'py-1.5 px-2': action.label,
-                  'bg-primary text-primary-foreground hover:bg-primary/90':
-                    action.description === 'View changes' && mode === 'diff',
-                })}
-                onClick={async () => {
-                  setIsLoading(true);
+              {action.description === 'View changes' ? (
+                <div>
+                  <Toggle
+                    pressed={mode === 'diff'}
+                    className={cn('h-fit', {
+                      'p-2': !action.label,
+                      'py-1.5 px-2': action.label,
+                    })}
+                    onClick={async () => {
+                      setIsLoading(true);
 
-                  try {
-                    await Promise.resolve(action.onClick(actionContext));
-                  } catch (error) {
-                    toast.error('Failed to execute action');
-                  } finally {
-                    setIsLoading(false);
+                      try {
+                        await Promise.resolve(action.onClick(actionContext));
+                      } catch (error) {
+                        toast.error('Failed to execute action');
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={
+                      isLoading || artifact.status === 'streaming'
+                        ? true
+                        : action.isDisabled
+                          ? action.isDisabled(actionContext)
+                          : false
+                    }
+                  >
+                    {action.icon}
+                    {action.label}
+                  </Toggle>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  className={cn('h-fit dark:hover:bg-zinc-700', {
+                    'p-2': !action.label,
+                    'py-1.5 px-2': action.label,
+                  })}
+                  onClick={async () => {
+                    setIsLoading(true);
+
+                    try {
+                      await Promise.resolve(action.onClick(actionContext));
+                    } catch (error) {
+                      toast.error('Failed to execute action');
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={
+                    isLoading || artifact.status === 'streaming'
+                      ? true
+                      : action.isDisabled
+                        ? action.isDisabled(actionContext)
+                        : false
                   }
-                }}
-                disabled={
-                  isLoading || artifact.status === 'streaming'
-                    ? true
-                    : action.isDisabled
-                      ? action.isDisabled(actionContext)
-                      : false
-                }
-              >
-                {action.icon}
-                {action.label}
-              </Button>
+                >
+                  {action.icon}
+                  {action.label}
+                </Button>
+              )}
             </TooltipTrigger>
             <TooltipContent>{action.description}</TooltipContent>
           </Tooltip>
@@ -117,6 +145,7 @@ export const ArtifactActions = memo(
     if (prevProps.isCurrentVersion !== nextProps.isCurrentVersion) return false;
     if (prevProps.artifact.content !== nextProps.artifact.content) return false;
     if (prevProps.isReadonly !== nextProps.isReadonly) return false;
+    if (prevProps.mode !== nextProps.mode) return false;
 
     return true;
   },

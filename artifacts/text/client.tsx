@@ -77,7 +77,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
       const newContent = getDocumentContentById(currentVersionIndex);
 
       return (
-        <div className="flex flex-row py-8 md:p-20 px-4 container">
+        <div className="flex flex-row py-8 md:p-20 px-4 max-w-3xl m-auto">
           <DiffView oldContent={oldContent} newContent={newContent} />
         </div>
       );
@@ -85,7 +85,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
 
     return (
       <>
-        <div className="flex flex-row py-8 md:p-20 px-4 container">
+        <div className="flex flex-row py-8 md:p-20 px-4 max-w-3xl m-auto">
           <Editor
             content={content}
             suggestions={metadata ? metadata.suggestions : []}

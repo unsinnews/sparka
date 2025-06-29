@@ -1726,6 +1726,43 @@ export const allModels = [
     },
   },
   {
+    id: 'openai/gpt-image-1',
+    name: 'GPT-Image-1',
+    enabled: true,
+    specification: {
+      specificationVersion: 'v2',
+      provider: 'openai',
+      modelId: 'openai/gpt-image-1',
+      modelIdShort: 'gpt-image-1',
+    },
+    pricing: {
+      inputMTok: 5.0, // Text input: $5.00 / 1M tokens, Image input: $10.00 / 1M tokens
+      outputMTok: 40.0, // Output image tokens: $40.00 / 1M tokens
+    },
+    shortDescription:
+      'Advanced image generation model with superior accuracy and diverse visual styles',
+    features: {
+      reasoning: false,
+      functionCalling: false,
+      contextWindow: {
+        input: 128000, // Estimated based on typical OpenAI models
+        output: 4096, // Image output tokens vary by quality/resolution
+      },
+      knowledgeCutoff: new Date('2025-04-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: true,
+        text: false,
+        audio: false,
+      },
+    },
+  },
+  {
     id: 'perplexity/sonar',
     name: 'Sonar',
     enabled: false,

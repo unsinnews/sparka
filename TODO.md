@@ -94,9 +94,10 @@
     [x] Modified chat helpers are not needed. We should just pass append and reload to the multimodal input and add the selected model there
 
 
+[ ] OG Image
+[ ] Favicon
+[ ] Revamp theme (color, borders, rounding, etc)
 
-[ ] Optimizations
-  [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
 
 
 [ ] Replace input / ouput token pricing in model cards with credit pricing
@@ -115,9 +116,6 @@
      [ ]  Race condition when changing to chatId when the response is streaming and we switch chat
 
 
-[ ] OG Image
-[ ] Favicon
-[ ] Revamp theme (color, borders, rounding, etc)
 
 [x] Try functionality and do easy fixes for the happy paths
 
@@ -135,6 +133,8 @@
     [x] Improve tool description formats
     [x] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
+[ ] Optimizations
+  [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
 
 [x] Document alignment should be in the middle
 
@@ -146,9 +146,9 @@
     [x] Disable image generation for anonymous users ?
 
 
-[ ] Tools
-    [ ] Canvas should be a tool
-    [ ] Image generation should be a tool
+[x] Tools
+    [x] Canvas should be a tool
+    [x] Image generation should be a tool
 
 
 [x] Last Model selected and used should be the new default model
@@ -203,7 +203,11 @@
     [ ] Artifacts should belong to the current thread
     [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 
+[ ] Optimize the MessageTreeProvider with a messageMap in a reference
+
 [ ] MultiModalInput
+    [ ] Migrate to Lexical (there is a background agent with part of the work)
+    [ ] Use rich format for links
     [ ] Selected model should be part of the Chat-input-context
     [ ] Chat bottom row should not update on type
     [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
@@ -211,7 +215,7 @@
 [ ] Copy code button is too close to language / filename top header
 
 [ ] Retry Assistant message with a new model
-    [ ] Model selected needs to be part of the message info
+    [ ] Model selected needs to be part of the message **info**
     [ ] Model needs to be part of the request data
     [ ] Current model that generated the message should be detailed in the message actions (like t3)
 
@@ -222,7 +226,6 @@
     [x] With memoization
 
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
-
 
 
 

@@ -158,6 +158,8 @@
 - [ ] Virtual list for previous chats
 
 
+[ ] Generated artifact create a new version when they render on Lexical
+
 [ ] Deep Research
     [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
     [ ] Background execution and resuming
@@ -236,8 +238,8 @@
     [ ] Extend code editing and syntax hihglighting to typescript
     [ ] Add run support for JavaScript / TypeSCript
 
-[ ] Image generation
-    [ ] Improve the tool description to make it more clear that it's an image generation tool
+[x] Image generation
+    [x] Improve the tool description to make it more clear that it's an image generation tool
 
 [ ] Perf optimization: On getQuery cache subscription, update the tree. Keep the message tree in a reference
 
@@ -265,8 +267,10 @@
    [x] Move useSwr from visibility into a context
    [x] Display remaining messages in the chat, with a sign to login to reset the limit
    [x] Reduce anonymous message limit to 10
-   [ ] Artifacts handling for anonymous users (how to support images, etc). Maybe tools are only for logged users
+   [x] Artifacts handling for anonymous users
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
+
+[ ] Images should be stored in a blob (and not in tool part results)
 
 [ ] Optimize the number of getVotes query calls
 [x] Why does visibility selector takes chat visibility as a prop?

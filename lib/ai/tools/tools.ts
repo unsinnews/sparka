@@ -14,17 +14,20 @@ import { generateImage } from '@/lib/ai/tools/generate-image';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { CoreMessage } from 'ai';
+import type { AvailableProviderModels } from '@/lib/ai/all-models';
 
 export function getTools({
   dataStream,
   session,
   contextForLLM,
   messageId,
+  selectedModel,
 }: {
   dataStream: AnnotationDataStreamWriter;
   session: Session;
   contextForLLM?: CoreMessage[];
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }) {
   return {
     getWeather,
@@ -33,11 +36,13 @@ export function getTools({
       dataStream,
       contextForLLM,
       messageId,
+      selectedModel,
     }),
     updateDocument: updateDocument({
       session,
       dataStream,
       messageId,
+      selectedModel,
     }),
     requestSuggestions: requestSuggestions({
       session,

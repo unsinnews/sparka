@@ -4,17 +4,20 @@ import { z } from 'zod';
 import { getDocumentById } from '@/lib/db/queries';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
+import type { AvailableProviderModels } from '@/lib/ai/all-models';
 
 interface UpdateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }
 
 export const updateDocument = ({
   session,
   dataStream,
   messageId,
+  selectedModel,
 }: UpdateDocumentProps) =>
   tool({
     description: `Modify an existing document.
@@ -76,6 +79,7 @@ Avoid:
         dataStream,
         session,
         messageId,
+        selectedModel,
       });
 
       dataStream.writeData({ type: 'finish', content: '' });

@@ -3,15 +3,20 @@ import { streamObject } from 'ai';
 import { getLanguageModel } from '@/lib/ai/providers';
 import { codePrompt, updateDocumentPrompt } from '@/lib/ai/prompts';
 import { createDocumentHandler } from '@/lib/artifacts/server';
-import { DEFAULT_ARTIFACT_MODEL } from '@/lib/ai/all-models';
 
 export const codeDocumentHandler = createDocumentHandler<'code'>({
   kind: 'code',
-  onCreateDocument: async ({ title, description, dataStream, prompt }) => {
+  onCreateDocument: async ({
+    title,
+    description,
+    dataStream,
+    prompt,
+    selectedModel,
+  }) => {
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: getLanguageModel(DEFAULT_ARTIFACT_MODEL),
+      model: getLanguageModel(selectedModel),
       system: codePrompt,
       prompt,
       experimental_telemetry: { isEnabled: true },
@@ -40,11 +45,16 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
 
     return draftContent;
   },
-  onUpdateDocument: async ({ document, description, dataStream }) => {
+  onUpdateDocument: async ({
+    document,
+    description,
+    dataStream,
+    selectedModel,
+  }) => {
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: getLanguageModel(DEFAULT_ARTIFACT_MODEL),
+      model: getLanguageModel(selectedModel),
       system: updateDocumentPrompt(document.content, 'code'),
       experimental_telemetry: { isEnabled: true },
       prompt: description,

@@ -8,12 +8,14 @@ import {
 } from '@/lib/artifacts/server';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { CoreMessage } from 'ai';
+import type { AvailableProviderModels } from '@/lib/ai/all-models';
 
 interface CreateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
   contextForLLM?: CoreMessage[];
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }
 
 export const createDocumentTool = ({
@@ -21,6 +23,7 @@ export const createDocumentTool = ({
   dataStream,
   contextForLLM,
   messageId,
+  selectedModel,
 }: CreateDocumentProps) =>
   tool({
     description: `Create a persistent document (text, code, image, or spreadsheet).  This tool orchestrates the downstream handlers that actually generate the file based on the provided title, kind and description.
@@ -74,6 +77,7 @@ Avoid:
         session,
         prompt,
         messageId,
+        selectedModel,
       });
     },
   });
@@ -86,6 +90,7 @@ export async function createDocument({
   session,
   prompt,
   messageId,
+  selectedModel,
 }: {
   dataStream: AnnotationDataStreamWriter;
   kind: string;
@@ -94,6 +99,7 @@ export async function createDocument({
   session: Session;
   prompt: string;
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }) {
   const id = generateUUID();
 
@@ -139,6 +145,7 @@ export async function createDocument({
     session,
     prompt,
     messageId,
+    selectedModel,
   });
 
   dataStream.writeData({ type: 'finish', content: '' });

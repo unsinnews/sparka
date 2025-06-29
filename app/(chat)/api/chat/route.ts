@@ -545,6 +545,7 @@ export async function POST(request: NextRequest) {
               },
               contextForLLM,
               messageId,
+              selectedModel: selectedChatModel,
             }),
             abortSignal: abortController.signal, // Pass abort signal to streamText
             ...(modelDefinition.features?.fixedTemperature

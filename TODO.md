@@ -134,12 +134,11 @@
 [x] Document alignment should be in the middle
 
 
-[ ] Images
+[x] Images
     [x] Create with gpt-image-1
-    [ ] Images shouldn't be artifacts. They should be just a response.
-       [ ] Add gpt-image-1 to @all-models
-       [ ] If user selects that model, we should use experimental_generateImage instead of stream text
-    [ ] Disable image generation for anonymous users ?
+    [x] Images shouldn't be artifacts. They should be just a response.
+       [x] Add gpt-image-1 to @all-models
+    [x] Disable image generation for anonymous users ?
 
 
 [x] Last Model selected and used should be the new default model
@@ -152,7 +151,7 @@
     [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
 
 
-[ ] View Changes Button should be a toggle (should have a visible active state when active)
+[x] View Changes Button should be a toggle (should have a visible active state when active)
 
 [ ] Chat history: 
 - [ ] Favourite / Pinned chats
@@ -162,6 +161,7 @@
 [ ] Deep Research
     [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
     [ ] Background execution and resuming
+    [ ] Use new OpenAI deep research models
 
 [ ] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
     [ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")

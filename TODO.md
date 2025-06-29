@@ -95,6 +95,11 @@
 
 
 
+[ ] Optimizations
+  [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
+
+
+[ ] Replace input / ouput token pricing in model cards with credit pricing
 
 
 [x] Anonymous message limits should be a number of credits.
@@ -139,6 +144,11 @@
     [x] Images shouldn't be artifacts. They should be just a response.
        [x] Add gpt-image-1 to @all-models
     [x] Disable image generation for anonymous users ?
+
+
+[ ] Tools
+    [ ] Canvas should be a tool
+    [ ] Image generation should be a tool
 
 
 [x] Last Model selected and used should be the new default model

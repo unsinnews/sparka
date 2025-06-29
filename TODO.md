@@ -183,6 +183,7 @@
     [ ] Use new OpenAI deep research models
 
 [ ] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
+    [ ] There is a branch called `image-edits` with WIP code for this.
     [ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")
     [ ] gpt-image-1 is able to interpret input images as context
     [ ] Move images from artifact to main thread

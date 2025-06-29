@@ -26,7 +26,10 @@ Usage:
 - Wait for user feedback before updating a freshly created document
 
 Avoid:
-- Updating immediately after the document was just created`,
+- Updating immediately after the document was just created
+- Using this tool if there is no previous document in the conversation
+
+`,
     parameters: z.object({
       id: z.string().describe('The ID of the document to update'),
       description: z

@@ -99,6 +99,7 @@ export type ChatRequestToolsConfig = {
   reason: boolean;
   webSearch: boolean;
   generateImage: boolean;
+  writeOrCode: boolean;
 };
 export type ChatRequestData = ChatRequestToolsConfig & {
   parentMessageId: string | null;
@@ -332,6 +333,7 @@ export async function POST(request: NextRequest) {
     const webSearch = data.webSearch;
     const reason = data.reason;
     const generateImage = data.generateImage;
+    const writeOrCode = data.writeOrCode;
 
     let modelDefinition: ModelDefinition;
     try {
@@ -400,11 +402,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let explicitlyRequestedTool: YourToolName | null = null;
-    if (deepResearch) explicitlyRequestedTool = 'deepResearch';
+    let explicitlyRequestedTools: YourToolName[] | null = null;
+    if (deepResearch) explicitlyRequestedTools = ['deepResearch'];
     // else if (reason) explicitlyRequestedTool = 'reasonSearch';
-    else if (webSearch) explicitlyRequestedTool = 'webSearch';
-    else if (generateImage) explicitlyRequestedTool = 'generateImage';
+    else if (webSearch) explicitlyRequestedTools = ['webSearch'];
+    else if (generateImage) explicitlyRequestedTools = ['generateImage'];
+    else if (writeOrCode)
+      explicitlyRequestedTools = ['createDocument', 'updateDocument'];
 
     const baseModelCost = getBaseModelCost(selectedChatModel);
 
@@ -441,25 +445,29 @@ export async function POST(request: NextRequest) {
     );
 
     if (
-      explicitlyRequestedTool &&
-      !activeTools.includes(explicitlyRequestedTool)
+      explicitlyRequestedTools &&
+      explicitlyRequestedTools.length > 0 &&
+      !activeTools.some((tool) => explicitlyRequestedTools.includes(tool))
     ) {
       console.log(
         'RESPONSE > POST /api/chat: Insufficient budget for requested tool:',
-        explicitlyRequestedTool,
+        explicitlyRequestedTools,
       );
       return new Response(
-        `Insufficient budget for requested tool: ${explicitlyRequestedTool}.`,
+        `Insufficient budget for requested tool: ${explicitlyRequestedTools}.`,
         {
           status: 402,
         },
       );
-    } else if (explicitlyRequestedTool) {
+    } else if (
+      explicitlyRequestedTools &&
+      explicitlyRequestedTools.length > 0
+    ) {
       // Add context of user selection to the user message
       // TODO: Consider doing this in the system prompt instead
       if (userMessage.parts[0].type === 'text') {
-        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
+        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTools.join(', or ')})`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTools.join(', or ')})`;
       }
     }
 

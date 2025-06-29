@@ -4,13 +4,15 @@ import {
   Lightbulb,
   type LucideIcon,
   Images,
+  Edit3,
 } from 'lucide-react';
 
 export type ToolName =
   | 'webSearch'
   | 'deepResearch'
   | 'reason'
-  | 'generateImage';
+  | 'generateImage'
+  | 'writeOrCode';
 
 export interface ToolDefinition {
   name: string;
@@ -44,10 +46,17 @@ export const toolDefinitions: Record<ToolName, ToolDefinition> = {
     description: 'Generate images from text descriptions.',
     icon: Images,
   },
+  writeOrCode: {
+    key: 'writeOrCode',
+    name: 'Write or code',
+    description: 'Create documents, code, or run code in a sandbox.',
+    icon: Edit3,
+  },
 };
 
 export const enabledTools: ToolName[] = [
   'webSearch',
   'deepResearch',
   'generateImage',
+  'writeOrCode',
 ];

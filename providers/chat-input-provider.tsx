@@ -50,6 +50,7 @@ export function ChatInputProvider({
     webSearch: false,
     reason: false,
     generateImage: false,
+    writeOrCode: false,
   },
   initialAttachments = [],
   overrideModelId,

@@ -12,7 +12,6 @@ import { ArtifactMessages } from './artifact-messages';
 import { useSidebar } from './ui/sidebar';
 import { ScrollArea } from './ui/scroll-area';
 import { useArtifact } from '@/hooks/use-artifact';
-import { imageArtifact } from '@/artifacts/image/client';
 import { codeArtifact } from '@/artifacts/code/client';
 import { sheetArtifact } from '@/artifacts/sheet/client';
 import { textArtifact } from '@/artifacts/text/client';
@@ -25,12 +24,7 @@ import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import { useMessageTree } from '@/providers/message-tree-provider';
 
-export const artifactDefinitions = [
-  textArtifact,
-  codeArtifact,
-  imageArtifact,
-  sheetArtifact,
-];
+export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
 export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
 
 export interface UIArtifact {

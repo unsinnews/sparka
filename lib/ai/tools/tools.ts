@@ -10,6 +10,7 @@ import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
 import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
+import { generateImage } from '@/lib/ai/tools/generate-image';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { CoreMessage } from 'ai';
@@ -54,6 +55,7 @@ export function getTools({
     webSearch: webSearch({ session, dataStream }),
     stockChart,
     codeInterpreter,
+    generateImage,
     deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }
@@ -144,6 +146,11 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
     name: 'codeInterpreter',
     description: 'Interpret code in a virtual environment',
     cost: 10,
+  },
+  generateImage: {
+    name: 'generateImage',
+    description: 'Generate images from text descriptions',
+    cost: 5,
   },
   deepResearch: {
     name: 'deepResearch',

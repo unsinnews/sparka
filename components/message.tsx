@@ -29,6 +29,7 @@ import { ReadDocument } from './read-document';
 import { AttachmentList } from './attachment-list';
 import { Skeleton } from './ui/skeleton';
 import { ImageModal } from './image-modal';
+import { GeneratedImage } from './generated-image';
 
 const PurePreviewMessage = ({
   chatId,
@@ -270,6 +271,8 @@ const PurePreviewMessage = ({
                         <StockChartMessage result={null} args={args} />
                       ) : toolName === 'codeInterpreter' ? (
                         <CodeInterpreterMessage result={null} args={args} />
+                      ) : toolName === 'generateImage' ? (
+                        <GeneratedImage args={args} isLoading={true} />
                       ) : toolName !== 'deepResearch' &&
                         // toolName !== 'reasonSearch' &&
                         toolName !== 'webSearch' ? (
@@ -344,6 +347,8 @@ const PurePreviewMessage = ({
                       ) : toolName === 'codeInterpreter' ? (
                         // @ts-expect-error // TODO: fix this
                         <CodeInterpreterMessage result={result} args={args} />
+                      ) : toolName === 'generateImage' ? (
+                        <GeneratedImage result={result} args={args} />
                       ) : // toolName !== 'reasonSearch' &&
                       // toolName !== 'deepResearch' &&
                       toolName !== 'webSearch' ? (

@@ -98,6 +98,7 @@ export type ChatRequestToolsConfig = {
   deepResearch: boolean;
   reason: boolean;
   webSearch: boolean;
+  generateImage: boolean;
 };
 export type ChatRequestData = ChatRequestToolsConfig & {
   parentMessageId: string | null;
@@ -330,6 +331,7 @@ export async function POST(request: NextRequest) {
     const deepResearch = data.deepResearch;
     const webSearch = data.webSearch;
     const reason = data.reason;
+    const generateImage = data.generateImage;
 
     let modelDefinition: ModelDefinition;
     try {
@@ -402,6 +404,7 @@ export async function POST(request: NextRequest) {
     if (deepResearch) explicitlyRequestedTool = 'deepResearch';
     // else if (reason) explicitlyRequestedTool = 'reasonSearch';
     else if (webSearch) explicitlyRequestedTool = 'webSearch';
+    else if (generateImage) explicitlyRequestedTool = 'generateImage';
 
     const baseModelCost = getBaseModelCost(selectedChatModel);
 

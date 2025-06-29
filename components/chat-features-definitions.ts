@@ -1,6 +1,16 @@
-import { GlobeIcon, Telescope, Lightbulb, type LucideIcon } from 'lucide-react';
+import {
+  GlobeIcon,
+  Telescope,
+  Lightbulb,
+  type LucideIcon,
+  Images,
+} from 'lucide-react';
 
-export type ToolName = 'webSearch' | 'deepResearch' | 'reason';
+export type ToolName =
+  | 'webSearch'
+  | 'deepResearch'
+  | 'reason'
+  | 'generateImage';
 
 export interface ToolDefinition {
   name: string;
@@ -28,6 +38,16 @@ export const toolDefinitions: Record<ToolName, ToolDefinition> = {
     description: 'Get step-by-step logical analysis.',
     icon: Lightbulb,
   },
+  generateImage: {
+    key: 'generateImage',
+    name: 'Create an image',
+    description: 'Generate images from text descriptions.',
+    icon: Images,
+  },
 };
 
-export const enabledTools: ToolName[] = ['webSearch', 'deepResearch'];
+export const enabledTools: ToolName[] = [
+  'webSearch',
+  'deepResearch',
+  'generateImage',
+];

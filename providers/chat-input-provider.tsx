@@ -49,6 +49,7 @@ export function ChatInputProvider({
     deepResearch: false,
     webSearch: false,
     reason: false,
+    generateImage: false,
   },
   initialAttachments = [],
   overrideModelId,

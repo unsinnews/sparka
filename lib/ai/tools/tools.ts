@@ -10,11 +10,12 @@ import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
 import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
-import { generateImage } from '@/lib/ai/tools/generate-image';
+import { generateImageTool } from '@/lib/ai/tools/generate-image';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { CoreMessage } from 'ai';
 import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { Attachment } from 'ai';
 
 export function getTools({
   dataStream,
@@ -22,12 +23,14 @@ export function getTools({
   contextForLLM,
   messageId,
   selectedModel,
+  userAttachments = [],
 }: {
   dataStream: AnnotationDataStreamWriter;
   session: Session;
   contextForLLM?: CoreMessage[];
   messageId: string;
   selectedModel: AvailableProviderModels;
+  userAttachments?: Array<Attachment>;
 }) {
   return {
     getWeather,
@@ -60,7 +63,7 @@ export function getTools({
     webSearch: webSearch({ session, dataStream }),
     stockChart,
     codeInterpreter,
-    generateImage,
+    generateImage: generateImageTool({ userAttachments }),
     deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }

@@ -373,7 +373,6 @@ const PurePreviewMessage = ({
               isLoading={isLoading}
               isReadOnly={isReadonly}
               chatHelpers={chatHelpers}
-              parentMessageId={parentMessageId}
             />
           </div>
         </div>

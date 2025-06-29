@@ -9,13 +9,7 @@ import {
   useRef,
 } from 'react';
 import type { ArtifactKind, UIArtifact } from './artifact';
-import {
-  FileIcon,
-  FullscreenIcon,
-  ImageIcon,
-  LoaderIcon,
-  PencilEditIcon,
-} from './icons';
+import { FileIcon, FullscreenIcon, LoaderIcon, PencilEditIcon } from './icons';
 import { cn } from '@/lib/utils';
 import type { Document } from '@/lib/db/schema';
 import { InlineDocumentSkeleton } from './document-skeleton';
@@ -150,15 +144,10 @@ const LoadingSkeleton = ({ artifactKind }: { artifactKind: ArtifactKind }) => (
         <FullscreenIcon />
       </div>
     </div>
-    {artifactKind === 'image' ? (
-      <div className="overflow-y-scroll border rounded-b-2xl bg-muted border-t-0 dark:border-zinc-700">
-        <div className="animate-pulse h-[257px] bg-muted-foreground/20 w-full" />
-      </div>
-    ) : (
-      <div className="overflow-y-scroll border rounded-b-2xl p-8 pt-4 bg-muted border-t-0 dark:border-zinc-700">
-        <InlineDocumentSkeleton />
-      </div>
-    )}
+
+    <div className="overflow-y-scroll border rounded-b-2xl p-8 pt-4 bg-muted border-t-0 dark:border-zinc-700">
+      <InlineDocumentSkeleton />
+    </div>
   </div>
 );
 
@@ -255,8 +244,6 @@ const PureDocumentHeader = ({
           <div className="animate-spin">
             <LoaderIcon />
           </div>
-        ) : kind === 'image' ? (
-          <ImageIcon />
         ) : type === 'update' ? (
           <PencilEditIcon />
         ) : (

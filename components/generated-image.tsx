@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 interface GeneratedImageProps {
   result?: {
-    imageBase64: string;
+    imageUrl: string;
     prompt: string;
   };
   args?: {
@@ -20,26 +20,19 @@ export function GeneratedImage({
   args,
   isLoading,
 }: GeneratedImageProps) {
-  const handleCopyImage = () => {
-    if (!result?.imageBase64) return;
+  const handleCopyImage = async () => {
+    if (!result?.imageUrl) return;
 
-    const img = new Image();
-    img.src = `data:image/png;base64,${result.imageBase64}`;
-
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx?.drawImage(img, 0, 0);
-      canvas.toBlob((blob) => {
-        if (blob) {
-          navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        }
-      }, 'image/png');
-    };
-
-    toast.success('Copied image to clipboard!');
+    try {
+      const response = await fetch(result.imageUrl);
+      const blob = await response.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ [blob.type]: blob }),
+      ]);
+      toast.success('Copied image to clipboard!');
+    } catch (error) {
+      toast.error('Failed to copy image to clipboard');
+    }
   };
 
   if (isLoading || !result) {
@@ -57,7 +50,7 @@ export function GeneratedImage({
     <div className="flex flex-col gap-4 w-full border rounded-lg overflow-hidden">
       <div className="relative group">
         <img
-          src={`data:image/png;base64,${result.imageBase64}`}
+          src={result.imageUrl}
           alt={result.prompt}
           className="w-full h-auto max-w-full"
         />

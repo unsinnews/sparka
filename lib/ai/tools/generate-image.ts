@@ -3,6 +3,7 @@ import { tool } from 'ai';
 import { experimental_generateImage } from 'ai';
 import { getImageModel } from '@/lib/ai/providers';
 import { DEFAULT_IMAGE_MODEL } from '@/lib/ai/all-models';
+import { uploadFile } from '@/lib/blob';
 
 export const generateImage = tool({
   description: `Generate images from text descriptions.
@@ -28,8 +29,15 @@ Usage:
       },
     });
 
+    // Convert base64 to buffer and upload to blob storage
+    const buffer = Buffer.from(image.base64, 'base64');
+    const timestamp = Date.now();
+    const filename = `generated-image-${timestamp}.png`;
+
+    const result = await uploadFile(filename, buffer);
+
     return {
-      imageBase64: image.base64,
+      imageUrl: result.url,
       prompt,
     };
   },

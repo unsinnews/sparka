@@ -284,7 +284,6 @@ export const MessageActions = memo(
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
-    if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
     return true;
   },
 );

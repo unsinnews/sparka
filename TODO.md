@@ -160,6 +160,13 @@
     [ ] Claude 3.7 reasoning not found
     [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
 
+[ ] Images
+    [ ] Image loading skeleton should have a nicer animation (like chatgpt). 
+    [ ] Don't expose the prompt in the image result
+    [ ] Image should have a download button
+    [ ] It should be possible to display more than 1 image in the response (grid of 2 at certain sizes)
+    [ ] Image should be expandable in a modal
+
 
 [x] View Changes Button should be a toggle (should have a visible active state when active)
 

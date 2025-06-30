@@ -103,6 +103,12 @@
 [ ] Replace input / ouput token pricing in model cards with credit pricing
 
 
+[ ] Bug bashing
+    [ ] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
+    [ ] Share is broken (https://www.beta.sparka.ai/share/93e2bf85-163b-4a74-adbb-7a5504dcb0e5)
+    [ ] Retry mechanism doesn't work. Conversation is messed up
+
+
 [x] Anonymous message limits should be a number of credits.
     [x] The sggerver side should be the source of thruth for anonymous session credits
     [x] In use-chat-store, the useCredits query should use anonymous credits if unauthenticated
@@ -137,6 +143,7 @@
   [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
 
 [x] Document alignment should be in the middle
+
 
 
 [x] Images

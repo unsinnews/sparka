@@ -474,6 +474,36 @@ export async function POST(request: NextRequest) {
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
     const contextForLLM = convertToCoreMessages(messages.slice(-5));
 
+    // Extract the last generated image for use as reference (only from the immediately previous message)
+    let lastGeneratedImage: { imageBase64: string; name: string } | null = null;
+
+    // Find the last assistant message (should be the one right before the current user message)
+    const lastAssistantMessage = messages.findLast(
+      (message) => message.role === 'assistant',
+    );
+
+    if (lastAssistantMessage?.parts && lastAssistantMessage?.parts.length > 0) {
+      for (const part of lastAssistantMessage.parts) {
+        if (part.type !== 'tool-invocation') {
+          continue;
+        }
+
+        const invocation = part.toolInvocation;
+
+        if (
+          invocation.toolName === 'generateImage' &&
+          invocation.state === 'result' &&
+          invocation.result?.imageBase64
+        ) {
+          lastGeneratedImage = {
+            imageBase64: invocation.result.imageBase64,
+            name: `generated-image-${invocation.toolCallId}.png`,
+          };
+          break;
+        }
+      }
+    }
+
     // Create AbortController with 55s timeout for credit cleanup
     const abortController = new AbortController();
     const timeoutId = setTimeout(async () => {
@@ -547,6 +577,7 @@ export async function POST(request: NextRequest) {
               messageId,
               selectedModel: selectedChatModel,
               userAttachments: userMessage.experimental_attachments || [],
+              lastGeneratedImage,
             }),
             abortSignal: abortController.signal, // Pass abort signal to streamText
             ...(modelDefinition.features?.fixedTemperature
@@ -557,9 +588,22 @@ export async function POST(request: NextRequest) {
 
             providerOptions: getModelProviderOptions(selectedChatModel),
 
-            onFinish: async ({ response, toolResults, toolCalls, steps }) => {
+            onFinish: async ({
+              response,
+              finishReason,
+              toolResults,
+              toolCalls,
+              steps,
+              warnings,
+            }) => {
               // Clear timeout since we finished successfully
               clearTimeout(timeoutId);
+
+              console.log('finishReason', finishReason);
+              console.log('toolResults', toolResults);
+              console.log('toolCalls', toolCalls);
+              console.log('steps', steps);
+              console.log('warnings', warnings);
 
               if (userId) {
                 const actualCost =

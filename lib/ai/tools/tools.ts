@@ -24,6 +24,7 @@ export function getTools({
   messageId,
   selectedModel,
   userAttachments = [],
+  lastGeneratedImage = null,
 }: {
   dataStream: AnnotationDataStreamWriter;
   session: Session;
@@ -31,6 +32,7 @@ export function getTools({
   messageId: string;
   selectedModel: AvailableProviderModels;
   userAttachments?: Array<Attachment>;
+  lastGeneratedImage?: { imageBase64: string; name: string } | null;
 }) {
   return {
     getWeather,
@@ -63,7 +65,7 @@ export function getTools({
     webSearch: webSearch({ session, dataStream }),
     stockChart,
     codeInterpreter,
-    generateImage: generateImageTool({ userAttachments }),
+    generateImage: generateImageTool({ userAttachments, lastGeneratedImage }),
     deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }

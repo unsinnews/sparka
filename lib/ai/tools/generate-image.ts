@@ -1,16 +1,22 @@
 import { z } from 'zod';
-import { tool } from 'ai';
-import { experimental_generateImage } from 'ai';
+import { tool, experimental_generateImage } from 'ai';
 import { getImageModel } from '@/lib/ai/providers';
 import { DEFAULT_IMAGE_MODEL } from '@/lib/ai/all-models';
 import type { Attachment } from 'ai';
+import OpenAI, { toFile } from 'openai';
 
 interface GenerateImageProps {
   userAttachments?: Array<Attachment>;
+  lastGeneratedImage?: { imageBase64: string; name: string } | null;
 }
+
+const openaiClient = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 export const generateImageTool = ({
   userAttachments = [],
+  lastGeneratedImage = null,
 }: GenerateImageProps = {}) =>
   tool({
     description: `Generate images from text descriptions. Can optionally use attached images as reference.
@@ -34,14 +40,66 @@ Usage:
         attachment.contentType?.startsWith('image/'),
       );
 
-      // Convert attachments to the format expected by experimental_generateImage
-      const referenceImages = imageAttachments.map((attachment) => ({
-        url: attachment.url,
-      }));
+      const hasLastGeneratedImage = lastGeneratedImage !== null;
+      const isEdit = imageAttachments.length > 0 || hasLastGeneratedImage;
+      console.log('CAlling generateImageTool with isEdit', isEdit);
+      if (isEdit) {
+        console.log(
+          'Using OpenAI edit mode with images:',
+          `lastGenerated: ${hasLastGeneratedImage ? 1 : 0}, attachments: ${imageAttachments.length}`,
+        );
 
-      const { image } = await experimental_generateImage({
+        // Convert attachments and lastGeneratedImage to the format expected by OpenAI
+        const images = [];
+
+        // Add lastGeneratedImage first if it exists
+        if (lastGeneratedImage) {
+          const buffer = Buffer.from(lastGeneratedImage.imageBase64, 'base64');
+          const lastGenImage = await toFile(buffer, lastGeneratedImage.name, {
+            type: 'image/png',
+          });
+          images.push(lastGenImage);
+        }
+
+        // Add user attachments
+        const attachmentImages = await Promise.all(
+          imageAttachments.map(async (attachment) => {
+            const response = await fetch(attachment.url);
+            const arrayBuffer = await response.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+
+            // Use toFile to create the proper format for OpenAI
+            return await toFile(buffer, attachment.name || 'image.png', {
+              type: attachment.contentType || 'image/png',
+            });
+          }),
+        );
+
+        images.push(...attachmentImages);
+
+        const rsp = await openaiClient.images.edit({
+          model: 'gpt-image-1',
+          image: images, // Pass all images to OpenAI
+          prompt,
+        });
+
+        const imageBase64 = rsp.data?.[0]?.b64_json;
+        if (!imageBase64) {
+          throw new Error('No image generated from OpenAI');
+        }
+
+        return {
+          imageBase64,
+          prompt,
+          referencedImages: imageAttachments
+            .map((img) => img.name)
+            .filter(Boolean),
+        };
+      }
+
+      // Non-edit case: use experimental_generateImage
+      const res = await experimental_generateImage({
         model: getImageModel(DEFAULT_IMAGE_MODEL),
-        images: referenceImages,
         prompt,
         n: 1,
         providerOptions: {
@@ -49,13 +107,12 @@ Usage:
         },
       });
 
+      console.log('res', res);
+
       return {
-        imageBase64: image.base64,
+        imageBase64: res.image.base64,
         prompt,
-        referencedImages:
-          imageAttachments.length > 0
-            ? imageAttachments.map((img) => img.name).filter(Boolean)
-            : undefined,
+        referencedImages: undefined,
       };
     },
   });

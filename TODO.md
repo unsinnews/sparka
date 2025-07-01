@@ -102,6 +102,8 @@
 
 [ ] Replace input / ouput token pricing in model cards with credit pricing
 
+[ ] Protectiong for going over token context
+
 
 [x] Anonymous message limits should be a number of credits.
     [x] The sggerver side should be the source of thruth for anonymous session credits

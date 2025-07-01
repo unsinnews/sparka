@@ -2,13 +2,14 @@
 
 <img src="public/icon.svg" alt="Sparka AI" width="64" height="64">
 
-# ⚡ Sparka AI
+# Sparka AI
 
-**The most powerful unified AI platform for developers and power users**
+**AI for everyone, from everyone**
 
-*Access cutting-edge AI models, advanced reasoning, code execution, and research capabilities in one seamless interface*
+*Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the usual hassle*
 
 [**🚀 Try Sparka AI**](https://sparka.ai)
+
 
 </div>
 

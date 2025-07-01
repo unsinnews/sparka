@@ -3,6 +3,7 @@
 import { EditorView } from '@codemirror/view';
 import { EditorState, Transaction } from '@codemirror/state';
 import { python } from '@codemirror/lang-python';
+import { javascript } from '@codemirror/lang-javascript';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { basicSetup } from 'codemirror';
 import React, { memo, useEffect, useRef } from 'react';
@@ -16,13 +17,31 @@ type EditorProps = {
   currentVersionIndex: number;
   suggestions: Array<Suggestion>;
   isReadonly?: boolean;
+  language?: string;
 };
+
+function getLanguageExtension(language: string) {
+  switch (language) {
+    case 'typescript':
+      return javascript({ jsx: false, typescript: true });
+    case 'javascript':
+      return javascript({ jsx: false, typescript: false });
+    case 'jsx':
+      return javascript({ jsx: true, typescript: false });
+    case 'tsx':
+      return javascript({ jsx: true, typescript: true });
+    case 'python':
+    default:
+      return python();
+  }
+}
 
 function PureCodeEditor({
   content,
   onSaveContent,
   status,
   isReadonly,
+  language = 'python',
 }: EditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<EditorView | null>(null);
@@ -33,7 +52,7 @@ function PureCodeEditor({
         doc: content,
         extensions: [
           basicSetup,
-          python(),
+          getLanguageExtension(language),
           oneDark,
           EditorView.editable.of(!isReadonly),
         ],
@@ -76,7 +95,7 @@ function PureCodeEditor({
         doc: editorRef.current.state.doc,
         extensions: [
           basicSetup,
-          python(),
+          getLanguageExtension(language),
           oneDark,
           updateListener,
           EditorView.editable.of(!isReadonly),
@@ -86,7 +105,7 @@ function PureCodeEditor({
 
       editorRef.current.setState(newState);
     }
-  }, [onSaveContent, isReadonly]);
+  }, [onSaveContent, isReadonly, language]);
 
   useEffect(() => {
     if (editorRef.current && content) {
@@ -124,6 +143,7 @@ function areEqual(prevProps: EditorProps, nextProps: EditorProps) {
     return false;
   if (prevProps.content !== nextProps.content) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
+  if (prevProps.language !== nextProps.language) return false;
 
   return true;
 }

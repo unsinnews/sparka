@@ -475,7 +475,7 @@ export async function POST(request: NextRequest) {
     const contextForLLM = convertToCoreMessages(messages.slice(-5));
 
     // Extract the last generated image for use as reference (only from the immediately previous message)
-    let lastGeneratedImage: { imageBase64: string; name: string } | null = null;
+    let lastGeneratedImage: { imageUrl: string; name: string } | null = null;
 
     // Find the last assistant message (should be the one right before the current user message)
     const lastAssistantMessage = messages.findLast(
@@ -493,10 +493,10 @@ export async function POST(request: NextRequest) {
         if (
           invocation.toolName === 'generateImage' &&
           invocation.state === 'result' &&
-          invocation.result?.imageBase64
+          invocation.result?.imageUrl
         ) {
           lastGeneratedImage = {
-            imageBase64: invocation.result.imageBase64,
+            imageUrl: invocation.result.imageUrl,
             name: `generated-image-${invocation.toolCallId}.png`,
           };
           break;
@@ -598,12 +598,6 @@ export async function POST(request: NextRequest) {
             }) => {
               // Clear timeout since we finished successfully
               clearTimeout(timeoutId);
-
-              console.log('finishReason', finishReason);
-              console.log('toolResults', toolResults);
-              console.log('toolCalls', toolCalls);
-              console.log('steps', steps);
-              console.log('warnings', warnings);
 
               if (userId) {
                 const actualCost =

@@ -36,11 +36,19 @@ Usage:
   - Specify language with backticks, e.g. \`\`\`python\`code here\`\`\` (only Python supported for now)
 - When you have all the information available to create the document, use this tool.
 
+For code artifacts:
+- The title MUST include the appropriate file extension (e.g., "script.py", "component.tsx", "utils.js")
+- This extension will be used to determine syntax highlighting
+
 Avoid:
 - Purely conversational or explanatory responses that belong in chat
 - "Keep it in chat" requests`,
     parameters: z.object({
-      title: z.string(),
+      title: z
+        .string()
+        .describe(
+          'For code artifacts, must include file extension (e.g., "script.py", "App.tsx", "utils.js")',
+        ),
       description: z
         .string()
         .describe('A detailed description of what the document should contain'),

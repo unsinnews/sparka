@@ -32,7 +32,7 @@ export function getTools({
   messageId: string;
   selectedModel: AvailableProviderModels;
   userAttachments?: Array<Attachment>;
-  lastGeneratedImage?: { imageBase64: string; name: string } | null;
+  lastGeneratedImage?: { imageUrl: string; name: string } | null;
 }) {
   return {
     getWeather,

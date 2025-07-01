@@ -25,7 +25,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { useChatInput } from '@/providers/chat-input-provider';
 import { ModelSelector } from './model-selector';
-import { ResponsiveToggles } from './chat-toggles';
+import { ResponsiveTools } from './chat-tools';
 import { ScrollArea } from './ui/scroll-area';
 import {
   getModelDefinition,
@@ -538,7 +538,7 @@ function PureMultimodalInput({
                 className="h-fit text-xs @[400px]:text-sm min-w-0 shrink max-w-none px-2 @[400px]:px-3 py-1 @[400px]:py-1.5 truncate flex-1"
                 onModelChange={handleModelChange}
               />
-              <ResponsiveToggles
+              <ResponsiveTools
                 data={data}
                 setData={setData}
                 selectedModelId={selectedModelId}

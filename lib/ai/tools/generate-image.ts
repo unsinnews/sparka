@@ -4,10 +4,11 @@ import { getImageModel } from '@/lib/ai/providers';
 import { DEFAULT_IMAGE_MODEL } from '@/lib/ai/all-models';
 import type { Attachment } from 'ai';
 import OpenAI, { toFile } from 'openai';
+import { uploadFile } from '@/lib/blob';
 
 interface GenerateImageProps {
   userAttachments?: Array<Attachment>;
-  lastGeneratedImage?: { imageBase64: string; name: string } | null;
+  lastGeneratedImage?: { imageUrl: string; name: string } | null;
 }
 
 const openaiClient = new OpenAI({
@@ -50,15 +51,17 @@ Usage:
         );
 
         // Convert attachments and lastGeneratedImage to the format expected by OpenAI
-        const images = [];
+        const inputImages = [];
 
         // Add lastGeneratedImage first if it exists
         if (lastGeneratedImage) {
-          const buffer = Buffer.from(lastGeneratedImage.imageBase64, 'base64');
+          const response = await fetch(lastGeneratedImage.imageUrl);
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
           const lastGenImage = await toFile(buffer, lastGeneratedImage.name, {
             type: 'image/png',
           });
-          images.push(lastGenImage);
+          inputImages.push(lastGenImage);
         }
 
         // Add user attachments
@@ -75,25 +78,24 @@ Usage:
           }),
         );
 
-        images.push(...attachmentImages);
+        inputImages.push(...attachmentImages);
 
         const rsp = await openaiClient.images.edit({
           model: 'gpt-image-1',
-          image: images, // Pass all images to OpenAI
+          image: inputImages, // Pass all images to OpenAI
           prompt,
         });
 
-        const imageBase64 = rsp.data?.[0]?.b64_json;
-        if (!imageBase64) {
-          throw new Error('No image generated from OpenAI');
-        }
+        // Convert base64 to buffer and upload to blob storage
+        const buffer = Buffer.from(rsp.data?.[0]?.b64_json || '', 'base64');
+        const timestamp = Date.now();
+        const filename = `generated-image-${timestamp}.png`;
+
+        const result = await uploadFile(filename, buffer);
 
         return {
-          imageBase64,
+          imageUrl: result.url,
           prompt,
-          referencedImages: imageAttachments
-            .map((img) => img.name)
-            .filter(Boolean),
         };
       }
 
@@ -109,13 +111,16 @@ Usage:
 
       console.log('res', res);
 
+      // Convert base64 to buffer and upload to blob storage
+      const buffer = Buffer.from(res.images[0].base64, 'base64');
+      const timestamp = Date.now();
+      const filename = `generated-image-${timestamp}.png`;
+
+      const result = await uploadFile(filename, buffer);
+
       return {
-        imageBase64: res.image.base64,
+        imageUrl: result.url,
         prompt,
-        referencedImages: undefined,
       };
     },
   });
-
-// Export the default tool for backward compatibility
-export const generateImage = generateImageTool();

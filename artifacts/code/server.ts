@@ -55,7 +55,7 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
 
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),
-      system: updateDocumentPrompt(document.content, 'code'),
+      system: updateDocumentPrompt(document.content || '', 'code'),
       experimental_telemetry: { isEnabled: true },
       prompt: description,
       schema: z.object({

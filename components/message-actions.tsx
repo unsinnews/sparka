@@ -11,16 +11,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-import { memo, useCallback } from 'react';
-import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { ChevronLeft, ChevronRight, RefreshCcw } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import { useChatInput } from '@/providers/chat-input-provider';
+import { RetryButton } from './retry-button';
+import { memo } from 'react';
+import equal from 'fast-deep-equal';
 
 export function PureMessageActions({
   chatId,
@@ -41,13 +41,7 @@ export function PureMessageActions({
   const queryClient = useQueryClient();
   const [_, copyToClipboard] = useCopyToClipboard();
   const { data: session } = useSession();
-  const {
-    getMessageSiblingInfo,
-    navigateToSibling,
-    setLastMessageId,
-    getParentMessage,
-  } = useMessageTree();
-  const { selectedModelId } = useChatInput();
+  const { getMessageSiblingInfo, navigateToSibling } = useMessageTree();
 
   const isAuthenticated = !!session?.user;
 
@@ -64,64 +58,6 @@ export function PureMessageActions({
   // Get sibling info for navigation
   const siblingInfo = getMessageSiblingInfo(message.id);
   const hasSiblings = siblingInfo && siblingInfo.siblings.length > 1;
-
-  // Function to handle retry by finding parent user message and resending
-  const handleRetry = useCallback(() => {
-    if (!chatHelpers) {
-      toast.error('Cannot retry this message');
-      return;
-    }
-
-    // Get parent message from message tree
-    const parentMessage = getParentMessage(message.id);
-
-    if (!parentMessage || parentMessage.role !== 'user') {
-      toast.error('Cannot find the user message to retry');
-      return;
-    }
-
-    // Get grandparent message ID
-    const grandParentMessage = getParentMessage(parentMessage.id);
-    const grandParentMessageId = grandParentMessage?.id || null;
-
-    // Find the parent message index in chatHelpers.messages for slicing
-
-    // Remove the current assistant message and any messages after it
-    chatHelpers.setMessages((messages) => {
-      const parentMessageIdx = messages.findIndex(
-        (msg) => msg.id === parentMessage.id,
-      );
-      if (parentMessageIdx === -1) {
-        toast.error('Cannot find the user message to retry');
-        return messages;
-      }
-      return messages.slice(0, parentMessageIdx);
-    });
-
-    // Resend the parent user message
-    // TODO: This should obtain data from the parent message
-    chatHelpers.append(parentMessage, {
-      data: {
-        deepResearch: false,
-        webSearch: false,
-        reason: false,
-        parentMessageId: grandParentMessageId,
-      },
-      body: {
-        selectedChatModel: selectedModelId,
-      },
-    });
-
-    setLastMessageId(parentMessage.id);
-
-    toast.success('Retrying message...');
-  }, [
-    chatHelpers,
-    getParentMessage,
-    message.id,
-    setLastMessageId,
-    selectedModelId,
-  ]);
 
   if (isLoading) return null;
 
@@ -159,14 +95,7 @@ export function PureMessageActions({
         {message.role === 'assistant' && !isReadOnly && chatHelpers && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
-                onClick={handleRetry}
-              >
-                <RefreshCcw className="h-3.5 w-3.5" />
-              </Button>
+              <RetryButton message={message} chatHelpers={chatHelpers} />
             </TooltipTrigger>
             <TooltipContent>Retry</TooltipContent>
           </Tooltip>

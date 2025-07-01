@@ -9,8 +9,7 @@ import { notFound } from 'next/navigation';
 import { useChatId } from '@/providers/chat-id-provider';
 
 export function SharedChatPage() {
-  const { chatId: id } = useChatId();
-
+  const { sharedChatId: id } = useChatId();
   const {
     data: chat,
     isLoading: isChatLoading,

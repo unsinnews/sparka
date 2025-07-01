@@ -13,8 +13,13 @@ import {
 import React, { useEffect } from 'react';
 import { diffWords } from 'diff';
 
-import { DiffType } from '@/lib/editor/diff';
 import { createEditorConfig } from '@/lib/editor/config';
+
+export const DiffType = {
+  Unchanged: 0,
+  Deleted: -1,
+  Inserted: 1,
+};
 
 // Define diff types
 type DiffTypeValue = (typeof DiffType)[keyof typeof DiffType];

@@ -108,7 +108,7 @@
 
 
 [ ] Bug bashing
-    [ ] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
+    [x] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
     [x] Share is broken (https://www.beta.sparka.ai/share/93e2bf85-163b-4a74-adbb-7a5504dcb0e5)
     [ ] Retry mechanism doesn't work. Conversation is messed up
 

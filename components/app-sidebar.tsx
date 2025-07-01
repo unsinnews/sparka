@@ -2,6 +2,7 @@
 
 import type { User } from 'next-auth';
 import { LogIn } from 'lucide-react';
+import Image from 'next/image';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
@@ -42,8 +43,15 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               }}
               className="flex flex-row gap-3 items-center"
             >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Sparka ✨
+              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer flex items-center gap-2">
+                <Image
+                  src="/icon.svg"
+                  alt="Sparka AI"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+                Sparka
               </span>
             </Link>
             <Tooltip>
@@ -65,7 +73,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             </Tooltip>
           </div>
 
-          <SidebarMenuItem>
+          <SidebarMenuItem className="mt-4">
             <SearchChatsButton />
           </SidebarMenuItem>
         </SidebarMenu>

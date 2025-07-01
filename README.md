@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="public/icon.svg" alt="Sparka AI" width="64" height="64">
+
 # ⚡ Sparka AI
 
 **The most powerful unified AI platform for developers and power users**

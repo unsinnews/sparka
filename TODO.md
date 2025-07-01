@@ -99,6 +99,8 @@
 [ ] Revamp theme (color, borders, rounding, etc)
 
 
+[ ] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
+
 
 [ ] Replace input / ouput token pricing in model cards with credit pricing
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://sparka.ai'),
   title: 'Sparka AI - AI for everyone, from everyone',
   description:
-    'Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the usual hassle',
+    'Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the hassle',
 };
 
 export const viewport = {

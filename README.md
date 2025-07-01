@@ -6,7 +6,7 @@
 
 **AI for everyone, from everyone**
 
-*Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the usual hassle*
+*Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the hassle*
 
 [**🚀 Try Sparka AI**](https://sparka.ai)
 

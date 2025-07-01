@@ -8,10 +8,13 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { MarkdownShortcutPlugin } from '@lexical/react/LexicalMarkdownShortcutPlugin';
-import { TRANSFORMERS } from '@lexical/markdown';
 import { ListPlugin } from '@lexical/react/LexicalListPlugin';
-import React, { memo, useEffect } from 'react';
-import { $convertFromMarkdownString } from '@lexical/markdown';
+import React, { memo, useEffect, useRef } from 'react';
+import {
+  $convertFromMarkdownString,
+  $convertToMarkdownString,
+  TRANSFORMERS,
+} from '@lexical/markdown';
 import { $getRoot } from 'lexical';
 
 import type { Suggestion } from '@/lib/db/schema';
@@ -45,51 +48,62 @@ function ContentUpdatePlugin({
   isReadonly?: boolean;
 }) {
   const [editor] = useLexicalComposerContext();
+  const isProgrammaticUpdate = useRef(false);
 
   useEffect(() => {
     if (content) {
-      let currentContent = '';
-
-      editor.getEditorState().read(() => {
-        const root = $getRoot();
-        currentContent = root.getTextContent();
-      });
+      isProgrammaticUpdate.current = true;
 
       if (status === 'streaming') {
         editor.update(
           () => {
             const root = $getRoot();
             const children = root.getChildren();
-            // Clear existing content
             for (const child of children) {
               child.remove();
             }
             $convertFromMarkdownString(content);
           },
-          { discrete: true },
+          {
+            discrete: true,
+            onUpdate: () => {
+              isProgrammaticUpdate.current = false;
+            },
+          },
         );
         return;
       }
 
-      if (currentContent !== content) {
+      // For non-streaming, only update if content actually differs
+      let currentMarkdown = '';
+      editor.getEditorState().read(() => {
+        currentMarkdown = $convertToMarkdownString(TRANSFORMERS);
+      });
+
+      // Simple trim comparison is usually sufficient
+      if (currentMarkdown.trim() !== content.trim()) {
         editor.update(
           () => {
             const root = $getRoot();
             const children = root.getChildren();
-            // Clear existing content
             for (const child of children) {
               child.remove();
             }
             $convertFromMarkdownString(content);
           },
-          { discrete: true },
+          {
+            discrete: true,
+            onUpdate: () => {
+              isProgrammaticUpdate.current = false;
+            },
+          },
         );
       }
     }
   }, [content, status, editor]);
 
   const handleChange = (editorState: any) => {
-    if (!isReadonly) {
+    if (!isReadonly && !isProgrammaticUpdate.current) {
       handleEditorChange({
         editorState,
         editor,

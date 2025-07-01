@@ -8,7 +8,8 @@ import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeNode, CodeHighlightNode } from '@lexical/code';
 import { LinkNode } from '@lexical/link';
 import type { LexicalEditor } from 'lexical';
-import { $insertNodes, $getRoot, $getSelection } from 'lexical';
+import { $insertNodes, $getSelection } from 'lexical';
+import { $convertToMarkdownString, TRANSFORMERS } from '@lexical/markdown';
 
 // Create initial editor configuration
 export function createEditorConfig() {
@@ -62,9 +63,7 @@ export const handleEditorChange = ({
   let updatedContent = '';
 
   editor.getEditorState().read(() => {
-    // Simple text extraction - will be improved in functions.tsx
-    const root = $getRoot();
-    updatedContent = root.getTextContent();
+    updatedContent = $convertToMarkdownString(TRANSFORMERS);
   });
 
   // Check if this should be debounced (similar to ProseMirror's no-debounce meta)

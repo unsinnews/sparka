@@ -23,7 +23,7 @@
 }
 
 :root {
-    --background: 0 0% 98.0392%;
+    --background: 0 0% 97.0392%;
     --foreground: 0 0% 20%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 20%;
@@ -47,7 +47,7 @@
     --chart-3: 224.2781 76.3265% 48.0392%;
     --chart-4: 225.9310 70.7317% 40.1961%;
     --chart-5: 224.4444 64.2857% 32.9412%;
-    --sidebar: 210 20.0000% 96.0784%;
+    --sidebar: 210 20.0000% 98.0392%;
     --sidebar-foreground: 0 0% 20%;
     --sidebar-primary: 217.2193 91.2195% 59.8039%;
     --sidebar-primary-foreground: 0 0% 100%;

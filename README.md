@@ -8,18 +8,14 @@
 
 *Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the hassle*
 
-[**🚀 Try Sparka AI**](https://sparka.ai)
+[**Try Sparka AI**](https://sparka.ai)
 
 
 </div>
 
----
 
-## 🌟 Why Sparka AI?
+Access every major AI assistant—Claude, GPT-4, Gemini, Grok, and 20+ models—through one interface. Get capabilities like document analysis, image generation, code execution, and research tools without managing multiple subscriptions. Try instantly, no signup required, then sync across devices when ready.
 
-Sparka AI eliminates the need for multiple AI subscriptions by providing **unified access** to the most powerful AI models available today. Whether you're coding, researching, or creating, Sparka AI gives you enterprise-grade capabilities at your fingertips.
-
----
 
 ## ✨ Features
 
@@ -47,7 +43,6 @@ Sparka AI eliminates the need for multiple AI subscriptions by providing **unifi
 
 - **📄 Document Creation** - Generate and edit documents, spreadsheets, and presentations.
 
----
 
 ## 🛠️ Tech Stack
 
@@ -71,7 +66,6 @@ Sparka AI is built with modern technologies for scalability and performance:
 - **Multi-Provider Architecture**: Seamless switching between AI providers
 - **Tool Integration**: Extensible system for AI capabilities
 
----
 
 ## 🚀 Getting Started
 
@@ -107,13 +101,11 @@ Sparka AI is built with modern technologies for scalability and performance:
 
 Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI locally.
 
----
 
 ## 🙏 Acknowledgements
 
 Sparka AI was built on the shoulders of giants. We're deeply grateful to these outstanding open source projects:
 
 - **[Vercel AI Chatbot](https://github.com/vercel/ai-chatbot)** - Core architecture and AI SDK integration patterns
-- **[Scira](https://github.com/zaidmukaddam/scira)** - AI-powered search engine inspiration
+- **[Scira](https://github.com/zaidmukaddam/scira)** - AI-powered search engine
 
-These projects exemplify the best of open source collaboration and have significantly accelerated our development. 🚀

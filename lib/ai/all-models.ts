@@ -186,43 +186,6 @@ export const allModels = [
     },
   },
   {
-    id: 'anthropic/claude-3.7-sonnet-reasoning',
-    name: 'Claude 3.7 Sonnet Reasoning',
-    enabled: true,
-    specification: {
-      specificationVersion: 'v2',
-      provider: 'anthropic',
-      modelId: 'anthropic/claude-3-7-sonnet-latest',
-      modelIdShort: 'claude-3-7-sonnet-latest',
-    },
-    pricing: {
-      inputMTok: 3,
-      outputMTok: 15,
-    },
-    shortDescription:
-      'High-performance model with toggleable extended thinking',
-    features: {
-      reasoning: true,
-      functionCalling: true,
-      contextWindow: {
-        input: 200000,
-        output: 64000,
-      },
-      knowledgeCutoff: new Date('2024-11-01'),
-      input: {
-        image: true,
-        text: true,
-        pdf: true,
-        audio: false,
-      },
-      output: {
-        image: false,
-        text: true,
-        audio: false,
-      },
-    },
-  },
-  {
     id: 'anthropic/claude-4-opus-20250514',
     name: 'Claude 4 Opus',
     enabled: true,

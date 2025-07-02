@@ -103,7 +103,7 @@
     [ ] Replace input / ouput token pricing in model cards with credit pricing
 
 [ ] Models
-    [ ] Claude 3.7 reasoning not found
+    [x] Claude 3.7 reasoning not found
     [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
 
 [ ] Bug bashing

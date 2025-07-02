@@ -13,6 +13,7 @@
 
 </div>
 
+![sparka_gif_demo](https://github.com/user-attachments/assets/34a03eed-58fa-4b1e-b453-384351b1c08c)
 
 Access every major AI assistant—Claude, GPT-4, Gemini, Grok, and 20+ models—through one interface. Get capabilities like document analysis, image generation, code execution, and research tools without managing multiple subscriptions. Try instantly, no signup required, then sync across devices when ready.
 

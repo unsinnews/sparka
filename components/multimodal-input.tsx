@@ -517,7 +517,7 @@ function PureMultimodalInput({
                 ) {
                   event.preventDefault();
 
-                  if (status !== 'ready') {
+                  if (status !== 'ready' && status !== 'error') {
                     toast.error(
                       'Please wait for the model to finish its response!',
                     );

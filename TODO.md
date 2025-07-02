@@ -99,7 +99,7 @@
 [ ] Revamp theme (color, borders, rounding, etc)
 
 [ ] Small tasks
-    [ ] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
+    [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
     [ ] Replace input / ouput token pricing in model cards with credit pricing
 
 [ ] Models
@@ -109,8 +109,8 @@
 [ ] Bug bashing
     [x] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
     [x] Share is broken (https://www.beta.sparka.ai/share/93e2bf85-163b-4a74-adbb-7a5504dcb0e5)
-    [ ] Retry mechanism doesn't work. Conversation is messed up
-    [ ] Create a better toast message when backend reaches rate-limit
+    [x] Retry mechanism doesn't work. Conversation is messed up
+    [x] Create a better toast message when backend reaches rate-limit
     [ ] Race condition when changing to chatId when the response is streaming and we switch chat
 
 
@@ -202,6 +202,7 @@
     [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
     [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
     [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
+    [ ] Retry mechanism should include all info about user submission
 
 [ ] Artifacts should use the selected model to generate the document
 

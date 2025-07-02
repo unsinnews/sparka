@@ -110,19 +110,19 @@
     [x] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
     [x] Share is broken (https://www.beta.sparka.ai/share/93e2bf85-163b-4a74-adbb-7a5504dcb0e5)
     [ ] Retry mechanism doesn't work. Conversation is messed up
+    [ ] Create a better toast message when backend reaches rate-limit
+    [ ] Race condition when changing to chatId when the response is streaming and we switch chat
 
 
 [x] Anonymous message limits should be a number of credits.
     [x] The sggerver side should be the source of thruth for anonymous session credits
     [x] In use-chat-store, the useCredits query should use anonymous credits if unauthenticated
     [x] Fix message Limits consistency between backend and frontend
-    [ ] Create a better toast message when backend reaches rate-limit
 
 
 [x] Stop button in multimodal input not showing when streaming starts. It's showing only after clicking submit and before receiving the first token..
 
 [x] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
-    [ ]  Race condition when changing to chatId when the response is streaming and we switch chat
 
 
 

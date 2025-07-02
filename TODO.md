@@ -97,7 +97,7 @@
 [x] OG Image
 [x] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)
-
+[ ] Readme Update
 
 
 [ ] Small tasks

@@ -102,9 +102,9 @@
     [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
     [ ] Replace input / ouput token pricing in model cards with credit pricing
 
-[ ] Models
+[x] Models
     [x] Claude 3.7 reasoning not found
-    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
+    [x] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
 
 [ ] Bug bashing
     [x] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
@@ -168,6 +168,7 @@
 
 [ ] Protectiong for going over token context
 
+[ ] Tooltips are shifted when the sidebar is open
 
 [ ] Images
     [ ] Image loading skeleton should have a nicer animation (like chatgpt). 
@@ -184,7 +185,7 @@
 - [ ] Virtual list for previous chats
 
 
-[ ] Generated artifact create a new version when they render on Lexical
+[x] Generated artifact create a new version when they render on Lexical
 
 [ ] Deep Research
     [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute

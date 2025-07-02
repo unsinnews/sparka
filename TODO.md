@@ -96,7 +96,7 @@
 
 [x] OG Image
 [x] Favicon
-[ ] Revamp theme (color, borders, rounding, etc)
+[x] Revamp theme (color, borders, rounding, etc)
 [ ] Readme Update
 
 

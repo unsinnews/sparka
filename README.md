@@ -34,30 +34,37 @@ Sparka AI eliminates the need for multiple AI subscriptions by providing **unifi
 
 ---
 
-## 🚀 Features
+## ✨ Features
 
-### 🤖 **Multi-Provider AI Access**
-- **Anthropic**: Claude 4 Opus, Claude 4 Sonnet, Claude 3.7 Sonnet (Reasoning), Claude 3.5 Sonnet, Claude 3.5 Haiku, Claude 3 Opus
-- **OpenAI**: GPT-4o, GPT-4o mini, GPT-4 Turbo, GPT-3.5 Turbo, GPT-3.5 Turbo Instruct
-- **Google**: Gemini 2.5 Flash Preview, Gemini 2.0 Flash Lite
-- **xAI**: Grok 3 Beta, Grok 3 Fast Beta, Grok 3 Mini Beta, Grok 3 Mini Fast Beta, Grok 2, Grok 2 Vision, Grok Vision Beta, Grok Beta
+### 🤖 **Chat with Various LLMs**
+Access multiple language models and providers from a single interface. Switch between Claude, GPT-4, Gemini, Grok, and 20+ other models seamlessly.
 
-### 🛠️ **Advanced Capabilities**
+### 🔐 **Authentication & Sync**
+Secure user authentication with automatic chat history synchronization across all your devices. Never lose your conversations.
 
-#### 🧠 **Reasoning & Analysis**
-- **Extended Thinking**: Models that show their reasoning process
-- **Multi-Step Problem Solving**: Complex task decomposition
-- **Research Synthesis**: Combine information from multiple sources
+### 🎯 **Easy to Try**
+Get started immediately! Try powerful AI features without creating an account. Perfect for exploring capabilities before committing.
 
-#### 🔍 **Research & Knowledge**
-- **Web Search Integration**: Real-time web search with Tavily
-- **Document Processing**: Upload and analyze PDFs and images
-- **Citation Tracking**: Proper source attribution with references
+### 📎 **Attachment Support**
+Upload and analyze files directly in your conversations. Support for images, PDFs, and documents with intelligent content processing.
 
-#### 📊 **Content Creation**
-- **Interactive Artifacts**: Create documents, spreadsheets, and images
-- **Image Analysis**: Vision capabilities across multiple models
+### 🎨 **AI-Powered Image Generation**
+Generate stunning images with advanced AI models. Create, edit, and refine visuals with natural language prompts.
 
+### 💻 **Syntax Highlighting**
+Beautiful code formatting and highlighting for all major programming languages. Perfect for development discussions and code reviews.
+
+### 🔄 **Resumable Streams**
+Never lose progress on long-running AI generations. Continue exactly where you left off, even after page refreshes or interruptions.
+
+### 🌳 **Chat Branching**
+Explore alternative conversation paths. Create branches to test different approaches without losing your original conversation thread.
+
+### 🔗 **Chat Sharing**
+Share conversations with colleagues, friends, or the community. Collaborate on AI-assisted projects with easy sharing controls.
+
+### 🔍 **Web Search**
+Integrate real-time web search into your AI conversations. Get up-to-date information and properly cited sources.
 
 ---
 
@@ -123,12 +130,34 @@ Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI lo
 
 ---
 
+## 🛠️ Tech Stack
+
+### **Frontend**
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **Tailwind CSS** - Utility-first styling
+- **Radix UI** - Accessible components
+- **Framer Motion** - Smooth animations
+
+### **Backend**
+- **Vercel AI SDK** - Multi-provider AI integration
+- **tRPC** - End-to-end typesafe APIs
+- **Drizzle ORM** - Type-safe database operations
+- **PostgreSQL** - Robust data persistence
+
+### **AI Integration**
+- **Multiple Providers** - Anthropic, OpenAI, Google, xAI
+- **Streaming Responses** - Real-time AI output
+- **Tool Integration** - Extensible AI capabilities
+- **Credit Management** - Usage tracking and billing
+
+---
+
 ## 🙏 Acknowledgements
 
-Sparka AI was built on the shoulders of giants. We're deeply grateful to these outstanding open source projects that provided an excellent foundation:
+Sparka AI was built on the shoulders of giants. We're deeply grateful to these outstanding open source projects:
 
-- **[Vercel AI Chatbot](https://github.com/vercel/ai-chatbot)** - A full-featured, hackable Next.js AI chatbot that provided the core architecture and AI SDK integration patterns that power Sparka AI's conversational interface.
+- **[Vercel AI Chatbot](https://github.com/vercel/ai-chatbot)** - Core architecture and AI SDK integration patterns
+- **[Scira](https://github.com/zaidmukaddam/scira)** - AI-powered search engine inspiration
 
-- **[Scira](https://github.com/zaidmukaddam/scira)** (formerly MiniPerplx) - A minimalistic AI-powered search engine that inspired our research capabilities and demonstrated elegant approaches to AI-powered information retrieval and citation.
-
-These projects exemplify the best of open source collaboration and have significantly accelerated our development. Thank you to all the contributors who made them possible! 🚀
+These projects exemplify the best of open source collaboration and have significantly accelerated our development. 🚀

@@ -521,6 +521,8 @@ function PureMultimodalInput({
                     toast.error(
                       'Please wait for the model to finish its response!',
                     );
+                  } else if (uploadQueue.length > 0) {
+                    toast.error('Please wait for files to finish uploading!');
                   } else if (input.trim().length === 0) {
                     toast.error('Please enter a message before sending!');
                   } else {

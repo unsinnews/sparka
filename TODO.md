@@ -94,18 +94,17 @@
     [x] Modified chat helpers are not needed. We should just pass append and reload to the multimodal input and add the selected model there
 
 
-[ ] OG Image
-[ ] Favicon
+[x] OG Image
+[x] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)
 
+[ ] Small tasks
+    [ ] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
+    [ ] Replace input / ouput token pricing in model cards with credit pricing
 
-[ ] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
-
-
-[ ] Replace input / ouput token pricing in model cards with credit pricing
-
-[ ] Protectiong for going over token context
-
+[ ] Models
+    [ ] Claude 3.7 reasoning not found
+    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
 
 [ ] Bug bashing
     [x] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
@@ -123,7 +122,7 @@
 [x] Stop button in multimodal input not showing when streaming starts. It's showing only after clicking submit and before receiving the first token..
 
 [x] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
-     [ ]  Race condition when changing to chatId when the response is streaming and we switch chat
+    [ ]  Race condition when changing to chatId when the response is streaming and we switch chat
 
 
 
@@ -167,9 +166,8 @@
 
 ## Polishing
 
-[ ] Models
-    [ ] Claude 3.7 reasoning not found
-    [ ] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
+[ ] Protectiong for going over token context
+
 
 [ ] Images
     [ ] Image loading skeleton should have a nicer animation (like chatgpt). 

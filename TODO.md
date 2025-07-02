@@ -98,6 +98,8 @@
 [x] Favicon
 [ ] Revamp theme (color, borders, rounding, etc)
 
+
+
 [ ] Small tasks
     [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
     [ ] Replace input / ouput token pricing in model cards with credit pricing
@@ -106,12 +108,12 @@
     [x] Claude 3.7 reasoning not found
     [x] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
 
-[ ] Bug bashing
+[x] Bug bashing
     [x] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
     [x] Share is broken (https://www.beta.sparka.ai/share/93e2bf85-163b-4a74-adbb-7a5504dcb0e5)
     [x] Retry mechanism doesn't work. Conversation is messed up
     [x] Create a better toast message when backend reaches rate-limit
-    [ ] Race condition when changing to chatId when the response is streaming and we switch chat
+    [x] Race condition when changing to chatId when the response is streaming and we switch chat
 
 
 [x] Anonymous message limits should be a number of credits.

@@ -15,7 +15,12 @@ export function ChatHome() {
   return (
     <>
       <ChatInputProvider localStorageEnabled={true}>
-        <Chat id={newChatId} initialMessages={[]} isReadonly={false} />
+        <Chat
+          key={newChatId}
+          id={newChatId}
+          initialMessages={[]}
+          isReadonly={false}
+        />
       </ChatInputProvider>
       <DataStreamHandler id={newChatId} />
     </>

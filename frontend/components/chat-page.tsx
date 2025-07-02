@@ -52,6 +52,7 @@ export function ChatPage() {
       >
         <ChatInputProvider localStorageEnabled={true}>
           <Chat
+            key={id}
             id={id}
             initialMessages={initialThreadMessages}
             isReadonly={false} // You'll need to implement proper auth check here

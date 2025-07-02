@@ -19,56 +19,37 @@
 
 Sparka AI eliminates the need for multiple AI subscriptions by providing **unified access** to the most powerful AI models available today. Whether you're coding, researching, or creating, Sparka AI gives you enterprise-grade capabilities at your fingertips.
 
-### 🎯 **Built for Power Users**
-- **20+ AI Models**: Access Claude 4 Opus, GPT-4.1, Gemini 2.5, Grok 3, and more
-- **Advanced Reasoning**: Models with extended reasoning capabilities
-- **Code Execution**: Run Python, JavaScript, and more in secure sandboxes
-- **Research Suite**: Deep research with web search and academic sources
-- **Document Creation**: Generate and edit documents, spreadsheets, and presentations
-
-### ⚡ **Other fEatures**
-- **Resumable Streams**: Never lose progress on long-running tasks
-- **Credit System**: Transparent, usage-based pricing model
-- **Share Chats**: Share and collaborate on AI conversations
-- **Anonymous Mode**: Try powerful features without account creation
-
 ---
 
 ## ✨ Features
 
-### 🤖 **Chat with Various LLMs**
-Access multiple language models and providers from a single interface. Switch between Claude, GPT-4, Gemini, Grok, and 20+ other models seamlessly.
+- **🤖 Chat with Various LLMs** - Access 20+ language models from Claude, GPT-4, Gemini, Grok, and more in one interface.
 
-### 🔐 **Authentication & Sync**
-Secure user authentication with automatic chat history synchronization across all your devices. Never lose your conversations.
+- **🔐 Authentication & Sync** - Secure authentication with chat history sync across all devices.
 
-### 🎯 **Easy to Try**
-Get started immediately! Try powerful AI features without creating an account. Perfect for exploring capabilities before committing.
+- **🎯 Easy to Try** - Try the interface and some features without creating an account.
 
-### 📎 **Attachment Support**
-Upload and analyze files directly in your conversations. Support for images, PDFs, and documents with intelligent content processing.
+- **📎 Attachment Support** - Upload and analyze images, PDFs, and documents in conversations.
 
-### 🎨 **AI-Powered Image Generation**
-Generate stunning images with advanced AI models. Create, edit, and refine visuals with natural language prompts.
+- **🎨 AI-Powered Image Generation** - Generate and edit images with advanced AI models.
 
-### 💻 **Syntax Highlighting**
-Beautiful code formatting and highlighting for all major programming languages. Perfect for development discussions and code reviews.
+- **💻 Syntax Highlighting** - Beautiful code formatting and highlighting for all programming languages.
 
-### 🔄 **Resumable Streams**
-Never lose progress on long-running AI generations. Continue exactly where you left off, even after page refreshes or interruptions.
+- **🔄 Resumable Streams** - Continue AI generations after page refreshes or interruptions.
 
-### 🌳 **Chat Branching**
-Explore alternative conversation paths. Create branches to test different approaches without losing your original conversation thread.
+- **🌳 Chat Branching** - Create alternative conversation paths without losing your original thread.
 
-### 🔗 **Chat Sharing**
-Share conversations with colleagues, friends, or the community. Collaborate on AI-assisted projects with easy sharing controls.
+- **🔗 Chat Sharing** - Share conversations with others and collaborate on AI-assisted projects.
 
-### 🔍 **Web Search**
-Integrate real-time web search into your AI conversations. Get up-to-date information and properly cited sources.
+- **🔭 Deep Research** - Comprehensive research with real-time web search, source analysis, and cited findings.
+
+- **⚡ Code Execution** - Run Python, JavaScript, and more in secure sandboxes.
+
+- **📄 Document Creation** - Generate and edit documents, spreadsheets, and presentations.
 
 ---
 
-## 🏗️ Architecture
+## 🛠️ Tech Stack
 
 Sparka AI is built with modern technologies for scalability and performance:
 
@@ -88,9 +69,7 @@ Sparka AI is built with modern technologies for scalability and performance:
 
 ### **AI Integration**
 - **Multi-Provider Architecture**: Seamless switching between AI providers
-- **Streaming Responses**: Real-time AI output with resumable streams
 - **Tool Integration**: Extensible system for AI capabilities
-- **Credit Management**: Fair usage tracking and billing
 
 ---
 
@@ -127,29 +106,6 @@ Sparka AI is built with modern technologies for scalability and performance:
    ```
 
 Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI locally.
-
----
-
-## 🛠️ Tech Stack
-
-### **Frontend**
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Radix UI** - Accessible components
-- **Framer Motion** - Smooth animations
-
-### **Backend**
-- **Vercel AI SDK** - Multi-provider AI integration
-- **tRPC** - End-to-end typesafe APIs
-- **Drizzle ORM** - Type-safe database operations
-- **PostgreSQL** - Robust data persistence
-
-### **AI Integration**
-- **Multiple Providers** - Anthropic, OpenAI, Google, xAI
-- **Streaming Responses** - Real-time AI output
-- **Tool Integration** - Extensible AI capabilities
-- **Credit Management** - Usage tracking and billing
 
 ---
 

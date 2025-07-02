@@ -168,6 +168,11 @@
 
 ## Polishing
 
+[ ] Code Execution
+
+[ ] Deep Research v2
+
+
 [ ] Protectiong for going over token context
 
 [ ] Tooltips are shifted when the sidebar is open

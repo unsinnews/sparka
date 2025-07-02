@@ -25,7 +25,7 @@ Or
 
 **Example:** https://www.sparka.ai/share/6dd8f1d7-57d1-4f1c-8a44-30f04f09eb95
 
-![Image upload test](image.png)
+![Image upload test](demo/image.png)
 
 ### PDF Uploads
 1. Click the attachment icon or drag-and-drop in the chat input
@@ -35,7 +35,7 @@ Or
 
 **Example:** https://www.sparka.ai/share/2c8f35d3-67bc-4eec-8351-04eb2904d6a0
 
-![PDF upload test](image-1.png)
+![PDF upload test](demo/image-1.png)
 
 ## 2. Image Generation
 
@@ -45,7 +45,7 @@ Or
 
 **Example:** https://www.sparka.ai/share/3c69ed0f-249f-4d5b-a824-6e2458c6ccd7
 
-![AI image generation test](image-2.png)
+![AI image generation test](demo/image-2.png)
 
 ## 3. Syntax Highlighting
 
@@ -55,7 +55,7 @@ Or
 
 **Example:** https://www.sparka.ai/share/9f1fc4b1-e738-4337-9344-f433a82b62f4
 
-![Syntax highlighting test](image-3.png)
+![Syntax highlighting test](demo/image-3.png)
 
 ## 4. Resumable Streams
 
@@ -76,7 +76,7 @@ Or
 
 **Example:** https://www.sparka.ai/share/e266e83e-6df1-497a-9b86-710e729e55b5
 
-![Chat branching test](image-5.png)
+![Chat branching test](demo/image-5.png)
 
 ## 6. Chat Sharing
 
@@ -92,16 +92,16 @@ Or
 
 **Example:** https://www.sparka.ai/share/e266e83e-6df1-497a-9b86-710e729e55b5
 
-![Share link access test](image-11.png)
-![Share link save test](image-12.png)
+![Share link access test](demo/image-11.png)
+![Share link save test](demo/image-12.png)
 
 ### Share Link Management
 1. Test disabling/revoking share links
 2. Verify revoked links no longer work
 3. Test link permissions
 
-![Share link management test](image-13.png)
-![Share link revoke test](image-14.png)
+![Share link management test](demo/image-13.png)
+![Share link revoke test](demo/image-14.png)
 
 ## 7. Web Search
 
@@ -115,7 +115,7 @@ Or
 
 **Example:** https://www.sparka.ai/share/5f5c1376-d41c-4d5b-bfe8-c304f5c4f7e1
 
-![Web search test](image-15.png)
+![Web search test](demo/image-15.png)
 
 ### URL Processing
 1. Send prompt: "What's https://cloneathon.t3.chat?"
@@ -124,7 +124,7 @@ Or
 **Example:** https://www.sparka.ai/share/bcc91bb0-d255-4d2b-ac9a-d6a839f6248e
 
 
-![URL processing](image-16.png)
+![URL processing](demo/image-16.png)
 
 
 ## 8. Message Editing Plus
@@ -141,4 +141,4 @@ Or
 5. Confirm response regenerates with new parameters
 
 
-![Message Editing](chrome_PLQS5DnWWL.png)
+![Message Editing](demo/chrome_PLQS5DnWWL.png)

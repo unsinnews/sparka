@@ -1,5 +1,4 @@
 import { codeDocumentHandler } from '@/artifacts/code/server';
-import { imageDocumentHandler } from '@/artifacts/image/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
 import type { ArtifactKind } from '@/components/artifact';
@@ -7,6 +6,7 @@ import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';
 import type { Session } from 'next-auth';
 import type { AnnotationDataStreamWriter } from '../ai/tools/annotation-stream';
+import type { AvailableProviderModels } from '../ai/all-models';
 
 export interface SaveDocumentProps {
   id: string;
@@ -24,6 +24,7 @@ export interface CreateDocumentCallbackProps {
   description: string;
   prompt: string;
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }
 
 export interface UpdateDocumentCallbackProps {
@@ -32,6 +33,7 @@ export interface UpdateDocumentCallbackProps {
   dataStream: AnnotationDataStreamWriter;
   session: Session;
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }
 
 export interface DocumentHandler<T = ArtifactKind> {
@@ -88,8 +90,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
 export const documentHandlersByArtifactKind: Array<DocumentHandler> = [
   textDocumentHandler,
   codeDocumentHandler,
-  imageDocumentHandler,
   sheetDocumentHandler,
 ];
 
-export const artifactKinds = ['text', 'code', 'image', 'sheet'] as const;
+export const artifactKinds = ['text', 'code', 'sheet'] as const;

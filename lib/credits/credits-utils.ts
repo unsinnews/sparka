@@ -10,19 +10,12 @@ import {
 import { reserveAvailableCredits } from '../repositories/credits';
 
 export function filterAffordableTools(
-  allTools: YourToolName[],
+  tools: YourToolName[],
   toolBudget: number,
-  baseModelCost: number,
 ): YourToolName[] {
-  // If the user can't even afford the base model, they can't use any tools.
-  if (toolBudget < baseModelCost) {
-    return [];
-  }
-
-  const affordableTools = allTools.filter((toolName) => {
-    const minCost = toolsDefinitions[toolName].cost;
-    // Check if the user has enough credits for the model cost + this tool's minimum cost
-    return toolBudget >= baseModelCost + minCost;
+  const affordableTools = tools.filter((toolName) => {
+    const toolCost = toolsDefinitions[toolName].cost;
+    return toolBudget >= toolCost;
   });
 
   return affordableTools;
@@ -78,19 +71,6 @@ export async function reserveCredits({
     success: true,
     budget: reservation.reservedAmount,
   };
-}
-
-export function determineStepTools({
-  toolBudget,
-}: {
-  toolBudget: number;
-}): YourToolName[] {
-  const affordableTools = allTools.filter((toolName) => {
-    const toolCost = toolsDefinitions[toolName].cost;
-    return toolBudget >= toolCost;
-  });
-
-  return affordableTools;
 }
 
 export function getBaseModelCost(modelId: AvailableProviderModels) {

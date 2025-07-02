@@ -4,8 +4,9 @@ import { streamObject, tool } from 'ai';
 import { getDocumentById, saveSuggestions } from '@/lib/db/queries';
 import type { Suggestion } from '@/lib/db/schema';
 import { generateUUID } from '@/lib/utils';
-import { myProvider } from '../providers';
+import { getLanguageModel } from '../providers';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
+import { DEFAULT_ARTIFACT_SUGGESTION_MODEL } from '../all-models';
 
 interface RequestSuggestionsProps {
   session: Session;
@@ -37,7 +38,7 @@ export const requestSuggestions = ({
       > = [];
 
       const { elementStream } = streamObject({
-        model: myProvider.languageModel('artifact-model'),
+        model: getLanguageModel(DEFAULT_ARTIFACT_SUGGESTION_MODEL),
         experimental_telemetry: { isEnabled: true },
         system:
           'You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.',

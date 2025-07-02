@@ -3,7 +3,19 @@ import { tool } from 'ai';
 import CodeInterpreter from '@e2b/code-interpreter';
 
 export const codeInterpreter = tool({
-  description: 'Write and execute Python code.',
+  description: `Python-only sandbox for calculations, data analysis & simple visualisations.
+
+Usage:
+- Execute Python (matplotlib, pandas, numpy, sympy, yfinance pre-installed)
+- Produce line / scatter / bar charts (must call 'plt.show()' for line charts)
+- Install extra libs inline with '!pip install pkg'
+
+Restrictions:
+- No images in the assistant response; don't embed them
+
+Avoid:
+- Any non-Python language
+- Chart types other than line / scatter / bar`,
   parameters: z.object({
     title: z.string().describe('The title of the code snippet.'),
     code: z

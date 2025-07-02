@@ -1,18 +1,15 @@
 'use client';
-import { useParams } from 'react-router-dom';
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
-import { useDefaultModel } from '@/providers/default-model-provider';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
 import { notFound } from 'next/navigation';
+import { useChatId } from '@/providers/chat-id-provider';
 
 export function SharedChatPage() {
-  const { id } = useParams<{ id: string }>();
-  const defaultModel = useDefaultModel();
-
+  const { sharedChatId: id } = useChatId();
   const {
     data: chat,
     isLoading: isChatLoading,
@@ -56,10 +53,10 @@ export function SharedChatPage() {
         isLoading={isChatLoading || isMessagesLoading}
         className="w-full"
       >
+        {/* // Shared chats don't need chat input provider */}
         <Chat
           id={id}
           initialMessages={initialThreadMessages}
-          selectedChatModel={defaultModel}
           isReadonly={true}
         />
       </WithSkeleton>

@@ -8,6 +8,8 @@ import {
   updateChatVisiblityById,
   saveChat,
   saveMessages,
+  getDocumentsByMessageIds,
+  saveDocuments,
 } from '@/lib/db/queries';
 import {
   createTRPCRouter,
@@ -16,10 +18,15 @@ import {
 } from '@/trpc/init';
 import { z } from 'zod';
 import { generateText } from 'ai';
-import { myProvider } from '@/lib/ai/providers';
+import { getLanguageModel } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
 import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/message-conversion';
-import { generateUUID, cloneMessages } from '@/lib/utils';
+import { generateUUID } from '@/lib/utils';
+import {
+  cloneMessagesWithDocuments,
+  cloneAttachmentsInMessages,
+} from '@/lib/clone-messages';
+import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -27,7 +34,26 @@ export const chatRouter = createTRPCRouter({
     return chats.map(dbChatToUIChat);
   }),
 
-  getMessagesByChatId: protectedProcedure
+  getChatById: protectedProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const chat = await getChatById({ id: input.chatId });
+
+      if (!chat || chat.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found',
+        });
+      }
+
+      return dbChatToUIChat(chat);
+    }),
+
+  getChatMessages: protectedProcedure
     .input(
       z.object({
         chatId: z.string().uuid(),
@@ -134,7 +160,7 @@ export const chatRouter = createTRPCRouter({
     )
     .mutation(async ({ input }) => {
       const { text: title } = await generateText({
-        model: myProvider.languageModel('title-model'),
+        model: getLanguageModel(DEFAULT_TITLE_MODEL),
         system: `\n
         - you will generate a short title based on the first message a user begins a conversation with
         - ensure it is not more than 80 characters long
@@ -187,7 +213,7 @@ export const chatRouter = createTRPCRouter({
       return dbMessages.map(dbMessageToUIMessage);
     }),
 
-  copyPublicChat: protectedProcedure
+  cloneSharedChat: protectedProcedure
     .input(
       z.object({
         chatId: z.string().uuid(),
@@ -216,6 +242,12 @@ export const chatRouter = createTRPCRouter({
         });
       }
 
+      // Get all documents associated with the source messages
+      const sourceMessageIds = sourceMessages.map((msg) => msg.id);
+      const sourceDocuments = await getDocumentsByMessageIds({
+        messageIds: sourceMessageIds,
+      });
+
       // Create a new chat for the user
       const newChatId = generateUUID();
 
@@ -226,10 +258,23 @@ export const chatRouter = createTRPCRouter({
         title: `${sourceChat.title}`,
       });
 
-      // Copy all messages to the new chat
-      const messagesToInsert = cloneMessages(sourceMessages, newChatId);
+      // Clone messages and documents with updated IDs
+      const { clonedMessages, clonedDocuments } = cloneMessagesWithDocuments(
+        sourceMessages,
+        sourceDocuments,
+        newChatId,
+        ctx.user.id,
+      );
 
-      await saveMessages({ _messages: messagesToInsert });
+      // Clone attachments in messages (this has side effects - network calls to blob storage)
+      const messagesWithClonedAttachments =
+        await cloneAttachmentsInMessages(clonedMessages);
+
+      // Save cloned messages first, then documents due to foreign key dependency
+      await saveMessages({ _messages: messagesWithClonedAttachments });
+      if (clonedDocuments.length > 0) {
+        await saveDocuments({ documents: clonedDocuments });
+      }
 
       return { chatId: newChatId };
     }),

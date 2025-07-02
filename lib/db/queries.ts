@@ -319,6 +319,31 @@ export async function getDocumentsById({
   }
 }
 
+export async function getPublicDocumentsById({ id }: { id: string }) {
+  try {
+    const documents = await db
+      .select({
+        id: document.id,
+        createdAt: document.createdAt,
+        title: document.title,
+        content: document.content,
+        kind: document.kind,
+        userId: document.userId,
+        messageId: document.messageId,
+      })
+      .from(document)
+      .innerJoin(message, eq(document.messageId, message.id))
+      .innerJoin(chat, eq(message.chatId, chat.id))
+      .where(and(eq(document.id, id), eq(chat.visibility, 'public')))
+      .orderBy(asc(document.createdAt));
+
+    return documents;
+  } catch (error) {
+    console.error('Failed to get public documents by id from database');
+    throw error;
+  }
+}
+
 export async function getDocumentById({ id }: { id: string }) {
   try {
     const [selectedDocument] = await db
@@ -389,6 +414,48 @@ export async function getSuggestionsByDocumentId({
     console.error(
       'Failed to get suggestions by document version from database',
     );
+    throw error;
+  }
+}
+
+export async function getDocumentsByMessageIds({
+  messageIds,
+}: {
+  messageIds: string[];
+}) {
+  if (messageIds.length === 0) return [];
+
+  try {
+    return await db
+      .select()
+      .from(document)
+      .where(inArray(document.messageId, messageIds))
+      .orderBy(asc(document.createdAt));
+  } catch (error) {
+    console.error('Failed to get documents by message IDs from database');
+    throw error;
+  }
+}
+
+export async function saveDocuments({
+  documents,
+}: {
+  documents: Array<{
+    id: string;
+    title: string;
+    kind: ArtifactKind;
+    content: string | null;
+    userId: string;
+    messageId: string;
+    createdAt: Date;
+  }>;
+}) {
+  if (documents.length === 0) return;
+
+  try {
+    return await db.insert(document).values(documents);
+  } catch (error) {
+    console.error('Failed to save documents in database', error);
     throw error;
   }
 }

@@ -2,11 +2,24 @@
 
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import type { AnonymousSession } from '@/lib/types/anonymous';
 import {
   getAnonymousSession,
   createAnonymousSession,
   setAnonymousSession,
+  clearAnonymousSession,
 } from '@/lib/anonymous-session-client';
+
+// Schema validation function
+function isValidAnonymousSession(obj: any): obj is AnonymousSession {
+  return (
+    obj &&
+    typeof obj === 'object' &&
+    typeof obj.id === 'string' &&
+    typeof obj.remainingCredits === 'number' &&
+    (obj.createdAt instanceof Date || typeof obj.createdAt === 'string')
+  );
+}
 
 export function AnonymousSessionInit() {
   const { data: session, status } = useSession();
@@ -16,9 +29,25 @@ export function AnonymousSessionInit() {
     if (status === 'loading') return;
     if (session?.user) return;
 
-    // Check if anonymous session exists, if not create one
+    // Get raw session data and validate/migrate
     const existingSession = getAnonymousSession();
-    if (!existingSession) {
+
+    if (existingSession) {
+      // Validate the existing session schema
+      if (!isValidAnonymousSession(existingSession)) {
+        console.warn(
+          'Invalid session schema detected during init, clearing and creating new session',
+        );
+        clearAnonymousSession();
+        const newSession = createAnonymousSession();
+        setAnonymousSession(newSession);
+        return;
+      }
+
+      console.log('Valid anonymous session found');
+    } else {
+      // Create new session if none exists
+      console.log('No anonymous session found, creating new one');
       const newSession = createAnonymousSession();
       setAnonymousSession(newSession);
     }

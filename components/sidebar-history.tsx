@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 
 import {
   MoreHorizontalIcon,
-  ShareIcon,
   TrashIcon,
   PencilEditIcon,
 } from '@/components/icons';
@@ -39,7 +38,6 @@ import {
 } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
 import type { UIChat } from '@/lib/types/ui';
-import { useSession } from 'next-auth/react';
 import {
   useDeleteChat,
   useRenameChat,
@@ -47,6 +45,7 @@ import {
 } from '@/hooks/use-chat-store';
 import { useChatId } from '@/providers/chat-id-provider';
 import { ShareDialog } from '@/components/share-button';
+import { ShareMenuItem } from '@/components/upgrade-cta/share-menu-item';
 
 type GroupedChats = {
   today: UIChat[];
@@ -72,9 +71,6 @@ const PureChatItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(chat.title);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-
-  const { data: session } = useSession();
-  const isAuthenticated = !!session?.user;
 
   const handleRename = async () => {
     if (editTitle.trim() === '' || editTitle === chat.title) {
@@ -147,13 +143,7 @@ const PureChatItem = ({
             <span>Rename</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => setShareDialogOpen(true)}
-          >
-            <ShareIcon />
-            <span>Share</span>
-          </DropdownMenuItem>
+          <ShareMenuItem onShare={() => setShareDialogOpen(true)} />
 
           <DropdownMenuItem
             className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
@@ -165,11 +155,13 @@ const PureChatItem = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <ShareDialog
-        chatId={chat.id}
-        open={shareDialogOpen}
-        onOpenChange={setShareDialogOpen}
-      />
+      {shareDialogOpen && (
+        <ShareDialog
+          chatId={chat.id}
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+        />
+      )}
     </SidebarMenuItem>
   );
 };
@@ -183,13 +175,13 @@ export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
 
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
-  const { chatId } = useChatId();
+  const { chatId, refreshChatID } = useChatId();
   const navigate = useNavigate();
 
   const { mutate: renameChatMutation } = useRenameChat();
   const { deleteChat } = useDeleteChat();
 
-  const { data: chats, isLoading } = useGetAllChats();
+  const { data: chats, isLoading } = useGetAllChats(100);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -216,6 +208,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     setShowDeleteDialog(false);
 
     if (deleteId === chatId) {
+      refreshChatID();
       navigate('/');
     }
   };

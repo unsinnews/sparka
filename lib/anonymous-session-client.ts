@@ -1,11 +1,8 @@
 'use client';
-
-import { generateUUID } from '@/lib/utils';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
-
-const ANONYMOUS_SESSION_KEY = 'anonymous-session';
-
+import { ANONYMOUS_SESSION_COOKIES_KEY } from './constants';
+import { generateUUID } from './utils';
 // Client-side cookie helpers
 function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
@@ -36,23 +33,24 @@ function deleteCookie(name: string): void {
 export function createAnonymousSession(): AnonymousSession {
   return {
     id: generateUUID(),
-    messageCount: 0,
+    remainingCredits: ANONYMOUS_LIMITS.CREDITS,
     createdAt: new Date(),
-    maxMessages: ANONYMOUS_LIMITS.MAX_MESSAGES,
   };
 }
 
 export function getAnonymousSession(): AnonymousSession | null {
   try {
-    const sessionData = getCookie(ANONYMOUS_SESSION_KEY);
-
+    const sessionData = getCookie(ANONYMOUS_SESSION_COOKIES_KEY);
     if (!sessionData) return null;
 
     const session = JSON.parse(sessionData) as AnonymousSession;
 
-    // Convert createdAt back to Date object
-    session.createdAt = new Date(session.createdAt);
+    // Convert createdAt back to Date object if it's a string
+    if (typeof session.createdAt === 'string') {
+      session.createdAt = new Date(session.createdAt);
+    }
 
+    // Check if session is expired
     const isExpired =
       Date.now() - session.createdAt.getTime() >
       ANONYMOUS_LIMITS.SESSION_DURATION;
@@ -66,24 +64,12 @@ export function getAnonymousSession(): AnonymousSession | null {
 
 export function setAnonymousSession(session: AnonymousSession): void {
   setCookie(
-    ANONYMOUS_SESSION_KEY,
+    ANONYMOUS_SESSION_COOKIES_KEY,
     JSON.stringify(session),
-    ANONYMOUS_LIMITS.SESSION_DURATION / 1000, // Convert to seconds
+    ANONYMOUS_LIMITS.SESSION_DURATION,
   );
 }
 
 export function clearAnonymousSession(): void {
-  deleteCookie(ANONYMOUS_SESSION_KEY);
-}
-
-// Hook to get or create an anonymous session
-export function useAnonymousSession(): AnonymousSession {
-  let session = getAnonymousSession();
-
-  if (!session) {
-    session = createAnonymousSession();
-    setAnonymousSession(session);
-  }
-
-  return session;
+  deleteCookie(ANONYMOUS_SESSION_COOKIES_KEY);
 }

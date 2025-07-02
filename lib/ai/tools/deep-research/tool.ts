@@ -9,8 +9,8 @@ import {
 import type { AnnotationDataStreamWriter } from '../annotation-stream';
 
 // TODO: Restore both to 3 or make configurable. It needs to fit in 1m execution
-const BREADTH = 1;
-const DEPTH = 1;
+const BREADTH = 3;
+const DEPTH = 2;
 
 export const deepResearch = ({
   session,
@@ -22,7 +22,13 @@ export const deepResearch = ({
   messageId: string;
 }) =>
   tool({
-    description: 'Perform deep research on a topic',
+    description: `End-to-end multi-step research assistant.
+
+Usage:
+- Complex topics that need planning, web+academic searches and synthesis
+
+Avoid:
+- Simple questions that can be answered directly`,
     parameters: z.object({
       query: z.string().describe('The query to research'),
       isReport: z
@@ -101,7 +107,10 @@ export const deepResearch = ({
         //   learnings,
         //   visitedUrls,
         // };
-        return report;
+        return {
+          ...report,
+          format: 'report' as const,
+        };
       } else {
         const answer = await writeFinalAnswer({
           prompt: combinedQuery,
@@ -111,10 +120,11 @@ export const deepResearch = ({
         console.log(`\n\nFinal Answer:\n\n${answer}`);
         console.log('\nAnswer has been saved to answer.md');
         return {
-          success: true,
+          success: true as const,
           answer,
           learnings,
           visitedUrls,
+          format: 'learnings' as const,
         };
       }
     },

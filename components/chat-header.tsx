@@ -9,21 +9,20 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { ShareButton } from './share-button';
 import { useNavigate } from 'react-router';
 import { Share } from 'lucide-react';
+import { useChatId } from '@/providers/chat-id-provider';
 
 function PureChatHeader({
   chatId,
-  selectedModelId,
   isReadonly,
   hasMessages,
 }: {
   chatId: string;
-  selectedModelId: string;
   isReadonly: boolean;
   hasMessages: boolean;
 }) {
   const { open } = useSidebar();
   const navigate = useNavigate();
-
+  const { refreshChatID } = useChatId();
   const { width: windowWidth } = useWindowSize();
 
   return (
@@ -37,6 +36,7 @@ function PureChatHeader({
               variant="outline"
               className="order-1 md:order-1 md:px-2 px-2 md:h-fit"
               onClick={() => {
+                refreshChatID();
                 navigate('/');
               }}
             >
@@ -90,8 +90,5 @@ function PureChatHeader({
 }
 
 export const ChatHeader = memo(PureChatHeader, (prevProps, nextProps) => {
-  return (
-    prevProps.selectedModelId === nextProps.selectedModelId &&
-    prevProps.hasMessages === nextProps.hasMessages
-  );
+  return prevProps.hasMessages === nextProps.hasMessages;
 });

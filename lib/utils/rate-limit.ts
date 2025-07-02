@@ -76,6 +76,9 @@ async function checkRateLimit({
   }
 }
 
+const WINDOW_SIZE_MINUTE = 60;
+const WINDOW_SIZE_MONTH = 30 * 24 * 60 * 60;
+
 export async function checkAnonymousRateLimit(
   ip: string,
   redisClient: any,
@@ -90,7 +93,7 @@ export async function checkAnonymousRateLimit(
   const minuteResult = await checkRateLimit({
     identifier: ip,
     limit: RATE_LIMIT.REQUESTS_PER_MINUTE,
-    windowSize: RATE_LIMIT.WINDOW_SIZE_MINUTE,
+    windowSize: WINDOW_SIZE_MINUTE,
     redisClient,
     keyPrefix: 'sparka-ai:rate-limit:minute',
   });
@@ -98,7 +101,7 @@ export async function checkAnonymousRateLimit(
   if (!minuteResult.success) {
     return {
       success: false,
-      error: `Rate limit exceeded. You can make ${RATE_LIMIT.REQUESTS_PER_MINUTE} requests per minute. Try again in ${Math.ceil((minuteResult.resetTime - Date.now()) / 1000)} seconds.`,
+      error: `Rate limit exceeded. You can make ${RATE_LIMIT.REQUESTS_PER_MINUTE} requests per minute. You've made ${RATE_LIMIT.REQUESTS_PER_MINUTE - minuteResult.remaining} requests this minute. Try again in ${Math.ceil((minuteResult.resetTime - Date.now()) / 1000)} seconds.`,
       headers: {
         'X-RateLimit-Limit': RATE_LIMIT.REQUESTS_PER_MINUTE.toString(),
         'X-RateLimit-Remaining': minuteResult.remaining.toString(),
@@ -111,7 +114,7 @@ export async function checkAnonymousRateLimit(
   const monthResult = await checkRateLimit({
     identifier: ip,
     limit: RATE_LIMIT.REQUESTS_PER_MONTH,
-    windowSize: RATE_LIMIT.WINDOW_SIZE_MONTH,
+    windowSize: WINDOW_SIZE_MONTH,
     redisClient,
     keyPrefix: 'sparka-ai:rate-limit:month',
   });
@@ -122,7 +125,7 @@ export async function checkAnonymousRateLimit(
     );
     return {
       success: false,
-      error: `Monthly message limit exceeded. You can make ${RATE_LIMIT.REQUESTS_PER_MONTH} requests per month. Try again in ${daysUntilReset} day${daysUntilReset !== 1 ? 's' : ''}.`,
+      error: `Monthly message limit exceeded. You can make ${RATE_LIMIT.REQUESTS_PER_MONTH} requests per month. You've made ${RATE_LIMIT.REQUESTS_PER_MONTH - monthResult.remaining} requests this month. Try again in ${daysUntilReset} day${daysUntilReset !== 1 ? 's' : ''}.`,
       headers: {
         'X-RateLimit-Limit': RATE_LIMIT.REQUESTS_PER_MONTH.toString(),
         'X-RateLimit-Remaining': monthResult.remaining.toString(),

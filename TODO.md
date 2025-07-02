@@ -61,56 +61,237 @@
 [x] Update README.md
 [x] Add Apache License
 
-[ ] OG Image
-[ ] Fix vercel timing out
-
-[ ] Try functionality and do easy fixes for the happy paths
 
 
 
+## Beta
+
+[x] Sharing
+    [x] Switch queries to public for shared chats 
+    [x] Clone artifacts on message chat cloning, changing ownership
+    [x] Update artifact save mutation to work locally
+    [x] Clone attachments on message chat cloning, changing ownership
+    [x] Apply the isShared flag to the MessageTreeProvider
+    [x] Move the MessageTreeProvider back to the all routes layout level
+
+[x] Anonymous users artifacts
+    [x] Store documents locally for anonymous users
+    [x] Enable the generate document tool
+
+
+[x] Bug: Plus button doesn't change to home Sparka sometimes (after getting an artifact/error?)
+[x] Bug: On mobile, Text and **spacing** in multimodal input footer should be smaller
 
 
 
+[x] Model Selector should be a selectable list. The cards should be for a more detailed view (not used as often)
+
+
+[x] Perf opt: Multimodal input should only update input value in a context (and maybe tools, attachments, etc). 
+    [x] Decouple from chat so that typing experience can be faster
+    [x] The edit message should have its own context
+    [x] Attachements should be part of the Chat-input-context
+    [x] Modified chat helpers are not needed. We should just pass append and reload to the multimodal input and add the selected model there
+
+
+[x] OG Image
+[x] Favicon
+[x] Revamp theme (color, borders, rounding, etc)
+[ ] Readme Update
+
+
+[ ] Small tasks
+    [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
+    [ ] Replace input / ouput token pricing in model cards with credit pricing
+
+[x] Models
+    [x] Claude 3.7 reasoning not found
+    [x] Consuming thinking tokens as context for different model (xai -> anthropic) makes them invalid (https://github.com/vercel/ai/discussions/5480)
+
+[x] Bug bashing
+    [x] Document Edits append instead of replacing (the clear instruction doesn't seem to work with lexical)
+    [x] Share is broken (https://www.beta.sparka.ai/share/93e2bf85-163b-4a74-adbb-7a5504dcb0e5)
+    [x] Retry mechanism doesn't work. Conversation is messed up
+    [x] Create a better toast message when backend reaches rate-limit
+    [x] Race condition when changing to chatId when the response is streaming and we switch chat
+
+
+[x] Anonymous message limits should be a number of credits.
+    [x] The sggerver side should be the source of thruth for anonymous session credits
+    [x] In use-chat-store, the useCredits query should use anonymous credits if unauthenticated
+    [x] Fix message Limits consistency between backend and frontend
+
+
+[x] Stop button in multimodal input not showing when streaming starts. It's showing only after clicking submit and before receiving the first token..
+
+[x] When windows is not used for some time, and then you click on New Message + or Sparka, the route changes but the app doesn't (likely related to ChatIdProvider)
+
+
+
+[x] Try functionality and do easy fixes for the happy paths
+
+[x] Chat history: 
+- [x] Search Chats
+- [x] Get Chat by id in chat-page.tsx
+
+
+
+[x] Showing preview of last document in chat, should also consider updated document
+
+[x] AI Tools Quality
+    [x] Tool Descriptions should be all there's needed to know about the tool.
+    [x] Get rid of getToolsPrompt
+    [x] Improve tool description formats
+    [x] Generate image tool is treated as a document, and tool thinks it's not able to use them
+
+[ ] Optimizations
+  [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
+
+[x] Document alignment should be in the middle
+
+
+
+[x] Images
+    [x] Create with gpt-image-1
+    [x] Images shouldn't be artifacts. They should be just a response.
+       [x] Add gpt-image-1 to @all-models
+    [x] Disable image generation for anonymous users ?
+
+
+[x] Tools
+    [x] Canvas should be a tool
+    [x] Image generation should be a tool
+
+
+[x] Last Model selected and used should be the new default model
 
 
 ## Polishing
+
+[ ] Code Execution
+
+[ ] Deep Research v2
+
+
+[ ] Protectiong for going over token context
+
+[ ] Tooltips are shifted when the sidebar is open
+
+[ ] Images
+    [ ] Image loading skeleton should have a nicer animation (like chatgpt). 
+    [ ] Don't expose the prompt in the image result
+    [ ] Image should have a download button
+    [ ] It should be possible to display more than 1 image in the response (grid of 2 at certain sizes)
+    [ ] Image should be expandable in a modal
+
+
+[x] View Changes Button should be a toggle (should have a visible active state when active)
+
+[ ] Chat history: 
+- [ ] Favourite / Pinned chats
+- [ ] Virtual list for previous chats
+
+
+[x] Generated artifact create a new version when they render on Lexical
+
+[ ] Deep Research
+    [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
+    [ ] Background execution and resuming
+    [ ] Use new OpenAI deep research models
+
+[ ] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
+    [ ] There is a branch called `image-edits` with WIP code for this.
+    [ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")
+    [ ] gpt-image-1 is able to interpret input images as context
+    [ ] Move images from artifact to main thread
+
+
+[ ] User Message ++
+    [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
+    [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
+    [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
+    [ ] Retry mechanism should include all info about user submission
+
+[ ] Artifacts should use the selected model to generate the document
+
+[ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
+
+[ ] Is last artifact detection in messages is more complex than needed.
+
+[ ] Durable streams
+    [x] Create a message-continues data part and call resume from the frontend
+    [ ] Restore from the branch named `background-tasks`
+    [ ] Fix tree Provider with resumed messages
+
+[ ] Threads
+    [ ] A chat request with parentMessageId, should return a stream that indicats whats the parentMesssageId for that request
+    [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
+    [ ] Artifacts should belong to the current thread
+    [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
+
+[ ] Optimize the MessageTreeProvider with a messageMap in a reference
+
+[ ] MultiModalInput
+    [ ] Migrate to Lexical (there is a background agent with part of the work)
+    [ ] Use rich format for links
+    [ ] Selected model should be part of the Chat-input-context
+    [ ] Chat bottom row should not update on type
+    [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
+
+[ ] Copy code button is too close to language / filename top header
+
+[ ] Retry Assistant message with a new model
+    [ ] Model selected needs to be part of the message **info**
+    [ ] Model needs to be part of the request data
+    [ ] Current model that generated the message should be detailed in the message actions (like t3)
+
+[ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
 [ ] Dont scroll to bottom when switching branches
-[ ] Prefetch chats in the background (the ones loaded in history)
 [x] Optimize the Model Selector component
     [x] with lazy loading 
     [x] With memoization
 
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
-[ ] Anonymous message limits should be a number of credits.
-    [ ] Increment message count for anyonymous on asssitant message finish
-   [ ] Fix message Limits consistency between backend and frontend
-       [ ] Disable send button when users reached the limit
-       [ ] Create a better tooltip message when backend reaches rate-limit
+
+
+
+[ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.
+
+[ ] Extended messages
+    [ ] Each user message should save the selected model, data, etc.
+    [ ] Each assistant message should save the model used to generate it
+
+[ ] Reactive updates
+    [ ] Build a stor fore Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
+    [ ] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
+    [ ] Optimization: The message streaming re-renders the whole message conversation / chat
 
 [x] When unauthed, the cookie should switch to default model if not in the free models
 [x] Chat action buttons make smaller, remove borders
 [x] Use image avatar from next-auth session
 
+[ ] Change Sparka Google Oauth to Sparka AI
 
 [ ] Code
     [ ] Extend code editing and syntax hihglighting to typescript
     [ ] Add run support for JavaScript / TypeSCript
 
-[ ] Image generation
-    [ ] Improve the tool description to make it more clear that it's an image generation tool
+[x] Image generation
+    [x] Improve the tool description to make it more clear that it's an image generation tool
 
-[ ] Artifacts should belong to the current thread
-[ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 [ ] Perf optimization: On getQuery cache subscription, update the tree. Keep the message tree in a reference
 
 
-[ ] Create a menu in the assistant message actions to retry (creating a new branch)
+[x] Create a menu in the assistant message actions to retry (creating a new branch)
 
 
+[ ] BYOK (Bring Your Own Key)
+
+[ ] MCP Support
 
 [ ] Chat sharing
-    [ ] Artifacts sharing
+    [x] Artifacts sharing
     [ ] Add "Make this chat discoverable" option to share modal
     [ ] Add social media sharing buttons (LinkedIn, Reddit, X) to share modal
 
@@ -126,14 +307,17 @@
    [x] Move useSwr from visibility into a context
    [x] Display remaining messages in the chat, with a sign to login to reset the limit
    [x] Reduce anonymous message limit to 10
-   [ ] Artifacts handling for anonymous users (how to support images, etc). Maybe tools are only for logged users
+   [x] Artifacts handling for anonymous users
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
-[ ] Optimize the number of getVotes query calls
-[ ] Why does visibility selector takes chat visibility as a prop?
-[ ] Get Chat by id in chat-page.tsx
-[ ] React Query Prefetch for the selected route
+[ ] Images should be stored in a blob (and not in tool part results)
 
+[ ] Optimize the number of getVotes query calls
+[x] Why does visibility selector takes chat visibility as a prop?
+[x] React Query Prefetch for the selected route
+[ ] React Query Prefetch for the selected route with SSR
+
+[ ] Migrate artifacts to ID + version or just ID as the main key
 
 ### Backend
 [x] Create a button to Deep Research
@@ -146,8 +330,9 @@
 [ ] Migrate routes to TRPC (and use it in the frontend)
 [ ] Organize authorization as a layer at the beggining of each trpc procedure
 
+[ ] Cleanup up the providers.ts file
 [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
-[ ] Propagate model selection to deep research / reason tools (and create new selectables for them)
+[ ] Propagate model selection to deep research (and create new selectables for them)
 [ ] Save file uploads in Blob with non-public access
 [ ] Deleting a chat should delete all the images and PDFs uploaded to blobs
 [ ] Create a layer to coordinate queries (db related) and other funcions (e.g. blob deletion)
@@ -164,11 +349,9 @@
 [x] Artifact editing should be disabled on shared chats (isEditable is false)
 [x] Only show the last artifact in the chat as a big preview, others as pills
 [x] Multimodal input on artifact should be hidden in shared chat
-[ ] Only render last document as preview, others as pill
+[x] Only render last document as preview, others as pill
 [ ] Migrate to tailwind 4 (and migrate container queries)
-[ ] Chat history: 
-- [ ] Search Chats
-- [ ] Virtual list for previous chats
+
 [ ] Reduce number of re-renders (memoization)
 [ ] Open canvas button on navbar like chatgpt
 [ ] Open canvas button like chatgpt
@@ -179,7 +362,7 @@
 [x] TBD Create limits per accounts with a few credits
 
 [ ] Syntax Highlighting
-[ ] Image Generation Support
+[x] Image Generation Support
 [ ] Chat Branching
     [ ] Chat should be forkable (even shared ones)
 
@@ -194,3 +377,4 @@
 [ ] Optiomize all-models by only using allImplementedModels. Needs to propagate discriminated unions typing correctly
 [ ] Model definitions need more flexibility (or model variants). E.g. google provider have different tiers size, reasoning, etc
 
+[ ] Migrate to Biome 2.0

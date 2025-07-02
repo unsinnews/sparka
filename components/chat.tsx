@@ -1,13 +1,6 @@
 'use client';
-
-import type {
-  Attachment,
-  ChatRequestOptions,
-  CreateMessage,
-  Message,
-} from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -17,7 +10,6 @@ import { Messages } from './messages';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
 import type { YourUIMessage } from '@/lib/types/ui';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { useTRPC } from '@/trpc/react';
 import { useSession } from 'next-auth/react';
 
@@ -30,28 +22,21 @@ import { CloneChatButton } from '@/components/clone-chat-button';
 export function Chat({
   id,
   initialMessages,
-  selectedChatModel,
   isReadonly,
 }: {
   id: string;
   initialMessages: Array<YourUIMessage>;
-  selectedChatModel: string;
   isReadonly: boolean;
 }) {
   const trpc = useTRPC();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
-  const { registerSetMessages } = useMessageTree();
-  const lastMessageId = useRef<string | null>(
-    initialMessages[initialMessages.length - 1]?.id || null,
-  );
-  const [localSelectedModelId, setLocalSelectedModelId] =
-    useState<string>(selectedChatModel);
+  const { registerSetMessages, getLastMessageId } = useMessageTree();
 
   console.log('chat.tsx', id);
   const chatHelpers = useChat({
     id,
-    body: { id, selectedChatModel: localSelectedModelId },
+    body: { id },
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -61,9 +46,8 @@ export function Chat({
       saveChatMessage({
         message,
         chatId: id,
-        parentMessageId: lastMessageId.current,
+        parentMessageId: getLastMessageId(),
       });
-      lastMessageId.current = message.id;
     },
     onError: (error) => {
       console.error(error);
@@ -74,12 +58,8 @@ export function Chat({
   const {
     messages: chatHelperMessages,
     setMessages,
-    input,
-    setInput,
-    append,
     status,
     stop,
-    reload,
     experimental_resume,
     data: chatData,
   } = chatHelpers;
@@ -87,56 +67,8 @@ export function Chat({
   // Register setMessages with the MessageTreeProvider
   useEffect(() => {
     console.log('registering setMessages');
-    registerSetMessages((messages) => {
-      lastMessageId.current = messages[messages.length - 1]?.id || null;
-      return setMessages(messages);
-    });
+    registerSetMessages(setMessages);
   }, [setMessages, registerSetMessages]);
-
-  const appendWithUpdateLastMessageId = useCallback(
-    async (message: Message | CreateMessage, options?: ChatRequestOptions) => {
-      lastMessageId.current = message.id || null;
-      return append(message, options);
-    },
-    [append],
-  );
-
-  // Wrapper around handleSubmit to save user messages for anonymous users
-  const handleSubmit = useCallback(
-    (event?: { preventDefault?: () => void }, options?: any) => {
-      const message: Message = {
-        id: generateUUID(),
-        parts: [
-          {
-            type: 'text',
-            text: input,
-          },
-        ],
-        experimental_attachments: options?.experimental_attachments || [],
-        createdAt: new Date(),
-        role: 'user',
-        content: input,
-      };
-
-      saveChatMessage({
-        message,
-        chatId: id,
-        parentMessageId: lastMessageId.current,
-      });
-
-      append(message, {
-        ...options,
-        data: {
-          ...options?.data,
-          parentMessageId: lastMessageId.current,
-        },
-      });
-      lastMessageId.current = message.id;
-
-      setInput('');
-    },
-    [id, input, append, saveChatMessage, setInput, lastMessageId],
-  );
 
   // Auto-resume functionality
   useAutoResume({
@@ -152,59 +84,19 @@ export function Chat({
     enabled: chatHelperMessages.length >= 2 && !isReadonly && !!session?.user,
   });
 
-  const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
+  const { state } = useSidebar();
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
-  const [data, setData] = useState<ChatRequestToolsConfig>({
-    deepResearch: false,
-    webSearch: false,
-    reason: false,
-  });
-
-  const handleModelChange = async (modelId: string) => {
-    setLocalSelectedModelId(modelId);
-
-    try {
-      await fetch('/api/chat-model', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ model: modelId }),
-      });
-    } catch (error) {
-      console.error('Failed to save chat model:', error);
-      toast.error('Failed to save model preference');
-    }
-  };
-
-  const modifiedChatHelpers = useMemo(() => {
-    return {
-      ...chatHelpers,
-      append: appendWithUpdateLastMessageId,
-      reload: async (options?: ChatRequestOptions) => {
-        return reload({
-          ...options,
-          data: {
-            ...(options?.data as ChatRequestToolsConfig),
-            parentMessageId: lastMessageId.current,
-          },
-        });
-      },
-    };
-  }, [chatHelpers, appendWithUpdateLastMessageId, lastMessageId, reload]);
 
   return (
     <>
       <div
         className={cn(
-          'flex flex-col min-w-0 h-dvh bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
+          '@container flex flex-col min-w-0 h-dvh bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
           state === 'collapsed' && 'md:max-w-screen',
         )}
       >
         <ChatHeader
           chatId={id}
-          selectedModelId={localSelectedModelId}
           isReadonly={isReadonly}
           hasMessages={chatHelperMessages.length > 0}
         />
@@ -214,32 +106,21 @@ export function Chat({
           votes={votes}
           status={status}
           messages={chatHelperMessages as YourUIMessage[]}
-          data={data}
-          chatHelpers={modifiedChatHelpers}
+          chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
-          selectedModelId={localSelectedModelId}
-          onModelChange={handleModelChange}
         />
 
-        <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+        <form className="flex mx-auto p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6 bg-background gap-2 w-full md:max-w-3xl">
           {!isReadonly ? (
             <MultimodalInput
               chatId={id}
-              input={input}
-              setInput={setInput}
-              data={data}
-              setData={setData}
-              handleSubmit={handleSubmit}
               status={status}
               stop={stop}
-              attachments={attachments}
-              setAttachments={setAttachments}
               messages={chatHelperMessages as YourUIMessage[]}
               setMessages={setMessages}
-              append={append}
-              selectedModelId={localSelectedModelId}
-              onModelChange={handleModelChange}
+              append={chatHelpers.append}
+              parentMessageId={getLastMessageId()}
             />
           ) : (
             <CloneChatButton chatId={id} className="w-full" />
@@ -249,16 +130,10 @@ export function Chat({
 
       <Artifact
         chatId={id}
-        chatHelpers={modifiedChatHelpers}
-        attachments={attachments}
-        setAttachments={setAttachments}
-        data={data}
-        setData={setData}
+        chatHelpers={chatHelpers}
         messages={chatHelperMessages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}
-        selectedModelId={localSelectedModelId}
-        onModelChange={handleModelChange}
       />
     </>
   );

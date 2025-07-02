@@ -1,62 +1,69 @@
 'use client';
 
-import { defaultMarkdownSerializer } from 'prosemirror-markdown';
-import { DOMParser, type Node } from 'prosemirror-model';
-import { Decoration, DecorationSet, type EditorView } from 'prosemirror-view';
+import { $generateNodesFromDOM } from '@lexical/html';
+import {
+  $convertFromMarkdownString,
+  $convertToMarkdownString,
+} from '@lexical/markdown';
+import { createEditor, type LexicalEditor } from 'lexical';
+import { $getRoot } from 'lexical';
 import { renderToString } from 'react-dom/server';
 
-import { Markdown } from '@/components/markdown';
+import Markdown from 'react-markdown';
 
-import { documentSchema } from './config';
-import { createSuggestionWidget, type UISuggestion } from './suggestions';
+import { createEditorConfig } from './config';
+import { createSuggestionDecorator, type UISuggestion } from './suggestions';
 
-export const buildDocumentFromContent = (content: string) => {
-  const parser = DOMParser.fromSchema(documentSchema);
-  const stringFromMarkdown = renderToString(<Markdown>{content}</Markdown>);
-  const tempContainer = document.createElement('div');
-  tempContainer.innerHTML = stringFromMarkdown;
-  return parser.parse(tempContainer);
+export const buildEditorFromContent = (content: string): LexicalEditor => {
+  const config = createEditorConfig();
+  const editor = createEditor(config);
+
+  editor.update(() => {
+    $convertFromMarkdownString(content);
+  });
+
+  return editor;
 };
 
-export const buildContentFromDocument = (document: Node) => {
-  return defaultMarkdownSerializer.serialize(document);
+export const buildContentFromEditor = (editor: LexicalEditor): string => {
+  let content = '';
+
+  editor.getEditorState().read(() => {
+    content = $convertToMarkdownString();
+  });
+
+  return content;
 };
 
-export const createDecorations = (
+export const createSuggestionDecorators = (
   suggestions: Array<UISuggestion>,
-  view: EditorView,
+  editor: LexicalEditor,
 ) => {
-  const decorations: Array<Decoration> = [];
+  const decorators: Record<string, any> = {};
 
   for (const suggestion of suggestions) {
-    decorations.push(
-      Decoration.inline(
-        suggestion.selectionStart,
-        suggestion.selectionEnd,
-        {
-          class: 'suggestion-highlight',
-        },
-        {
-          suggestionId: suggestion.id,
-          type: 'highlight',
-        },
-      ),
-    );
-
-    decorations.push(
-      Decoration.widget(
-        suggestion.selectionStart,
-        (view) => {
-          const { dom } = createSuggestionWidget(suggestion, view);
-          return dom;
-        },
-        {
-          suggestionId: suggestion.id,
-          type: 'widget',
-        },
-      ),
-    );
+    const decorator = createSuggestionDecorator(suggestion, editor);
+    decorators[`suggestion-${suggestion.id}`] = decorator;
   }
 
-  return DecorationSet.create(view.state.doc, decorations);
+  return decorators;
+};
+
+// Alternative method using HTML conversion for better compatibility
+export const buildEditorFromContentHTML = (content: string): LexicalEditor => {
+  const config = createEditorConfig();
+  const editor = createEditor(config);
+
+  const stringFromMarkdown = renderToString(<Markdown>{content}</Markdown>);
+
+  editor.update(() => {
+    const parser = new DOMParser();
+    const dom = parser.parseFromString(stringFromMarkdown, 'text/html');
+    const nodes = $generateNodesFromDOM(editor, dom);
+    const root = $getRoot();
+    root.clear();
+    root.append(...nodes);
+  });
+
+  return editor;
 };

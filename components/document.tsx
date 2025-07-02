@@ -27,15 +27,16 @@ interface DocumentToolResultProps {
     id: string;
     title: string;
     kind: ArtifactKind;
-    messageId: string;
   };
   isReadonly: boolean;
+  messageId: string;
 }
 
 function PureDocumentToolResult({
   type,
   result,
   isReadonly,
+  messageId,
 }: DocumentToolResultProps) {
   const { setArtifact } = useArtifact();
 
@@ -58,7 +59,7 @@ function PureDocumentToolResult({
           kind: result.kind,
           content: '',
           title: result.title,
-          messageId: result.messageId,
+          messageId: messageId,
           isVisible: true,
           status: 'idle',
           boundingBox,

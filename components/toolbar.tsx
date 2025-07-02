@@ -11,6 +11,7 @@ import {
   memo,
   type ReactNode,
   type SetStateAction,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -27,7 +28,10 @@ import {
 import { ArrowUpIcon, StopIcon, SummarizeIcon } from './icons';
 import { artifactDefinitions, type ArtifactKind } from './artifact';
 import type { ArtifactToolbarItem } from './create-artifact';
-import type { UseChatHelpers } from '@ai-sdk/react';
+import type { CreateMessage, Message, UseChatHelpers } from '@ai-sdk/react';
+import { useChatInput } from '@/providers/chat-input-provider';
+import { useMessageTree } from '@/providers/message-tree-provider';
+import type { ChatRequestOptions } from 'ai';
 
 type ToolProps = {
   description: string;
@@ -295,7 +299,7 @@ export const Tools = ({
 const PureToolbar = ({
   isToolbarVisible,
   setIsToolbarVisible,
-  append,
+  append: chathelpersAppend,
   status,
   stop,
   setMessages,
@@ -314,6 +318,27 @@ const PureToolbar = ({
 
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+
+  const { selectedModelId } = useChatInput();
+  const { getLastMessageId } = useMessageTree();
+
+  const append = useCallback(
+    (message: Message | CreateMessage, options?: ChatRequestOptions) => {
+      return chathelpersAppend(message, {
+        ...options,
+        data: {
+          deepResearch: false,
+          webSearch: false,
+          reason: false,
+          parentMessageId: getLastMessageId(),
+        },
+        body: {
+          selectedChatModel: selectedModelId,
+        },
+      });
+    },
+    [chathelpersAppend, selectedModelId, getLastMessageId],
+  );
 
   useOnClickOutside(toolbarRef, () => {
     setIsToolbarVisible(false);

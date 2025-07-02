@@ -1,10 +1,11 @@
-import type { CoreAssistantMessage, CoreToolMessage, Message } from 'ai';
+import type { CoreAssistantMessage, CoreToolMessage } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 
 import type { Document } from '@/lib/db/schema';
 import type { YourUIMessage } from '@/lib/types/ui';
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -25,9 +26,9 @@ export function findLastArtifact(
         const toolInvocation = part.toolInvocation as YourToolInvocation;
         if (
           toolInvocation.state === 'result' &&
-          toolInvocation.toolName === 'createDocument'
-          // ||
-          // toolInvocation.toolName === 'deepResearch'
+          (toolInvocation.toolName === 'createDocument' ||
+            toolInvocation.toolName === 'updateDocument' ||
+            toolInvocation.toolName === 'deepResearch')
         ) {
           allArtifacts.push({
             messageIndex,
@@ -70,39 +71,6 @@ export function generateUUID(): string {
     const r = (Math.random() * 16) | 0;
     const v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
-  });
-}
-
-function addToolMessageToChat({
-  toolMessage,
-  messages,
-}: {
-  toolMessage: CoreToolMessage;
-  messages: Array<Message>;
-}): Array<Message> {
-  return messages.map((message) => {
-    if (message.toolInvocations) {
-      return {
-        ...message,
-        toolInvocations: message.toolInvocations.map((toolInvocation) => {
-          const toolResult = toolMessage.content.find(
-            (tool) => tool.toolCallId === toolInvocation.toolCallId,
-          );
-
-          if (toolResult) {
-            return {
-              ...toolInvocation,
-              state: 'result',
-              result: toolResult.result,
-            };
-          }
-
-          return toolInvocation;
-        }),
-      };
-    }
-
-    return message;
   });
 }
 
@@ -184,41 +152,65 @@ export function getTrailingMessageId({
   return trailingMessage.id;
 }
 
-export function cloneMessages<
-  T extends { id: string; chatId: string; parentMessageId?: string | null },
->(sourceMessages: T[], newChatId: string): T[] {
-  // First pass: Create mapping from old IDs to new IDs
-  const idMap = new Map<string, string>();
-  for (const message of sourceMessages) {
-    idMap.set(message.id, generateUUID());
-  }
+export function getLanguageFromFileName(fileName: string): string {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
 
-  // Second pass: Clone messages using the ID mapping
-  const clonedMessages: T[] = [];
-  for (const message of sourceMessages) {
-    const newId = idMap.get(message.id);
-    if (!newId) {
-      throw new Error(`Message ID ${message.id} not found in mapping`);
-    }
+  const extensionToLanguage: Record<string, string> = {
+    // JavaScript/TypeScript
+    js: 'javascript',
+    jsx: 'jsx',
+    ts: 'typescript',
+    tsx: 'tsx',
+    mjs: 'javascript',
+    cjs: 'javascript',
 
-    let newParentId: string | null = null;
-    if (message.parentMessageId) {
-      newParentId = idMap.get(message.parentMessageId) || null;
-      if (!newParentId) {
-        throw new Error(
-          `Parent message ID ${message.parentMessageId} not found in mapping`,
-        );
-      }
-    }
+    // Python
+    py: 'python',
+    pyw: 'python',
+    pyi: 'python',
 
-    const clonedMessage: T = {
-      ...message,
-      id: newId,
-      chatId: newChatId,
-      parentMessageId: newParentId,
-    };
-    clonedMessages.push(clonedMessage);
-  }
+    // Web
+    html: 'html',
+    htm: 'html',
+    css: 'css',
+    scss: 'css',
+    sass: 'css',
+    less: 'css',
 
-  return clonedMessages;
+    // Data formats
+    json: 'json',
+    xml: 'xml',
+    yaml: 'yaml',
+    yml: 'yaml',
+    toml: 'toml',
+
+    // Shell
+    sh: 'shell',
+    bash: 'shell',
+    zsh: 'shell',
+    fish: 'shell',
+
+    // Other languages
+    sql: 'sql',
+    md: 'markdown',
+    mdx: 'markdown',
+    java: 'java',
+    c: 'c',
+    cpp: 'cpp',
+    cc: 'cpp',
+    cxx: 'cpp',
+    h: 'c',
+    hpp: 'cpp',
+    cs: 'csharp',
+    php: 'php',
+    rb: 'ruby',
+    go: 'go',
+    rs: 'rust',
+    swift: 'swift',
+    kt: 'kotlin',
+    r: 'r',
+    R: 'r',
+  };
+
+  return extensionToLanguage[extension] || 'python'; // Default to python
 }

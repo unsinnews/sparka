@@ -4,20 +4,35 @@ import { z } from 'zod';
 import { getDocumentById } from '@/lib/db/queries';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
+import type { AvailableProviderModels } from '@/lib/ai/all-models';
 
 interface UpdateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }
 
 export const updateDocument = ({
   session,
   dataStream,
   messageId,
+  selectedModel,
 }: UpdateDocumentProps) =>
   tool({
-    description: 'Update a document with the given description.',
+    description: `Modify an existing document.
+
+Usage:
+- Rewrite the whole document for major changes
+- Make targeted edits for isolated changes
+- Follow user instructions about which parts to touch
+- Wait for user feedback before updating a freshly created document
+
+Avoid:
+- Updating immediately after the document was just created
+- Using this tool if there is no previous document in the conversation
+
+`,
     parameters: z.object({
       id: z.string().describe('The ID of the document to update'),
       description: z
@@ -29,18 +44,24 @@ export const updateDocument = ({
 
       if (!document) {
         return {
+          success: false as const,
           error: 'Document not found',
         };
       }
 
       dataStream.writeData({
-        type: 'clear',
-        content: document.title,
+        type: 'id',
+        content: document.id,
       });
 
       dataStream.writeData({
         type: 'message-id',
         content: messageId,
+      });
+
+      dataStream.writeData({
+        type: 'clear',
+        content: document.title,
       });
 
       const documentHandler = documentHandlersByArtifactKind.find(
@@ -58,16 +79,17 @@ export const updateDocument = ({
         dataStream,
         session,
         messageId,
+        selectedModel,
       });
 
       dataStream.writeData({ type: 'finish', content: '' });
 
       return {
         id,
-        messageId,
         title: document.title,
         kind: document.kind,
         content: 'The document has been updated successfully.',
+        success: true as const,
       };
     },
   });

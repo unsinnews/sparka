@@ -1,23 +1,28 @@
 'use client';
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
-import { useDefaultModel } from '@/providers/default-model-provider';
-import { generateUUID } from '@/lib/utils';
+import { ChatInputProvider } from '@/providers/chat-input-provider';
+import { useChatId } from '@/providers/chat-id-provider';
+import { notFound } from 'next/navigation';
 
 export function ChatHome() {
-  const defaultModel = useDefaultModel();
+  const { provisionalChatId: newChatId } = useChatId();
 
-  const id = generateUUID();
+  if (!newChatId) {
+    return notFound();
+  }
+
   return (
     <>
-      <Chat
-        key={id}
-        id={id}
-        initialMessages={[]}
-        selectedChatModel={defaultModel}
-        isReadonly={false}
-      />
-      <DataStreamHandler id={id} />
+      <ChatInputProvider localStorageEnabled={true}>
+        <Chat
+          key={newChatId}
+          id={newChatId}
+          initialMessages={[]}
+          isReadonly={false}
+        />
+      </ChatInputProvider>
+      <DataStreamHandler id={newChatId} />
     </>
   );
 }

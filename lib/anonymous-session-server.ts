@@ -1,17 +1,10 @@
+'use server';
+
 import { cookies } from 'next/headers';
-import { generateUUID } from '@/lib/utils';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { ANONYMOUS_SESSION_COOKIES_KEY } from './constants';
-
-export function createAnonymousSession(): AnonymousSession {
-  return {
-    id: generateUUID(),
-    messageCount: 0,
-    createdAt: new Date(),
-    maxMessages: ANONYMOUS_LIMITS.MAX_MESSAGES,
-  };
-}
+import { generateUUID } from './utils';
 
 export async function getAnonymousSession(): Promise<AnonymousSession | null> {
   try {
@@ -22,9 +15,12 @@ export async function getAnonymousSession(): Promise<AnonymousSession | null> {
 
     const session = JSON.parse(sessionData.value) as AnonymousSession;
 
-    // Convert createdAt back to Date object
-    session.createdAt = new Date(session.createdAt);
+    // Convert createdAt back to Date object if it's a string
+    if (typeof session.createdAt === 'string') {
+      session.createdAt = new Date(session.createdAt);
+    }
 
+    // Check if session is expired
     const isExpired =
       Date.now() - session.createdAt.getTime() >
       ANONYMOUS_LIMITS.SESSION_DURATION;
@@ -42,10 +38,18 @@ export async function setAnonymousSession(
   const cookieStore = await cookies();
   cookieStore.set(ANONYMOUS_SESSION_COOKIES_KEY, JSON.stringify(session), {
     path: '/',
-    maxAge: ANONYMOUS_LIMITS.SESSION_DURATION / 1000, // Convert to seconds
+    maxAge: ANONYMOUS_LIMITS.SESSION_DURATION,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
   });
+}
+
+export async function createAnonymousSession(): Promise<AnonymousSession> {
+  return {
+    id: generateUUID(),
+    remainingCredits: ANONYMOUS_LIMITS.CREDITS,
+    createdAt: new Date(),
+  };
 }
 
 export async function clearAnonymousSession(): Promise<void> {

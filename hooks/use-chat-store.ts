@@ -16,6 +16,7 @@ import {
 } from '@/lib/message-conversion';
 import { useChatId } from '@/providers/chat-id-provider';
 import type { YourUIMessage, UIChat } from '@/lib/types/ui';
+import type { Document } from '@/lib/db/schema';
 import {
   loadLocalAnonymousMessagesByChatId,
   saveAnonymousMessage,
@@ -23,11 +24,14 @@ import {
   renameAnonymousChat,
   saveAnonymousChatToStorage,
   deleteAnonymousTrailingMessages,
-  copyAnonymousChat,
+  cloneAnonymousChat,
+  loadAnonymousDocumentsByDocumentId,
+  saveAnonymousDocument,
+  loadAnonymousChatsFromStorage,
+  loadAnonymousChatById,
 } from '@/lib/utils/anonymous-chat-storage';
 import type { Message } from 'ai';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
-import type { AnonymousChat } from '@/lib/types/anonymous';
 import { generateUUID } from '@/lib/utils';
 
 // Custom hook for chat mutations
@@ -108,7 +112,7 @@ export function useMessagesQuery() {
 
   // Memoize the tRPC query options for messages by chat ID
   const getMessagesByChatIdQueryOptions = useMemo(() => {
-    const options = trpc.chat.getMessagesByChatId.queryOptions({
+    const options = trpc.chat.getChatMessages.queryOptions({
       chatId: chatId || '',
     });
     if (isAuthenticated) {
@@ -135,7 +139,7 @@ export function useMessagesQuery() {
         enabled: !!chatId,
       };
     }
-  }, [trpc.chat.getMessagesByChatId, isAuthenticated, chatId]);
+  }, [trpc.chat.getChatMessages, isAuthenticated, chatId]);
 
   // Query for messages by chat ID (only when chatId is available)
   return useQuery(getMessagesByChatIdQueryOptions);
@@ -254,10 +258,10 @@ export function useDeleteTrailingMessages() {
   const invalidateMessagesByChatId = useCallback(
     (chatId: string) => {
       queryClient.invalidateQueries({
-        queryKey: trpc.chat.getMessagesByChatId.queryKey({ chatId }),
+        queryKey: trpc.chat.getChatMessages.queryKey({ chatId }),
       });
     },
-    [queryClient, trpc.chat.getMessagesByChatId],
+    [queryClient, trpc.chat.getChatMessages],
   );
 
   // Delete trailing messages mutation
@@ -275,7 +279,7 @@ export function useDeleteTrailingMessages() {
         },
     onMutate: async (variables) => {
       const { messageId, chatId } = variables;
-      const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+      const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
         chatId,
       });
 
@@ -317,7 +321,7 @@ export function useDeleteTrailingMessages() {
   return deleteTrailingMessagesMutation;
 }
 
-export function useCopyChat() {
+export function useCloneChat() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const trpc = useTRPC();
@@ -329,8 +333,8 @@ export function useCopyChat() {
   );
 
   const copyPublicChatMutationOptions = useMemo(
-    () => trpc.chat.copyPublicChat.mutationOptions(),
-    [trpc.chat.copyPublicChat],
+    () => trpc.chat.cloneSharedChat.mutationOptions(),
+    [trpc.chat.cloneSharedChat],
   );
 
   return useMutation({
@@ -360,8 +364,32 @@ export function useCopyChat() {
           throw new Error('Original chat data not found in cache');
         }
 
+        const originalMessagesIds = originalMessages.map(
+          (message: any) => message.id,
+        );
+
+        // Get all getPublicDocuments queries from cache and filter documents by messageId
+        const allDocumentQueries = queryClient.getQueriesData({
+          queryKey: trpc.document.getPublicDocuments
+            .queryKey({ id: '' })
+            .slice(0, -1), // Remove the specific id filter to match all
+        });
+
+        const originalDocuments = allDocumentQueries
+          .flatMap(([_, data]) => data || [])
+          .filter((document: any) =>
+            originalMessagesIds.includes(document.messageId),
+          );
+        console.log(originalMessages);
+        console.log(originalDocuments);
+
         const newId = generateUUID();
-        await copyAnonymousChat(originalMessages, originalChat, newId);
+        await cloneAnonymousChat(
+          originalMessages,
+          originalChat,
+          originalDocuments,
+          newId,
+        );
         return { chatId: newId };
       }
     },
@@ -404,7 +432,7 @@ export function useSaveMessageMutation() {
     },
     onMutate: async ({ message, chatId, parentMessageId }) => {
       // Get the query key for messages
-      const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+      const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
         chatId: chatId,
       });
 
@@ -441,26 +469,40 @@ export function useSaveMessageMutation() {
       console.error('Failed to save message:', err);
       toast.error('Failed to save message');
     },
-    onSuccess: (data, { message, chatId }) => {
+    onSuccess: (
+      data,
+      { message, chatId, parentMessageId },
+      { previousMessages },
+    ) => {
       if (isAuthenticated) {
         // Update credits
-        queryClient.invalidateQueries({
-          queryKey: trpc.credits.getAvailableCredits.queryKey(),
-        });
-
+        if (message.role === 'assistant') {
+          queryClient.invalidateQueries({
+            queryKey: trpc.credits.getAvailableCredits.queryKey(),
+          });
+        }
         // Invalidate chats (for chat title)
-        queryClient.invalidateQueries({
-          queryKey: trpc.chat.getAllChats.queryKey(),
-        });
+        // Only invalidate chats if this is the first assistant message
+        const hasAssistantMessage = previousMessages?.some(
+          (msg) => msg.role === 'assistant',
+        );
+        if (!hasAssistantMessage && message.role === 'assistant') {
+          console.log('invalidating chats');
+          queryClient.invalidateQueries({
+            queryKey: trpc.chat.getAllChats.queryKey(),
+          });
+        }
       } else {
         // Check if this this the fist message in the cache
-        const messagesQueryKey = trpc.chat.getMessagesByChatId.queryKey({
+        const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
           chatId: chatId,
         });
         const messages = queryClient.getQueryData(messagesQueryKey);
         if (messages?.length === 1) {
           saveChatWithTitle(chatId, message.content, isAuthenticated);
         }
+
+        // Update credits
       }
     },
   });
@@ -504,7 +546,136 @@ export function useSetVisibility() {
     },
   });
 }
-export function useGetAllChats() {
+
+export function useSaveDocument(
+  documentId: string,
+  messageId: string,
+  options?: {
+    onSettled?: (result: any, error: any, params: any) => void;
+  },
+) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const isAuthenticated = !!session?.user;
+  const anonymousSession = getAnonymousSession();
+
+  return useMutation({
+    mutationFn: isAuthenticated
+      ? trpc.document.saveDocument.mutationOptions().mutationFn
+      : async (newDocument: any) => {
+          const documentToSave = {
+            id: newDocument.id,
+            createdAt: new Date(),
+            title: newDocument.title,
+            content: newDocument.content,
+            kind: newDocument.kind,
+            userId: anonymousSession?.id || '',
+            messageId: messageId,
+          };
+          await saveAnonymousDocument(documentToSave);
+          return { success: true };
+        },
+    onMutate: async (newDocument) => {
+      const queryKey = trpc.document.getDocuments.queryKey({
+        id: newDocument.id,
+      });
+
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey });
+
+      // Snapshot the previous value
+      const previousDocuments =
+        queryClient.getQueryData<Document[]>(queryKey) ?? [];
+
+      // Optimistically add the new document to the list
+      const optimisticData = [
+        ...previousDocuments,
+        {
+          id: newDocument.id,
+          createdAt: new Date(),
+          title: newDocument.title,
+          content: newDocument.content,
+          kind: newDocument.kind,
+          userId: isAuthenticated ? userId || '' : anonymousSession?.id || '', // Ensure always string
+          messageId: messageId,
+        },
+      ];
+
+      queryClient.setQueryData(queryKey, optimisticData);
+
+      return { previousDocuments, newDocument };
+    },
+    onError: (err, newDocument, context) => {
+      // Rollback to previous documents on error
+      if (context?.previousDocuments) {
+        const queryKey = trpc.document.getDocuments.queryKey({
+          id: newDocument.id,
+        });
+        queryClient.setQueryData(queryKey, context.previousDocuments);
+      }
+    },
+    onSettled: (result, error, params) => {
+      // Invalidate queries to ensure consistency
+      queryClient.invalidateQueries({
+        queryKey: trpc.document.getDocuments.queryKey({ id: params.id }),
+      });
+
+      // Call custom onSettled if provided
+      options?.onSettled?.(result, error, params);
+    },
+  });
+}
+
+export function useDocuments(id: string, disable: boolean) {
+  const trpc = useTRPC();
+  const { isShared } = useChatId();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+
+  const documentsQueryOptions = useMemo(() => {
+    if (isShared) {
+      return trpc.document.getPublicDocuments.queryOptions(
+        { id: id },
+        {
+          enabled: !disable && !!id,
+        },
+      );
+    } else {
+      if (isAuthenticated) {
+        return trpc.document.getDocuments.queryOptions(
+          { id: id },
+          {
+            enabled: !disable && !!id,
+          },
+        );
+      } else {
+        return {
+          queryKey: trpc.document.getDocuments.queryKey({ id: id }),
+          queryFn: async () => {
+            const documents = await loadAnonymousDocumentsByDocumentId(
+              id || '',
+            );
+            return documents;
+          },
+          enabled: !disable && !!id,
+        };
+      }
+    }
+  }, [
+    trpc.document.getDocuments,
+    trpc.document.getPublicDocuments,
+    id,
+    disable,
+    isShared,
+    isAuthenticated,
+  ]);
+
+  return useQuery(documentsQueryOptions);
+}
+
+export function useGetAllChats(limit?: number) {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const trpc = useTRPC();
@@ -515,44 +686,94 @@ export function useGetAllChats() {
     if (isAuthenticated) {
       return {
         ...options,
-        select: (data: UIChat[]) => data.slice(0, 10),
+        select: limit ? (data: UIChat[]) => data.slice(0, limit) : undefined,
       };
     } else {
       return {
         queryKey: options.queryKey,
-        select: (data: UIChat[]) => data.slice(0, 10),
+        select: limit ? (data: UIChat[]) => data.slice(0, limit) : undefined,
         queryFn: async () => {
-          // Load from localStorage for anonymous users
-          try {
-            const session = getAnonymousSession();
-            if (!session) return [];
-
-            const savedChats = localStorage.getItem('anonymous-chats');
-            if (!savedChats) return [];
-
-            const parsedChats = JSON.parse(savedChats) as AnonymousChat[];
-            return parsedChats
-              .filter((chat: any) => chat.userId === session.id)
-              .map((chat: any) => ({
-                id: chat.id,
-                createdAt: new Date(chat.createdAt),
-                title: chat.title,
-                visibility: chat.visibility,
-                userId: '',
-              }))
-              .sort(
-                (a: any, b: any) =>
-                  b.createdAt.getTime() - a.createdAt.getTime(),
-              );
-          } catch (error) {
-            console.error('Error loading anonymous chats:', error);
-            return [];
-          }
+          const chats = await loadAnonymousChatsFromStorage();
+          return chats.map((chat: any) => ({
+            id: chat.id,
+            createdAt: chat.createdAt,
+            title: chat.title,
+            visibility: chat.visibility,
+            userId: '',
+          }));
         },
       };
     }
-  }, [trpc.chat.getAllChats, isAuthenticated]);
+  }, [trpc.chat.getAllChats, isAuthenticated, limit]);
 
   // Combined query for both authenticated and anonymous chats
   return useQuery(getAllChatsQueryOptions);
+}
+
+export function useGetChatById(chatId: string) {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+
+  const getChatByIdQueryOptions = useMemo(() => {
+    const options = trpc.chat.getChatById.queryOptions({ chatId });
+    if (isAuthenticated) {
+      return {
+        ...options,
+        enabled: !!chatId,
+      };
+    } else {
+      return {
+        queryKey: trpc.chat.getChatById.queryKey({ chatId }),
+        queryFn: async (): Promise<UIChat> => {
+          const chat = await loadAnonymousChatById(chatId);
+          // TODO: Change for trpc error
+          if (!chat) throw new Error('Chat not found');
+
+          return {
+            id: chat.id,
+            createdAt: chat.createdAt,
+            title: chat.title,
+            visibility: chat.visibility,
+            userId: '',
+          } satisfies UIChat;
+        },
+        enabled: !!chatId,
+      };
+    }
+  }, [trpc.chat.getChatById, isAuthenticated, chatId]);
+
+  return useQuery(getChatByIdQueryOptions);
+}
+
+export function useGetCredits() {
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
+  const trpc = useTRPC();
+
+  const queryOptions = useMemo(() => {
+    if (isAuthenticated) {
+      return trpc.credits.getAvailableCredits.queryOptions();
+    } else {
+      return {
+        queryKey: trpc.credits.getAvailableCredits.queryKey(),
+        queryFn: async () => {
+          const anonymousSession = getAnonymousSession();
+          return {
+            totalCredits: anonymousSession?.remainingCredits ?? 0,
+            availableCredits: anonymousSession?.remainingCredits ?? 0,
+            reservedCredits: 0,
+          };
+        },
+      };
+    }
+  }, [isAuthenticated, trpc.credits.getAvailableCredits]);
+
+  const { data: creditsData, isLoading: isLoadingCredits } =
+    useQuery(queryOptions);
+
+  return {
+    credits: creditsData?.totalCredits,
+    isLoadingCredits,
+  };
 }

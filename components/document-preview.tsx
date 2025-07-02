@@ -9,7 +9,7 @@ import {
   useRef,
 } from 'react';
 import type { ArtifactKind, UIArtifact } from './artifact';
-import { FileIcon, FullscreenIcon, ImageIcon, LoaderIcon } from './icons';
+import { FileIcon, FullscreenIcon, LoaderIcon, PencilEditIcon } from './icons';
 import { cn } from '@/lib/utils';
 import type { Document } from '@/lib/db/schema';
 import { InlineDocumentSkeleton } from './document-skeleton';
@@ -21,26 +21,30 @@ import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
 import { useTRPC } from '@/trpc/react';
-import { useQuery } from '@tanstack/react-query';
+import { useDocuments } from '@/hooks/use-chat-store';
 
 interface DocumentPreviewProps {
   isReadonly: boolean;
   result?: any;
   args?: any;
+  messageId: string;
+  type?: 'create' | 'update';
 }
 
 export function DocumentPreview({
   isReadonly,
   result,
   args,
+  messageId,
+  type = 'create',
 }: DocumentPreviewProps) {
   const { artifact, setArtifact } = useArtifact();
   const trpc = useTRPC();
 
-  const { data: documents, isLoading: isDocumentsFetching } = useQuery({
-    ...trpc.document.getDocuments.queryOptions({ id: result?.id }),
-    enabled: !!result?.id,
-  });
+  const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
+    result?.id || '',
+    result?.id === 'init' || artifact.status === 'streaming',
+  );
 
   const previewDocument = useMemo(() => documents?.[0], [documents]);
   const hitboxRef = useRef<HTMLDivElement>(null);
@@ -65,13 +69,13 @@ export function DocumentPreview({
     if (result) {
       return (
         <DocumentToolResult
-          type="create"
+          type={type}
           result={{
             id: result.id,
             title: result.title,
             kind: result.kind,
-            messageId: result.messageId,
           }}
+          messageId={messageId}
           isReadonly={isReadonly}
         />
       );
@@ -80,7 +84,7 @@ export function DocumentPreview({
     if (args) {
       return (
         <DocumentToolCall
-          type="create"
+          type={type}
           args={{ title: args.title }}
           isReadonly={isReadonly}
         />
@@ -114,11 +118,13 @@ export function DocumentPreview({
         hitboxRef={hitboxRef}
         result={result}
         setArtifact={setArtifact}
+        messageId={messageId}
       />
       <DocumentHeader
         title={document.title}
         kind={document.kind}
         isStreaming={artifact.status === 'streaming'}
+        type={type}
       />
       <DocumentContent document={document} />
     </div>
@@ -138,15 +144,10 @@ const LoadingSkeleton = ({ artifactKind }: { artifactKind: ArtifactKind }) => (
         <FullscreenIcon />
       </div>
     </div>
-    {artifactKind === 'image' ? (
-      <div className="overflow-y-scroll border rounded-b-2xl bg-muted border-t-0 dark:border-zinc-700">
-        <div className="animate-pulse h-[257px] bg-muted-foreground/20 w-full" />
-      </div>
-    ) : (
-      <div className="overflow-y-scroll border rounded-b-2xl p-8 pt-4 bg-muted border-t-0 dark:border-zinc-700">
-        <InlineDocumentSkeleton />
-      </div>
-    )}
+
+    <div className="overflow-y-scroll border rounded-b-2xl p-8 pt-4 bg-muted border-t-0 dark:border-zinc-700">
+      <InlineDocumentSkeleton />
+    </div>
   </div>
 );
 
@@ -154,12 +155,14 @@ const PureHitboxLayer = ({
   hitboxRef,
   result,
   setArtifact,
+  messageId,
 }: {
   hitboxRef: React.RefObject<HTMLDivElement>;
   result: any;
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
   ) => void;
+  messageId: string;
 }) => {
   const handleClick = useCallback(
     (event: MouseEvent<HTMLElement>) => {
@@ -172,7 +175,7 @@ const PureHitboxLayer = ({
               ...artifact,
               title: result.title,
               documentId: result.id,
-              messageId: result.messageId,
+              messageId: messageId,
               kind: result.kind,
               isVisible: true,
               boundingBox: {
@@ -209,14 +212,30 @@ const HitboxLayer = memo(PureHitboxLayer, (prevProps, nextProps) => {
   return true;
 });
 
+const getActionText = (
+  type: 'create' | 'update',
+  tense: 'present' | 'past',
+) => {
+  switch (type) {
+    case 'create':
+      return tense === 'present' ? 'Creating' : 'Created';
+    case 'update':
+      return tense === 'present' ? 'Updating' : 'Updated';
+    default:
+      return '';
+  }
+};
+
 const PureDocumentHeader = ({
   title,
   kind,
   isStreaming,
+  type,
 }: {
   title: string;
   kind: ArtifactKind;
   isStreaming: boolean;
+  type: 'create' | 'update';
 }) => (
   <div className="p-4 border rounded-t-2xl flex flex-row gap-2 items-start sm:items-center justify-between dark:bg-muted border-b-0 dark:border-zinc-700">
     <div className="flex flex-row items-start sm:items-center gap-3">
@@ -225,13 +244,17 @@ const PureDocumentHeader = ({
           <div className="animate-spin">
             <LoaderIcon />
           </div>
-        ) : kind === 'image' ? (
-          <ImageIcon />
+        ) : type === 'update' ? (
+          <PencilEditIcon />
         ) : (
           <FileIcon />
         )}
       </div>
-      <div className="-translate-y-1 sm:translate-y-0 font-medium">{title}</div>
+      <div className="-translate-y-1 sm:translate-y-0 font-medium">
+        {isStreaming && type === 'update'
+          ? `${getActionText(type, 'present')} "${title}"`
+          : title}
+      </div>
     </div>
     <div className="w-8" />
   </div>

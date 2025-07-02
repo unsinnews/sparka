@@ -1,63 +1,51 @@
 <div align="center">
 
-# ⚡ Sparka AI
+<img src="public/icon.svg" alt="Sparka AI" width="64" height="64">
 
-**The most powerful unified AI platform for developers and power users**
+# Sparka AI
 
-*Access cutting-edge AI models, advanced reasoning, code execution, and research capabilities in one seamless interface*
+**AI for everyone, from everyone**
 
-[**🚀 Try Sparka AI**](https://sparka.ai)
+*Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the hassle*
+
+[**Try Sparka AI**](https://sparka.ai)
+
 
 </div>
 
----
+![sparka_gif_demo](https://github.com/user-attachments/assets/34a03eed-58fa-4b1e-b453-384351b1c08c)
 
-## 🌟 Why Sparka AI?
-
-Sparka AI eliminates the need for multiple AI subscriptions by providing **unified access** to the most powerful AI models available today. Whether you're coding, researching, or creating, Sparka AI gives you enterprise-grade capabilities at your fingertips.
-
-### 🎯 **Built for Power Users**
-- **20+ AI Models**: Access Claude 4 Opus, GPT-4.1, Gemini 2.5, Grok 3, and more
-- **Advanced Reasoning**: Models with extended reasoning capabilities
-- **Code Execution**: Run Python, JavaScript, and more in secure sandboxes
-- **Document Creation**: Generate and edit documents, spreadsheets, and presentations
-
-### ⚡ **Other fEatures**
-- **Resumable Streams**: Never lose progress on long-running tasks
-- **Credit System**: Transparent, usage-based pricing model
-- **Share Chats**: Share and collaborate on AI conversations
-- **Anonymous Mode**: Try powerful features without account creation
-
----
-
-## 🚀 Features
-
-### 🤖 **Multi-Provider AI Access**
-- **Anthropic**: Claude 4 Opus, Claude 4 Sonnet, Claude 3.7 Sonnet (Reasoning), Claude 3.5 Sonnet, Claude 3.5 Haiku, Claude 3 Opus
-- **OpenAI**: GPT-4o, GPT-4o mini, GPT-4 Turbo, GPT-3.5 Turbo, GPT-3.5 Turbo Instruct
-- **Google**: Gemini 2.5 Flash Preview, Gemini 2.0 Flash Lite
-- **xAI**: Grok 3 Beta, Grok 3 Fast Beta, Grok 3 Mini Beta, Grok 3 Mini Fast Beta, Grok 2, Grok 2 Vision, Grok Vision Beta, Grok Beta
-
-### 🛠️ **Advanced Capabilities**
-
-#### 🧠 **Reasoning & Analysis**
-- **Extended Thinking**: Models that show their reasoning process
-- **Multi-Step Problem Solving**: Complex task decomposition
-- **Research Synthesis**: Combine information from multiple sources
-
-#### 🔍 **Research & Knowledge**
-- **Web Search Integration**: Real-time web search with Tavily
-- **Document Processing**: Upload and analyze PDFs and images
-- **Citation Tracking**: Proper source attribution with references
-
-#### 📊 **Content Creation**
-- **Interactive Artifacts**: Create documents, spreadsheets, and images
-- **Image Analysis**: Vision capabilities across multiple models
+Access every major AI assistant—Claude, GPT-4, Gemini, Grok, and 20+ models—through one interface. Get capabilities like document analysis, image generation, code execution, and research tools without managing multiple subscriptions. Try instantly, no signup required.
 
 
----
+## ✨ Features
 
-## 🏗️ Architecture
+- **🤖 Multi-Model Chat** - Access 20+ AI models including Claude, GPT-4, Gemini, and Grok in one interface.
+
+- **🔐 Authentication & Sync** - Secure authentication with chat history sync across all devices.
+
+- **🎯 Easy to Try** - Try the interface and some features without creating an account.
+
+- **📎 Attachment Support** - Upload and analyze images, PDFs, and documents in conversations.
+
+- **🎨 AI-Powered Image Generation** - Generate and edit images with advanced AI models.
+
+- **💻 Syntax Highlighting** - Beautiful code formatting and highlighting for all programming languages.
+
+- **🔄 Resumable Streams** - Continue AI generations after page refreshes or interruptions.
+
+- **🌳 Chat Branching** - Create alternative conversation paths without losing your original thread.
+
+- **🔗 Chat Sharing** - Share conversations with others and collaborate on AI-assisted projects.
+
+- **🔭 Deep Research** - Comprehensive research with real-time web search, source analysis, and cited findings.
+
+- **⚡ Code Execution** - Run Python, JavaScript, and more in secure sandboxes.
+
+- **📄 Document Creation** - Generate and edit documents, spreadsheets, and presentations.
+
+
+## 🛠️ Tech Stack
 
 Sparka AI is built with modern technologies for scalability and performance:
 
@@ -77,11 +65,8 @@ Sparka AI is built with modern technologies for scalability and performance:
 
 ### **AI Integration**
 - **Multi-Provider Architecture**: Seamless switching between AI providers
-- **Streaming Responses**: Real-time AI output with resumable streams
 - **Tool Integration**: Extensible system for AI capabilities
-- **Credit Management**: Fair usage tracking and billing
 
----
 
 ## 🚀 Getting Started
 
@@ -117,14 +102,11 @@ Sparka AI is built with modern technologies for scalability and performance:
 
 Visit [http://localhost:3000](http://localhost:3000) to start using Sparka AI locally.
 
----
 
 ## 🙏 Acknowledgements
 
-Sparka AI was built on the shoulders of giants. We're deeply grateful to these outstanding open source projects that provided an excellent foundation:
+Sparka AI was built on the shoulders of giants. We're deeply grateful to these outstanding open source projects:
 
-- **[Vercel AI Chatbot](https://github.com/vercel/ai-chatbot)** - A full-featured, hackable Next.js AI chatbot that provided the core architecture and AI SDK integration patterns that power Sparka AI's conversational interface.
+- **[Vercel AI Chatbot](https://github.com/vercel/ai-chatbot)** - Core architecture and AI SDK integration patterns
+- **[Scira](https://github.com/zaidmukaddam/scira)** - AI-powered search engine
 
-- **[Scira](https://github.com/zaidmukaddam/scira)** (formerly MiniPerplx) - A minimalistic AI-powered search engine that inspired our research capabilities and demonstrated elegant approaches to AI-powered information retrieval and citation.
-
-These projects exemplify the best of open source collaboration and have significantly accelerated our development. Thank you to all the contributors who made them possible! 🚀

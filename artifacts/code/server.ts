@@ -1,16 +1,22 @@
 import { z } from 'zod';
 import { streamObject } from 'ai';
-import { myProvider } from '@/lib/ai/providers';
+import { getLanguageModel } from '@/lib/ai/providers';
 import { codePrompt, updateDocumentPrompt } from '@/lib/ai/prompts';
 import { createDocumentHandler } from '@/lib/artifacts/server';
 
 export const codeDocumentHandler = createDocumentHandler<'code'>({
   kind: 'code',
-  onCreateDocument: async ({ title, description, dataStream, prompt }) => {
+  onCreateDocument: async ({
+    title,
+    description,
+    dataStream,
+    prompt,
+    selectedModel,
+  }) => {
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: myProvider.languageModel('artifact-model'),
+      model: getLanguageModel(selectedModel),
       system: codePrompt,
       prompt,
       experimental_telemetry: { isEnabled: true },
@@ -39,12 +45,17 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
 
     return draftContent;
   },
-  onUpdateDocument: async ({ document, description, dataStream }) => {
+  onUpdateDocument: async ({
+    document,
+    description,
+    dataStream,
+    selectedModel,
+  }) => {
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: myProvider.languageModel('artifact-model'),
-      system: updateDocumentPrompt(document.content, 'code'),
+      model: getLanguageModel(selectedModel),
+      system: updateDocumentPrompt(document.content || '', 'code'),
       experimental_telemetry: { isEnabled: true },
       prompt: description,
       schema: z.object({

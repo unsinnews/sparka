@@ -7,21 +7,41 @@ import {
 import {
   getDocumentById,
   getDocumentsById,
+  getPublicDocumentsById,
   saveDocument,
 } from '@/lib/db/queries';
 import type { ArtifactKind } from '@/components/artifact';
+import { TRPCError } from '@trpc/server';
 
 export const documentRouter = createTRPCRouter({
-  getDocuments: publicProcedure
+  getDocuments: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ input, ctx }) => {
       const documents = await getDocumentsById({
         id: input.id,
-        userId: ctx.user?.id,
+        userId: ctx.user.id,
       });
 
       if (documents.length === 0) {
-        throw new Error('Document not found');
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      return documents;
+    }),
+
+  getPublicDocuments: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const documents = await getPublicDocumentsById({ id: input.id });
+
+      if (documents.length === 0) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Public document not found',
+        });
       }
 
       return documents;
@@ -52,6 +72,6 @@ export const documentRouter = createTRPCRouter({
         messageId: lastDocument.messageId,
       });
 
-      return document;
+      return {success: true};
     }),
 });

@@ -11,8 +11,13 @@ interface ReadDocumentProps {
 
 export const readDocument = ({ session, dataStream }: ReadDocumentProps) =>
   tool({
-    description:
-      'Read the content of a document that has been created in the conversation.',
+    description: `Read the contents of a document created earlier in this chat.
+
+Usage:
+- Retrieve document text for follow-up analysis or questions
+
+Avoid:
+- Documents that were not produced in the current conversation`,
     parameters: z.object({
       id: z.string().describe('The ID of the document to read'),
     }),

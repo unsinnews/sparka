@@ -1,9 +1,8 @@
-import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
 import { auth } from '@/app/(auth)/auth';
-import { BLOB_FILE_PREFIX } from '@/lib/constants';
+import { uploadFile, extractFilenameFromUrl } from '@/lib/blob';
 
 // Use Blob instead of File since File is not available in Node.js environment
 const FileSchema = z.object({
@@ -56,12 +55,15 @@ export async function POST(request: Request) {
     const fileBuffer = await file.arrayBuffer();
 
     try {
-      const data = await put(`${BLOB_FILE_PREFIX}${filename}`, fileBuffer, {
-        access: 'public',
-        addRandomSuffix: true,
-      });
+      const data = await uploadFile(filename, fileBuffer);
 
-      return NextResponse.json(data);
+      // Remove prefix from pathname in response
+      const cleanFilename = extractFilenameFromUrl(data.pathname);
+
+      return NextResponse.json({
+        ...data,
+        pathname: cleanFilename || filename,
+      });
     } catch (error) {
       return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
     }

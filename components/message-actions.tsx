@@ -11,14 +11,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './ui/tooltip';
-import { memo } from 'react';
-import equal from 'fast-deep-equal';
 import { toast } from 'sonner';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMessageTree } from '@/providers/message-tree-provider';
+import type { UseChatHelpers } from '@ai-sdk/react';
+import { RetryButton } from './retry-button';
+import { memo } from 'react';
+import equal from 'fast-deep-equal';
 
 export function PureMessageActions({
   chatId,
@@ -26,12 +28,14 @@ export function PureMessageActions({
   vote,
   isLoading,
   isReadOnly,
+  chatHelpers,
 }: {
   chatId: string;
   message: Message;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
+  chatHelpers?: UseChatHelpers;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -87,6 +91,15 @@ export function PureMessageActions({
           </TooltipTrigger>
           <TooltipContent>Copy</TooltipContent>
         </Tooltip>
+
+        {message.role === 'assistant' && !isReadOnly && chatHelpers && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <RetryButton message={message} chatHelpers={chatHelpers} />
+            </TooltipTrigger>
+            <TooltipContent>Retry</TooltipContent>
+          </Tooltip>
+        )}
 
         {hasSiblings && (
           <div className="flex gap-1 items-center justify-center">

@@ -29,48 +29,53 @@ interface MessageTreeContextType {
   registerSetMessages: (
     setMessages: (messages: YourUIMessage[]) => void,
   ) => void;
+  getLastMessageId: () => string | null;
+  setLastMessageId: (messageId: string | null) => void;
+  getParentMessage: (messageId: string) => YourUIMessage | null;
 }
 
 const MessageTreeContext = createContext<MessageTreeContextType | undefined>(
   undefined,
 );
 
-type QueryType = 'private' | 'public';
-
 interface MessageTreeProviderProps {
   children: React.ReactNode;
-  queryType?: QueryType;
 }
 
-export function MessageTreeProvider({
-  children,
-  queryType = 'private',
-}: MessageTreeProviderProps) {
-  const { chatId, sharedChatId } = useChatId();
+export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
+  const { chatId, sharedChatId, isShared } = useChatId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [allMessages, setAllMessages] = useState<YourUIMessage[]>([]);
   const setMessagesRef = useRef<((messages: YourUIMessage[]) => void) | null>(
     null,
   );
+  const lastMessageIdRef = useRef<string | null>(null);
 
-  // Select the appropriate chat ID based on query type
-  const effectiveChatId = queryType === 'public' ? sharedChatId : chatId;
+  // Select the appropriate chat ID based on isShared flag
+  const effectiveChatId = isShared ? sharedChatId : chatId;
 
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
-    if (!effectiveChatId) return;
+    if (!effectiveChatId) {
+      // New chat
+      setAllMessages([]);
+      lastMessageIdRef.current = null;
+      return;
+    }
 
-    const queryKey =
-      queryType === 'public'
-        ? trpc.chat.getPublicChatMessages.queryKey({ chatId: effectiveChatId })
-        : trpc.chat.getMessagesByChatId.queryKey({ chatId: effectiveChatId });
+    const queryKey = isShared
+      ? trpc.chat.getPublicChatMessages.queryKey({ chatId: effectiveChatId })
+      : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
 
     // Get initial data
     const initialData = queryClient.getQueryData<YourUIMessage[]>(queryKey);
     if (initialData) {
       console.log('initialData', initialData);
       setAllMessages(initialData);
+      // Initialize lastMessageId with the last message of the initial data
+      const lastMessage = initialData[initialData.length - 1];
+      lastMessageIdRef.current = lastMessage?.id || null;
     }
 
     // Subscribe to cache changes
@@ -78,14 +83,23 @@ export function MessageTreeProvider({
       // Check if this event is for our specific query
       if (event.type === 'updated' && event.query.queryKey) {
         const eventQueryKey = event.query.queryKey;
-        const ourQueryKey = queryKey;
+
+        // Get current query key to avoid stale closure issues
+        const currentQueryKey = isShared
+          ? trpc.chat.getPublicChatMessages.queryKey({
+              chatId: effectiveChatId,
+            })
+          : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
 
         // Compare query keys (simple deep comparison for this case)
-        if (JSON.stringify(eventQueryKey) === JSON.stringify(ourQueryKey)) {
+        if (JSON.stringify(eventQueryKey) === JSON.stringify(currentQueryKey)) {
           console.log('event.query.state.data', event.query.state.data);
           const newData = event.query.state.data as YourUIMessage[] | undefined;
           if (newData) {
             setAllMessages(newData);
+            // Update lastMessageId when data changes
+            const lastMessage = newData[newData.length - 1];
+            lastMessageIdRef.current = lastMessage?.id || null;
           }
         }
       }
@@ -94,18 +108,31 @@ export function MessageTreeProvider({
     return unsubscribe;
   }, [
     effectiveChatId,
-    queryType,
-    trpc.chat.getMessagesByChatId,
+    isShared,
+    trpc.chat.getChatMessages,
     trpc.chat.getPublicChatMessages,
     queryClient,
   ]);
 
   const registerSetMessages = useCallback(
     (setMessages: (messages: YourUIMessage[]) => void) => {
-      setMessagesRef.current = setMessages;
+      setMessagesRef.current = (messages: YourUIMessage[]) => {
+        // Update lastMessageId to track the head of the active thread
+        const lastMessage = messages[messages.length - 1];
+        lastMessageIdRef.current = lastMessage?.id || null;
+        setMessages(messages);
+      };
     },
     [],
   );
+
+  const getLastMessageId = useCallback(() => {
+    return lastMessageIdRef.current;
+  }, []);
+
+  const setLastMessageId = useCallback((messageId: string | null) => {
+    lastMessageIdRef.current = messageId;
+  }, []);
 
   // Build parent->children mapping once
   const childrenMap = useMemo(() => {
@@ -172,8 +199,30 @@ export function MessageTreeProvider({
         leaf ? leaf.id : targetSibling.id,
       );
       setMessagesRef.current(newThread);
+      setLastMessageId(newThread[newThread.length - 1]?.id || null);
     },
-    [allMessages, getMessageSiblingInfo, childrenMap, effectiveChatId],
+    [
+      allMessages,
+      getMessageSiblingInfo,
+      childrenMap,
+      effectiveChatId,
+      setLastMessageId,
+    ],
+  );
+
+  const getParentMessage = useCallback(
+    (messageId: string): YourUIMessage | null => {
+      if (!allMessages) return null;
+      const message = allMessages.find((m) => m.id === messageId);
+      if (!message) return null;
+
+      const parentId = message.parentMessageId;
+      if (!parentId) return null;
+
+      const parentMessage = allMessages.find((m) => m.id === parentId);
+      return parentMessage ?? null;
+    },
+    [allMessages],
   );
 
   const value = useMemo(
@@ -181,8 +230,18 @@ export function MessageTreeProvider({
       getMessageSiblingInfo,
       navigateToSibling,
       registerSetMessages,
+      getLastMessageId,
+      setLastMessageId,
+      getParentMessage,
     }),
-    [getMessageSiblingInfo, navigateToSibling, registerSetMessages],
+    [
+      getMessageSiblingInfo,
+      navigateToSibling,
+      registerSetMessages,
+      getLastMessageId,
+      setLastMessageId,
+      getParentMessage,
+    ],
   );
 
   return (

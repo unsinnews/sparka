@@ -1,13 +1,56 @@
-import Link from 'next/link';
 import React, { memo } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { CodeBlock } from './code-block';
 import { cn } from '@/lib/utils';
+import { ButtonCopy } from '@/components/common/button-copy';
+import {
+  CodeBlock,
+  CodeBlockCode,
+  CodeBlockGroup,
+} from '@/components/prompt-kit/code-block';
+import { LinkMarkdown } from '@/components/chat/link-markdown';
+
+function extractLanguage(className?: string): string {
+  if (!className) return 'plaintext';
+  const match = className.match(/language-(\w+)/);
+  return match ? match[1] : 'plaintext';
+}
 
 const components: Partial<Components> = {
-  // @ts-expect-error
-  code: CodeBlock,
+  code: function CodeComponent({ className, children, ...props }) {
+    const isInline =
+      !props.node?.position?.start.line ||
+      props.node?.position?.start.line === props.node?.position?.end.line;
+
+    if (isInline) {
+      return (
+        <span
+          className={cn('bg-card rounded-sm px-1 font-mono text-sm', className)}
+          {...props}
+        >
+          {children}
+        </span>
+      );
+    }
+
+    const language = extractLanguage(className);
+
+    return (
+      <CodeBlock className={className}>
+        <CodeBlockGroup className="flex h-9 items-center justify-between px-4">
+          <div className="text-muted-foreground py-1 pr-2 font-mono text-xs">
+            {language}
+          </div>
+        </CodeBlockGroup>
+        <div className="sticky top-16 lg:top-0">
+          <div className="absolute right-0 bottom-0 flex h-9 items-center pr-1.5">
+            <ButtonCopy code={children as string} />
+          </div>
+        </div>
+        <CodeBlockCode code={children as string} language={language} />
+      </CodeBlock>
+    );
+  },
   pre: ({ children }) => <>{children}</>,
   ol: ({ node, children, ...props }) => {
     return (
@@ -39,15 +82,9 @@ const components: Partial<Components> = {
   },
   a: ({ node, children, ...props }) => {
     return (
-      // @ts-expect-error
-      <Link
-        className="text-blue-500 hover:underline"
-        target="_blank"
-        rel="noreferrer"
-        {...props}
-      >
+      <LinkMarkdown href={props.href || '#'} {...props}>
         {children}
-      </Link>
+      </LinkMarkdown>
     );
   },
   h1: ({ node, children, ...props }) => {

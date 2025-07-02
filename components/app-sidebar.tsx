@@ -2,10 +2,12 @@
 
 import type { User } from 'next-auth';
 import { LogIn } from 'lucide-react';
+import Image from 'next/image';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
+import { SearchChatsButton } from '@/components/search-chats';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -21,11 +23,13 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Link, useNavigate } from 'react-router';
 import { useRouter } from 'next/navigation';
+import { useChatId } from '@/providers/chat-id-provider';
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const navigate = useNavigate();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
+  const { refreshChatID } = useChatId();
 
   return (
     <Sidebar className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen">
@@ -39,8 +43,15 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               }}
               className="flex flex-row gap-3 items-center"
             >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer">
-                Sparka ✨
+              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer flex items-center gap-2">
+                <Image
+                  src="/icon.svg"
+                  alt="Sparka AI"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
+                Sparka
               </span>
             </Link>
             <Tooltip>
@@ -51,6 +62,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   className="p-2 h-fit"
                   onClick={() => {
                     setOpenMobile(false);
+                    refreshChatID();
                     navigate('/');
                   }}
                 >
@@ -60,6 +72,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               <TooltipContent align="end">New Chat</TooltipContent>
             </Tooltip>
           </div>
+
+          <SidebarMenuItem className="mt-4">
+            <SearchChatsButton />
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <ScrollArea className="h-full">

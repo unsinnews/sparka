@@ -25,14 +25,14 @@ import {
 import { generateTitleFromUserMessage } from '../../actions';
 import type { YourToolName } from '@/lib/ai/tools/tools';
 import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
-import { getTools, toolsDefinitions } from '@/lib/ai/tools/tools';
+import { getTools, toolsDefinitions, allTools } from '@/lib/ai/tools/tools';
 import type { YourUIMessage } from '@/lib/types/ui';
 import type { NextRequest } from 'next/server';
 import {
-  determineStepTools as determineStepActiveTools,
+  filterAffordableTools,
   getBaseModelCost,
 } from '@/lib/credits/credits-utils';
-import { getModelProvider, getModelProviderOptions } from '@/lib/ai/providers';
+import { getLanguageModel, getModelProviderOptions } from '@/lib/ai/providers';
 import {
   reserveCreditsWithCleanup,
   type CreditReservation,
@@ -48,13 +48,24 @@ import {
   getAnonymousSession,
   createAnonymousSession,
   setAnonymousSession,
-} from '@/lib/anonymous-session';
+} from '@/lib/anonymous-session-server';
 import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 
 export const maxDuration = 60;
+
+function filterReasoningParts<T extends { parts: any[] }>(messages: T[]): T[] {
+  return messages.map((message) => ({
+    ...message,
+    parts: message.parts.filter((part) => {
+      // Filter out reasoning parts to prevent cross-model compatibility issues
+      // https://github.com/vercel/ai/discussions/5480
+      return part.type !== 'reasoning';
+    }),
+  }));
+}
 
 async function getCreditReservation(userId: string, baseModelCost: number) {
   const reservedCredits = await reserveCreditsWithCleanup(
@@ -98,6 +109,8 @@ export type ChatRequestToolsConfig = {
   deepResearch: boolean;
   reason: boolean;
   webSearch: boolean;
+  generateImage: boolean;
+  writeOrCode: boolean;
 };
 export type ChatRequestData = ChatRequestToolsConfig & {
   parentMessageId: string | null;
@@ -278,19 +291,23 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      anonymousSession =
-        (await getAnonymousSession()) || createAnonymousSession();
+      anonymousSession = await getAnonymousSession();
+      if (!anonymousSession) {
+        anonymousSession = await createAnonymousSession();
+      }
 
       // Check message limits
-      if (anonymousSession.messageCount >= ANONYMOUS_LIMITS.MAX_MESSAGES) {
+      if (anonymousSession.remainingCredits <= 0) {
         console.log(
           'RESPONSE > POST /api/chat: Anonymous message limit reached',
         );
         return new Response(
           JSON.stringify({
-            error: 'Message limit reached',
+            error: `You've used all ${ANONYMOUS_LIMITS.CREDITS} free messages. Sign up to continue chatting with unlimited access!`,
             type: 'ANONYMOUS_LIMIT_EXCEEDED',
-            maxMessages: ANONYMOUS_LIMITS.MAX_MESSAGES,
+            maxMessages: ANONYMOUS_LIMITS.CREDITS,
+            suggestion:
+              'Create an account to get unlimited messages and access to more AI models',
           }),
           {
             status: 402,
@@ -328,6 +345,8 @@ export async function POST(request: NextRequest) {
     const deepResearch = data.deepResearch;
     const webSearch = data.webSearch;
     const reason = data.reason;
+    const generateImage = data.generateImage;
+    const writeOrCode = data.writeOrCode;
 
     let modelDefinition: ModelDefinition;
     try {
@@ -396,11 +415,13 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    let explicitlyRequestedTool: YourToolName | null = null;
-    // if (deepResearch) explicitlyRequestedTool = 'deepResearch';
-    // // else if (reason) explicitlyRequestedTool = 'reasonSearch';
-    // else
-    if (webSearch) explicitlyRequestedTool = 'webSearch';
+    let explicitlyRequestedTools: YourToolName[] | null = null;
+    if (deepResearch) explicitlyRequestedTools = ['deepResearch'];
+    // else if (reason) explicitlyRequestedTool = 'reasonSearch';
+    else if (webSearch) explicitlyRequestedTools = ['webSearch'];
+    else if (generateImage) explicitlyRequestedTools = ['generateImage'];
+    else if (writeOrCode)
+      explicitlyRequestedTools = ['createDocument', 'updateDocument'];
 
     const baseModelCost = getBaseModelCost(selectedChatModel);
 
@@ -423,43 +444,81 @@ export async function POST(request: NextRequest) {
       reservation = res;
     } else if (anonymousSession) {
       // Increment message count and update session
-      anonymousSession.messageCount++;
+      anonymousSession.remainingCredits -= baseModelCost;
       await setAnonymousSession(anonymousSession);
     }
 
-    const activeTools = isAnonymous
-      ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS
-      : reservation
-        ? determineStepActiveTools({
-            toolBudget: reservation.budget - baseModelCost,
-          })
-        : [];
+    const activeTools = filterAffordableTools(
+      isAnonymous ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS : allTools,
+      isAnonymous
+        ? ANONYMOUS_LIMITS.CREDITS
+        : reservation
+          ? reservation.budget - baseModelCost
+          : 0,
+    );
 
     if (
-      explicitlyRequestedTool &&
-      !activeTools.includes(explicitlyRequestedTool)
+      explicitlyRequestedTools &&
+      explicitlyRequestedTools.length > 0 &&
+      !activeTools.some((tool) => explicitlyRequestedTools.includes(tool))
     ) {
       console.log(
         'RESPONSE > POST /api/chat: Insufficient budget for requested tool:',
-        explicitlyRequestedTool,
+        explicitlyRequestedTools,
       );
       return new Response(
-        `Insufficient budget for requested tool: ${explicitlyRequestedTool}.`,
+        `Insufficient budget for requested tool: ${explicitlyRequestedTools}.`,
         {
           status: 402,
         },
       );
-    } else if (explicitlyRequestedTool) {
+    } else if (
+      explicitlyRequestedTools &&
+      explicitlyRequestedTools.length > 0
+    ) {
       // Add context of user selection to the user message
       // TODO: Consider doing this in the system prompt instead
       if (userMessage.parts[0].type === 'text') {
-        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTool})`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTool})`;
+        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTools.join(', or ')})`;
+        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTools.join(', or ')})`;
       }
     }
 
+    // Filter out reasoning parts to ensure compatibility between different models
+    const messagesWithoutReasoning = filterReasoningParts(messages.slice(-5));
+
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
-    const contextForLLM = convertToCoreMessages(messages.slice(-5));
+    const contextForLLM = convertToCoreMessages(messagesWithoutReasoning);
+
+    // Extract the last generated image for use as reference (only from the immediately previous message)
+    let lastGeneratedImage: { imageUrl: string; name: string } | null = null;
+
+    // Find the last assistant message (should be the one right before the current user message)
+    const lastAssistantMessage = messages.findLast(
+      (message) => message.role === 'assistant',
+    );
+
+    if (lastAssistantMessage?.parts && lastAssistantMessage?.parts.length > 0) {
+      for (const part of lastAssistantMessage.parts) {
+        if (part.type !== 'tool-invocation') {
+          continue;
+        }
+
+        const invocation = part.toolInvocation;
+
+        if (
+          invocation.toolName === 'generateImage' &&
+          invocation.state === 'result' &&
+          invocation.result?.imageUrl
+        ) {
+          lastGeneratedImage = {
+            imageUrl: invocation.result.imageUrl,
+            name: `generated-image-${invocation.toolCallId}.png`,
+          };
+          break;
+        }
+      }
+    }
 
     // Create AbortController with 55s timeout for credit cleanup
     const abortController = new AbortController();
@@ -468,7 +527,7 @@ export async function POST(request: NextRequest) {
         await reservation.cleanup();
       }
       abortController.abort();
-    }, 55000); // 55 seconds
+    }, 290000); // 290 seconds
 
     // Ensure cleanup on any unhandled errors
     try {
@@ -511,8 +570,8 @@ export async function POST(request: NextRequest) {
           const annotationStream = new AnnotationDataStreamWriter(dataStream);
 
           const result = streamText({
-            model: getModelProvider(selectedChatModel),
-            system: systemPrompt({ activeTools }),
+            model: getLanguageModel(selectedChatModel as any),
+            system: systemPrompt(),
             messages: contextForLLM,
             maxSteps: 5,
             experimental_activeTools: activeTools,
@@ -532,6 +591,9 @@ export async function POST(request: NextRequest) {
               },
               contextForLLM,
               messageId,
+              selectedModel: selectedChatModel,
+              userAttachments: userMessage.experimental_attachments || [],
+              lastGeneratedImage,
             }),
             abortSignal: abortController.signal, // Pass abort signal to streamText
             ...(modelDefinition.features?.fixedTemperature
@@ -542,7 +604,14 @@ export async function POST(request: NextRequest) {
 
             providerOptions: getModelProviderOptions(selectedChatModel),
 
-            onFinish: async ({ response, toolResults, toolCalls, steps }) => {
+            onFinish: async ({
+              response,
+              finishReason,
+              toolResults,
+              toolCalls,
+              steps,
+              warnings,
+            }) => {
               // Clear timeout since we finished successfully
               clearTimeout(timeoutId);
 
@@ -627,7 +696,7 @@ export async function POST(request: NextRequest) {
             reservation.cleanup();
           }
           if (anonymousSession) {
-            anonymousSession.messageCount--;
+            anonymousSession.remainingCredits += baseModelCost;
             setAnonymousSession(anonymousSession);
           }
           return 'Oops, an error occured!';
@@ -676,7 +745,7 @@ export async function POST(request: NextRequest) {
         await reservation.cleanup();
       }
       if (anonymousSession) {
-        anonymousSession.messageCount--;
+        anonymousSession.remainingCredits += baseModelCost;
         setAnonymousSession(anonymousSession);
       }
       throw error;

@@ -28,6 +28,8 @@ import {
 import { ReadDocument } from './read-document';
 import { AttachmentList } from './attachment-list';
 import { Skeleton } from './ui/skeleton';
+import { ImageModal } from './image-modal';
+import { GeneratedImage } from './generated-image';
 
 const PurePreviewMessage = ({
   chatId,
@@ -36,9 +38,7 @@ const PurePreviewMessage = ({
   isLoading,
   isReadonly,
   chatHelpers,
-  selectedModelId,
   lastArtifact,
-  onModelChange,
   parentMessageId,
 }: {
   chatId: string;
@@ -47,12 +47,19 @@ const PurePreviewMessage = ({
   isLoading: boolean;
   isReadonly: boolean;
   chatHelpers: UseChatHelpers;
-  selectedModelId: string;
   lastArtifact: { messageIndex: number; toolCallId: string } | null;
-  onModelChange?: (modelId: string) => void;
   parentMessageId: string | null;
 }) => {
   const [mode, setMode] = useState<'view' | 'edit'>('view');
+  const [imageModal, setImageModal] = useState<{
+    isOpen: boolean;
+    imageUrl: string;
+    imageName?: string;
+  }>({
+    isOpen: false,
+    imageUrl: '',
+    imageName: undefined,
+  });
 
   // Helper function to check if this is the last artifact
   const isLastArtifact = (currentToolCallId: string) => {
@@ -67,6 +74,22 @@ const PurePreviewMessage = ({
       lastArtifact.messageIndex === currentMessageIndex &&
       lastArtifact.toolCallId === currentToolCallId
     );
+  };
+
+  const handleImageClick = (imageUrl: string, imageName?: string) => {
+    setImageModal({
+      isOpen: true,
+      imageUrl,
+      imageName,
+    });
+  };
+
+  const handleImageModalClose = () => {
+    setImageModal({
+      isOpen: false,
+      imageUrl: '',
+      imageName: undefined,
+    });
   };
 
   return (
@@ -149,9 +172,14 @@ const PurePreviewMessage = ({
                                   attachments={
                                     message.experimental_attachments || []
                                   }
+                                  onImageClick={handleImageClick}
                                   testId="message-attachments"
                                 />
-                                <Markdown>{part.text}</Markdown>
+                                {/* User message renndering withotu Markdown */}
+
+                                <pre className="whitespace-pre-wrap font-sans">
+                                  {part.text}
+                                </pre>
                               </div>
                             </button>
                           </TooltipTrigger>
@@ -167,9 +195,16 @@ const PurePreviewMessage = ({
                         >
                           <AttachmentList
                             attachments={message.experimental_attachments || []}
+                            onImageClick={handleImageClick}
                             testId="message-attachments"
                           />
-                          <Markdown>{part.text}</Markdown>
+                          {message.role === 'assistant' ? (
+                            <Markdown>{part.text}</Markdown>
+                          ) : (
+                            <pre className="whitespace-pre-wrap font-sans ">
+                              {part.text}
+                            </pre>
+                          )}
                         </div>
                       )}
                     </div>
@@ -185,8 +220,6 @@ const PurePreviewMessage = ({
                         message={message}
                         setMode={setMode}
                         chatHelpers={chatHelpers}
-                        selectedModelId={selectedModelId}
-                        onModelChange={onModelChange}
                         parentMessageId={parentMessageId}
                       />
                     </div>
@@ -213,7 +246,11 @@ const PurePreviewMessage = ({
                       {toolName === 'getWeather' ? (
                         <Weather />
                       ) : toolName === 'createDocument' ? (
-                        <DocumentPreview isReadonly={isReadonly} args={args} />
+                        <DocumentPreview
+                          isReadonly={isReadonly}
+                          args={args}
+                          messageId={message.id}
+                        />
                       ) : toolName === 'updateDocument' ? (
                         <DocumentToolCall
                           type="update"
@@ -234,9 +271,11 @@ const PurePreviewMessage = ({
                         <StockChartMessage result={null} args={args} />
                       ) : toolName === 'codeInterpreter' ? (
                         <CodeInterpreterMessage result={null} args={args} />
-                      ) : // toolName !== 'deepResearch' &&
-                      // toolName !== 'reasonSearch' &&
-                      toolName !== 'webSearch' ? (
+                      ) : toolName === 'generateImage' ? (
+                        <GeneratedImage args={args} isLoading={true} />
+                      ) : toolName !== 'deepResearch' &&
+                        // toolName !== 'reasonSearch' &&
+                        toolName !== 'webSearch' ? (
                         <pre>{JSON.stringify(toolInvocation, null, 2)}</pre>
                       ) : null}
                     </div>
@@ -251,28 +290,42 @@ const PurePreviewMessage = ({
                     <div key={toolCallId}>
                       {toolName === 'getWeather' ? (
                         <Weather weatherAtLocation={result} />
-                      ) : toolName === 'createDocument' &&
-                        //  ||   toolName === 'deepResearch'
+                      ) : (toolName === 'createDocument' ||
+                          toolName === 'deepResearch') &&
                         shouldShowFullPreview ? (
                         <DocumentPreview
                           isReadonly={isReadonly}
                           result={result}
                           args={args}
+                          messageId={message.id}
+                          type="create"
                         />
-                      ) : toolName === 'createDocument' ? (
-                        //  ||  toolName === 'deepResearch'
+                      ) : toolName === 'createDocument' ||
+                        toolName === 'deepResearch' ? (
                         <DocumentToolResult
                           type="create"
                           // @ts-expect-error // TODO: fix this
                           result={result}
                           isReadonly={isReadonly}
+                          messageId={message.id}
                         />
-                      ) : toolName === 'updateDocument' ? (
+                      ) : toolName === 'updateDocument' &&
+                        shouldShowFullPreview ? (
+                        <DocumentPreview
+                          isReadonly={isReadonly}
+                          result={result}
+                          args={args}
+                          messageId={message.id}
+                          type="update"
+                        />
+                      ) : toolName === 'updateDocument' &&
+                        !shouldShowFullPreview ? (
                         <DocumentToolResult
                           type="update"
                           // @ts-expect-error // TODO: fix this
                           result={result}
                           isReadonly={isReadonly}
+                          messageId={message.id}
                         />
                       ) : toolName === 'requestSuggestions' ? (
                         <DocumentToolResult
@@ -280,6 +333,7 @@ const PurePreviewMessage = ({
                           // @ts-expect-error // TODO: fix this
                           result={result}
                           isReadonly={isReadonly}
+                          messageId={message.id}
                         />
                       ) : toolName === 'retrieve' ? (
                         // @ts-expect-error // TODO: fix this
@@ -293,6 +347,8 @@ const PurePreviewMessage = ({
                       ) : toolName === 'codeInterpreter' ? (
                         // @ts-expect-error // TODO: fix this
                         <CodeInterpreterMessage result={result} args={args} />
+                      ) : toolName === 'generateImage' ? (
+                        <GeneratedImage result={result} args={args} />
                       ) : // toolName !== 'reasonSearch' &&
                       // toolName !== 'deepResearch' &&
                       toolName !== 'webSearch' ? (
@@ -316,9 +372,16 @@ const PurePreviewMessage = ({
               vote={vote}
               isLoading={isLoading}
               isReadOnly={isReadonly}
+              chatHelpers={chatHelpers}
             />
           </div>
         </div>
+        <ImageModal
+          isOpen={imageModal.isOpen}
+          onClose={handleImageModalClose}
+          imageUrl={imageModal.imageUrl}
+          imageName={imageModal.imageName}
+        />
       </motion.div>
     </AnimatePresence>
   );
@@ -334,9 +397,7 @@ export const PreviewMessage = memo(
     if (!equal(prevProps.message.annotations, nextProps.message.annotations))
       return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
-    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
     if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
-    if (prevProps.onModelChange !== nextProps.onModelChange) return false;
     if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
 
     return true;

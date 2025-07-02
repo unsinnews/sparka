@@ -186,43 +186,6 @@ export const allModels = [
     },
   },
   {
-    id: 'anthropic/claude-3.7-sonnet-reasoning',
-    name: 'Claude 3.7 Sonnet Reasoning',
-    enabled: true,
-    specification: {
-      specificationVersion: 'v2',
-      provider: 'anthropic',
-      modelId: 'anthropic/claude-3-7-sonnet-latest',
-      modelIdShort: 'claude-3-7-sonnet-latest',
-    },
-    pricing: {
-      inputMTok: 3,
-      outputMTok: 15,
-    },
-    shortDescription:
-      'High-performance model with toggleable extended thinking',
-    features: {
-      reasoning: true,
-      functionCalling: true,
-      contextWindow: {
-        input: 200000,
-        output: 64000,
-      },
-      knowledgeCutoff: new Date('2024-11-01'),
-      input: {
-        image: true,
-        text: true,
-        pdf: true,
-        audio: false,
-      },
-      output: {
-        image: false,
-        text: true,
-        audio: false,
-      },
-    },
-  },
-  {
     id: 'anthropic/claude-4-opus-20250514',
     name: 'Claude 4 Opus',
     enabled: true,
@@ -1726,6 +1689,43 @@ export const allModels = [
     },
   },
   {
+    id: 'openai/gpt-image-1',
+    name: 'GPT-Image-1',
+    enabled: true,
+    specification: {
+      specificationVersion: 'v2',
+      provider: 'openai',
+      modelId: 'openai/gpt-image-1',
+      modelIdShort: 'gpt-image-1',
+    },
+    pricing: {
+      inputMTok: 5.0, // Text input: $5.00 / 1M tokens, Image input: $10.00 / 1M tokens
+      outputMTok: 40.0, // Output image tokens: $40.00 / 1M tokens
+    },
+    shortDescription:
+      'Advanced image generation model with superior accuracy and diverse visual styles',
+    features: {
+      reasoning: false,
+      functionCalling: false,
+      contextWindow: {
+        input: 128000, // Estimated based on typical OpenAI models
+        output: 4096, // Image output tokens vary by quality/resolution
+      },
+      knowledgeCutoff: new Date('2025-04-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: true,
+        text: false,
+        audio: false,
+      },
+    },
+  },
+  {
     id: 'perplexity/sonar',
     name: 'Sonar',
     enabled: false,
@@ -2204,7 +2204,33 @@ export type ModelDefinition = ModelDefinitionInternal & {
   providerModelId: AvailableProviderModels;
 };
 
-export const allImplementedModels = allModels.filter((model) => model.enabled);
+// Preferred provider order
+const PROVIDER_ORDER = ['openai', 'google', 'anthropic', 'xai'] as const;
+
+export const allImplementedModels = allModels
+  .filter((model) => model.enabled)
+  .sort((a, b) => {
+    const aProviderIndex = PROVIDER_ORDER.indexOf(
+      a.specification.provider as any,
+    );
+    const bProviderIndex = PROVIDER_ORDER.indexOf(
+      b.specification.provider as any,
+    );
+
+    // If provider is not in the preferred list, put it at the end
+    const aIndex =
+      aProviderIndex === -1 ? PROVIDER_ORDER.length : aProviderIndex;
+    const bIndex =
+      bProviderIndex === -1 ? PROVIDER_ORDER.length : bProviderIndex;
+
+    // Sort by provider order first
+    if (aIndex !== bIndex) {
+      return aIndex - bIndex;
+    }
+
+    // Within same provider, maintain original order from allModels array
+    return 0;
+  });
 
 // Memoized dictionary of models by ID for efficient lookups
 const _modelsByIdCache = new Map<string, ModelDefinitionInternal>();
@@ -2231,4 +2257,7 @@ export function getModelDefinition(
 
 export const DEFAULT_CHAT_MODEL: string = 'openai/gpt-4o-mini';
 export const DEFAULT_PDF_MODEL: string = 'openai/gpt-4o-mini';
-export const DEFAULT_IMAGE_MODEL: string = 'openai/gpt-4o-mini';
+export const DEFAULT_IMAGE_MODEL: string = 'openai/gpt-image-1';
+export const DEFAULT_TITLE_MODEL: string = 'openai/gpt-4o-mini';
+export const DEFAULT_ARTIFACT_MODEL: string = 'openai/gpt-4.1-nano';
+export const DEFAULT_ARTIFACT_SUGGESTION_MODEL: string = 'openai/gpt-4o-mini';

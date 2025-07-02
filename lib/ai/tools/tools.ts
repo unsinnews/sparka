@@ -8,21 +8,31 @@ import { webSearch } from '@/lib/ai/tools/web-search';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
+import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
+import { generateImageTool } from '@/lib/ai/tools/generate-image';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { CoreMessage } from 'ai';
+import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { Attachment } from 'ai';
 
 export function getTools({
   dataStream,
   session,
   contextForLLM,
   messageId,
+  selectedModel,
+  userAttachments = [],
+  lastGeneratedImage = null,
 }: {
   dataStream: AnnotationDataStreamWriter;
   session: Session;
   contextForLLM?: CoreMessage[];
   messageId: string;
+  selectedModel: AvailableProviderModels;
+  userAttachments?: Array<Attachment>;
+  lastGeneratedImage?: { imageUrl: string; name: string } | null;
 }) {
   return {
     getWeather,
@@ -31,11 +41,13 @@ export function getTools({
       dataStream,
       contextForLLM,
       messageId,
+      selectedModel,
     }),
     updateDocument: updateDocument({
       session,
       dataStream,
       messageId,
+      selectedModel,
     }),
     requestSuggestions: requestSuggestions({
       session,
@@ -53,7 +65,8 @@ export function getTools({
     webSearch: webSearch({ session, dataStream }),
     stockChart,
     codeInterpreter,
-    // deepResearch: deepResearch({ session, dataStream, messageId }),
+    generateImage: generateImageTool({ userAttachments, lastGeneratedImage }),
+    deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }
 
@@ -144,11 +157,16 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
     description: 'Interpret code in a virtual environment',
     cost: 10,
   },
-  // deepResearch: {
-  //   name: 'deepResearch',
-  //   description: 'Research a topic',
-  //   cost: 50,
-  // },
+  generateImage: {
+    name: 'generateImage',
+    description: 'Generate images from text descriptions',
+    cost: 5,
+  },
+  deepResearch: {
+    name: 'deepResearch',
+    description: 'Research a topic',
+    cost: 50,
+  },
 };
 
 export const allTools: YourToolName[] = Object.keys(

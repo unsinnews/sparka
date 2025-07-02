@@ -1,15 +1,6 @@
-import type { Attachment } from 'ai';
 import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'motion/react';
-import {
-  type Dispatch,
-  memo,
-  type SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
 import type { Document, Vote } from '@/lib/db/schema';
 import { MultimodalInput } from './multimodal-input';
@@ -21,7 +12,6 @@ import { ArtifactMessages } from './artifact-messages';
 import { useSidebar } from './ui/sidebar';
 import { ScrollArea } from './ui/scroll-area';
 import { useArtifact } from '@/hooks/use-artifact';
-import { imageArtifact } from '@/artifacts/image/client';
 import { codeArtifact } from '@/artifacts/code/client';
 import { sheetArtifact } from '@/artifacts/sheet/client';
 import { textArtifact } from '@/artifacts/text/client';
@@ -29,16 +19,12 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
 import { useTRPC } from '@/trpc/react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
+import { useQueryClient } from '@tanstack/react-query';
+import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
 import { CloneChatButton } from '@/components/clone-chat-button';
+import { useMessageTree } from '@/providers/message-tree-provider';
 
-export const artifactDefinitions = [
-  textArtifact,
-  codeArtifact,
-  imageArtifact,
-  sheetArtifact,
-];
+export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
 export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
 
 export interface UIArtifact {
@@ -59,51 +45,31 @@ export interface UIArtifact {
 
 function PureArtifact({
   chatId,
-  data,
-  setData,
-  attachments,
-  setAttachments,
-  messages,
   chatHelpers,
+  messages,
   votes,
   isReadonly,
-  selectedModelId,
-  onModelChange,
 }: {
   chatId: string;
-
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<YourUIMessage>;
   votes: Array<Vote> | undefined;
-
-  data: ChatRequestToolsConfig;
-  setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
   const queryClient = useQueryClient();
   const trpc = useTRPC();
 
-  const { data: documents, isLoading: isDocumentsFetching } = useQuery(
-    trpc.document.getDocuments.queryOptions(
-      {
-        id: artifact.documentId,
-      },
-      {
-        enabled:
-          artifact.documentId !== 'init' && artifact.status !== 'streaming',
-      },
-    ),
+  const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
+    artifact.documentId || '',
+    artifact.documentId === 'init' || artifact.status === 'streaming',
   );
 
   const [mode, setMode] = useState<'edit' | 'diff'>('edit');
   const [document, setDocument] = useState<Document | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
   const lastSavedContentRef = useRef<string>('');
+  const { getLastMessageId } = useMessageTree();
 
   const { open: isSidebarOpen } = useSidebar();
 
@@ -139,77 +105,14 @@ function PureArtifact({
 
   const [isContentDirty, setIsContentDirty] = useState(false);
 
-  const saveDocumentMutation = useMutation(
-    trpc.document.saveDocument.mutationOptions({
-      // When mutate is called:
-      onMutate: async (newDocument) => {
-        // Skip optimistic update if this isn't the latest save request
-        if (newDocument.content !== lastSavedContentRef.current) {
-          return;
-        }
-
-        // Cancel any outgoing refetches
-        // (so they don't overwrite our optimistic update)
-        await queryClient.cancelQueries({
-          queryKey: trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-        });
-
-        // Snapshot the previous value
-        const previousDocuments =
-          queryClient.getQueryData<Document[]>(
-            trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-          ) ?? [];
-
-        // Optimistically update to the new value
-        const lastDocument = previousDocuments.at(-1);
-        if (!lastDocument) {
-          return;
-        }
-        const optimisticData = [
-          ...previousDocuments,
-          {
-            ...lastDocument,
-            createdAt: new Date(),
-            content: newDocument.content,
-            title: newDocument.title,
-            kind: newDocument.kind,
-            messageId: artifact.messageId,
-          },
-        ];
-        queryClient.setQueryData(
-          trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-          optimisticData,
-        );
-
-        // Return a context with the previous and new todo
-        return { previousDocuments, newDocument };
+  const saveDocumentMutation = useSaveDocument(
+    artifact.documentId,
+    artifact.messageId,
+    {
+      onSettled: () => {
+        setIsContentDirty(false);
       },
-      // If the mutation fails, use the context we returned above
-      onError: (err, newDocument, context) => {
-        if (context?.previousDocuments) {
-          queryClient.setQueryData(
-            trpc.document.getDocuments.queryKey({ id: newDocument.id }),
-            context.previousDocuments,
-          );
-        }
-        // Only clear dirty flag if this was the latest save request
-        if (newDocument.content === lastSavedContentRef.current) {
-          setIsContentDirty(false);
-        }
-      },
-      // Always refetch after error or success:
-      onSettled: (result, error, params) => {
-        // Only invalidate and clear dirty flag if this was the latest save request
-        if (params.content === lastSavedContentRef.current) {
-          if (saveDocumentMutation.isIdle) {
-            queryClient.invalidateQueries({
-              queryKey: trpc.document.getDocuments.queryKey({ id: params.id }),
-            });
-          }
-          setIsContentDirty(false);
-        }
-      },
-    }),
+    },
   );
 
   const handleContentChange = useCallback(
@@ -223,6 +126,7 @@ function PureArtifact({
         lastDocument?.content !== updatedContent &&
         lastSavedContentRef.current === updatedContent
       ) {
+        setIsContentDirty(true);
         saveDocumentMutation.mutate({
           id: lastDocument.id,
           title: lastDocument.title,
@@ -382,9 +286,8 @@ function PureArtifact({
                 )}
               </AnimatePresence>
 
-              <div className="flex flex-col h-full justify-between items-center">
+              <div className="flex flex-col h-full justify-between items-center @container">
                 <ArtifactMessages
-                  data={data}
                   chatId={chatId}
                   status={chatHelpers.status}
                   votes={votes}
@@ -393,28 +296,19 @@ function PureArtifact({
                   isReadonly={isReadonly}
                   isVisible={true}
                   artifactStatus={artifact.status}
-                  selectedModelId={selectedModelId}
                 />
 
                 {!isReadonly ? (
-                  <form className="flex flex-row gap-2 relative items-end w-full px-4 pb-4">
+                  <form className="flex flex-row gap-2  relative items-end w-full  p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6">
                     <MultimodalInput
                       chatId={chatId}
-                      input={chatHelpers.input}
-                      setInput={chatHelpers.setInput}
-                      handleSubmit={chatHelpers.handleSubmit}
-                      data={data}
-                      setData={setData}
                       status={chatHelpers.status}
                       stop={chatHelpers.stop}
-                      attachments={attachments}
-                      setAttachments={setAttachments}
                       messages={messages}
                       append={chatHelpers.append}
                       className="bg-background dark:bg-muted"
                       setMessages={chatHelpers.setMessages}
-                      selectedModelId={selectedModelId}
-                      onModelChange={onModelChange}
+                      parentMessageId={getLastMessageId()}
                     />
                   </form>
                 ) : (
@@ -425,7 +319,7 @@ function PureArtifact({
           )}
 
           <motion.div
-            className="fixed dark:bg-muted bg-background h-dvh flex flex-col overflow-y-auto md:border-l dark:border-zinc-700 border-zinc-200"
+            className="fixed bg-background h-dvh flex flex-col overflow-y-auto md:border-l dark:border-zinc-700 border-zinc-200"
             initial={
               isMobile
                 ? {
@@ -530,8 +424,8 @@ function PureArtifact({
               />
             </div>
 
-            <ScrollArea className="dark:bg-muted h-full !max-w-full">
-              <div className="items-center  bg-background/80">
+            <ScrollArea className="h-full !max-w-full">
+              <div className="flex flex-col items-center bg-background/80">
                 <artifactDefinition.content
                   title={artifact.title}
                   content={
@@ -589,8 +483,6 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
-  if (prevProps.data !== nextProps.data) return false;
-  if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
 
   return true;

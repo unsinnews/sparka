@@ -23,6 +23,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ModelCard } from '@/components/model-card';
 import { cn } from '@/lib/utils';
@@ -33,8 +39,9 @@ import { Badge } from '@/components/ui/badge';
 import { getEnabledFeatures } from '@/lib/features-config';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
+import { AnthropicIcon, GoogleIcon, OpenAIIcon, XAIIcon } from './icons';
 
-import { ChevronUpIcon, FilterIcon } from 'lucide-react';
+import { ChevronUpIcon, FilterIcon, Building } from 'lucide-react';
 
 type FeatureFilter = Record<string, boolean>;
 
@@ -54,6 +61,73 @@ const getModelDefinitionCached = (modelId: string) => {
   }
   return modelDefinitionsCache.get(modelId);
 };
+
+function getProviderIcon(provider: string, size = 16) {
+  const iconProps = { size };
+  switch (provider) {
+    case 'openai':
+      return <OpenAIIcon {...iconProps} />;
+    case 'anthropic':
+      return <AnthropicIcon {...iconProps} />;
+    case 'xai':
+      return <XAIIcon {...iconProps} />;
+    case 'google':
+      return <GoogleIcon {...iconProps} />;
+    default:
+      return <Building className={`w-${size / 4} h-${size / 4}`} />;
+  }
+}
+
+function getFeatureIcons(modelDefinition: any) {
+  const features = modelDefinition.features;
+  if (!features) return [];
+
+  const icons: JSX.Element[] = [];
+
+  // Get enabled features for icon mapping
+  const enabledFeatures = getEnabledFeatures();
+
+  // Map features to icons
+  const featureIconMap = [
+    {
+      key: 'reasoning',
+      condition: features.reasoning,
+      config: enabledFeatures.find((f) => f.key === 'reasoning'),
+    },
+    {
+      key: 'functionCalling',
+      condition: features.functionCalling,
+      config: enabledFeatures.find((f) => f.key === 'functionCalling'),
+    },
+    {
+      key: 'imageInput',
+      condition: features.input?.image,
+      config: enabledFeatures.find((f) => f.key === 'imageInput'),
+    },
+    {
+      key: 'pdfInput',
+      condition: features.input?.pdf,
+      config: enabledFeatures.find((f) => f.key === 'pdfInput'),
+    },
+  ];
+
+  featureIconMap.forEach(({ condition, config }) => {
+    if (condition && config) {
+      const IconComponent = config.icon;
+      icons.push(
+        <div
+          key={config.key}
+          className="flex items-center"
+          title={config.description}
+        >
+          <IconComponent className="w-3 h-3 text-muted-foreground" />
+        </div>,
+      );
+    }
+  });
+
+  return icons;
+}
 
 export function PureModelSelector({
   selectedModelId,
@@ -239,53 +313,90 @@ export function PureModelSelector({
           </div>
         )}
         <CommandList
-          className="max-h-none min-h-[250px] flex justify-center items-center"
+          className="max-h-[400px]"
           onMouseDown={(event) => {
             event.stopPropagation();
           }}
         >
           <CommandEmpty>No model found.</CommandEmpty>
           <CommandGroup>
-            <div className="flex">
-              <ScrollArea className="max-h-[70vh]" type="scroll">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 p-2">
-                  {filteredModels.map((chatModel) => {
-                    const { id } = chatModel;
-                    const modelDefinition = getModelDefinitionCached(id);
-                    const disabled = modelAvailability.isModelDisabled(id);
+            <ScrollArea className="[&>[data-radix-scroll-area-viewport]]:max-h-[350px]">
+              <TooltipProvider delayDuration={300}>
+                {filteredModels.map((chatModel) => {
+                  const { id } = chatModel;
+                  const modelDefinition = getModelDefinitionCached(id);
+                  const disabled = modelAvailability.isModelDisabled(id);
+                  const provider = modelDefinition.specification.provider;
+                  const isSelected = id === optimisticModelId;
+                  const featureIcons = getFeatureIcons(modelDefinition);
 
-                    return (
-                      <CommandItem
-                        key={id}
-                        value={id}
-                        onSelect={(event) => {
-                          if (disabled) return; // Prevent selection of disabled models
+                  // Create searchable value combining model name and provider
+                  const searchValue =
+                    `${modelDefinition.name} ${provider}`.toLowerCase();
 
-                          startTransition(() => {
-                            setOptimisticModelId(id);
-                            onModelChange?.(id);
-                            setOpen(false);
-                          });
-                        }}
-                        className="p-0 h-auto"
+                  return (
+                    <Tooltip key={id}>
+                      <TooltipTrigger asChild>
+                        <div>
+                          <CommandItem
+                            value={searchValue}
+                            onSelect={(event) => {
+                              if (disabled) return; // Prevent selection of disabled models
+
+                              startTransition(() => {
+                                setOptimisticModelId(id);
+                                onModelChange?.(id);
+                                setOpen(false);
+                              });
+                            }}
+                            className={cn(
+                              'flex items-center justify-between px-3 py-1.5 cursor-pointer transition-all h-9',
+                              isSelected &&
+                                'bg-primary/10 border-l-2 border-l-primary',
+                              disabled && 'opacity-50 cursor-not-allowed',
+                            )}
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                              <div className="flex-shrink-0">
+                                {getProviderIcon(provider)}
+                              </div>
+                              <span className="font-medium text-sm truncate">
+                                {modelDefinition.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              {featureIcons.length > 0 && (
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  {featureIcons}
+                                </div>
+                              )}
+                            </div>
+                          </CommandItem>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="right"
+                        align="start"
+                        className="p-0"
+                        sideOffset={8}
                       >
                         <ModelCard
                           model={modelDefinition}
-                          isSelected={id === optimisticModelId}
+                          isSelected={isSelected}
                           isDisabled={disabled}
                           disabledReason={
                             disabled
                               ? 'Sign in to access this model'
                               : undefined
                           }
-                          className="h-full w-[250px]"
+                          className="w-[280px] shadow-lg border"
                         />
-                      </CommandItem>
-                    );
-                  })}
-                </div>
-              </ScrollArea>
-            </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  );
+                })}
+              </TooltipProvider>
+            </ScrollArea>
           </CommandGroup>
         </CommandList>
       </Command>
@@ -298,6 +409,7 @@ export function PureModelSelector({
     filteredModels,
     modelAvailability,
     optimisticModelId,
+    setOptimisticModelId,
     onModelChange,
     clearFilters,
   ]);
@@ -310,13 +422,13 @@ export function PureModelSelector({
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-fit justify-between md:px-2 md:h-[34px]', className)}
+          className={cn('w-fit md:px-2 md:h-[34px] gap-0', className)}
         >
-          {selectedChatModel?.name}
+          <p className="truncate">{selectedChatModel?.name}</p>
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="max-w-[700px] w-auto p-0" align="start">
+      <PopoverContent className="w-[350px] p-0" align="start">
         {popoverContent}
       </PopoverContent>
     </Popover>

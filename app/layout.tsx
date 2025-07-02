@@ -6,9 +6,9 @@ import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sparka.ai'),
-  title: 'Sparka AI - Unified AI Chat Platform',
+  title: 'Sparka AI - AI for everyone, from everyone',
   description:
-    'Access powerful AI models from multiple providers in one unified interface. Code execution, web search, document creation, and advanced reasoning capabilities.',
+    'Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the hassle',
 };
 
 export const viewport = {

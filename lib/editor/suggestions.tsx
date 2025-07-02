@@ -1,15 +1,17 @@
-import type { Node } from 'prosemirror-model';
-import { Plugin, PluginKey } from 'prosemirror-state';
 import {
-  type Decoration,
-  DecorationSet,
-  type EditorView,
-} from 'prosemirror-view';
-import { createRoot } from 'react-dom/client';
+  $isTextNode,
+  type LexicalNode,
+  type NodeKey,
+  $getSelection,
+  $isRangeSelection,
+  $isElementNode,
+} from 'lexical';
+import { DecoratorNode, $getRoot } from 'lexical';
 
 import { Suggestion as PreviewSuggestion } from '@/components/suggestion';
 import type { Suggestion } from '@/lib/db/schema';
 import type { ArtifactKind } from '@/components/artifact';
+import type { LexicalEditor } from 'lexical';
 
 export interface UISuggestion extends Suggestion {
   selectionStart: number;
@@ -21,35 +23,56 @@ interface Position {
   end: number;
 }
 
-function findPositionsInDoc(doc: Node, searchText: string): Position | null {
+function findPositionsInEditor(
+  editor: LexicalEditor,
+  searchText: string,
+): Position | null {
   let positions: { start: number; end: number } | null = null;
 
-  doc.nodesBetween(0, doc.content.size, (node, pos) => {
-    if (node.isText && node.text) {
-      const index = node.text.indexOf(searchText);
+  editor.getEditorState().read(() => {
+    const root = $getRoot();
+    let currentPos = 0;
 
-      if (index !== -1) {
-        positions = {
-          start: pos + index,
-          end: pos + index + searchText.length,
-        };
+    function traverse(node: LexicalNode) {
+      if ($isTextNode(node) && node.getTextContent().includes(searchText)) {
+        const text = node.getTextContent();
+        const index = text.indexOf(searchText);
 
-        return false;
+        if (index !== -1) {
+          positions = {
+            start: currentPos + index,
+            end: currentPos + index + searchText.length,
+          };
+          return;
+        }
+      }
+
+      if ($isTextNode(node)) {
+        currentPos += node.getTextContent().length;
+      }
+
+      // Only element nodes have children
+      if ($isElementNode(node)) {
+        const children = node.getChildren();
+        for (const child of children) {
+          traverse(child);
+          if (positions) return;
+        }
       }
     }
 
-    return true;
+    traverse(root);
   });
 
   return positions;
 }
 
 export function projectWithPositions(
-  doc: Node,
+  editor: LexicalEditor,
   suggestions: Array<Suggestion>,
 ): Array<UISuggestion> {
   return suggestions.map((suggestion) => {
-    const positions = findPositionsInDoc(doc, suggestion.originalText);
+    const positions = findPositionsInEditor(editor, suggestion.originalText);
 
     if (!positions) {
       return {
@@ -67,91 +90,110 @@ export function projectWithPositions(
   });
 }
 
-export function createSuggestionWidget(
-  suggestion: UISuggestion,
-  view: EditorView,
-  artifactKind: ArtifactKind = 'text',
-): { dom: HTMLElement; destroy: () => void } {
-  const dom = document.createElement('span');
-  const root = createRoot(dom);
+// Lexical Decorator Node for suggestions
+export class SuggestionNode extends DecoratorNode<React.ReactElement> {
+  __suggestion: UISuggestion;
+  __editor: LexicalEditor;
+  __artifactKind: ArtifactKind;
 
-  dom.addEventListener('mousedown', (event) => {
-    event.preventDefault();
-    view.dom.blur();
-  });
+  static getType(): string {
+    return 'suggestion';
+  }
 
-  const onApply = () => {
-    const { state, dispatch } = view;
-
-    const decorationTransaction = state.tr;
-    const currentState = suggestionsPluginKey.getState(state);
-    const currentDecorations = currentState?.decorations;
-
-    if (currentDecorations) {
-      const newDecorations = DecorationSet.create(
-        state.doc,
-        currentDecorations.find().filter((decoration: Decoration) => {
-          return decoration.spec.suggestionId !== suggestion.id;
-        }),
-      );
-
-      decorationTransaction.setMeta(suggestionsPluginKey, {
-        decorations: newDecorations,
-        selected: null,
-      });
-      dispatch(decorationTransaction);
-    }
-
-    const textTransaction = view.state.tr.replaceWith(
-      suggestion.selectionStart,
-      suggestion.selectionEnd,
-      state.schema.text(suggestion.suggestedText),
+  static clone(node: SuggestionNode): SuggestionNode {
+    return new SuggestionNode(
+      node.__suggestion,
+      node.__editor,
+      node.__artifactKind,
+      node.__key,
     );
+  }
 
-    textTransaction.setMeta('no-debounce', true);
+  constructor(
+    suggestion: UISuggestion,
+    editor: LexicalEditor,
+    artifactKind: ArtifactKind = 'text',
+    key?: NodeKey,
+  ) {
+    super(key);
+    this.__suggestion = suggestion;
+    this.__editor = editor;
+    this.__artifactKind = artifactKind;
+  }
 
-    dispatch(textTransaction);
-  };
+  createDOM(): HTMLElement {
+    const dom = document.createElement('span');
+    dom.className = 'suggestion-highlight';
+    return dom;
+  }
 
-  root.render(
-    <PreviewSuggestion
-      suggestion={suggestion}
-      onApply={onApply}
-      artifactKind={artifactKind}
-    />,
-  );
+  updateDOM(): false {
+    return false;
+  }
 
-  return {
-    dom,
-    destroy: () => {
-      // Wrapping unmount in setTimeout to avoid synchronous unmounting during render
-      setTimeout(() => {
-        root.unmount();
-      }, 0);
-    },
-  };
+  decorate(): React.ReactElement {
+    const onApply = () => {
+      this.__editor.update(() => {
+        // Find and replace the text
+        const selection = $getSelection();
+        if ($isRangeSelection(selection)) {
+          const node = selection.anchor.getNode();
+          if ($isTextNode(node)) {
+            const textContent = node.getTextContent();
+            const newText = textContent.replace(
+              this.__suggestion.originalText,
+              this.__suggestion.suggestedText,
+            );
+            node.setTextContent(newText);
+          }
+        }
+
+        // Remove this suggestion node
+        this.remove();
+      });
+    };
+
+    return (
+      <PreviewSuggestion
+        suggestion={this.__suggestion}
+        onApply={onApply}
+        artifactKind={this.__artifactKind}
+      />
+    );
+  }
 }
 
-export const suggestionsPluginKey = new PluginKey('suggestions');
-export const suggestionsPlugin = new Plugin({
-  key: suggestionsPluginKey,
-  state: {
-    init() {
-      return { decorations: DecorationSet.empty, selected: null };
-    },
-    apply(tr, state) {
-      const newDecorations = tr.getMeta(suggestionsPluginKey);
-      if (newDecorations) return newDecorations;
+export function createSuggestionDecorator(
+  suggestion: UISuggestion,
+  editor: LexicalEditor,
+  artifactKind: ArtifactKind = 'text',
+): SuggestionNode {
+  return new SuggestionNode(suggestion, editor, artifactKind);
+}
 
-      return {
-        decorations: state.decorations.map(tr.mapping, tr.doc),
-        selected: state.selected,
-      };
-    },
-  },
-  props: {
-    decorations(state) {
-      return this.getState(state)?.decorations ?? DecorationSet.empty;
-    },
-  },
-});
+// Plugin-like function to register suggestions
+export function registerSuggestions(
+  editor: LexicalEditor,
+  suggestions: Array<UISuggestion>,
+): void {
+  editor.update(() => {
+    // Clear existing suggestion nodes
+    const root = $getRoot();
+    const children = root.getChildren();
+
+    for (const child of children) {
+      if (child instanceof SuggestionNode) {
+        child.remove();
+      }
+    }
+
+    // Add new suggestion nodes
+    suggestions.forEach((suggestion) => {
+      if (suggestion.selectionStart && suggestion.selectionEnd) {
+        const suggestionNode = createSuggestionDecorator(suggestion, editor);
+        // Insert at the end for now - proper positioning would need more work
+        root.append(suggestionNode);
+      }
+    });
+  });
+}

@@ -4,30 +4,30 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
-
-import { useAnonymousSession } from '@/hooks/use-anonymous-session';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
+import { useSession } from 'next-auth/react';
+import { useGetCredits } from '@/hooks/use-chat-store';
 
-interface MessageLimitDisplayProps {
+interface CreditLimitDisplayProps {
   className?: string;
 }
 
-export function MessageLimitDisplay({ className }: MessageLimitDisplayProps) {
-  const { anonymousSession, isAuthenticated } = useAnonymousSession();
+export function CreditLimitDisplay({ className }: CreditLimitDisplayProps) {
+  const { credits, isLoadingCredits } = useGetCredits();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
   const [dismissed, setDismissed] = useState(false);
 
   // Don't show for authenticated users
   if (isAuthenticated) return null;
 
-  // Don't show if we don't have session data yet
-  if (!anonymousSession) return null;
+  if (isLoadingCredits) return null;
 
   // Don't show if dismissed
   if (dismissed) return null;
 
-  const remaining =
-    anonymousSession.maxMessages - anonymousSession.messageCount;
+  const remaining = credits ?? 0;
 
   // Only show when approaching or at limit
   const isAtLimit = remaining <= 0;
@@ -52,7 +52,7 @@ export function MessageLimitDisplay({ className }: MessageLimitDisplayProps) {
           <div className="flex-1">
             {isAtLimit ? (
               <span>
-                You&apos;ve reached your message limit.{' '}
+                You&apos;ve reached your credit limit.{' '}
                 <Link
                   href="/login"
                   className="text-red-700 dark:text-red-300 underline font-medium hover:no-underline"
@@ -64,7 +64,7 @@ export function MessageLimitDisplay({ className }: MessageLimitDisplayProps) {
               <span>
                 You only have{' '}
                 <strong>
-                  {remaining} message{remaining !== 1 ? 's' : ''}
+                  {remaining} credit{remaining !== 1 ? 's' : ''}
                 </strong>{' '}
                 left.{' '}
                 <Link

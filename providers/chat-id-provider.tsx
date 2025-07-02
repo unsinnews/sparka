@@ -1,5 +1,6 @@
 'use client';
 
+import { generateUUID } from '@/lib/utils';
 import {
   createContext,
   useContext,
@@ -7,12 +8,16 @@ import {
   useMemo,
   useState,
   type ReactNode,
+  useCallback,
 } from 'react';
 import { useLocation } from 'react-router';
 
 interface ChatIdContextType {
   chatId: string | null;
   sharedChatId: string | null;
+  provisionalChatId: string | null;
+  isShared: boolean;
+  refreshChatID: () => void;
   setChatId: (chatId: string | null) => void;
 }
 
@@ -21,37 +26,60 @@ const ChatIdContext = createContext<ChatIdContextType | undefined>(undefined);
 export function ChatIdProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
 
-  // Extract chat ID from path: /chat/[id] -> id, / -> null
-  const [chatId, setChatId] = useState<string | null>(
-    location.pathname.startsWith('/chat/')
-      ? location.pathname.split('/')[2] || null
-      : null,
-  );
-
-  // Extract shared chat ID from path: /share/[id] -> id, otherwise null
-  const [sharedChatId, setSharedChatId] = useState<string | null>(
-    location.pathname.startsWith('/share/')
-      ? location.pathname.split('/')[2] || null
-      : null,
-  );
-
-  useEffect(() => {
+  // Use useMemo to derive state from pathname instead of useState + useEffect
+  const { chatId: urlChatId, sharedChatId } = useMemo(() => {
     const pathname = location.pathname;
+
     if (pathname?.startsWith('/chat/')) {
-      setChatId(pathname.split('/')[2] || null);
-      setSharedChatId(null);
+      return {
+        chatId: pathname.split('/')[2] || null,
+        sharedChatId: null,
+      };
     } else if (pathname?.startsWith('/share/')) {
-      setSharedChatId(pathname.split('/')[2] || null);
-      setChatId(null);
+      return {
+        chatId: null,
+        sharedChatId: pathname.split('/')[2] || null,
+      };
     } else {
-      setChatId(null);
-      setSharedChatId(null);
+      return {
+        chatId: null,
+        sharedChatId: null,
+      };
     }
   }, [location.pathname]);
 
+  // State for manual chatId updates (like after replaceState)
+  const [manualChatId, setManualChatId] = useState<string | null>(null);
+
+  const [provisionalChatId, setProvisionalChatId] = useState<string | null>(
+    () => (urlChatId ? null : generateUUID()),
+  );
+
+  // Clear manual override when pathname actually changes through navigation
+  useEffect(() => {
+    setManualChatId(null);
+  }, [location.pathname, location.key]);
+
+  const chatId = manualChatId ?? urlChatId;
+
+  const setChatId = useCallback((id: string | null) => {
+    setManualChatId(id);
+  }, []);
+
+  const refreshChatID = useCallback(() => {
+    setProvisionalChatId(generateUUID());
+  }, []);
+
   const value = useMemo(
-    () => ({ chatId, sharedChatId, setChatId }),
-    [chatId, sharedChatId, setChatId],
+    () => ({
+      chatId,
+      sharedChatId,
+      provisionalChatId,
+      refreshChatID,
+      isShared: sharedChatId !== null,
+      setChatId,
+    }),
+    [chatId, sharedChatId, setChatId, provisionalChatId, refreshChatID],
   );
 
   return (

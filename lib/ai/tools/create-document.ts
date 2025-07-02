@@ -8,12 +8,14 @@ import {
 } from '@/lib/artifacts/server';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { CoreMessage } from 'ai';
+import type { AvailableProviderModels } from '@/lib/ai/all-models';
 
 interface CreateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
   contextForLLM?: CoreMessage[];
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }
 
 export const createDocumentTool = ({
@@ -21,12 +23,34 @@ export const createDocumentTool = ({
   dataStream,
   contextForLLM,
   messageId,
+  selectedModel,
 }: CreateDocumentProps) =>
   tool({
-    description:
-      'Create a document for a writing or content creation activities. This tool will call other functions that will generate the contents of the document based on the title and kind.',
+    description: `Create a persistent document (text, code, image, or spreadsheet).  This tool orchestrates the downstream handlers that actually generate the file based on the provided title, kind and description.
+
+Usage:
+- Substantial content (>10 lines), code, images or spreadsheets
+- Deliverables the user will likely save/reuse (emails, essays, code, etc.)
+- Explicit "create a document" like requests
+- Single-snippet code answers with Python language (always wrap in an artifact)
+  - Specify language with backticks, e.g. \`\`\`python\`code here\`\`\` (only Python supported for now)
+- When you have all the information available to create the document, use this tool.
+- This tool will display the document content in the chat.
+
+
+For code artifacts (only code artifacts):
+- The title MUST include the appropriate file extension (e.g., "script.py", "component.tsx", "utils.js")
+- This extension will be used to determine syntax highlighting
+
+Avoid:
+- Purely conversational or explanatory responses that belong in chat
+- "Keep it in chat" requests`,
     parameters: z.object({
-      title: z.string(),
+      title: z
+        .string()
+        .describe(
+          'For code artifacts, must include file extension (e.g., "script.py", "App.tsx", "utils.js"). For other artifacts, just the filename',
+        ),
       description: z
         .string()
         .describe('A detailed description of what the document should contain'),
@@ -63,6 +87,7 @@ export const createDocumentTool = ({
         session,
         prompt,
         messageId,
+        selectedModel,
       });
     },
   });
@@ -75,6 +100,7 @@ export async function createDocument({
   session,
   prompt,
   messageId,
+  selectedModel,
 }: {
   dataStream: AnnotationDataStreamWriter;
   kind: string;
@@ -83,6 +109,7 @@ export async function createDocument({
   session: Session;
   prompt: string;
   messageId: string;
+  selectedModel: AvailableProviderModels;
 }) {
   const id = generateUUID();
 
@@ -128,15 +155,16 @@ export async function createDocument({
     session,
     prompt,
     messageId,
+    selectedModel,
   });
 
   dataStream.writeData({ type: 'finish', content: '' });
 
   return {
     id,
-    messageId,
     title,
     kind,
     content: 'A document was created and is now visible to the user.',
+    success: true as const,
   };
 }

@@ -8,6 +8,7 @@ interface AttachmentListProps {
   attachments: Array<Attachment>;
   uploadQueue?: Array<string>;
   onRemove?: (attachment: Attachment) => void;
+  onImageClick?: (imageUrl: string, imageName?: string) => void;
   testId?: string;
   className?: string;
 }
@@ -16,6 +17,7 @@ export function AttachmentList({
   attachments,
   uploadQueue = [],
   onRemove,
+  onImageClick,
   testId = 'attachments',
   className,
 }: AttachmentListProps) {
@@ -33,6 +35,7 @@ export function AttachmentList({
           key={attachment.url}
           attachment={attachment}
           onRemove={onRemove ? () => onRemove(attachment) : undefined}
+          onImageClick={onImageClick}
         />
       ))}
 

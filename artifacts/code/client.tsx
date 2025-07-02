@@ -9,7 +9,7 @@ import {
   UndoIcon,
 } from '@/components/icons';
 import { toast } from 'sonner';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID, getLanguageFromFileName } from '@/lib/utils';
 import {
   Console,
   type ConsoleOutput,
@@ -64,37 +64,53 @@ function detectRequiredHandlers(code: string): string[] {
 
 interface Metadata {
   outputs: Array<ConsoleOutput>;
+  language: string;
 }
 
 export const codeArtifact = new Artifact<'code', Metadata>({
   kind: 'code',
   description:
-    'Useful for code generation; Code execution is only available for python code.',
+    'Useful for code generation; Code execution is only available for Python code.',
   initialize: async ({ setMetadata }) => {
     setMetadata({
       outputs: [],
+      language: 'python',
     });
   },
-  onStreamPart: ({ streamPart, setArtifact }) => {
+  onStreamPart: ({ streamPart, setArtifact, setMetadata }) => {
     if (streamPart.type === 'code-delta') {
       setArtifact((draftArtifact) => ({
         ...draftArtifact,
         content: streamPart.content as string,
         isVisible:
           draftArtifact.status === 'streaming' &&
-          draftArtifact.content.length > 300 &&
-          draftArtifact.content.length < 310
+          (streamPart.content as string).length > 300 &&
+          (streamPart.content as string).length < 310
             ? true
             : draftArtifact.isVisible,
         status: 'streaming',
       }));
     }
   },
-  content: ({ metadata, setMetadata, isReadonly, ...props }) => {
+  content: ({
+    metadata,
+    setMetadata,
+    isReadonly,
+    content,
+    title,
+    ...props
+  }) => {
+    const language = getLanguageFromFileName(title) || 'python';
+
     return (
       <>
-        <div className="px-1">
-          <CodeEditor {...props} isReadonly={isReadonly} />
+        <div className="px-1 w-full">
+          <CodeEditor
+            {...props}
+            content={content}
+            language={language}
+            isReadonly={isReadonly}
+          />
         </div>
 
         {metadata?.outputs && (
@@ -116,7 +132,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
       icon: <PlayIcon size={18} />,
       label: 'Run',
       description: 'Execute code',
-      onClick: async ({ content, setMetadata }) => {
+      onClick: async ({ content, setMetadata, metadata }) => {
         const runId = generateUUID();
         const outputContent: Array<ConsoleOutputContent> = [];
 
@@ -133,6 +149,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
         }));
 
         try {
+          // Python execution using Pyodide
           // @ts-expect-error - loadPyodide is not defined
           const currentPyodideInstance = await globalThis.loadPyodide({
             indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.23.4/full/',
@@ -207,7 +224,11 @@ export const codeArtifact = new Artifact<'code', Metadata>({
           }));
         }
       },
-      isDisabled: ({ isReadonly }) => !!isReadonly,
+      isDisabled: ({ isReadonly, content, metadata }) => {
+        if (isReadonly) return true;
+        const language = metadata?.language || 'python';
+        return language !== 'python';
+      },
     },
     {
       icon: <UndoIcon size={18} />,

@@ -1,16 +1,8 @@
 // Unified UI types that abstract away storage implementation details
 
 import type { Attachment, Message } from 'ai';
-import type { YourUIMessage } from '@/lib/types/ui';
+import type { UIChat, YourUIMessage } from '@/lib/types/ui';
 import type { DBMessage } from '@/lib/db/schema';
-
-export interface UIChat {
-  id: string;
-  createdAt: Date;
-  title: string;
-  visibility: 'private' | 'public';
-  userId: string;
-}
 
 // Helper functions for type conversion
 export function dbChatToUIChat(chat: {

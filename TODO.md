@@ -100,9 +100,6 @@
 [x] Readme Update
 
 
-[ ] Small tasks
-    [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
-    [ ] Replace input / ouput token pricing in model cards with credit pricing
 
 [x] Models
     [x] Claude 3.7 reasoning not found
@@ -144,8 +141,6 @@
     [x] Improve tool description formats
     [x] Generate image tool is treated as a document, and tool thinks it's not able to use them
 
-[ ] Optimizations
-  [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
 
 [x] Document alignment should be in the middle
 
@@ -165,6 +160,11 @@
 
 [x] Last Model selected and used should be the new default model
 
+[ ] Small tasks
+    [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
+    [ ] Replace input / ouput token pricing in model cards with credit pricing
+
+
 
 ## Polishing
 
@@ -172,6 +172,11 @@
 
 [ ] Deep Research v2
 
+[ ] Optimizations
+  [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
+
+[ ] Keyboard Shortcuts
+    [ ] New Chat ctrl+shift+o
 
 [ ] Protectiong for going over token context
 

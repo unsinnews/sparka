@@ -1,16 +1,10 @@
 'use client';
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import type { User } from 'next-auth';
-import { memo, useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
-
-import {
-  MoreHorizontalIcon,
-  TrashIcon,
-  PencilEditIcon,
-} from '@/components/icons';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,21 +16,11 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Input } from '@/components/ui/input';
 import type { UIChat } from '@/lib/types/ui';
 import {
   useDeleteChat,
@@ -44,8 +28,7 @@ import {
   useGetAllChats,
 } from '@/hooks/use-chat-store';
 import { useChatId } from '@/providers/chat-id-provider';
-import { ShareDialog } from '@/components/share-button';
-import { ShareMenuItem } from '@/components/upgrade-cta/share-menu-item';
+import { SidebarChatItem } from './sidebar-chat-item';
 
 type GroupedChats = {
   today: UIChat[];
@@ -54,124 +37,6 @@ type GroupedChats = {
   lastMonth: UIChat[];
   older: UIChat[];
 };
-
-const PureChatItem = ({
-  chat,
-  isActive,
-  onDelete,
-  onRename,
-  setOpenMobile,
-}: {
-  chat: UIChat;
-  isActive: boolean;
-  onDelete: (chatId: string) => void;
-  onRename: (chatId: string, title: string) => void;
-  setOpenMobile: (open: boolean) => void;
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(chat.title);
-  const [shareDialogOpen, setShareDialogOpen] = useState(false);
-
-  const handleRename = async () => {
-    if (editTitle.trim() === '' || editTitle === chat.title) {
-      setIsEditing(false);
-      setEditTitle(chat.title);
-      return;
-    }
-
-    try {
-      await onRename(chat.id, editTitle.trim());
-      setIsEditing(false);
-      toast.success('Chat renamed successfully');
-    } catch (error) {
-      setEditTitle(chat.title);
-      setIsEditing(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleRename();
-    } else if (e.key === 'Escape') {
-      setIsEditing(false);
-      setEditTitle(chat.title);
-    }
-  };
-
-  return (
-    <SidebarMenuItem>
-      {isEditing ? (
-        <div className="flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm bg-background">
-          <Input
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={handleKeyDown}
-            className="h-auto border-0 bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0"
-            autoFocus
-            maxLength={255}
-          />
-        </div>
-      ) : (
-        <SidebarMenuButton asChild isActive={isActive}>
-          <Link to={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
-            <span>{chat.title}</span>
-          </Link>
-        </SidebarMenuButton>
-      )}
-
-      <DropdownMenu modal={true}>
-        <DropdownMenuTrigger asChild>
-          <SidebarMenuAction
-            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground mr-0.5"
-            showOnHover={!isActive}
-          >
-            <MoreHorizontalIcon />
-            <span className="sr-only">More</span>
-          </SidebarMenuAction>
-        </DropdownMenuTrigger>
-
-        <DropdownMenuContent side="bottom" align="end">
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onClick={() => {
-              setIsEditing(true);
-              setEditTitle(chat.title);
-            }}
-          >
-            <PencilEditIcon />
-            <span>Rename</span>
-          </DropdownMenuItem>
-
-          <ShareMenuItem onShare={() => setShareDialogOpen(true)} />
-
-          <DropdownMenuItem
-            className="cursor-pointer text-destructive focus:bg-destructive/15 focus:text-destructive dark:text-red-500"
-            onSelect={() => onDelete(chat.id)}
-          >
-            <TrashIcon />
-            <span>Delete</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {shareDialogOpen && (
-        <ShareDialog
-          chatId={chat.id}
-          open={shareDialogOpen}
-          onOpenChange={setShareDialogOpen}
-        />
-      )}
-    </SidebarMenuItem>
-  );
-};
-
-export const ChatItem = memo(PureChatItem, (prevProps, nextProps) => {
-  if (prevProps.isActive !== nextProps.isActive) return false;
-  if (prevProps.chat.id !== nextProps.chat.id) return false;
-  if (prevProps.chat.title !== nextProps.chat.title) return false;
-  return true;
-});
 
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
@@ -316,7 +181,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                           Today
                         </div>
                         {groupedChats.today.map((chat) => (
-                          <ChatItem
+                          <SidebarChatItem
                             key={chat.id}
                             chat={chat}
                             isActive={chat.id === chatId}
@@ -337,7 +202,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                           Yesterday
                         </div>
                         {groupedChats.yesterday.map((chat) => (
-                          <ChatItem
+                          <SidebarChatItem
                             key={chat.id}
                             chat={chat}
                             isActive={chat.id === chatId}
@@ -358,7 +223,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                           Last 7 days
                         </div>
                         {groupedChats.lastWeek.map((chat) => (
-                          <ChatItem
+                          <SidebarChatItem
                             key={chat.id}
                             chat={chat}
                             isActive={chat.id === chatId}
@@ -379,7 +244,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                           Last 30 days
                         </div>
                         {groupedChats.lastMonth.map((chat) => (
-                          <ChatItem
+                          <SidebarChatItem
                             key={chat.id}
                             chat={chat}
                             isActive={chat.id === chatId}
@@ -400,7 +265,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                           Older
                         </div>
                         {groupedChats.older.map((chat) => (
-                          <ChatItem
+                          <SidebarChatItem
                             key={chat.id}
                             chat={chat}
                             isActive={chat.id === chatId}

@@ -170,7 +170,8 @@
 
 [ ] Pinned chats
     [ ] Add the isPinned prop to the UIChat type in ui.ts and update the message-conversion for responses in chat.router.tsx
-    [ ] Create a pin button in `sidebar-history.tsx` to display next to the menu in each chat item
+    [ ] Create a pin button from `lucide-react` in `sidebar-history.tsx` to display next to the menu in each chat item
+    [ ] Create a mutation to update the chat isPinned property in chat.router.tsx
 
     [ ] When pin button is clicked, call the mutation to update the chat. On mutation settle, invalidate the chats query
     [ ] Display pinned chats in a new category in the sidebar history (at the top)

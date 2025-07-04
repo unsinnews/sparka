@@ -25,12 +25,14 @@ import type { UIChat } from '@/lib/types/ui';
 import {
   useDeleteChat,
   useRenameChat,
+  usePinChat,
   useGetAllChats,
 } from '@/hooks/use-chat-store';
 import { useChatId } from '@/providers/chat-id-provider';
 import { SidebarChatItem } from './sidebar-chat-item';
 
 type GroupedChats = {
+  pinned: UIChat[];
   today: UIChat[];
   yesterday: UIChat[];
   lastWeek: UIChat[];
@@ -44,6 +46,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
   const navigate = useNavigate();
 
   const { mutate: renameChatMutation } = useRenameChat();
+  const { mutate: pinChatMutation } = usePinChat();
   const { deleteChat } = useDeleteChat();
 
   const { data: chats, isLoading } = useGetAllChats(100);
@@ -56,6 +59,13 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       renameChatMutation({ chatId, title });
     },
     [renameChatMutation],
+  );
+
+  const pinChat = useCallback(
+    (chatId: string, isPinned: boolean) => {
+      pinChatMutation({ chatId, isPinned });
+    },
+    [pinChatMutation],
   );
 
   const handleDelete = async () => {
@@ -136,7 +146,11 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     const oneWeekAgo = subWeeks(now, 1);
     const oneMonthAgo = subMonths(now, 1);
 
-    return chats.reduce(
+    // Separate pinned and non-pinned chats
+    const pinnedChats = chats.filter((chat) => chat.isPinned);
+    const nonPinnedChats = chats.filter((chat) => !chat.isPinned);
+
+    const groups = nonPinnedChats.reduce(
       (groups, chat) => {
         const chatDate = new Date(chat.createdAt);
 
@@ -155,6 +169,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
         return groups;
       },
       {
+        pinned: [],
         today: [],
         yesterday: [],
         lastWeek: [],
@@ -162,6 +177,14 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
         older: [],
       } as GroupedChats,
     );
+
+    // Add pinned chats (sorted by most recent first)
+    groups.pinned = pinnedChats.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    );
+
+    return groups;
   };
 
   return (
@@ -175,9 +198,33 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                 return (
                   <>
-                    {groupedChats.today.length > 0 && (
+                    {groupedChats.pinned.length > 0 && (
                       <>
                         <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                          Pinned
+                        </div>
+                        {groupedChats.pinned.map((chat) => (
+                          <SidebarChatItem
+                            key={chat.id}
+                            chat={chat}
+                            isActive={chat.id === chatId}
+                            onDelete={(chatId) => {
+                              setDeleteId(chatId);
+                              setShowDeleteDialog(true);
+                            }}
+                            onRename={renameChat}
+                            onPin={pinChat}
+                            setOpenMobile={setOpenMobile}
+                          />
+                        ))}
+                      </>
+                    )}
+
+                    {groupedChats.today.length > 0 && (
+                      <>
+                        <div
+                          className={`px-2 py-1 text-xs text-sidebar-foreground/50 ${groupedChats.pinned.length > 0 ? 'mt-6' : ''}`}
+                        >
                           Today
                         </div>
                         {groupedChats.today.map((chat) => (
@@ -190,6 +237,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             onRename={renameChat}
+                            onPin={pinChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -211,6 +259,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             onRename={renameChat}
+                            onPin={pinChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -232,6 +281,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             onRename={renameChat}
+                            onPin={pinChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -253,6 +303,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             onRename={renameChat}
+                            onPin={pinChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}
@@ -274,6 +325,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                               setShowDeleteDialog(true);
                             }}
                             onRename={renameChat}
+                            onPin={pinChat}
                             setOpenMobile={setOpenMobile}
                           />
                         ))}

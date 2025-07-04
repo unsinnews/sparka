@@ -103,7 +103,30 @@ export async function renameAnonymousChat(
   } catch (error) {
     console.error('Error renaming anonymous chat:', error);
   }
-} // Module-level functions for chat operations
+}
+
+export async function pinAnonymousChat(
+  chatId: string,
+  isPinned: boolean,
+): Promise<void> {
+  try {
+    const session = getAnonymousSession();
+    if (!session) return;
+
+    // Update chat in localStorage
+    const existingChats = JSON.parse(
+      localStorage.getItem(ANONYMOUS_CHATS_KEY) || '[]',
+    );
+    const updatedChats = existingChats.map((c: AnonymousChat) =>
+      c.id === chatId && c.userId === session.id ? { ...c, isPinned } : c,
+    );
+    localStorage.setItem(ANONYMOUS_CHATS_KEY, JSON.stringify(updatedChats));
+  } catch (error) {
+    console.error('Error pinning anonymous chat:', error);
+  }
+}
+
+// Module-level functions for chat operations
 export async function saveAnonymousChatToStorage(
   chat: Omit<AnonymousChat, 'userId'>,
 ): Promise<void> {
@@ -119,6 +142,7 @@ export async function saveAnonymousChatToStorage(
       title: chat.title,
       createdAt: chat.createdAt.toISOString(),
       visibility: chat.visibility,
+      isPinned: chat.isPinned || false,
       userId: session.id,
     };
 
@@ -288,6 +312,7 @@ export async function cloneAnonymousChat(
       title: `Copy of ${originalChat.title}`,
       createdAt: new Date(),
       visibility: 'private' as const,
+      isPinned: false, // New cloned chats are not pinned by default
     };
 
     await saveAnonymousChatToStorage(newChat);
@@ -365,6 +390,7 @@ export async function loadAnonymousChatsFromStorage(): Promise<
       .map((chat: AnonymousChat) => ({
         ...chat,
         createdAt: new Date(chat.createdAt),
+        isPinned: chat.isPinned || false,
       }))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch (error) {
@@ -399,6 +425,7 @@ export async function loadAnonymousChatById(
     return {
       ...chat,
       createdAt: new Date(chat.createdAt),
+      isPinned: chat.isPinned || false,
     };
   } catch (error) {
     console.error('Error loading anonymous chat by ID:', error);

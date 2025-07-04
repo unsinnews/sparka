@@ -598,7 +598,27 @@ export async function updateChatTitleById({
       })
       .where(eq(chat.id, chatId));
   } catch (error) {
-    console.error('Failed to update chat title in database');
+    console.error('Failed to update chat title by id from database');
+    throw error;
+  }
+}
+
+export async function updateChatIsPinnedById({
+  chatId,
+  isPinned,
+}: {
+  chatId: string;
+  isPinned: boolean;
+}) {
+  try {
+    return await db
+      .update(chat)
+      .set({
+        isPinned,
+      })
+      .where(eq(chat.id, chatId));
+  } catch (error) {
+    console.error('Failed to update chat isPinned by id from database');
     throw error;
   }
 }

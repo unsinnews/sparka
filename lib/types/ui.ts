@@ -8,17 +8,23 @@ export interface UIChat {
   title: string;
   visibility: 'private' | 'public';
   userId: string;
+  isPinned: boolean;
 }
 
-
-export type  YourToolInvovactionPart = {
+export type YourToolInvovactionPart = {
   type: 'tool-invocation';
   toolInvocation: YourToolInvocation;
-}
-export type YourUIMessage = Omit<UIMessage, 'annotations' | 'createdAt' |   'parts'> & {
+};
+export type YourUIMessage = Omit<
+  UIMessage,
+  'annotations' | 'createdAt' | 'parts'
+> & {
   annotations?: MessageAnnotation[];
   isPartial?: boolean;
   parentMessageId: string | null;
   createdAt: Date;
-  parts: (Exclude<UIMessage['parts'][number], { type: 'tool-invocation' }> | YourToolInvovactionPart)[]
-}
+  parts: (
+    | Exclude<UIMessage['parts'][number], { type: 'tool-invocation' }>
+    | YourToolInvovactionPart
+  )[];
+};

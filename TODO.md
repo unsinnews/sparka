@@ -174,25 +174,18 @@
 [ ] Fix anonymous user creating doc
 
 
-[ ] Pinned chats
-
-    [ ] Schema: Create setIsPinned as a placeholder procedure in `chat.router.tsx`
-    [ ] Add the isPinned prop to the UIChat type in ui.ts and update the message-conversion for responses in chat.router.tsx
-    
-    [ ] Create a mutation to update the chat isPinned property in `queries.ts` and use it in chat.router.tsx `setIsPinned` procedure
-    [ ] Create a pin button from `lucide-react` in `sidebar-chat-item.tsx` to display next to the menu in each chat item. When pin button is clicked in `sidebar-chat-item.tsx`, call the mutation to update the chat (tanstack query + trcp). On mutation settle, invalidate the chats query
-
-    --> push --> select branch `pinned-chats`
-
-
-    [ ] Display pinned chats in a new category in the sidebar history (at the top)
-    
-    [ ] move mutation to use-chat-store and create support for anonymous users
-    [ ] Do an optimistic update for the pinned chats
-
+[x] Pinned chats
+    [x] Schema: Create setIsPinned as a placeholder procedure in `chat.router.tsx`
+    [x] Add the isPinned prop to the UIChat type in ui.ts and update the message-conversion for responses in chat.router.tsx
+    [x] Create a mutation to update the chat isPinned property in `queries.ts` and use it in chat.router.tsx `setIsPinned` procedure
+    [x] Create a pin button from `lucide-react` in `sidebar-chat-item.tsx` to display next to the menu in each chat item. When pin button is clicked in `sidebar-chat-item.tsx`, call the mutation to update the chat (tanstack query + trcp). On mutation settle, invalidate the chats query
+    [x] Display pinned chats in a new category in the sidebar history (at the top)
+    [x] move mutation to use-chat-store and create support for anonymous users
+    [x] Do an optimistic update for the pinned chats
 
 [ ] Replace input / ouput token pricing in model cards with credit pricing
 
+[ ] Quote from assistant messages functionality
 
 [ ] Anonymous user loading /chat/:id get redirected by auth.config.ts to login
 

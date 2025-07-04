@@ -2,6 +2,7 @@
 import { Link } from 'react-router';
 import { memo, useState } from 'react';
 import { toast } from 'sonner';
+import { PinIcon } from 'lucide-react';
 
 import {
   MoreHorizontalIcon,
@@ -37,12 +38,14 @@ const PureSidebarChatItem = ({
   isActive,
   onDelete,
   onRename,
+  onPin,
   setOpenMobile,
 }: {
   chat: UIChat;
   isActive: boolean;
   onDelete: (chatId: string) => void;
   onRename: (chatId: string, title: string) => void;
+  onPin: (chatId: string, isPinned: boolean) => void;
   setOpenMobile: (open: boolean) => void;
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -120,6 +123,16 @@ const PureSidebarChatItem = ({
             <span>Rename</span>
           </DropdownMenuItem>
 
+          <DropdownMenuItem
+            className="cursor-pointer"
+            onClick={() => onPin(chat.id, !chat.isPinned)}
+          >
+            <PinIcon
+              className={`size-4 ${chat.isPinned ? 'fill-current' : ''}`}
+            />
+            <span>{chat.isPinned ? 'Unpin' : 'Pin'}</span>
+          </DropdownMenuItem>
+
           <ShareMenuItem onShare={() => setShareDialogOpen(true)} />
 
           <DropdownMenuItem
@@ -149,6 +162,7 @@ export const SidebarChatItem = memo(
     if (prevProps.isActive !== nextProps.isActive) return false;
     if (prevProps.chat.id !== nextProps.chat.id) return false;
     if (prevProps.chat.title !== nextProps.chat.title) return false;
+    if (prevProps.chat.isPinned !== nextProps.chat.isPinned) return false;
     return true;
   },
 );

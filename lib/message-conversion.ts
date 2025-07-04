@@ -11,6 +11,7 @@ export function dbChatToUIChat(chat: {
   title: string;
   visibility: 'private' | 'public';
   userId: string;
+  isPinned: boolean;
 }): UIChat {
   return {
     id: chat.id,
@@ -18,6 +19,7 @@ export function dbChatToUIChat(chat: {
     title: chat.title,
     visibility: chat.visibility,
     userId: chat.userId,
+    isPinned: chat.isPinned,
   };
 }
 

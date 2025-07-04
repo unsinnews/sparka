@@ -12,7 +12,6 @@ import {
 } from '@/components/icons';
 import type { Suggestion } from '@/lib/db/schema';
 import { toast } from 'sonner';
-import { getSuggestions } from '../actions';
 
 interface TextArtifactMetadata {
   suggestions: Array<Suggestion>;
@@ -21,8 +20,11 @@ interface TextArtifactMetadata {
 export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
   kind: 'text',
   description: 'Useful for text content, like drafting essays and emails.',
-  initialize: async ({ documentId, setMetadata }) => {
-    const suggestions = await getSuggestions({ documentId });
+  initialize: async ({ documentId, setMetadata, trpc, queryClient }) => {
+    const suggestions = await queryClient.fetchQuery(
+      trpc.document.getSuggestions.queryOptions({ documentId }),
+    );
+    console.log('suggestions', suggestions);
 
     setMetadata({
       suggestions,

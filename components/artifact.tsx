@@ -18,11 +18,11 @@ import { textArtifact } from '@/artifacts/text/client';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { YourUIMessage } from '@/lib/types/ui';
-import { useTRPC } from '@/trpc/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import { useMessageTree } from '@/providers/message-tree-provider';
+import { useTRPC } from '@/trpc/react';
 
 export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
 export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
@@ -223,10 +223,12 @@ function PureArtifact({
         artifactDefinition.initialize({
           documentId: artifact.documentId,
           setMetadata,
+          trpc,
+          queryClient,
         });
       }
     }
-  }, [artifact.documentId, artifactDefinition, setMetadata]);
+  }, [artifact.documentId, artifactDefinition, setMetadata, trpc, queryClient]);
 
   return (
     <AnimatePresence>

@@ -3,6 +3,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
 import type { DataStreamDelta } from './data-stream-handler';
 import type { UIArtifact } from './artifact';
+import type { QueryClient } from '@tanstack/react-query';
 
 export type ArtifactActionContext<M = any> = {
   content: string;
@@ -53,6 +54,8 @@ interface ArtifactContent<M = any> {
 interface InitializeParameters<M = any> {
   documentId: string;
   setMetadata: Dispatch<SetStateAction<M>>;
+  trpc: ReturnType<typeof import('@/trpc/react').useTRPC>;
+  queryClient: QueryClient;
 }
 
 type ArtifactConfig<T extends string, M = any> = {

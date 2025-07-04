@@ -33,10 +33,13 @@ interface ArtifactContextType {
   setArtifact: (
     updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact),
   ) => void;
-  metadata: Record<string, any>;
+  metadata: Record<string, any> | null;
   setMetadata: (
     documentId: string,
-    metadata: any | ((current: any) => any),
+    metadata:
+      | Record<string, any>
+      | null
+      | ((current: Record<string, any> | null) => Record<string, any> | null),
   ) => void;
 }
 
@@ -47,7 +50,12 @@ const ArtifactContext = createContext<ArtifactContextType | undefined>(
 export function ArtifactProvider({ children }: { children: ReactNode }) {
   const [artifact, setArtifactState] =
     useState<UIArtifact>(initialArtifactData);
-  const [metadataStore, setMetadataStore] = useState<Record<string, any>>({});
+  const [metadataStore, setMetadataStore] = useState<Record<
+    string,
+    any
+  > | null>(null);
+
+  console.log('metadataStore', metadataStore);
 
   const setArtifact = useCallback(
     (updaterFn: UIArtifact | ((currentArtifact: UIArtifact) => UIArtifact)) => {
@@ -67,7 +75,7 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
         ...current,
         [documentId]:
           typeof metadata === 'function'
-            ? metadata(current[documentId] || null)
+            ? metadata(current ? current[documentId] : null)
             : metadata,
       }));
     },
@@ -118,9 +126,7 @@ export function useArtifact() {
   } = useArtifactContext();
 
   const metadata = useMemo(() => {
-    return artifact.documentId
-      ? metadataStore[artifact.documentId] || null
-      : null;
+    return artifact.documentId ? metadataStore?.[artifact.documentId] : null;
   }, [metadataStore, artifact.documentId]);
 
   const setMetadata = useCallback(

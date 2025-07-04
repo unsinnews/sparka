@@ -9,6 +9,7 @@ import {
   getDocumentsById,
   getPublicDocumentsById,
   saveDocument,
+  getSuggestionsByDocumentId,
 } from '@/lib/db/queries';
 import type { ArtifactKind } from '@/components/artifact';
 import { TRPCError } from '@trpc/server';
@@ -47,6 +48,28 @@ export const documentRouter = createTRPCRouter({
       return documents;
     }),
 
+  getSuggestions: protectedProcedure
+    .input(z.object({ documentId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // Validate document belongs to user
+      const documents = await getDocumentsById({
+        id: input.documentId,
+        userId: ctx.user.id,
+      });
+
+      if (documents.length === 0) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document not found',
+        });
+      }
+
+      const suggestions = await getSuggestionsByDocumentId({
+        documentId: input.documentId,
+      });
+      return suggestions ?? [];
+    }),
+
   saveDocument: protectedProcedure
     .input(
       z.object({
@@ -72,6 +95,6 @@ export const documentRouter = createTRPCRouter({
         messageId: lastDocument.messageId,
       });
 
-      return {success: true};
+      return { success: true };
     }),
 });

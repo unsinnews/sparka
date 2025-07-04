@@ -162,11 +162,17 @@
 
 [ ] Small tasks
     [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
-    [ ] Replace input / ouput token pricing in model cards with credit pricing
 
 
 
 ## Backlog
+
+[x] Sparka Shared chat redirects to login
+
+[ ] Does shared chat with images work?
+
+[ ] Fix anonymous user creating doc
+
 
 [ ] Pinned chats
 
@@ -185,6 +191,7 @@
     [ ] Do an optimistic update for the pinned chats
 
 
+[ ] Replace input / ouput token pricing in model cards with credit pricing
 
 
 [ ] Code Execution

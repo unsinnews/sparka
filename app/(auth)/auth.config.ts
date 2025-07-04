@@ -34,12 +34,18 @@ export const authConfig = {
       const isOnChat = nextUrl.pathname.startsWith('/');
       const isOnLoginPage = nextUrl.pathname.startsWith('/login');
       const isOnRegisterPage = nextUrl.pathname.startsWith('/register');
+      const isOnSharePage = nextUrl.pathname.startsWith('/share/');
 
       if (isLoggedIn && (isOnLoginPage || isOnRegisterPage)) {
         return Response.redirect(new URL('/', nextUrl as unknown as URL));
       }
 
       if (isOnRegisterPage || isOnLoginPage) {
+        return true;
+      }
+
+      // Allow anonymous access to shared chat pages
+      if (isOnSharePage) {
         return true;
       }
 

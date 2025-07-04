@@ -6,6 +6,14 @@ export default NextAuth(authConfig).auth;
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico, opengraph-image (favicon and og image)
+     * - Images and other static assets (.svg, .png, .jpg, .jpeg, .gif, .webp, .ico)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|opengraph-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

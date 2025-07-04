@@ -134,6 +134,7 @@ export function Chat({
         messages={chatHelperMessages as YourUIMessage[]}
         votes={votes}
         isReadonly={isReadonly}
+        isAuthenticated={!!session?.user}
       />
     </>
   );

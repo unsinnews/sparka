@@ -56,6 +56,7 @@ interface InitializeParameters<M = any> {
   setMetadata: Dispatch<SetStateAction<M>>;
   trpc: ReturnType<typeof import('@/trpc/react').useTRPC>;
   queryClient: QueryClient;
+  isAuthenticated: boolean;
 }
 
 type ArtifactConfig<T extends string, M = any> = {

@@ -49,12 +49,14 @@ function PureArtifact({
   messages,
   votes,
   isReadonly,
+  isAuthenticated,
 }: {
   chatId: string;
   messages: Array<YourUIMessage>;
   votes: Array<Vote> | undefined;
   chatHelpers: UseChatHelpers;
   isReadonly: boolean;
+  isAuthenticated: boolean;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
   const queryClient = useQueryClient();
@@ -225,10 +227,18 @@ function PureArtifact({
           setMetadata,
           trpc,
           queryClient,
+          isAuthenticated,
         });
       }
     }
-  }, [artifact.documentId, artifactDefinition, setMetadata, trpc, queryClient]);
+  }, [
+    artifact.documentId,
+    artifactDefinition,
+    setMetadata,
+    trpc,
+    queryClient,
+    isAuthenticated,
+  ]);
 
   return (
     <AnimatePresence>
@@ -486,6 +496,7 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
+  if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
 
   return true;
 });

@@ -20,7 +20,20 @@ interface TextArtifactMetadata {
 export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
   kind: 'text',
   description: 'Useful for text content, like drafting essays and emails.',
-  initialize: async ({ documentId, setMetadata, trpc, queryClient }) => {
+  initialize: async ({
+    documentId,
+    setMetadata,
+    trpc,
+    queryClient,
+    isAuthenticated,
+  }) => {
+    if (!isAuthenticated) {
+      setMetadata({
+        suggestions: [],
+      });
+      return;
+    }
+
     const suggestions = await queryClient.fetchQuery(
       trpc.document.getSuggestions.queryOptions({ documentId }),
     );

@@ -194,6 +194,8 @@
 [ ] Replace input / ouput token pricing in model cards with credit pricing
 
 
+[ ] Anonymous user loading /chat/:id get redirected by auth.config.ts to login
+
 [ ] Code Execution
 
 [ ] Deep Research v2

@@ -7,13 +7,13 @@ import {
   documentHandlersByArtifactKind,
 } from '@/lib/artifacts/server';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
-import type { CoreMessage } from 'ai';
+import type { ModelMessage } from 'ai';
 import type { AvailableProviderModels } from '@/lib/ai/all-models';
 
 interface CreateDocumentProps {
   session: Session;
   dataStream: AnnotationDataStreamWriter;
-  contextForLLM?: CoreMessage[];
+  contextForLLM?: ModelMessage[];
   messageId: string;
   selectedModel: AvailableProviderModels;
 }

@@ -194,7 +194,7 @@ export const chatRouter = createTRPCRouter({
         - the title should be a summary of the user's message
         - do not use quotes or colons`,
         prompt: input.message,
-        experimental_telemetry: { isEnabled: true },
+        telemetry: { isEnabled: true },
       });
 
       return { title };

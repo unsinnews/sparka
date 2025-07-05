@@ -574,10 +574,10 @@ export async function POST(request: NextRequest) {
             system: systemPrompt(),
             messages: contextForLLM,
             maxSteps: 5,
-            experimental_activeTools: activeTools,
-            experimental_transform: markdownJoinerTransform(),
-            experimental_generateMessageId: () => messageId,
-            experimental_telemetry: {
+            activeTools: activeTools,
+            transform: markdownJoinerTransform(),
+            generateMessageId: () => messageId,
+            telemetry: {
               isEnabled: true,
               functionId: 'chat-response',
             },

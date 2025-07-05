@@ -17,11 +17,11 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
     const { fullStream } = streamText({
       model: getLanguageModel(selectedModel),
       providerOptions: {
-        experimental_telemetry: { isEnabled: true },
+        telemetry: { isEnabled: true },
       },
       system:
         'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
-      experimental_transform: smoothStream({ chunking: 'word' }),
+      transform: smoothStream({ chunking: 'word' }),
       prompt,
     });
 
@@ -53,10 +53,11 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
     const { fullStream } = streamText({
       model: getLanguageModel(selectedModel),
       system: updateDocumentPrompt(document.content, 'text'),
-      experimental_transform: smoothStream({ chunking: 'word' }),
+      transform: smoothStream({ chunking: 'word' }),
       prompt: description,
-      experimental_telemetry: {
+      telemetry: {
         isEnabled: true,
+        functionId: 'refine-text',
       },
       experimental_providerMetadata: {
         openai: {

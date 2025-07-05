@@ -7,7 +7,6 @@ import { openai, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
 import { anthropic, type AnthropicProviderOptions } from '@ai-sdk/anthropic';
 import { xai } from '@ai-sdk/xai';
 import { google, type GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
-import { siteConfig } from '../config';
 import { type AvailableProviderModels, getModelDefinition } from './all-models';
 import { isTestEnvironment } from '../constants';
 import {
@@ -18,9 +17,9 @@ import {
 } from './models.test';
 
 const telemetryConfig = {
-  experimental_telemetry: {
+  telemetry: {
     isEnabled: true,
-    functionId: siteConfig.appPrefix,
+    functionId: 'get-language-model',
   },
 };
 

@@ -93,7 +93,6 @@ export const createReasonSearch = ({
               .describe('Describe what you are going to do in this step'),
           }),
         }),
-        experimental_telemetry: { isEnabled: true },
         prompt: `Create a focused research plan for the topic: "${topic}". 
                 
                 Today's date and day of the week: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -254,10 +253,6 @@ export const createReasonSearch = ({
             }),
           ),
         }),
-        providerOptions: {
-          experimental_telemetry: { isEnabled: true },
-        },
-        experimental_telemetry: { isEnabled: true },
         prompt: `Analyze the research results and identify limitations, knowledge gaps, and recommended follow-up actions.
                 Consider:
                 - Quality and reliability of sources
@@ -403,11 +398,6 @@ export const createReasonSearch = ({
             }),
           ),
         }),
-        providerOptions: {
-          experimental_telemetry: { isEnabled: true },
-        },
-        experimental_telemetry: { isEnabled: true },
-        // TODO: This prompt will have to change if we take an arbitrary number of steps
         prompt: `Synthesize all research findings, including gap analysis and follow-up research.
                     Highlight key conclusions and remaining uncertainties.
                     Stick to the types of the schema, do not add any other fields or types.

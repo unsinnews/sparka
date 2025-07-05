@@ -39,6 +39,7 @@ export function Chat({
     body: { id },
     initialMessages,
     experimental_throttle: 100,
+    experimental_resume: true,
     sendExtraMessageFields: true,
     generateId: generateUUID,
 

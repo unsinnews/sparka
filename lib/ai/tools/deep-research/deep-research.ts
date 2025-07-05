@@ -109,8 +109,9 @@ async function generateNextStepQueries({
           'Based on the information you have describe what will happen in the next step',
         ),
     }),
-    experimental_telemetry: {
+    telemetry: {
       isEnabled: true,
+      functionId: 'deep-research-summary',
     },
   });
   console.log(
@@ -162,8 +163,9 @@ async function processSerpResult({
           `List of follow-up questions to research the topic further, max of ${numFollowUpQuestions}`,
         ),
     }),
-    experimental_telemetry: {
+    telemetry: {
       isEnabled: true,
+      functionId: 'deep-research-search',
     },
   });
   console.log(
@@ -210,6 +212,10 @@ export async function writeFinalReport({
     ),
     messageId,
     selectedModel: DEFAULT_ARTIFACT_MODEL,
+    telemetry: {
+      isEnabled: true,
+      functionId: 'deep-research-final',
+    },
   });
 
   // const res = await generateObject({
@@ -223,8 +229,9 @@ export async function writeFinalReport({
   //       .string()
   //       .describe('Final report on the topic in Markdown'),
   //   }),
-  //   experimental_telemetry: {
+  //   telemetry: {
   //     isEnabled: true,
+  //     functionId: 'deep-research-final',
   //   },
   // });
 
@@ -255,8 +262,9 @@ export async function writeFinalAnswer({
           'The final answer, make it short and concise, just the answer, no other text',
         ),
     }),
-    experimental_telemetry: {
+    telemetry: {
       isEnabled: true,
+      functionId: 'deep-research-final',
     },
   });
 

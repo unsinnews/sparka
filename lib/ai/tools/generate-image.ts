@@ -105,7 +105,7 @@ Usage:
         prompt,
         n: 1,
         providerOptions: {
-          experimental_telemetry: { isEnabled: true },
+          telemetry: { isEnabled: true },
         },
       });
 

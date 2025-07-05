@@ -18,7 +18,7 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),
       system: sheetPrompt,
-      experimental_telemetry: { isEnabled: true },
+      telemetry: { isEnabled: true },
       prompt,
       schema: z.object({
         csv: z.string().describe('CSV data'),
@@ -61,7 +61,7 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),
       system: updateDocumentPrompt(document.content, 'sheet'),
-      experimental_telemetry: { isEnabled: true },
+      telemetry: { isEnabled: true },
       prompt: description,
       schema: z.object({
         csv: z.string(),

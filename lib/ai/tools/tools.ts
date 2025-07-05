@@ -1,4 +1,4 @@
-import type { ToolCall, ToolResult } from 'ai';
+import type { ToolCall, ToolResult, ModelMessage } from 'ai';
 import { createDocumentTool } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
@@ -13,7 +13,6 @@ import { readDocument } from '@/lib/ai/tools/read-document';
 import { generateImageTool } from '@/lib/ai/tools/generate-image';
 import type { z } from 'zod';
 import type { AnnotationDataStreamWriter } from './annotation-stream';
-import type { CoreMessage } from 'ai';
 import type { AvailableProviderModels } from '@/lib/ai/all-models';
 import type { Attachment } from 'ai';
 
@@ -28,7 +27,7 @@ export function getTools({
 }: {
   dataStream: AnnotationDataStreamWriter;
   session: Session;
-  contextForLLM?: CoreMessage[];
+  contextForLLM?: ModelMessage[];
   messageId: string;
   selectedModel: AvailableProviderModels;
   userAttachments?: Array<Attachment>;

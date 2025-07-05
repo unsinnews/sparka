@@ -163,11 +163,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         </SidebarContent>
       </ScrollArea>
 
-      <SidebarSeparator />
       {open && (
-        <SidebarFooter>
+        <>
+          <SidebarSeparator />
+          <SidebarFooter>
             <SidebarCreditsDisplay />
-        </SidebarFooter>
+          </SidebarFooter>
+        </>
       )}
     </Sidebar>
   );

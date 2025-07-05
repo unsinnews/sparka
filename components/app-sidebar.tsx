@@ -19,6 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Separator } from './ui/separator';
@@ -47,7 +48,6 @@ function SidebarCreditsDisplay() {
 
   return (
     <div className="space-y-3">
-      <Separator />
       <div className="px-4 py-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ function getNewChatShortcutText() {
 export function AppSidebar({ user }: { user: User | undefined }) {
   const navigate = useNavigate();
   const router = useRouter();
-  const { setOpenMobile } = useSidebar();
+  const { setOpenMobile, open } = useSidebar();
   const { refreshChatID } = useChatId();
 
   // Update shortcut text on mount
@@ -112,18 +112,18 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   }, [setOpenMobile, refreshChatID, navigate]);
 
   return (
-    <Sidebar className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen">
+    <Sidebar collapsible="icon" className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen">
       <SidebarHeader>
         <SidebarMenu>
-          <div className="flex flex-row justify-between items-center">
+          <div className="flex flex-row justify-between items-center ">
             <Link
               to="/"
               onClick={() => {
                 setOpenMobile(false);
               }}
-              className="flex flex-row gap-3 items-center"
+              className="flex flex-row gap-2 items-center"
             >
-              <span className="text-lg font-semibold px-2 hover:bg-muted rounded-md cursor-pointer flex items-center gap-2">
+              <span className="text-lg font-semibold hover:bg-muted rounded-md cursor-pointer flex items-center gap-2 p-1">
                 <Image
                   src="/icon.svg"
                   alt="Sparka AI"
@@ -131,7 +131,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   height={24}
                   className="w-6 h-6"
                 />
-                Sparka
+                {open && "Sparka"}
               </span>
             </Link>
           </div>
@@ -156,16 +156,19 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      <SidebarSeparator />
       <ScrollArea className="h-full">
         <SidebarContent className="max-w-[var(--sidebar-width)] pr-2">
-          <SidebarHistory user={user} />
+          {open && <SidebarHistory user={user} />}
         </SidebarContent>
       </ScrollArea>
-      <SidebarFooter>
-        <div className="px-2 pb-2">
-          <SidebarCreditsDisplay />
-        </div>
-      </SidebarFooter>
+
+      <SidebarSeparator />
+      {open && (
+        <SidebarFooter>
+            <SidebarCreditsDisplay />
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }

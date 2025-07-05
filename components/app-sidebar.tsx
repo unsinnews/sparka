@@ -3,6 +3,7 @@
 import type { User } from 'next-auth';
 import { LogIn } from 'lucide-react';
 import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
@@ -20,7 +21,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Separator } from './ui/separator';
 import { Link, useNavigate } from 'react-router';
 import { useRouter } from 'next/navigation';
@@ -75,11 +75,41 @@ function SidebarCreditsDisplay() {
   );
 }
 
+// Helper function to get platform-specific shortcut text
+function getNewChatShortcutText() {
+  if (typeof window === 'undefined') return 'Ctrl+Shift+O';
+  
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  return isMac ? 'Cmd+Shift+O' : 'Ctrl+Shift+O';
+}
+
 export function AppSidebar({ user }: { user: User | undefined }) {
   const navigate = useNavigate();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
   const { refreshChatID } = useChatId();
+
+  // Update shortcut text on mount
+  const [shortcutText, setShortcutText] = useState('Ctrl+Shift+O');
+
+  useEffect(() => {
+    setShortcutText(getNewChatShortcutText());
+  }, []);
+
+  // Keyboard shortcut for new chat
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.key === 'O' && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpenMobile(false);
+        refreshChatID();
+        navigate('/');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [setOpenMobile, refreshChatID, navigate]);
 
   return (
     <Sidebar className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen">
@@ -104,26 +134,24 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 Sparka
               </span>
             </Link>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  type="button"
-                  className="p-2 h-fit"
-                  onClick={() => {
-                    setOpenMobile(false);
-                    refreshChatID();
-                    navigate('/');
-                  }}
-                >
-                  <PlusIcon />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent align="end">New Chat</TooltipContent>
-            </Tooltip>
           </div>
 
           <SidebarMenuItem className="mt-4">
+            <SidebarMenuButton
+              onClick={() => {
+                setOpenMobile(false);
+                refreshChatID();
+                navigate('/');
+              }}
+              className="w-full justify-start"
+            >
+              <PlusIcon />
+              <span>New Chat</span>
+              <span className="ml-auto text-xs text-muted-foreground">{shortcutText}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
             <SearchChatsButton />
           </SidebarMenuItem>
         </SidebarMenu>

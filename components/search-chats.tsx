@@ -6,9 +6,23 @@ import { useSidebar } from '@/components/ui/sidebar';
 import { SidebarMenuButton } from './ui/sidebar';
 import { SearchChatsDialog } from './search-chats-dialog';
 
+// Helper function to get platform-specific shortcut text
+function getSearchShortcutText() {
+  if (typeof window === 'undefined') return 'Ctrl+K';
+  
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  return isMac ? 'Cmd+K' : 'Ctrl+K';
+}
+
 export function SearchChatsButton() {
   const [open, setOpen] = useState(false);
   const { setOpenMobile } = useSidebar();
+  const [shortcutText, setShortcutText] = useState('Ctrl+K');
+
+  // Update shortcut text on mount
+  useEffect(() => {
+    setShortcutText(getSearchShortcutText());
+  }, []);
 
   // Global keyboard shortcut
   useEffect(() => {
@@ -31,7 +45,7 @@ export function SearchChatsButton() {
       >
         <SearchIcon className="h-4 w-4" />
         <span>Search chats</span>
-        <span className="ml-auto text-xs text-muted-foreground">⌘K</span>
+        <span className="ml-auto text-xs text-muted-foreground">{shortcutText}</span>
       </SidebarMenuButton>
 
       {open && (

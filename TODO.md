@@ -181,14 +181,14 @@
     [x] Do an optimistic update for the pinned chats
 
 [ ] Usage improvements
-    [ ] Move login to a more visibile place (like chatgpt). Leave previous place for the CTA
+    [x] Move login to a more visibile place (like chatgpt). Leave previous place for the CTA
     [ ] Replace input / ouput token pricing in model cards with credit pricing
     [ ] Protectiong for going over token context
-    [ ] More space between buttons in multimodal input (hard to click on mobile)
+    [x] More space between buttons in multimodal input (hard to click on mobile)
 
-[ ] Keyboard Shortcuts
-    [ ] Open settings ctrl+shift+p
-    [ ] New Chat button + show keyboard shortcut for it
+[x] Keyboard Shortcuts
+    [x] New Chat button + show keyboard shortcut for it
+    [ ] Show keyboard shortcuts in the settings page
 
 
 [ ] AI SDK 5 migration

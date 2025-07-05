@@ -99,6 +99,7 @@ export function Chat({
           chatId={id}
           isReadonly={isReadonly}
           hasMessages={chatHelperMessages.length > 0}
+          user={session?.user}
         />
 
         <Messages

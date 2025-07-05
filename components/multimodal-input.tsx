@@ -546,7 +546,7 @@ function PureMultimodalInput({
                 selectedModelId={selectedModelId}
               />
             </div>
-            <div className="flex gap-1 @[400px]:gap-2">
+            <div className="flex gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
               {status !== 'ready' ? (
                 <StopButton stop={stop} setMessages={setMessages} />
@@ -597,7 +597,7 @@ function PureAttachmentsButton({
       <PopoverTrigger asChild>
         <Button
           data-testid="attachments-button"
-          className="rounded-md p-1 @[400px]:p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
+          className="p-1.5 h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
           onClick={handleClick}
           disabled={status !== 'ready'}
           variant="ghost"
@@ -627,7 +627,7 @@ function PureStopButton({
   return (
     <Button
       data-testid="stop-button"
-      className="rounded-full p-1 @[400px]:p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
         stop();
@@ -653,7 +653,7 @@ function PureSendButton({
   return (
     <Button
       data-testid="send-button"
-      className="rounded-full p-1 @[400px]:p-1.5 h-fit border dark:border-zinc-600"
+      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
         submitForm();

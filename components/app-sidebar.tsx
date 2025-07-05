@@ -21,9 +21,59 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Separator } from './ui/separator';
 import { Link, useNavigate } from 'react-router';
 import { useRouter } from 'next/navigation';
 import { useChatId } from '@/providers/chat-id-provider';
+import { useGetCredits } from '@/hooks/use-chat-store';
+import { useSession } from 'next-auth/react';
+import { Coins } from 'lucide-react';
+
+function SidebarCreditsDisplay() {
+  const { credits, isLoadingCredits } = useGetCredits();
+  const { data: session } = useSession();
+  const router = useRouter();
+  const isAuthenticated = !!session?.user;
+
+  if (isLoadingCredits) {
+    return (
+      <div className="px-4 py-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+        Loading credits...
+      </div>
+    );
+  }
+
+  const remaining = credits ?? 0;
+
+  return (
+    <div className="space-y-3">
+      <Separator />
+      <div className="px-4 py-3 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Coins className="h-4 w-4" />
+            <span>Credits remaining</span>
+          </div>
+          <span className="font-semibold">{remaining}</span>
+        </div>
+      </div>
+      
+      {!isAuthenticated && (
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-2"
+          onClick={() => {
+            router.push('/login');
+            router.refresh();
+          }}
+        >
+          <LogIn className="h-4 w-4" />
+          Sign in to reset your limits
+        </Button>
+      )}
+    </div>
+  );
+}
 
 export function AppSidebar({ user }: { user: User | undefined }) {
   const navigate = useNavigate();
@@ -84,25 +134,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         </SidebarContent>
       </ScrollArea>
       <SidebarFooter>
-        {user ? (
-          <SidebarUserNav user={user} />
-        ) : (
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                className="bg-background hover:bg-sidebar-accent hover:text-sidebar-accent-foreground justify-start gap-3 h-10"
-                onClick={() => {
-                  setOpenMobile(false);
-                  router.push('/login');
-                  router.refresh();
-                }}
-              >
-                <LogIn className="size-4" />
-                <span>Login</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        )}
+        <div className="px-2 pb-2">
+          <SidebarCreditsDisplay />
+        </div>
       </SidebarFooter>
     </Sidebar>
   );

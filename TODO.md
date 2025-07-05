@@ -182,7 +182,6 @@
 
 [ ] Usage improvements
     [ ] Move login to a more visibile place (like chatgpt). Leave previous place for the CTA
-    [ ] Input token
     [ ] Replace input / ouput token pricing in model cards with credit pricing
     [ ] Protectiong for going over token context
     [ ] More space between buttons in multimodal input (hard to click on mobile)

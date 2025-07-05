@@ -28,30 +28,30 @@ export function SidebarUserNav({ user }: { user: User }) {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10 justify-start">
+            <SidebarMenuButton className="data-[state=open]:bg-sidebar-accent bg-background data-[state=open]:text-sidebar-accent-foreground h-10 w-10 p-2 justify-center">
               <Image
                 src={user.image ?? `https://avatar.vercel.sh/${user.email}`}
                 alt={user.email ?? 'User Avatar'}
                 width={24}
                 height={24}
-                className="rounded-full mr-2"
+                className="rounded-full"
               />
-              <span className="truncate flex-1">{user?.email}</span>
-              {credits !== undefined && (
-                <div className="flex items-center text-muted-foreground mr-2">
-                  <Coins className="w-4 h-4 mr-1" />
-                  <span>{credits}</span>
-                </div>
-              )}
-              <ChevronUp className="ml-auto" />
             </SidebarMenuButton>
-          </DropdownMenuTrigger>
+        </DropdownMenuTrigger>
           <DropdownMenuContent
-            side="top"
-            className="w-[--radix-popper-anchor-width]"
+            side="bottom"
+            align="end"
+            className="w-56"
           >
             <DropdownMenuItem disabled>
-              Credits: {credits ?? 'Loading...'}
+              <span className="font-medium">{user.email}</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem disabled>
+              <div className="flex items-center text-muted-foreground">
+                <Coins className="w-4 h-4 mr-1" />
+                <span>Credits: {credits ?? 'Loading...'}</span>
+              </div>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

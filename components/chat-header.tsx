@@ -8,22 +8,31 @@ import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { ShareButton } from './share-button';
 import { useNavigate } from 'react-router';
-import { Share } from 'lucide-react';
+import { Share, LogIn } from 'lucide-react';
 import { useChatId } from '@/providers/chat-id-provider';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { SidebarUserNav } from './sidebar-user-nav';
+import type { User } from 'next-auth';
 
 function PureChatHeader({
   chatId,
   isReadonly,
   hasMessages,
+  user,
 }: {
   chatId: string;
   isReadonly: boolean;
   hasMessages: boolean;
+  user: User | undefined;
 }) {
   const { open } = useSidebar();
   const navigate = useNavigate();
+  const router = useRouter();
   const { refreshChatID } = useChatId();
   const { width: windowWidth } = useWindowSize();
+  const { data: session } = useSession();
+  const isAuthenticated = !!session?.user;
 
   return (
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
@@ -34,7 +43,7 @@ function PureChatHeader({
           <TooltipTrigger asChild>
             <Button
               variant="outline"
-              className="order-1 md:order-1 md:px-2 px-2 md:h-fit"
+              className="md:px-2 px-2 md:h-fit"
               onClick={() => {
                 refreshChatID();
                 navigate('/');
@@ -49,12 +58,12 @@ function PureChatHeader({
       )}
 
       {!isReadonly && hasMessages && (
-        <ShareButton chatId={chatId} className="order-2 md:order-2" />
+        <ShareButton chatId={chatId} />
       )}
       {isReadonly && (
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="order-2 md:order-2 flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground text-sm">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-muted/50 text-muted-foreground text-sm">
               <Share size={14} className="opacity-70" />
               <span>Shared</span>
             </div>
@@ -70,21 +79,45 @@ function PureChatHeader({
         </Tooltip>
       )}
 
-      <Button
-        variant="ghost"
-        size="sm"
-        className="order-3 md:order-3 p-2 h-8 w-8 ml-auto"
-        asChild
-      >
-        <a
-          href="https://github.com/franciscomoretti/sparka"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center justify-center"
+      <div className="ml-auto flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="p-2 h-8 w-8"
+          asChild
         >
-          <GitIcon />
-        </a>
-      </Button>
+          <a
+            href="https://github.com/franciscomoretti/sparka"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center"
+          >
+            <GitIcon />
+          </a>
+        </Button>
+        
+        {isAuthenticated && user ? (
+          <SidebarUserNav user={user} />
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3"
+                onClick={() => {
+                  router.push('/login');
+                  router.refresh();
+                }}
+              >
+                <LogIn className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Sign in</span>
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Sign in to your account</TooltipContent>
+          </Tooltip>
+        )}
+      </div>
     </header>
   );
 }

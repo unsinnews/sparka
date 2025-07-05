@@ -160,7 +160,7 @@
 
 [x] Last Model selected and used should be the new default model
 
-[ ] Small tasks
+[x] Small tasks
     [x] The Multimodal input submit should be disabled when attachments are being uploaded (submit with enter)
 
 
@@ -169,10 +169,7 @@
 
 [x] Sparka Shared chat redirects to login
 
-[ ] Does shared chat with images work?
-
-[ ] Fix anonymous user creating doc
-
+[x] Fix anonymous user creating doc
 
 [x] Pinned chats
     [x] Schema: Create setIsPinned as a placeholder procedure in `chat.router.tsx`
@@ -183,23 +180,37 @@
     [x] move mutation to use-chat-store and create support for anonymous users
     [x] Do an optimistic update for the pinned chats
 
-[ ] Replace input / ouput token pricing in model cards with credit pricing
+[ ] Usage improvements
+    [ ] Move login to a more visibile place (like chatgpt). Leave previous place for the CTA
+    [ ] Input token
+    [ ] Replace input / ouput token pricing in model cards with credit pricing
+    [ ] Protectiong for going over token context
+    [ ] More space between buttons in multimodal input (hard to click on mobile)
 
-[ ] Quote from assistant messages functionality
+[ ] Keyboard Shortcuts
+    [ ] Open settings ctrl+shift+p
+    [ ] New Chat button + show keyboard shortcut for it
 
-[ ] Anonymous user loading /chat/:id get redirected by auth.config.ts to login
 
-[ ] Code Execution
+[ ] AI SDK 5 migration
+
+[ ] Quote text from 'assistant messages' functionality (like chatgpt)
+
+[ ] Define a credits price model
 
 [ ] Deep Research v2
 
 [ ] Optimizations
   [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
 
-[ ] Keyboard Shortcuts
-    [ ] New Chat ctrl+shift+o
+[ ] Define how to copy images for a shared chat
 
-[ ] Protectiong for going over token context
+[ ] Settings Page
+    [ ] Define the models that you enable (like cursor)
+    [ ] Show a Keyboard shortcuts help in settings
+
+
+[ ] Code Execution
 
 [ ] Tooltips are shifted when the sidebar is open
 
@@ -213,9 +224,7 @@
 
 [x] View Changes Button should be a toggle (should have a visible active state when active)
 
-[ ] Chat history: 
-- [ ] Favourite / Pinned chats
-- [ ] Virtual list for previous chats
+[ ] Chat history: Virtual list for previous chats
 
 
 [x] Generated artifact create a new version when they render on Lexical
@@ -238,7 +247,7 @@
     [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
     [ ] Retry mechanism should include all info about user submission
 
-[ ] Artifacts should use the selected model to generate the document
+[x] Artifacts should use the selected model to generate the document
 
 [ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
 
@@ -394,7 +403,6 @@
 
 [ ] Add more providers (Google, Deepseek, etc)
 
-[ ] AI SDK 5 ?
 [ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
 [ ] Fix broken CI workflows
 [ ] Long running jobs

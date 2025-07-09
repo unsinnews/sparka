@@ -58,7 +58,7 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     dataStream,
     selectedModel,
   }) => {
-    const draftContent = '';
+    let draftContent = '';
 
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),

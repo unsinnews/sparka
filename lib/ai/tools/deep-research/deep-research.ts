@@ -212,7 +212,7 @@ export async function writeFinalReport({
     ),
     messageId,
     selectedModel: DEFAULT_ARTIFACT_MODEL,
-    telemetry: {
+    experimental_telemetry: {
       isEnabled: true,
       functionId: 'deep-research-final',
     },

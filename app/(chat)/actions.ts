@@ -19,7 +19,7 @@ export async function generateTitleFromUserMessage({
     - the title should be a summary of the user's message
     - do not use quotes or colons`,
     prompt: JSON.stringify(message),
-    telemetry: { isEnabled: true },
+    experimental_telemetry: { isEnabled: true },
   });
 
   return title;

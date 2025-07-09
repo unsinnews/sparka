@@ -52,7 +52,7 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
     dataStream,
     selectedModel,
   }) => {
-    const draftContent = '';
+    let draftContent = '';
 
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),

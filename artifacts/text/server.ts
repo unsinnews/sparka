@@ -54,9 +54,9 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
     const { fullStream } = streamText({
       model: getLanguageModel(selectedModel),
       system: updateDocumentPrompt(document.content, 'text'),
-      transform: smoothStream({ chunking: 'word' }),
+      experimental_transform: smoothStream({ chunking: 'word' }),
       prompt: description,
-      telemetry: {
+      experimental_telemetry: {
         isEnabled: true,
         functionId: 'refine-text',
       },

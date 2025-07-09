@@ -174,7 +174,6 @@ export class ZustandChat<
 > extends AbstractChat<UI_MESSAGE> {
   private zustandState: ZustandChatState<UI_MESSAGE>;
   public store: ReturnType<typeof createChatStore<UI_MESSAGE>>;
-  #private; // Required by Chat interface
 
   constructor({
     messages,

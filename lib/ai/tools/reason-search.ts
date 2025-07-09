@@ -3,13 +3,13 @@ import { generateObject, tool } from 'ai';
 import Exa from 'exa-js';
 import type { Session } from 'next-auth';
 import { openai } from '@ai-sdk/openai';
-import type { AnnotationDataStreamWriter } from './annotation-stream';
 import { webSearchStep, type WebSearchResult } from './steps/web-search';
 import { xSearchStep, type XSearchResult } from './steps/x-search';
 import {
   academicSearchStep,
   type AcademicSearchResult,
 } from './steps/academic-search';
+import type { StreamWriter } from '../types';
 
 type SearchResult = {
   type: 'web' | 'academic' | 'x';
@@ -30,12 +30,12 @@ export const createReasonSearch = ({
   dataStream,
 }: {
   session: Session;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
 }) =>
   tool({
     description:
       'Perform a reasoned web search with multiple steps and sources.',
-    parameters: z.object({
+    inputSchema: z.object({
       topic: z.string().describe('The main topic or question to research'),
       depth: z.enum(['basic', 'advanced']).describe('Search depth level'),
     }),
@@ -45,8 +45,8 @@ export const createReasonSearch = ({
     }: { topic: string; depth: 'basic' | 'advanced' }) => {
       const exa = new Exa(process.env.EXA_API_KEY as string);
 
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: 'research-plan-initial', // unique id for the initial state
           type: 'progress',
@@ -93,7 +93,6 @@ export const createReasonSearch = ({
               .describe('Describe what you are going to do in this step'),
           }),
         }),
-        experimental_telemetry: { isEnabled: true },
         prompt: `Create a focused research plan for the topic: "${topic}". 
                 
                 Today's date and day of the week: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
@@ -116,8 +115,8 @@ export const createReasonSearch = ({
                 Ensure the total number of steps (searches + analyses) does not exceed 20.`,
       });
 
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: `step-0-initial-thoughts`, // unique id for the initial state
           status: 'completed',
@@ -154,8 +153,8 @@ export const createReasonSearch = ({
 
       const searchQueryConfigs = searchSteps.map((step) => step.query);
 
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: `step-${completedSteps}-additional-queries`,
           type: 'web',
@@ -180,8 +179,8 @@ export const createReasonSearch = ({
         });
         searchResults.push(...results);
       }
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: `step-${completedSteps}-additional-queries`,
           type: 'web',
@@ -200,8 +199,8 @@ export const createReasonSearch = ({
       completedSteps++;
 
       // After all analyses are complete, send running state for gap analysis
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: 'gap-analysis',
           type: 'thoughts',
@@ -254,10 +253,6 @@ export const createReasonSearch = ({
             }),
           ),
         }),
-        providerOptions: {
-          experimental_telemetry: { isEnabled: true },
-        },
-        experimental_telemetry: { isEnabled: true },
         prompt: `Analyze the research results and identify limitations, knowledge gaps, and recommended follow-up actions.
                 Consider:
                 - Quality and reliability of sources
@@ -278,8 +273,8 @@ export const createReasonSearch = ({
       });
 
       // Send gap analysis update
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: 'gap-analysis',
           type: 'thoughts',
@@ -314,8 +309,8 @@ export const createReasonSearch = ({
           (gap) => gap.additional_queries,
         );
 
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
+        dataStream.write({
+          type: 'data-researchUpdate',
           data: {
             id: `step-${completedSteps}-additional-queries`,
             type: 'web',
@@ -343,8 +338,8 @@ export const createReasonSearch = ({
           });
           additionalSearchResults.push(...results);
         }
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
+        dataStream.write({
+          type: 'data-researchUpdate',
           data: {
             id: `step-${completedSteps}-additional-queries`,
             type: 'web',
@@ -364,8 +359,8 @@ export const createReasonSearch = ({
         searchResults.push(...additionalSearchResults);
 
         // Send running state for final synthesis
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
+        dataStream.write({
+          type: 'data-researchUpdate',
           data: {
             id: 'final-synthesis',
             type: 'thoughts',
@@ -403,11 +398,6 @@ export const createReasonSearch = ({
             }),
           ),
         }),
-        providerOptions: {
-          experimental_telemetry: { isEnabled: true },
-        },
-        experimental_telemetry: { isEnabled: true },
-        // TODO: This prompt will have to change if we take an arbitrary number of steps
         prompt: `Synthesize all research findings, including gap analysis and follow-up research.
                     Highlight key conclusions and remaining uncertainties.
                     Stick to the types of the schema, do not add any other fields or types.
@@ -423,8 +413,8 @@ export const createReasonSearch = ({
       });
 
       // Send final synthesis update
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: 'final-synthesis',
           type: 'thoughts',
@@ -441,8 +431,8 @@ export const createReasonSearch = ({
       });
 
       // Final progress update
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: 'research-progress',
           type: 'progress',
@@ -476,7 +466,7 @@ async function searchStep({
     priority: number;
   };
   completedSteps: number;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   depth: 'basic' | 'advanced';
 }) {
   const source = searchQueryConfig.source;

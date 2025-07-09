@@ -2,7 +2,7 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 import React from 'react';
 import { cn } from '@/lib/utils';
 // Type-only imports
-import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
+import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 
 import { ResearchTasks } from './research-tasks';
 import { ResearchTask } from './research-task';
@@ -23,13 +23,13 @@ export const ResearchProgress = ({
   totalExpectedSteps,
   isComplete,
 }: {
-  updates: StreamUpdate[];
+  updates: ResearchUpdate[];
   totalExpectedSteps: number;
   isComplete: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const dedupedUpdates = React.useMemo(() => {
-    const updateMap = new Map<string, StreamUpdate>();
+    const updateMap = new Map<string, ResearchUpdate>();
     updates.forEach((u) => updateMap.set(u.id, u));
     return Array.from(updateMap.values());
   }, [updates]);

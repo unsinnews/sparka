@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { XLogo } from '@phosphor-icons/react/XLogo';
-import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
+import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { WebSourceBadge } from './source-badge';
 
 const updateName = {
@@ -35,7 +35,7 @@ export const ResearchTask = ({
   update,
   minimal,
 }: {
-  update: StreamUpdate;
+  update: ResearchUpdate;
   minimal: boolean;
 }) => {
   const isGapSearch = update.id.startsWith('gap-search');
@@ -78,7 +78,7 @@ export const ResearchTask = ({
                   className="flex items-center gap-1 bg-muted "
                 >
                   <SearchIcon className="size-3.5" />
-                  {/* // TODO: Make this sizewresponsive or accomodate long text in another manner */}
+                  {/* // TODO: Make this size width responsive or accomodate long text in another manner */}
                   <span className="truncate max-w-[300px]">{query}</span>
                 </Badge>
               ))}

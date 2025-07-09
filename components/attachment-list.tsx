@@ -1,6 +1,6 @@
 'use client';
 
-import type { Attachment } from 'ai';
+import type { Attachment } from '@/lib/ai/types';
 import { PreviewAttachment } from './preview-attachment';
 import { cn } from '@/lib/utils';
 

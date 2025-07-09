@@ -5,7 +5,7 @@ import { test, expect, type Page } from '@playwright/test';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 const testEmail = `test-${getUnixTime(new Date())}@playwright.com`;
-const testPassword = generateId(16);
+const testPassword = generateId();
 
 class AuthPage {
   constructor(private page: Page) {}
@@ -76,7 +76,7 @@ test.describe
     });
 
     test('can register new user', async ({ page }) => {
-      const testEmail = `test-${generateId(8)}@test.com`;
+      const testEmail = `test-${generateId()}@test.com`;
       await authPage.gotoLogin();
       await authPage.register(testEmail, testPassword);
       await expect(page).toHaveURL('/');

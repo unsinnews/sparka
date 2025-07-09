@@ -1,4 +1,4 @@
-import type { Message } from 'ai';
+import type { UIMessage } from 'ai';
 import { useCopyToClipboard } from 'usehooks-ts';
 
 import type { Vote } from '@/lib/db/schema';
@@ -21,6 +21,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { RetryButton } from './retry-button';
 import { memo } from 'react';
 import equal from 'fast-deep-equal';
+import type { ChatMessage } from '@/lib/ai/types';
 
 export function PureMessageActions({
   chatId,
@@ -31,11 +32,11 @@ export function PureMessageActions({
   chatHelpers,
 }: {
   chatId: string;
-  message: Message;
+  message: UIMessage;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
-  chatHelpers?: UseChatHelpers;
+  chatHelpers?: UseChatHelpers<ChatMessage>;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();

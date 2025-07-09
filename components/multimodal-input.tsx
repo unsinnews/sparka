@@ -1,6 +1,6 @@
 'use client';
+import type { Attachment, ChatMessage } from '@/lib/ai/types';
 
-import type { Attachment, Message } from 'ai';
 import type React from 'react';
 import { useRef, useState, useCallback, type ChangeEvent, memo } from 'react';
 import { toast } from 'sonner';
@@ -22,7 +22,6 @@ import {
 } from './ui/chat-input';
 import { SuggestedActions } from './suggested-actions';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { YourUIMessage } from '@/lib/types/ui';
 import { useChatInput } from '@/providers/chat-input-provider';
 import { ModelSelector } from './model-selector';
 import { ResponsiveTools } from './chat-tools';
@@ -46,17 +45,17 @@ function PureMultimodalInput({
   stop,
   messages,
   setMessages,
-  append,
+  sendMessage,
   className,
   isEditMode = false,
   parentMessageId,
 }: {
   chatId: string;
-  status: UseChatHelpers['status'];
+  status: UseChatHelpers<ChatMessage>['status'];
   stop: () => void;
-  messages: Array<YourUIMessage>;
-  setMessages: UseChatHelpers['setMessages'];
-  append: UseChatHelpers['append'];
+  messages: Array<ChatMessage>;
+  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   isEditMode?: boolean;
   parentMessageId: string | null;
@@ -198,33 +197,36 @@ function PureMultimodalInput({
       }
     }
 
-    const message: Message = {
+    const message: ChatMessage = {
       id: generateUUID(),
       parts: [
+        ...attachments.map((attachment) => ({
+          type: 'file' as const,
+          url: attachment.url,
+          name: attachment.name,
+          mediaType: attachment.contentType,
+        })),
         {
           type: 'text',
           text: input,
         },
       ],
-      experimental_attachments: attachments,
-      createdAt: new Date(),
+      metadata: {
+        createdAt: new Date(),
+        parentMessageId: effectiveParentMessageId,
+      },
       role: 'user',
-      content: input,
     };
 
     saveChatMessage({
       message,
       chatId,
-      parentMessageId: effectiveParentMessageId,
     });
 
-    append(message, {
-      data: {
-        ...data,
-        parentMessageId: effectiveParentMessageId,
-      },
+    sendMessage(message, {
       body: {
         selectedChatModel: selectedModelId,
+        data,
       },
     });
 
@@ -245,7 +247,7 @@ function PureMultimodalInput({
     }
   }, [
     attachments,
-    append,
+    sendMessage,
     clearAttachments,
     clearInput,
     resetData,
@@ -442,7 +444,7 @@ function PureMultimodalInput({
         uploadQueue.length === 0 &&
         !isEditMode && (
           <SuggestedActions
-            append={append}
+            sendMessage={sendMessage}
             chatId={chatId}
             selectedModelId={selectedModelId}
           />
@@ -577,7 +579,7 @@ function PureAttachmentsButton({
   status,
 }: {
   fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
-  status: UseChatHelpers['status'];
+  status: UseChatHelpers<ChatMessage>['status'];
 }) {
   const { data: session } = useSession();
   const isAnonymous = !session?.user;
@@ -622,7 +624,7 @@ function PureStopButton({
   setMessages,
 }: {
   stop: () => void;
-  setMessages: UseChatHelpers['setMessages'];
+  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
 }) {
   return (
     <Button

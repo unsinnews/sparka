@@ -2,17 +2,14 @@ import {
   getModelDefinition,
   type AvailableProviderModels,
 } from '../ai/all-models';
-import {
-  type YourToolName,
-  toolsDefinitions,
-  allTools,
-} from '../ai/tools/tools';
+import { toolsDefinitions, allTools } from '../ai/tools/tools';
+import type { ToolNames } from '../ai/types';
 import { reserveAvailableCredits } from '../repositories/credits';
 
 export function filterAffordableTools(
-  tools: YourToolName[],
+  tools: ToolNames[],
   toolBudget: number,
-): YourToolName[] {
+): ToolNames[] {
   const affordableTools = tools.filter((toolName) => {
     const toolCost = toolsDefinitions[toolName].cost;
     return toolBudget >= toolCost;
@@ -21,7 +18,7 @@ export function filterAffordableTools(
   return affordableTools;
 }
 
-export function getMaxToolCost(tools: YourToolName[]): number {
+export function getMaxToolCost(tools: ToolNames[]): number {
   return tools.reduce((max, toolName) => {
     return Math.max(max, toolsDefinitions[toolName].cost);
   }, 0);

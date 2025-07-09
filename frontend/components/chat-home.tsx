@@ -4,9 +4,16 @@ import { DataStreamHandler } from '@/components/data-stream-handler';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useChatId } from '@/providers/chat-id-provider';
 import { notFound } from 'next/navigation';
+import { useEffect } from 'react';
+import { chatStore } from '@/lib/stores/chat-store';
 
 export function ChatHome() {
   const { provisionalChatId: newChatId } = useChatId();
+
+  // Clear messages in chat store for new chat
+  useEffect(() => {
+    chatStore.getState().setMessages([]);
+  }, [newChatId]);
 
   if (!newChatId) {
     return notFound();

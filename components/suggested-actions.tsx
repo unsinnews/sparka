@@ -4,16 +4,17 @@ import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import type { ChatMessage } from '@/lib/ai/types';
 
 interface SuggestedActionsProps {
   chatId: string;
-  append: UseChatHelpers['append'];
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   selectedModelId: string;
 }
 
 function PureSuggestedActions({
   chatId,
-  append,
+  sendMessage,
   selectedModelId,
 }: SuggestedActionsProps) {
   const suggestedActions = [
@@ -58,18 +59,20 @@ function PureSuggestedActions({
             onClick={async () => {
               window.history.replaceState({}, '', `/chat/${chatId}`);
 
-              append(
+              sendMessage(
                 {
                   role: 'user',
-                  content: suggestedAction.action,
+                  parts: [{ type: 'text', text: suggestedAction.action }],
                 },
                 {
-                  data: {
-                    deepResearch: false,
-                    webSearch: false,
-                    reason: false,
-                  },
                   body: {
+                    data: {
+                      deepResearch: false,
+                      webSearch: false,
+                      reason: false,
+                      generateImage: false,
+                      writeOrCode: false,
+                    },
                     selectedChatModel: selectedModelId,
                   },
                 },

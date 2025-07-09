@@ -1,14 +1,15 @@
 'use server';
 
-import { generateText, type Message } from 'ai';
+import { generateText } from 'ai';
 
 import { getLanguageModel } from '@/lib/ai/providers';
 import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
+import type { ChatMessage } from '@/lib/ai/types';
 
 export async function generateTitleFromUserMessage({
   message,
 }: {
-  message: Message;
+  message: ChatMessage;
 }) {
   const { text: title } = await generateText({
     model: getLanguageModel(DEFAULT_TITLE_MODEL),

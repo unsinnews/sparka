@@ -1,5 +1,5 @@
-import type { ToolCall, ToolResult } from 'ai';
-import { createDocumentTool } from '@/lib/ai/tools/create-document';
+import type { ModelMessage, FileUIPart } from 'ai';
+import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
@@ -10,12 +10,9 @@ import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
 import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
-import { generateImageTool } from '@/lib/ai/tools/generate-image';
-import type { z } from 'zod';
-import type { AnnotationDataStreamWriter } from './annotation-stream';
-import type { CoreMessage } from 'ai';
+import { generateImage } from '@/lib/ai/tools/generate-image';
 import type { AvailableProviderModels } from '@/lib/ai/all-models';
-import type { Attachment } from 'ai';
+import type { StreamWriter, ToolNames } from '../types';
 
 export function getTools({
   dataStream,
@@ -23,20 +20,20 @@ export function getTools({
   contextForLLM,
   messageId,
   selectedModel,
-  userAttachments = [],
+  attachments = [],
   lastGeneratedImage = null,
 }: {
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   session: Session;
-  contextForLLM?: CoreMessage[];
+  contextForLLM?: ModelMessage[];
   messageId: string;
   selectedModel: AvailableProviderModels;
-  userAttachments?: Array<Attachment>;
-  lastGeneratedImage?: { imageUrl: string; name: string } | null;
+  attachments: Array<FileUIPart>;
+  lastGeneratedImage: { imageUrl: string; name: string } | null;
 }) {
   return {
     getWeather,
-    createDocument: createDocumentTool({
+    createDocument: createDocument({
       session,
       dataStream,
       contextForLLM,
@@ -65,40 +62,10 @@ export function getTools({
     webSearch: webSearch({ session, dataStream }),
     stockChart,
     codeInterpreter,
-    generateImage: generateImageTool({ userAttachments, lastGeneratedImage }),
+    generateImage: generateImage({ attachments, lastGeneratedImage }),
     deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }
-
-type AvailableToolsReturn = ReturnType<typeof getTools>;
-
-export type YourToolName = keyof AvailableToolsReturn;
-
-export type ToolResultOf<T extends keyof AvailableToolsReturn> = Awaited<
-  ReturnType<AvailableToolsReturn[T]['execute']>
->;
-
-type ToolParametersOf<T extends keyof AvailableToolsReturn> = z.infer<
-  AvailableToolsReturn[T]['parameters']
->;
-
-type ToolInvocationOf<T extends YourToolName> =
-  | ({
-      state: 'partial-call';
-      step?: number;
-    } & ToolCall<T, ToolParametersOf<T>>)
-  | ({
-      state: 'call';
-      step?: number;
-    } & ToolCall<T, ToolParametersOf<T>>)
-  | ({
-      state: 'result';
-      step?: number;
-    } & ToolResult<T, ToolParametersOf<T>, ToolResultOf<T>>);
-
-export type YourToolInvocation = {
-  [K in YourToolName]: ToolInvocationOf<K>;
-}[YourToolName];
 
 type ToolDefinition = {
   name: string;
@@ -106,7 +73,7 @@ type ToolDefinition = {
   cost: number;
 };
 
-export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
+export const toolsDefinitions: Record<ToolNames, ToolDefinition> = {
   getWeather: {
     name: 'getWeather',
     description: 'Get the weather in a specific location',
@@ -169,6 +136,6 @@ export const toolsDefinitions: Record<YourToolName, ToolDefinition> = {
   },
 };
 
-export const allTools: YourToolName[] = Object.keys(
+export const allTools: ToolNames[] = Object.keys(
   toolsDefinitions,
-) as YourToolName[];
+) as ToolNames[];

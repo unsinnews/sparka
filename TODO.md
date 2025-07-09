@@ -190,8 +190,19 @@
     [x] New Chat button + show keyboard shortcut for it
     [ ] Show keyboard shortcuts in the settings page
 
+[ ] Cleanup Redis client / server
 
 [ ] AI SDK 5 migration
+
+[ ] External Store for messages (and setMessages)
+[ ] Do we want optional props on the metadata?
+[ ] All sendMessage operations should have metadata
+
+
+[ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
+
+[ ] Create a schema for chat request body
+[ ] Data should be renamed to selectedTool and it should have all fields as optional
 
 [ ] Quote text from 'assistant messages' functionality (like chatgpt)
 
@@ -208,6 +219,12 @@
     [ ] Define the models that you enable (like cursor)
     [ ] Show a Keyboard shortcuts help in settings
 
+
+[ ] Duplicate chat (like the one for shared chats, but for your own chats)
+
+[ ] Thinking tokens should be passed as context. Find a common format instead of filtering.
+
+[ ] Chats should be sorted by updatedAt (not by createdAt)
 
 [ ] Code Execution
 

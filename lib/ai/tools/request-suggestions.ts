@@ -5,12 +5,12 @@ import { getDocumentById, saveSuggestions } from '@/lib/db/queries';
 import type { Suggestion } from '@/lib/db/schema';
 import { generateUUID } from '@/lib/utils';
 import { getLanguageModel } from '../providers';
-import type { AnnotationDataStreamWriter } from './annotation-stream';
 import { DEFAULT_ARTIFACT_SUGGESTION_MODEL } from '../all-models';
+import type { StreamWriter } from '../types';
 
 interface RequestSuggestionsProps {
   session: Session;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
 }
 
 export const requestSuggestions = ({
@@ -19,7 +19,7 @@ export const requestSuggestions = ({
 }: RequestSuggestionsProps) =>
   tool({
     description: 'Request suggestions for a document',
-    parameters: z.object({
+    inputSchema: z.object({
       documentId: z
         .string()
         .describe('The ID of the document to request edits'),
@@ -40,6 +40,7 @@ export const requestSuggestions = ({
       const { elementStream } = streamObject({
         model: getLanguageModel(DEFAULT_ARTIFACT_SUGGESTION_MODEL),
         experimental_telemetry: { isEnabled: true },
+
         system:
           'You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.',
         prompt: document.content,
@@ -52,18 +53,21 @@ export const requestSuggestions = ({
       });
 
       for await (const element of elementStream) {
-        const suggestion = {
+        // @ts-ignore todo: fix  type
+        const suggestion: Suggestion = {
           originalText: element.originalSentence,
           suggestedText: element.suggestedSentence,
           description: element.description,
           id: generateUUID(),
           documentId: documentId,
           isResolved: false,
+          createdAt: new Date(),
         };
 
-        dataStream.writeData({
-          type: 'suggestion',
-          content: suggestion,
+        dataStream.write({
+          type: 'data-suggestion',
+          data: suggestion,
+          transient: true,
         });
 
         suggestions.push(suggestion);

@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
+import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { ResearchProgress } from './research-progress';
 
 type ReasonSearchResearchProgressProps = {
-  updates: StreamUpdate[];
+  updates: ResearchUpdate[];
 };
 
 export const ReasonSearchResearchProgress = ({

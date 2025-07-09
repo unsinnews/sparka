@@ -9,7 +9,6 @@ import {
   useEffect,
   useState,
 } from 'react';
-import type { YourUIMessage } from '@/lib/types/ui';
 import {
   buildThreadFromLeaf,
   findLeafDfsToRightFromMessageId,
@@ -17,21 +16,20 @@ import {
 import { useTRPC } from '@/trpc/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useChatId } from './chat-id-provider';
+import type { ChatMessage } from '@/lib/ai/types';
+import { chatStore } from '@/lib/stores/chat-store';
 
 interface MessageSiblingInfo {
-  siblings: YourUIMessage[];
+  siblings: ChatMessage[];
   siblingIndex: number;
 }
 
 interface MessageTreeContextType {
   getMessageSiblingInfo: (messageId: string) => MessageSiblingInfo | null;
   navigateToSibling: (messageId: string, direction: 'prev' | 'next') => void;
-  registerSetMessages: (
-    setMessages: (messages: YourUIMessage[]) => void,
-  ) => void;
   getLastMessageId: () => string | null;
   setLastMessageId: (messageId: string | null) => void;
-  getParentMessage: (messageId: string) => YourUIMessage | null;
+  getParentMessage: (messageId: string) => ChatMessage | null;
 }
 
 const MessageTreeContext = createContext<MessageTreeContextType | undefined>(
@@ -46,10 +44,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
   const { chatId, sharedChatId, isShared } = useChatId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
-  const [allMessages, setAllMessages] = useState<YourUIMessage[]>([]);
-  const setMessagesRef = useRef<((messages: YourUIMessage[]) => void) | null>(
-    null,
-  );
+  const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
   const lastMessageIdRef = useRef<string | null>(null);
 
   // Select the appropriate chat ID based on isShared flag
@@ -69,7 +64,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
       : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
 
     // Get initial data
-    const initialData = queryClient.getQueryData<YourUIMessage[]>(queryKey);
+    const initialData = queryClient.getQueryData<ChatMessage[]>(queryKey);
     if (initialData) {
       console.log('initialData', initialData);
       setAllMessages(initialData);
@@ -94,7 +89,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
         // Compare query keys (simple deep comparison for this case)
         if (JSON.stringify(eventQueryKey) === JSON.stringify(currentQueryKey)) {
           console.log('event.query.state.data', event.query.state.data);
-          const newData = event.query.state.data as YourUIMessage[] | undefined;
+          const newData = event.query.state.data as ChatMessage[] | undefined;
           if (newData) {
             setAllMessages(newData);
             // Update lastMessageId when data changes
@@ -114,18 +109,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     queryClient,
   ]);
 
-  const registerSetMessages = useCallback(
-    (setMessages: (messages: YourUIMessage[]) => void) => {
-      setMessagesRef.current = (messages: YourUIMessage[]) => {
-        // Update lastMessageId to track the head of the active thread
-        const lastMessage = messages[messages.length - 1];
-        lastMessageIdRef.current = lastMessage?.id || null;
-        setMessages(messages);
-      };
-    },
-    [],
-  );
-
   const getLastMessageId = useCallback(() => {
     return lastMessageIdRef.current;
   }, []);
@@ -136,10 +119,11 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
 
   // Build parent->children mapping once
   const childrenMap = useMemo(() => {
-    const map = new Map<string | null, YourUIMessage[]>();
+    const map = new Map<string | null, ChatMessage[]>();
     if (!allMessages) return map;
     allMessages.forEach((message) => {
-      const parentId = message.parentMessageId;
+      const parentId = message.metadata?.parentMessageId || null;
+
       if (!map.has(parentId)) {
         map.set(parentId, []);
       }
@@ -153,7 +137,8 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     map.forEach((siblings) => {
       siblings.sort(
         (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+          new Date(a.metadata?.createdAt || new Date()).getTime() -
+          new Date(b.metadata?.createdAt || new Date()).getTime(),
       );
     });
 
@@ -166,7 +151,8 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
       const message = allMessages.find((m) => m.id === messageId);
       if (!message) return null;
 
-      const siblings = childrenMap.get(message.parentMessageId) || [];
+      const siblings =
+        childrenMap.get(message.metadata?.parentMessageId || null) || [];
       const siblingIndex = siblings.findIndex((s) => s.id === messageId);
 
       return {
@@ -179,7 +165,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
 
   const navigateToSibling = useCallback(
     (messageId: string, direction: 'prev' | 'next') => {
-      if (!allMessages || !setMessagesRef.current || !effectiveChatId) return;
+      if (!allMessages || !effectiveChatId) return;
       const siblingInfo = getMessageSiblingInfo(messageId);
       if (!siblingInfo || siblingInfo.siblings.length <= 1) return;
 
@@ -198,7 +184,9 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
         allMessages,
         leaf ? leaf.id : targetSibling.id,
       );
-      setMessagesRef.current(newThread);
+
+      // Use the chat store directly instead of registered setMessages
+      chatStore.getState().setMessages(newThread);
       setLastMessageId(newThread[newThread.length - 1]?.id || null);
     },
     [
@@ -211,12 +199,12 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
   );
 
   const getParentMessage = useCallback(
-    (messageId: string): YourUIMessage | null => {
+    (messageId: string): ChatMessage | null => {
       if (!allMessages) return null;
       const message = allMessages.find((m) => m.id === messageId);
       if (!message) return null;
 
-      const parentId = message.parentMessageId;
+      const parentId = message.metadata?.parentMessageId || null;
       if (!parentId) return null;
 
       const parentMessage = allMessages.find((m) => m.id === parentId);
@@ -229,7 +217,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     () => ({
       getMessageSiblingInfo,
       navigateToSibling,
-      registerSetMessages,
       getLastMessageId,
       setLastMessageId,
       getParentMessage,
@@ -237,7 +224,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     [
       getMessageSiblingInfo,
       navigateToSibling,
-      registerSetMessages,
       getLastMessageId,
       setLastMessageId,
       getParentMessage,

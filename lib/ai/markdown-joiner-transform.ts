@@ -87,12 +87,12 @@ export const markdownJoinerTransform =
 
     return new TransformStream<TextStreamPart<TOOLS>, TextStreamPart<TOOLS>>({
       transform(chunk, controller) {
-        if (chunk.type === 'text-delta') {
-          const processedText = joiner.processText(chunk.textDelta);
+        if (chunk.type === 'text') {
+          const processedText = joiner.processText(chunk.text);
           if (processedText) {
             controller.enqueue({
               ...chunk,
-              textDelta: processedText,
+              text: processedText,
             });
           }
         } else {
@@ -103,8 +103,8 @@ export const markdownJoinerTransform =
         const remaining = joiner.flush();
         if (remaining) {
           controller.enqueue({
-            type: 'text-delta',
-            textDelta: remaining,
+            type: 'text',
+            text: remaining,
           } as TextStreamPart<TOOLS>);
         }
       },

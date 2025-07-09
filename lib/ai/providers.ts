@@ -1,26 +1,16 @@
-import {
-  extractReasoningMiddleware,
-  wrapLanguageModel,
-  type LanguageModelV1,
-} from 'ai';
+import { extractReasoningMiddleware, wrapLanguageModel } from 'ai';
+import type { LanguageModelV2 } from '@ai-sdk/provider';
+
 import { openai, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
 import { anthropic, type AnthropicProviderOptions } from '@ai-sdk/anthropic';
 import { xai } from '@ai-sdk/xai';
 import { google, type GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
-import { siteConfig } from '../config';
 import { type AvailableProviderModels, getModelDefinition } from './all-models';
-import { isTestEnvironment } from '../constants';
-import {
-  artifactModel,
-  chatModel,
-  reasoningModel,
-  titleModel,
-} from './models.test';
 
 const telemetryConfig = {
-  experimental_telemetry: {
+  telemetry: {
     isEnabled: true,
-    functionId: siteConfig.appPrefix,
+    functionId: 'get-language-model',
   },
 };
 
@@ -29,7 +19,7 @@ export const getLanguageModel = (modelId: AvailableProviderModels) => {
 
   const spec = model.specification;
 
-  let provider: LanguageModelV1;
+  let provider: LanguageModelV2;
   if (spec.provider === 'openai') {
     provider = openai.responses(spec.modelIdShort);
   } else if (spec.provider === 'anthropic') {
@@ -63,18 +53,10 @@ export const getImageModel = (modelId: AvailableProviderModels) => {
 };
 
 const MODEL_ALIASES = {
-  'chat-model': isTestEnvironment
-    ? chatModel
-    : getLanguageModel('openai/gpt-4o-mini'),
-  'title-model': isTestEnvironment
-    ? titleModel
-    : getLanguageModel('openai/gpt-4o-mini'),
-  'artifact-model': isTestEnvironment
-    ? artifactModel
-    : getLanguageModel('openai/gpt-4o-mini'),
-  'chat-model-reasoning': isTestEnvironment
-    ? reasoningModel
-    : getLanguageModel('openai/o3-mini'),
+  'chat-model': getLanguageModel('openai/gpt-4o-mini'),
+  'title-model': getLanguageModel('openai/gpt-4o-mini'),
+  'artifact-model': getLanguageModel('openai/gpt-4o-mini'),
+  'chat-model-reasoning': getLanguageModel('openai/o3-mini'),
 };
 
 export const getModelProviderOptions = (
@@ -129,7 +111,6 @@ export const getModelProviderOptions = (
       return {
         google: {
           thinkingConfig: {
-            includeThoughts: true,
             thinkingBudget: 10000,
           },
         },

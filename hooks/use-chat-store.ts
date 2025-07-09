@@ -11,11 +11,11 @@ import { useCallback, useMemo } from 'react';
 
 import { useTRPC } from '@/trpc/react';
 import {
-  messageToDbMessage,
-  messageToYourUIMessage,
+  dbMessageToChatMessage,
+  chatMessageToDbMessage,
 } from '@/lib/message-conversion';
 import { useChatId } from '@/providers/chat-id-provider';
-import type { YourUIMessage, UIChat } from '@/lib/types/ui';
+import type { UIChat } from '@/lib/types/uiChat';
 import type { Document } from '@/lib/db/schema';
 import {
   loadLocalAnonymousMessagesByChatId,
@@ -31,9 +31,9 @@ import {
   loadAnonymousChatById,
   pinAnonymousChat,
 } from '@/lib/utils/anonymous-chat-storage';
-import type { Message } from 'ai';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
-import { generateUUID } from '@/lib/utils';
+import { generateUUID, getTextContentFromMessage } from '@/lib/utils';
+import type { ChatMessage } from '@/lib/ai/types';
 
 // Custom hook for chat mutations
 export function useSaveChat() {
@@ -128,14 +128,13 @@ export function useMessagesQuery() {
         queryFn: async () => {
           // Load from localStorage for anonymous users
           try {
-            // TODO: Replace with the actual function
-            const restoredMessages = (await loadLocalAnonymousMessagesByChatId(
+            const restoredMessages = await loadLocalAnonymousMessagesByChatId(
               chatId || '',
-            )) as unknown as YourUIMessage[];
-            return restoredMessages;
+            );
+            return restoredMessages.map(dbMessageToChatMessage);
           } catch (error) {
             console.error('Error loading anonymous messages:', error);
-            return [] as YourUIMessage[];
+            return [];
           }
         },
         enabled: !!chatId,
@@ -348,15 +347,12 @@ export function useDeleteTrailingMessages() {
       const previousMessages = queryClient.getQueryData(messagesQueryKey);
 
       // Optimistically update cache - keep only messages before the messageId
-      queryClient.setQueryData(
-        messagesQueryKey,
-        (old: YourUIMessage[] | undefined) => {
-          if (!old) return old;
-          const messageIndex = old.findIndex((msg) => msg.id === messageId);
-          if (messageIndex === -1) return old;
-          return old.slice(0, messageIndex);
-        },
-      );
+      queryClient.setQueryData(messagesQueryKey, (old) => {
+        if (!old) return old;
+        const messageIndex = old.findIndex((msg) => msg.id === messageId);
+        if (messageIndex === -1) return old;
+        return old.slice(0, messageIndex);
+      });
 
       return { previousMessages, messagesQueryKey };
     },
@@ -443,9 +439,11 @@ export function useCloneChat() {
 
         const newId = generateUUID();
         await cloneAnonymousChat(
-          originalMessages,
+          originalMessages.map((message) =>
+            chatMessageToDbMessage(message, chatId),
+          ),
           originalChat,
-          originalDocuments,
+          originalDocuments as Document[],
           newId,
         );
         return { chatId: newId };
@@ -473,22 +471,20 @@ export function useSaveMessageMutation() {
     mutationFn: async ({
       message,
       chatId,
-      parentMessageId,
     }: {
-      message: Message;
+      message: ChatMessage;
       chatId: string;
-      parentMessageId: string | null;
     }) => {
+      const parentMessageId = message.metadata?.parentMessageId || null;
+
       if (!isAuthenticated) {
         // Save message for anonymous users when completed (not partial)
 
-        await saveAnonymousMessage(
-          messageToDbMessage(message, chatId, parentMessageId, false),
-        );
+        await saveAnonymousMessage(chatMessageToDbMessage(message, chatId));
       }
       // For authenticated users, the API handles saving
     },
-    onMutate: async ({ message, chatId, parentMessageId }) => {
+    onMutate: async ({ message, chatId }) => {
       // Get the query key for messages
       const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
         chatId: chatId,
@@ -501,18 +497,10 @@ export function useSaveMessageMutation() {
       const previousMessages = queryClient.getQueryData(messagesQueryKey);
 
       // Optimistically update cache
-      queryClient.setQueryData(
-        messagesQueryKey,
-        (old: YourUIMessage[] | undefined) => {
-          const newMessage = messageToYourUIMessage(
-            message,
-            parentMessageId,
-            false,
-          );
-          if (!old) return [newMessage];
-          return [...old, newMessage];
-        },
-      );
+      queryClient.setQueryData(messagesQueryKey, (old) => {
+        if (!old) return [message];
+        return [...old, message];
+      });
 
       return { previousMessages, messagesQueryKey };
     },
@@ -527,11 +515,7 @@ export function useSaveMessageMutation() {
       console.error('Failed to save message:', err);
       toast.error('Failed to save message');
     },
-    onSuccess: (
-      data,
-      { message, chatId, parentMessageId },
-      { previousMessages },
-    ) => {
+    onSuccess: (data, { message, chatId }, { previousMessages }) => {
       if (isAuthenticated) {
         // Update credits
         if (message.role === 'assistant') {
@@ -557,7 +541,11 @@ export function useSaveMessageMutation() {
         });
         const messages = queryClient.getQueryData(messagesQueryKey);
         if (messages?.length === 1) {
-          saveChatWithTitle(chatId, message.content, isAuthenticated);
+          saveChatWithTitle(
+            chatId,
+            getTextContentFromMessage(message),
+            isAuthenticated,
+          );
         }
 
         // Update credits

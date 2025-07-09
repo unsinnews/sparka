@@ -1,6 +1,6 @@
 import { tavily, type TavilySearchOptions } from '@tavily/core';
 import FirecrawlApp, { type SearchParams } from '@mendable/firecrawl-js';
-import type { AnnotationDataStreamWriter } from '../annotation-stream';
+import type { StreamWriter } from '../../types';
 
 export type SearchProvider = 'tavily' | 'firecrawl';
 
@@ -40,7 +40,7 @@ export async function webSearchStep({
   annotate = true,
 }: {
   query: string;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   stepId: string;
   providerOptions: SearchProviderOptions;
   annotate?: boolean;
@@ -48,8 +48,8 @@ export async function webSearchStep({
   try {
     // Send running status
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',
@@ -97,8 +97,8 @@ export async function webSearchStep({
 
     // Send completed status
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',
@@ -119,8 +119,8 @@ export async function webSearchStep({
     const errorMessage = error?.message || 'Unknown error occurred';
 
     // Send error status
-    dataStream.writeMessageAnnotation({
-      type: 'research_update',
+    dataStream.write({
+      type: 'data-researchUpdate',
       data: {
         id: stepId,
         type: 'web',

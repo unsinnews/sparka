@@ -1,7 +1,8 @@
 import {
-  appendResponseMessages,
   convertToCoreMessages,
-  createDataStream,
+  createUIMessageStream,
+  JsonToSseTransformStream,
+  stepCountIs,
   streamText,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
@@ -14,19 +15,10 @@ import {
   saveMessage,
   updateMessage,
   getMessageById,
-  getAllMessagesByChatId,
 } from '@/lib/db/queries';
-import { getDefaultThread } from '@/lib/thread-utils';
-import {
-  generateUUID,
-  getMostRecentUserMessage,
-  getTrailingMessageId,
-} from '@/lib/utils';
+import { generateUUID, getMostRecentUserMessage } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
-import type { YourToolName } from '@/lib/ai/tools/tools';
-import { AnnotationDataStreamWriter } from '@/lib/ai/tools/annotation-stream';
 import { getTools, toolsDefinitions, allTools } from '@/lib/ai/tools/tools';
-import type { YourUIMessage } from '@/lib/types/ui';
 import type { NextRequest } from 'next/server';
 import {
   filterAffordableTools,
@@ -42,7 +34,12 @@ import {
   type AvailableProviderModels,
   type ModelDefinition,
 } from '@/lib/ai/all-models';
-import { createResumableStreamContext } from 'resumable-stream';
+import {
+  createResumableStreamContext,
+  type ResumableStreamContext,
+} from 'resumable-stream';
+import type { ChatMessage, ToolNames } from '@/lib/ai/types';
+
 import { after } from 'next/server';
 import {
   getAnonymousSession,
@@ -94,16 +91,42 @@ if (process.env.REDIS_URL) {
   })();
 }
 
-const streamContext = createResumableStreamContext({
-  waitUntil: after,
-  keyPrefix: 'sparka-ai:resumable-stream',
-  ...(redisPublisher && redisSubscriber
-    ? {
-        publisher: redisPublisher,
-        subscriber: redisSubscriber,
+let globalStreamContext: ResumableStreamContext | null = null;
+
+export function getStreamContext() {
+  if (!globalStreamContext) {
+    try {
+      globalStreamContext = createResumableStreamContext({
+        waitUntil: after,
+        keyPrefix: 'sparka-ai:resumable-stream',
+        ...(redisPublisher && redisSubscriber
+          ? {
+              publisher: redisPublisher,
+              subscriber: redisSubscriber,
+            }
+          : {}),
+      });
+    } catch (error: any) {
+      if (error.message.includes('REDIS_URL')) {
+        console.log(
+          ' > Resumable streams are disabled due to missing REDIS_URL',
+        );
+      } else {
+        console.error(error);
       }
-    : {}),
-});
+    }
+  }
+
+  return globalStreamContext;
+}
+
+export function getRedisSubscriber() {
+  return redisSubscriber;
+}
+
+export function getRedisPublisher() {
+  return redisPublisher;
+}
 
 export type ChatRequestToolsConfig = {
   deepResearch: boolean;
@@ -116,125 +139,6 @@ export type ChatRequestData = ChatRequestToolsConfig & {
   parentMessageId: string | null;
 };
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const chatId = searchParams.get('chatId');
-
-  if (!chatId) {
-    console.log('RESPONSE > GET /api/chat: chatId is required');
-    return new Response('chatId is required', { status: 400 });
-  }
-
-  const session = await auth();
-  const userId = session?.user?.id || null;
-  const isAnonymous = userId === null;
-
-  try {
-    let streamIds: string[] = [];
-
-    // For authenticated users, check DB permissions first
-    if (!isAnonymous) {
-      const chat = await getChatById({ id: chatId });
-
-      if (!chat) {
-        console.log('RESPONSE > GET /api/chat: Chat not found');
-        return new Response('Chat not found', { status: 404 });
-      }
-
-      // If chat is not public, require authentication and ownership
-      if (chat.visibility !== 'public') {
-        if (!session || !session.user || !session.user.id) {
-          console.log(
-            'RESPONSE > GET /api/chat: Unauthorized - no session or user',
-          );
-          return new Response('Unauthorized', { status: 401 });
-        }
-
-        if (chat.userId !== session.user.id) {
-          console.log(
-            'RESPONSE > GET /api/chat: Unauthorized - chat ownership mismatch',
-          );
-          return new Response('Unauthorized', { status: 401 });
-        }
-      }
-    }
-
-    // Get streams from Redis for all users
-    if (redisPublisher) {
-      const keyPattern = isAnonymous
-        ? `sparka-ai:anonymous-stream:${chatId}:*`
-        : `sparka-ai:stream:${chatId}:*`;
-
-      const keys = await redisPublisher.keys(keyPattern);
-      streamIds = keys
-        .map((key: string) => {
-          const parts = key.split(':');
-          return parts[parts.length - 1] || '';
-        })
-        .filter(Boolean);
-    }
-
-    if (!streamIds.length) {
-      console.log('RESPONSE > GET /api/chat: No streams found');
-      return new Response('No streams found', { status: 404 });
-    }
-
-    const recentStreamId = streamIds.at(-1);
-
-    if (!recentStreamId) {
-      console.log('RESPONSE > GET /api/chat: No recent stream found');
-      return new Response('No recent stream found', { status: 404 });
-    }
-
-    const emptyDataStream = createDataStream({
-      execute: () => {},
-    });
-
-    const stream = await streamContext.resumableStream(
-      recentStreamId,
-      () => emptyDataStream,
-    );
-
-    if (stream) {
-      console.log('RESPONSE > GET /api/chat: Returning resumable stream');
-      return new Response(stream, { status: 200 });
-    }
-
-    /*
-     * For when the generation is "active" during SSR but the
-     * resumable stream has concluded after reaching this point.
-     */
-
-    const allMessages = await getAllMessagesByChatId({ chatId });
-    const messages = getDefaultThread(allMessages);
-    const mostRecentMessage = messages.at(-1);
-
-    if (!mostRecentMessage || mostRecentMessage.role !== 'assistant') {
-      console.log(
-        'RESPONSE > GET /api/chat: No recent assistant message, returning empty stream',
-      );
-      return new Response(emptyDataStream, { status: 200 });
-    }
-
-    const streamWithMessage = createDataStream({
-      execute: (buffer) => {
-        buffer.writeData({
-          type: 'append-message',
-          message: JSON.stringify(mostRecentMessage),
-        });
-      },
-    });
-
-    console.log(
-      'RESPONSE > GET /api/chat: Returning stream with most recent message',
-    );
-    return new Response(streamWithMessage, { status: 200 });
-  } catch (error) {
-    console.error('RESPONSE > Error in GET /api/chat:', error);
-    return new Response('Internal server error', { status: 500 });
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     const {
@@ -244,7 +148,7 @@ export async function POST(request: NextRequest) {
       data,
     }: {
       id: string;
-      messages: Array<YourUIMessage>;
+      messages: Array<ChatMessage>;
       selectedChatModel: AvailableProviderModels;
       data: ChatRequestData;
     } = await request.json();
@@ -405,17 +309,17 @@ export async function POST(request: NextRequest) {
             chatId: chatId,
             role: userMessage.role,
             parts: userMessage.parts,
-            attachments: userMessage.experimental_attachments ?? [],
+            attachments: [],
             createdAt: new Date(),
-            annotations: userMessage.annotations,
+            annotations: [],
             isPartial: false,
-            parentMessageId: data.parentMessageId,
+            parentMessageId: userMessage.metadata?.parentMessageId || null,
           },
         });
       }
     }
 
-    let explicitlyRequestedTools: YourToolName[] | null = null;
+    let explicitlyRequestedTools: ToolNames[] | null = null;
     if (deepResearch) explicitlyRequestedTools = ['deepResearch'];
     // else if (reason) explicitlyRequestedTool = 'reasonSearch';
     else if (webSearch) explicitlyRequestedTools = ['webSearch'];
@@ -478,10 +382,10 @@ export async function POST(request: NextRequest) {
     ) {
       // Add context of user selection to the user message
       // TODO: Consider doing this in the system prompt instead
-      if (userMessage.parts[0].type === 'text') {
-        userMessage.content = `${userMessage.content} (I want to use ${explicitlyRequestedTools.join(', or ')})`;
-        userMessage.parts[0].text = `${userMessage.parts[0].text} (I want to use ${explicitlyRequestedTools.join(', or ')})`;
-      }
+      userMessage.parts.push({
+        type: 'text',
+        text: `(I want to use ${explicitlyRequestedTools.join(', or ')})`,
+      });
     }
 
     // Filter out reasoning parts to ensure compatibility between different models
@@ -500,20 +404,14 @@ export async function POST(request: NextRequest) {
 
     if (lastAssistantMessage?.parts && lastAssistantMessage?.parts.length > 0) {
       for (const part of lastAssistantMessage.parts) {
-        if (part.type !== 'tool-invocation') {
+        if (part.type !== 'tool-generateImage') {
           continue;
         }
 
-        const invocation = part.toolInvocation;
-
-        if (
-          invocation.toolName === 'generateImage' &&
-          invocation.state === 'result' &&
-          invocation.result?.imageUrl
-        ) {
+        if (part.state === 'output-available' && part.output?.imageUrl) {
           lastGeneratedImage = {
-            imageUrl: invocation.result.imageUrl,
-            name: `generated-image-${invocation.toolCallId}.png`,
+            imageUrl: part.output.imageUrl,
+            name: `generated-image-${part.toolCallId}.png`,
           };
           break;
         }
@@ -565,24 +463,21 @@ export async function POST(request: NextRequest) {
       }
 
       // Build the data stream that will emit tokens
-      const stream = createDataStream({
-        execute: (dataStream) => {
-          const annotationStream = new AnnotationDataStreamWriter(dataStream);
-
+      const stream = createUIMessageStream<ChatMessage>({
+        execute: ({ writer: dataStream }) => {
           const result = streamText({
             model: getLanguageModel(selectedChatModel as any),
             system: systemPrompt(),
             messages: contextForLLM,
-            maxSteps: 5,
-            experimental_activeTools: activeTools,
+            stopWhen: stepCountIs(5),
+            activeTools: activeTools,
             experimental_transform: markdownJoinerTransform(),
-            experimental_generateMessageId: () => messageId,
             experimental_telemetry: {
               isEnabled: true,
               functionId: 'chat-response',
             },
             tools: getTools({
-              dataStream: annotationStream,
+              dataStream,
               session: {
                 user: {
                   id: userId || undefined,
@@ -592,7 +487,9 @@ export async function POST(request: NextRequest) {
               contextForLLM,
               messageId,
               selectedModel: selectedChatModel,
-              userAttachments: userMessage.experimental_attachments || [],
+              attachments: userMessage.parts.filter(
+                (part) => part.type === 'file',
+              ),
               lastGeneratedImage,
             }),
             abortSignal: abortController.signal, // Pass abort signal to streamText
@@ -603,88 +500,100 @@ export async function POST(request: NextRequest) {
               : {}),
 
             providerOptions: getModelProviderOptions(selectedChatModel),
-
-            onFinish: async ({
-              response,
-              finishReason,
-              toolResults,
-              toolCalls,
-              steps,
-              warnings,
-            }) => {
-              // Clear timeout since we finished successfully
-              clearTimeout(timeoutId);
-
-              if (userId) {
-                const actualCost =
-                  baseModelCost +
-                  steps
-                    .flatMap((step) => step.toolResults)
-                    .reduce((acc, toolResult) => {
-                      return acc + toolsDefinitions[toolResult.toolName].cost;
-                    }, 0);
-
-                try {
-                  const assistantId = getTrailingMessageId({
-                    messages: response.messages.filter(
-                      (message) => message.role === 'assistant',
-                    ),
-                  });
-
-                  if (!assistantId) {
-                    throw new Error('No assistant message found!');
-                  }
-
-                  const [, assistantMessage] = appendResponseMessages({
-                    messages: [userMessage],
-                    responseMessages: response.messages,
-                  });
-
-                  if (!isAnonymous) {
-                    await updateMessage({
-                      _message: {
-                        id: assistantId,
-                        chatId: chatId,
-                        role: assistantMessage.role,
-                        parts: assistantMessage.parts,
-                        attachments:
-                          assistantMessage.experimental_attachments ?? [],
-                        createdAt: new Date(),
-                        annotations: annotationStream.getAnnotations(),
-                        isPartial: false,
-                        parentMessageId: userMessage.id,
-                      },
-                    });
-                  }
-
-                  // Finalize credit usage: deduct actual cost, release reservation
-                  if (reservation) {
-                    await reservation.finalize(actualCost);
-                  }
-                } catch (error) {
-                  console.error(
-                    'Failed to save chat or finalize credits:',
-                    error,
-                  );
-                  // Still release the reservation on error
-                  if (reservation) {
-                    await reservation.cleanup();
-                  }
-                }
-              }
-            },
-            onError: (error) => {
-              // Clear timeout on error
-              clearTimeout(timeoutId);
-              console.error('StreamText error:', error);
-            },
           });
 
           result.consumeStream();
 
-          result.mergeIntoDataStream(dataStream, {
-            sendReasoning: true,
-          });
+          const initialMetadata = {
+            createdAt: new Date(),
+            parentMessageId: userMessage.id,
+            isPartial: true,
+          };
+
+          dataStream.merge(
+            result.toUIMessageStream({
+              sendReasoning: true,
+              messageMetadata: ({ part }) => {
+                // send custom information to the client on start:
+                if (part.type === 'start') {
+                  return initialMetadata;
+                }
+
+                // when the message is finished, send additional information:
+                if (part.type === 'finish') {
+                  return {
+                    ...initialMetadata,
+                    isPartial: false,
+                  };
+                }
+              },
+            }),
+          );
+        },
+        generateId: () => messageId,
+        onFinish: async ({ messages, isContinuation, responseMessage }) => {
+          // Clear timeout since we finished successfully
+          clearTimeout(timeoutId);
+
+          if (userId) {
+            const actualCost =
+              baseModelCost +
+              messages
+                .flatMap((message) => message.parts)
+                .reduce((acc, toolResult) => {
+                  if (!toolResult.type.startsWith('tool-')) {
+                    return acc;
+                  }
+
+                  const toolDef =
+                    toolsDefinitions[
+                      toolResult.type.replace('tool-', '') as ToolNames
+                    ];
+
+                  if (!toolDef) {
+                    return acc;
+                  }
+
+                  return acc + toolDef.cost;
+                }, 0);
+            const assistantMessage = responseMessage; // TODO: Fix this in ai sdk v5 - responseMessage is not a UIMessage
+            try {
+              // TODO: Validate if this is correct ai sdk v5
+              const assistantMessage = messages.at(-1);
+
+              if (!assistantMessage) {
+                throw new Error('No assistant message found!');
+              }
+
+              if (!isAnonymous) {
+                await updateMessage({
+                  _message: {
+                    id: assistantMessage.id,
+                    chatId: chatId,
+                    role: assistantMessage.role ?? '',
+                    parts: assistantMessage.parts ?? [],
+
+                    attachments: [],
+                    createdAt: new Date(),
+                    annotations: [],
+                    isPartial: false,
+                    parentMessageId: userMessage.id,
+                  },
+                });
+              }
+
+              // Finalize credit usage: deduct actual cost, release reservation
+              if (reservation) {
+                await reservation.finalize(actualCost);
+              }
+            } catch (error) {
+              console.error('Failed to save chat or finalize credits:', error);
+              // Still release the reservation on error
+              if (reservation) {
+                await reservation.cleanup();
+              }
+            }
+          }
         },
 
         onError: (error) => {
@@ -735,10 +644,18 @@ export async function POST(request: NextRequest) {
         }
       });
 
-      console.log('RESPONSE > POST /api/chat: Returning resumable stream');
-      return new Response(
-        await streamContext.resumableStream(streamId, () => stream),
-      );
+      const streamContext = getStreamContext();
+
+      if (streamContext) {
+        console.log('RESPONSE > POST /api/chat: Returning resumable stream');
+        return new Response(
+          await streamContext.resumableStream(streamId, () =>
+            stream.pipeThrough(new JsonToSseTransformStream()),
+          ),
+        );
+      } else {
+        return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
+      }
     } catch (error) {
       clearTimeout(timeoutId);
       if (reservation) {

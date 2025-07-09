@@ -12,7 +12,7 @@ Usage:
 Avoid:
 - Non-line or non-stock charts
 - Private-company or non-stock datasets`,
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe('The title of the chart.'),
     code: z
       .string()

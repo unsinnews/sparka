@@ -9,7 +9,7 @@ import React, {
   type Dispatch,
   type SetStateAction,
 } from 'react';
-import type { Attachment } from 'ai';
+import type { Attachment } from '@/lib/ai/types';
 import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { useLocalStorage } from 'usehooks-ts';
 import { useDefaultModel, useModelChange } from './default-model-provider';

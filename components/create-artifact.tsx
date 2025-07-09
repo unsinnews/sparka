@@ -1,9 +1,10 @@
 import type { Suggestion } from '@/lib/db/schema';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ComponentType, Dispatch, ReactNode, SetStateAction } from 'react';
-import type { DataStreamDelta } from './data-stream-handler';
 import type { UIArtifact } from './artifact';
 import type { QueryClient } from '@tanstack/react-query';
+import type { ChatMessage, CustomUIDataTypes } from '@/lib/ai/types';
+import type { DataUIPart } from 'ai';
 
 export type ArtifactActionContext<M = any> = {
   content: string;
@@ -25,7 +26,7 @@ type ArtifactAction<M = any> = {
 };
 
 export type ArtifactToolbarContext = {
-  appendMessage: UseChatHelpers['append'];
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 };
 
 export type ArtifactToolbarItem = {
@@ -69,7 +70,7 @@ type ArtifactConfig<T extends string, M = any> = {
   onStreamPart: (args: {
     setMetadata: Dispatch<SetStateAction<M>>;
     setArtifact: Dispatch<SetStateAction<UIArtifact>>;
-    streamPart: DataStreamDelta;
+    streamPart: DataUIPart<CustomUIDataTypes>;
   }) => void;
 };
 
@@ -83,7 +84,7 @@ export class Artifact<T extends string, M = any> {
   readonly onStreamPart: (args: {
     setMetadata: Dispatch<SetStateAction<M>>;
     setArtifact: Dispatch<SetStateAction<UIArtifact>>;
-    streamPart: DataStreamDelta;
+    streamPart: DataUIPart<CustomUIDataTypes>;
   }) => void;
 
   constructor(config: ArtifactConfig<T, M>) {

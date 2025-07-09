@@ -21,7 +21,7 @@ import {
   SidebarMenu,
   useSidebar,
 } from '@/components/ui/sidebar';
-import type { UIChat } from '@/lib/types/ui';
+import type { UIChat } from '@/lib/types/uiChat';
 import {
   useDeleteChat,
   useRenameChat,

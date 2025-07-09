@@ -2,11 +2,11 @@ import { tool } from 'ai';
 import type { Session } from 'next-auth';
 import { z } from 'zod';
 import { getDocumentById } from '@/lib/db/queries';
-import type { AnnotationDataStreamWriter } from './annotation-stream';
+import type { StreamWriter } from '../types';
 
 interface ReadDocumentProps {
   session: Session;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
 }
 
 export const readDocument = ({ session, dataStream }: ReadDocumentProps) =>
@@ -18,7 +18,7 @@ Usage:
 
 Avoid:
 - Documents that were not produced in the current conversation`,
-    parameters: z.object({
+    inputSchema: z.object({
       id: z.string().describe('The ID of the document to read'),
     }),
     execute: async ({ id }) => {

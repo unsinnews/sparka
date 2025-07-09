@@ -1,10 +1,7 @@
 import { createFireworks } from '@ai-sdk/fireworks';
 import { createOpenAI } from '@ai-sdk/openai';
-import {
-  extractReasoningMiddleware,
-  type LanguageModelV1,
-  wrapLanguageModel,
-} from 'ai';
+import { extractReasoningMiddleware, wrapLanguageModel } from 'ai';
+import type { LanguageModelV2 } from '@ai-sdk/provider';
 
 // Providers
 const openai = process.env.OPENAI_API_KEY
@@ -21,27 +18,22 @@ const fireworks = process.env.FIREWORKS_KEY
   : undefined;
 
 const customModel = process.env.CUSTOM_MODEL
-  ? openai?.(process.env.CUSTOM_MODEL, {
-      structuredOutputs: true,
-    })
+  ? openai?.(process.env.CUSTOM_MODEL)
   : undefined;
 
 // Models
-const o3MiniModel = openai?.('o3-mini', {
-  reasoningEffort: 'medium',
-  structuredOutputs: true,
-});
+const o3MiniModel = openai?.('o3-mini');
 
 const deepSeekR1Model = fireworks
   ? wrapLanguageModel({
       model: fireworks(
         'accounts/fireworks/models/deepseek-r1',
-      ) as LanguageModelV1,
+      ) as LanguageModelV2,
       middleware: extractReasoningMiddleware({ tagName: 'think' }),
     })
   : undefined;
 
-export function getModel(): LanguageModelV1 {
+export function getModel(): LanguageModelV2 {
   if (customModel) {
     return customModel;
   }
@@ -51,5 +43,5 @@ export function getModel(): LanguageModelV1 {
     throw new Error('No model found');
   }
 
-  return model as LanguageModelV1;
+  return model as LanguageModelV2;
 }

@@ -1,6 +1,5 @@
 'use client';
 import { useChat } from '@ai-sdk/react';
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -9,7 +8,6 @@ import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { toast } from 'sonner';
-import type { YourUIMessage } from '@/lib/types/ui';
 import { useTRPC } from '@/trpc/react';
 import { useSession } from 'next-auth/react';
 
@@ -18,6 +16,9 @@ import { useAutoResume } from '@/hooks/use-auto-resume';
 import { useSaveMessageMutation } from '@/hooks/use-chat-store';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import { CloneChatButton } from '@/components/clone-chat-button';
+import type { ChatMessage } from '@/lib/ai/types';
+import { useDataStream } from './data-stream-provider';
+import { ZustandChat, chatStore } from '@/lib/stores/chat-store';
 
 export function Chat({
   id,
@@ -25,34 +26,44 @@ export function Chat({
   isReadonly,
 }: {
   id: string;
-  initialMessages: Array<YourUIMessage>;
+  initialMessages: Array<ChatMessage>;
   isReadonly: boolean;
 }) {
   const trpc = useTRPC();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
-  const { registerSetMessages, getLastMessageId } = useMessageTree();
+  const { getLastMessageId } = useMessageTree();
 
-  console.log('chat.tsx', id);
-  const chatHelpers = useChat({
+  const { setDataStream } = useDataStream();
+
+  const chat = new ZustandChat<ChatMessage>({
+    store: chatStore,
     id,
-    body: { id },
-    initialMessages,
-    experimental_throttle: 100,
-    sendExtraMessageFields: true,
+    messages: initialMessages,
+    // sendExtraMessageFields: true,
     generateId: generateUUID,
-
-    onFinish: (message) => {
+    onFinish: ({ message }) => {
+      console.log('onFinish message', message);
       saveChatMessage({
         message,
         chatId: id,
-        parentMessageId: getLastMessageId(),
       });
     },
-    onError: (error) => {
+    onData: (dataPart) => {
+      console.log('onData', dataPart);
+      setDataStream((ds) => (ds ? [...ds, dataPart] : []));
+    },
+    onError: (error: any) => {
       console.error(error);
       toast.error(error.message ?? 'An error occured, please try again!');
     },
+  });
+
+  console.log('chat.tsx', id);
+  const chatHelpers = useChat<ChatMessage>({
+    // @ts-expect-error private property required but not really
+    chat: chat,
+    experimental_throttle: 100,
   });
 
   const {
@@ -60,22 +71,16 @@ export function Chat({
     setMessages,
     status,
     stop,
-    experimental_resume,
-    data: chatData,
+    resumeStream,
   } = chatHelpers;
 
-  // Register setMessages with the MessageTreeProvider
-  useEffect(() => {
-    console.log('registering setMessages');
-    registerSetMessages(setMessages);
-  }, [setMessages, registerSetMessages]);
+  console.log('chatHelperMessages', chatHelperMessages);
 
   // Auto-resume functionality
   useAutoResume({
     autoResume: true,
-    initialMessages: initialMessages as YourUIMessage[],
-    experimental_resume,
-    data: chatData,
+    initialMessages: initialMessages,
+    resumeStream,
     setMessages,
   });
 
@@ -106,7 +111,7 @@ export function Chat({
           chatId={id}
           votes={votes}
           status={status}
-          messages={chatHelperMessages as YourUIMessage[]}
+          messages={chatHelperMessages}
           chatHelpers={chatHelpers}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
@@ -118,9 +123,9 @@ export function Chat({
               chatId={id}
               status={status}
               stop={stop}
-              messages={chatHelperMessages as YourUIMessage[]}
+              messages={chatHelperMessages}
               setMessages={setMessages}
-              append={chatHelpers.append}
+              sendMessage={chatHelpers.sendMessage}
               parentMessageId={getLastMessageId()}
             />
           ) : (
@@ -132,7 +137,7 @@ export function Chat({
       <Artifact
         chatId={id}
         chatHelpers={chatHelpers}
-        messages={chatHelperMessages as YourUIMessage[]}
+        messages={chatHelperMessages}
         votes={votes}
         isReadonly={isReadonly}
         isAuthenticated={!!session?.user}

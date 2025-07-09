@@ -195,6 +195,7 @@
 
 [ ] AI SDK 5 migration
 
+[ ] External Store for messages (and setMessages)
 [ ] Do we want optional props on the metadata?
 [ ] All sendMessage operations should have metadata
 

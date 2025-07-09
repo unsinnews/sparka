@@ -1,6 +1,5 @@
 'use client';
 import { useChat } from '@ai-sdk/react';
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -19,6 +18,7 @@ import { useMessageTree } from '@/providers/message-tree-provider';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import type { ChatMessage } from '@/lib/ai/types';
 import { useDataStream } from './data-stream-provider';
+import { ZustandChat, chatStore } from '@/lib/stores/chat-store';
 
 export function Chat({
   id,
@@ -32,15 +32,14 @@ export function Chat({
   const trpc = useTRPC();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
-  const { registerSetMessages, getLastMessageId } = useMessageTree();
+  const { getLastMessageId } = useMessageTree();
 
   const { setDataStream } = useDataStream();
 
-  console.log('chat.tsx', id);
-  const chatHelpers = useChat<ChatMessage>({
+  const chat = new ZustandChat<ChatMessage>({
+    store: chatStore,
     id,
     messages: initialMessages,
-    experimental_throttle: 100,
     // sendExtraMessageFields: true,
     generateId: generateUUID,
     onFinish: ({ message }) => {
@@ -60,6 +59,13 @@ export function Chat({
     },
   });
 
+  console.log('chat.tsx', id);
+  const chatHelpers = useChat<ChatMessage>({
+    // @ts-expect-error private property required but not really
+    chat: chat,
+    experimental_throttle: 100,
+  });
+
   const {
     messages: chatHelperMessages,
     setMessages,
@@ -69,12 +75,6 @@ export function Chat({
   } = chatHelpers;
 
   console.log('chatHelperMessages', chatHelperMessages);
-
-  // Register setMessages with the MessageTreeProvider
-  useEffect(() => {
-    console.log('registering setMessages');
-    registerSetMessages(setMessages);
-  }, [setMessages, registerSetMessages]);
 
   // Auto-resume functionality
   useAutoResume({

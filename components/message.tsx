@@ -1,6 +1,4 @@
 'use client';
-
-import cx from 'classnames';
 import { AnimatePresence, motion } from 'motion/react';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
@@ -9,18 +7,15 @@ import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { Weather } from './weather';
 import equal from 'fast-deep-equal';
-import { cn } from '@/lib/utils';
+import { cn, getAttachmentsFromMessage } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
-
-import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
-import type { YourUIMessage } from '@/lib/types/ui';
 import {
   SourcesAnnotations,
   ResearchUpdateAnnotations,
@@ -30,6 +25,7 @@ import { AttachmentList } from './attachment-list';
 import { Skeleton } from './ui/skeleton';
 import { ImageModal } from './image-modal';
 import { GeneratedImage } from './generated-image';
+import type { ChatMessage } from '@/lib/ai/types';
 
 const PurePreviewMessage = ({
   chatId,
@@ -42,11 +38,11 @@ const PurePreviewMessage = ({
   parentMessageId,
 }: {
   chatId: string;
-  message: YourUIMessage;
+  message: ChatMessage;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadonly: boolean;
-  chatHelpers: UseChatHelpers;
+  chatHelpers: UseChatHelpers<ChatMessage>;
   lastArtifact: { messageIndex: number; toolCallId: string } | null;
   parentMessageId: string | null;
 }) => {
@@ -92,6 +88,9 @@ const PurePreviewMessage = ({
     });
   };
 
+  // TODO: Verify if this is needed ai sdk v5
+  // useDataStream();
+
   return (
     <AnimatePresence>
       <motion.div
@@ -117,19 +116,17 @@ const PurePreviewMessage = ({
             )}
           >
             {' '}
-            {message.isPartial && message.parts.length === 0 && (
+            {message.metadata?.isPartial && message.parts.length === 0 && (
               <div className="flex flex-col gap-2">
                 <Skeleton className="h-4 w-4/5 rounded-full" />
                 <Skeleton className="h-4 w-3/5 rounded-full" />
                 <Skeleton className="h-4 w-2/5 rounded-full" />
               </div>
             )}
-            {message.annotations && (
-              <ResearchUpdateAnnotations
-                annotations={message.annotations}
-                key={`research-update-annotations-${message.id}`}
-              />
-            )}
+            <ResearchUpdateAnnotations
+              parts={message.parts}
+              key={`research-update-annotations-${message.id}`}
+            />
             {message.parts?.map((part, index) => {
               const { type } = part;
               const key = `message-${message.id}-part-${index}`;
@@ -139,7 +136,7 @@ const PurePreviewMessage = ({
                   <MessageReasoning
                     key={key}
                     isLoading={isLoading}
-                    reasoning={part.reasoning}
+                    reasoning={part.text}
                   />
                 );
               }
@@ -169,9 +166,9 @@ const PurePreviewMessage = ({
                                 })}
                               >
                                 <AttachmentList
-                                  attachments={
-                                    message.experimental_attachments || []
-                                  }
+                                  attachments={getAttachmentsFromMessage(
+                                    message,
+                                  )}
                                   onImageClick={handleImageClick}
                                   testId="message-attachments"
                                 />
@@ -194,7 +191,7 @@ const PurePreviewMessage = ({
                           })}
                         >
                           <AttachmentList
-                            attachments={message.experimental_attachments || []}
+                            attachments={getAttachmentsFromMessage(message)}
                             onImageClick={handleImageClick}
                             testId="message-attachments"
                           />
@@ -227,144 +224,329 @@ const PurePreviewMessage = ({
                 }
               }
 
-              if (type === 'tool-invocation') {
-                const { toolInvocation: toolInvocationRaw } = part;
-                const toolInvocation = toolInvocationRaw as YourToolInvocation;
+              if (type === 'tool-getWeather') {
+                const { toolCallId, state } = part;
 
-                if (
-                  toolInvocation.state === 'call' ||
-                  toolInvocation.state === 'partial-call'
-                ) {
-                  const { toolName, toolCallId, args } = toolInvocation;
+                if (state === 'input-available') {
                   return (
-                    <div
-                      key={toolCallId}
-                      className={cx({
-                        skeleton: ['getWeather'].includes(toolName),
-                      })}
-                    >
-                      {toolName === 'getWeather' ? (
-                        <Weather />
-                      ) : toolName === 'createDocument' ? (
-                        <DocumentPreview
-                          isReadonly={isReadonly}
-                          args={args}
-                          messageId={message.id}
-                        />
-                      ) : toolName === 'updateDocument' ? (
-                        <DocumentToolCall
-                          type="update"
-                          // @ts-expect-error // TODO: fix this
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolCall
-                          type="request-suggestions"
-                          // @ts-expect-error // TODO: fix this
-                          args={args}
-                          isReadonly={isReadonly}
-                        />
-                      ) : toolName === 'retrieve' ? (
-                        <Retrieve />
-                      ) : toolName === 'stockChart' ? (
-                        <StockChartMessage result={null} args={args} />
-                      ) : toolName === 'codeInterpreter' ? (
-                        <CodeInterpreterMessage result={null} args={args} />
-                      ) : toolName === 'generateImage' ? (
-                        <GeneratedImage args={args} isLoading={true} />
-                      ) : toolName !== 'deepResearch' &&
-                        // toolName !== 'reasonSearch' &&
-                        toolName !== 'webSearch' ? (
-                        <pre>{JSON.stringify(toolInvocation, null, 2)}</pre>
-                      ) : null}
+                    <div key={toolCallId} className="skeleton">
+                      <Weather />
                     </div>
                   );
                 }
 
-                if (toolInvocation.state === 'result') {
-                  const { toolName, toolCallId, args, result } = toolInvocation;
-                  const shouldShowFullPreview = isLastArtifact(toolCallId);
-
+                if (state === 'output-available') {
+                  const { output } = part;
                   return (
                     <div key={toolCallId}>
-                      {toolName === 'getWeather' ? (
-                        <Weather weatherAtLocation={result} />
-                      ) : (toolName === 'createDocument' ||
-                          toolName === 'deepResearch') &&
-                        shouldShowFullPreview ? (
-                        <DocumentPreview
-                          isReadonly={isReadonly}
-                          result={result}
-                          args={args}
-                          messageId={message.id}
-                          type="create"
-                        />
-                      ) : toolName === 'createDocument' ||
-                        toolName === 'deepResearch' ? (
-                        <DocumentToolResult
-                          type="create"
-                          // @ts-expect-error // TODO: fix this
-                          result={result}
-                          isReadonly={isReadonly}
-                          messageId={message.id}
-                        />
-                      ) : toolName === 'updateDocument' &&
-                        shouldShowFullPreview ? (
-                        <DocumentPreview
-                          isReadonly={isReadonly}
-                          result={result}
-                          args={args}
-                          messageId={message.id}
-                          type="update"
-                        />
-                      ) : toolName === 'updateDocument' &&
-                        !shouldShowFullPreview ? (
-                        <DocumentToolResult
-                          type="update"
-                          // @ts-expect-error // TODO: fix this
-                          result={result}
-                          isReadonly={isReadonly}
-                          messageId={message.id}
-                        />
-                      ) : toolName === 'requestSuggestions' ? (
-                        <DocumentToolResult
-                          type="request-suggestions"
-                          // @ts-expect-error // TODO: fix this
-                          result={result}
-                          isReadonly={isReadonly}
-                          messageId={message.id}
-                        />
-                      ) : toolName === 'retrieve' ? (
-                        // @ts-expect-error // TODO: fix this
-                        <Retrieve result={result} />
-                      ) : toolName === 'readDocument' ? (
-                        // @ts-expect-error // TODO: fix this
-                        <ReadDocument result={result} />
-                      ) : toolName === 'stockChart' ? (
-                        // @ts-expect-error // TODO: fix this
-                        <StockChartMessage result={result} args={args} />
-                      ) : toolName === 'codeInterpreter' ? (
-                        // @ts-expect-error // TODO: fix this
-                        <CodeInterpreterMessage result={result} args={args} />
-                      ) : toolName === 'generateImage' ? (
-                        <GeneratedImage result={result} args={args} />
-                      ) : // toolName !== 'reasonSearch' &&
-                      // toolName !== 'deepResearch' &&
-                      toolName !== 'webSearch' ? (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                      ) : null}
+                      <Weather weatherAtLocation={output} />
                     </div>
                   );
                 }
               }
+
+              if (type === 'tool-createDocument') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  const { input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      <DocumentPreview
+                        isReadonly={isReadonly}
+                        args={input}
+                        messageId={message.id}
+                      />
+                    </div>
+                  );
+                }
+
+                if (state === 'output-available') {
+                  const { output, input } = part;
+                  const shouldShowFullPreview = isLastArtifact(toolCallId);
+
+                  if ('error' in output) {
+                    return (
+                      <div
+                        key={toolCallId}
+                        className="text-red-500 p-2 border rounded"
+                      >
+                        Error: {String(output.error)}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={toolCallId}>
+                      {shouldShowFullPreview ? (
+                        <DocumentPreview
+                          isReadonly={isReadonly}
+                          result={output}
+                          args={input}
+                          messageId={message.id}
+                          type="create"
+                        />
+                      ) : (
+                        <DocumentToolResult
+                          type="create"
+                          result={output}
+                          isReadonly={isReadonly}
+                          messageId={message.id}
+                        />
+                      )}
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-updateDocument') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  const { input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      <DocumentToolCall
+                        type="update"
+                        // @ts-expect-error: // TODO: fix this
+                        args={input}
+                        isReadonly={isReadonly}
+                      />
+                    </div>
+                  );
+                }
+
+                if (state === 'output-available') {
+                  const { output, input } = part;
+                  const shouldShowFullPreview = isLastArtifact(toolCallId);
+
+                  if ('error' in output) {
+                    return (
+                      <div
+                        key={toolCallId}
+                        className="text-red-500 p-2 border rounded"
+                      >
+                        Error: {String(output.error)}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={toolCallId}>
+                      {shouldShowFullPreview ? (
+                        <DocumentPreview
+                          isReadonly={isReadonly}
+                          result={output}
+                          args={input}
+                          messageId={message.id}
+                          type="update"
+                        />
+                      ) : (
+                        <DocumentToolResult
+                          type="update"
+                          result={output}
+                          isReadonly={isReadonly}
+                          messageId={message.id}
+                        />
+                      )}
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-requestSuggestions') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  const { input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      <DocumentToolCall
+                        type="request-suggestions"
+                        // @ts-expect-error: // TODO: fix this
+                        args={input}
+                        isReadonly={isReadonly}
+                      />
+                    </div>
+                  );
+                }
+
+                if (state === 'output-available') {
+                  const { output } = part;
+
+                  if ('error' in output) {
+                    return (
+                      <div
+                        key={toolCallId}
+                        className="text-red-500 p-2 border rounded"
+                      >
+                        Error: {String(output.error)}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div key={toolCallId}>
+                      <DocumentToolResult
+                        type="request-suggestions"
+                        result={output}
+                        isReadonly={isReadonly}
+                        messageId={message.id}
+                      />
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-retrieve') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  return (
+                    <div key={toolCallId}>
+                      <Retrieve />
+                    </div>
+                  );
+                }
+
+                if (state === 'output-available') {
+                  const { output } = part;
+                  return (
+                    <div key={toolCallId}>
+                      {/* @ts-expect-error: // TODO: fix this */}
+                      <Retrieve result={output} />
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-readDocument') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  return null; // No loading state for readDocument
+                }
+
+                if (state === 'output-available') {
+                  const { output } = part;
+                  return (
+                    <div key={toolCallId}>
+                      {/* @ts-expect-error: // TODO: fix this */}
+                      <ReadDocument result={output} />
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-stockChart') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  const { input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      {/* @ts-expect-error: // TODO: fix this */}
+                      <StockChartMessage result={null} args={input} />
+                    </div>
+                  );
+                }
+
+                if (state === 'output-available') {
+                  const { output, input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      {/* @ts-expect-error: // TODO: fix this */}
+                      <StockChartMessage result={output} args={input} />
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-codeInterpreter') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  const { input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      <CodeInterpreterMessage result={null} args={input} />
+                    </div>
+                  );
+                }
+
+                if (state === 'output-available') {
+                  const { output, input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      {/* @ts-expect-error: // TODO: fix this */}
+                      <CodeInterpreterMessage result={output} args={input} />
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-generateImage') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  const { input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      <GeneratedImage args={input} isLoading={true} />
+                    </div>
+                  );
+                }
+
+                if (state === 'output-available') {
+                  const { output, input } = part;
+                  return (
+                    <div key={toolCallId}>
+                      <GeneratedImage result={output} args={input} />
+                    </div>
+                  );
+                }
+              }
+
+              if (type === 'tool-deepResearch') {
+                const { toolCallId, state } = part;
+
+                if (state === 'input-available') {
+                  // Should we place research updates here?
+                  return null;
+                }
+
+                if (state === 'output-available') {
+                  const { output, input } = part;
+                  const shouldShowFullPreview = isLastArtifact(toolCallId);
+                  if (output.format === 'report') {
+                    return (
+                      <div key={toolCallId}>
+                        {shouldShowFullPreview ? (
+                          <DocumentPreview
+                            isReadonly={isReadonly}
+                            result={output}
+                            args={input}
+                            messageId={message.id}
+                            type="create"
+                          />
+                        ) : (
+                          <DocumentToolResult
+                            type="create"
+                            result={output}
+                            isReadonly={isReadonly}
+                            messageId={message.id}
+                          />
+                        )}
+                      </div>
+                    );
+                  }
+                }
+              }
             })}
-            {message.annotations && (
-              <SourcesAnnotations
-                annotations={message.annotations}
-                key={`sources-annotations-${message.id}`}
-              />
-            )}
+            <SourcesAnnotations
+              parts={message.parts}
+              key={`sources-annotations-${message.id}`}
+            />
             <MessageActions
               key={`action-${message.id}`}
               chatId={chatId}
@@ -394,8 +576,6 @@ export const PreviewMessage = memo(
     if (prevProps.message.id !== nextProps.message.id) return false;
     if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
     if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
-    if (!equal(prevProps.message.annotations, nextProps.message.annotations))
-      return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
     if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;

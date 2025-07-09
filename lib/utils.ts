@@ -1,10 +1,9 @@
-import type { CoreAssistantMessage, CoreToolMessage } from 'ai';
+import type { FileUIPart, TextPart } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { YourToolInvocation } from '@/lib/ai/tools/tools';
 
 import type { Document } from '@/lib/db/schema';
-import type { YourUIMessage } from '@/lib/types/ui';
+import type { Attachment, ChatMessage } from './ai/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,23 +15,21 @@ interface ApplicationError extends Error {
 }
 
 export function findLastArtifact(
-  messages: Array<YourUIMessage>,
+  messages: Array<ChatMessage>,
 ): { messageIndex: number; toolCallId: string } | null {
   const allArtifacts: Array<{ messageIndex: number; toolCallId: string }> = [];
 
   messages.forEach((msg, messageIndex) => {
     msg.parts?.forEach((part) => {
-      if (part.type === 'tool-invocation') {
-        const toolInvocation = part.toolInvocation as YourToolInvocation;
-        if (
-          toolInvocation.state === 'result' &&
-          (toolInvocation.toolName === 'createDocument' ||
-            toolInvocation.toolName === 'updateDocument' ||
-            toolInvocation.toolName === 'deepResearch')
-        ) {
+      if (
+        part.type === 'tool-createDocument' ||
+        part.type === 'tool-updateDocument' ||
+        part.type === 'tool-deepResearch'
+      ) {
+        if (part.state === 'output-available') {
           allArtifacts.push({
             messageIndex,
-            toolCallId: toolInvocation.toolCallId,
+            toolCallId: part.toolCallId,
           });
         }
       }
@@ -74,58 +71,7 @@ export function generateUUID(): string {
   });
 }
 
-type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage;
-type ResponseMessage = ResponseMessageWithoutId & { id: string };
-
-export function sanitizeResponseMessages({
-  messages,
-  reasoning,
-}: {
-  messages: Array<ResponseMessage>;
-  reasoning: string | undefined;
-}) {
-  const toolResultIds: Array<string> = [];
-
-  for (const message of messages) {
-    if (message.role === 'tool') {
-      for (const content of message.content) {
-        if (content.type === 'tool-result') {
-          toolResultIds.push(content.toolCallId);
-        }
-      }
-    }
-  }
-
-  const messagesBySanitizedContent = messages.map((message) => {
-    if (message.role !== 'assistant') return message;
-
-    if (typeof message.content === 'string') return message;
-
-    const sanitizedContent = message.content.filter((content) =>
-      content.type === 'tool-call'
-        ? toolResultIds.includes(content.toolCallId)
-        : content.type === 'text'
-          ? content.text.length > 0
-          : true,
-    );
-
-    if (reasoning) {
-      // @ts-expect-error: reasoning message parts in sdk is wip
-      sanitizedContent.push({ type: 'reasoning', reasoning });
-    }
-
-    return {
-      ...message,
-      content: sanitizedContent,
-    };
-  });
-
-  return messagesBySanitizedContent.filter(
-    (message) => message.content.length > 0,
-  );
-}
-
-export function getMostRecentUserMessage(messages: Array<YourUIMessage>) {
+export function getMostRecentUserMessage(messages: Array<ChatMessage>) {
   const userMessages = messages.filter((message) => message.role === 'user');
   return userMessages.at(-1);
 }
@@ -143,7 +89,7 @@ export function getDocumentTimestampByIndex(
 export function getTrailingMessageId({
   messages,
 }: {
-  messages: Array<ResponseMessage>;
+  messages: Array<ChatMessage>;
 }): string | null {
   const trailingMessage = messages.at(-1);
 
@@ -213,4 +159,21 @@ export function getLanguageFromFileName(fileName: string): string {
   };
 
   return extensionToLanguage[extension] || 'python'; // Default to python
+}
+
+export function getAttachmentsFromMessage(message: ChatMessage): Attachment[] {
+  return message.parts
+    .filter<FileUIPart>((part) => part.type === 'file')
+    .map((part) => ({
+      name: part.filename || '',
+      url: part.url,
+      contentType: part.mediaType,
+    }));
+}
+
+export function getTextContentFromMessage(message: ChatMessage): string {
+  return message.parts
+    .filter<TextPart>((part) => part.type === 'text')
+    .map((part) => part.text)
+    .join('');
 }

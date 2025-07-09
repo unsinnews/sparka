@@ -1,6 +1,6 @@
 'use client';
 
-import type { ChatRequestOptions, CreateMessage, Message } from 'ai';
+import type { ChatRequestOptions } from 'ai';
 import {
   type Dispatch,
   type SetStateAction,
@@ -11,17 +11,21 @@ import {
 } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
-import type { YourUIMessage } from '@/lib/types/ui';
+import type { ChatMessage } from '@/lib/ai/types';
 import {
   ChatInputProvider,
   useChatInput,
 } from '@/providers/chat-input-provider';
+import {
+  getAttachmentsFromMessage,
+  getTextContentFromMessage,
+} from '@/lib/utils';
 
 export type MessageEditorProps = {
   chatId: string;
-  message: YourUIMessage;
+  message: ChatMessage;
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
-  chatHelpers: UseChatHelpers;
+  chatHelpers: UseChatHelpers<ChatMessage>;
   parentMessageId: string | null;
 };
 
@@ -54,13 +58,16 @@ function MessageEditorContent({
   }, [setMode]);
 
   const handleAppend = useCallback(
-    async (message: Message | CreateMessage, options?: ChatRequestOptions) => {
+    async (
+      message: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>[0],
+      options?: ChatRequestOptions,
+    ) => {
       setIsSubmitting(true);
 
       setMode('view');
 
       // Save the message manually to keep local state in sync
-      const res = await chatHelpers.append(message, options);
+      const res = await chatHelpers.sendMessage(message, options);
 
       setIsSubmitting(false);
       return res;
@@ -76,7 +83,7 @@ function MessageEditorContent({
         stop={() => setIsSubmitting(false)}
         messages={[]}
         setMessages={chatHelpers.setMessages}
-        append={handleAppend}
+        sendMessage={handleAppend}
         isEditMode={true}
         parentMessageId={parentMessageId}
       />
@@ -90,16 +97,14 @@ export function MessageEditor(
   const { selectedModelId } = useChatInput(); // TODO: IT should get the model from the UI MEssage
 
   // Get the initial input value from the message content
-  const initialInput = props.message.parts
-    .filter((part) => part.type === 'text')
-    .map((part) => part.text)
-    .join('');
+  const initialInput = getTextContentFromMessage(props.message);
+  const initialAttachments = getAttachmentsFromMessage(props.message);
 
   return (
     <ChatInputProvider
       key={`edit-${props.message.id}`}
       initialInput={initialInput}
-      initialAttachments={props.message.experimental_attachments || []}
+      initialAttachments={initialAttachments}
       localStorageEnabled={false}
       overrideModelId={selectedModelId}
     >

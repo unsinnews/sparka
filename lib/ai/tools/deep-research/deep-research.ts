@@ -5,11 +5,11 @@ import { z } from 'zod';
 
 import { getModel } from './providers';
 import { trimPrompt } from '../../trim-prompt';
-import { createDocument } from '../create-document';
+import { createDocumentInternal } from '../create-document';
 import type { Session } from 'next-auth';
-import type { AnnotationDataStreamWriter } from '../annotation-stream';
 import { webSearchStep } from '../steps/web-search';
 import { DEFAULT_ARTIFACT_MODEL } from '../../all-models';
+import type { StreamWriter } from '../../types';
 
 export const systemPrompt = () => {
   const now = new Date().toISOString();
@@ -109,7 +109,7 @@ async function generateNextStepQueries({
           'Based on the information you have describe what will happen in the next step',
         ),
     }),
-    telemetry: {
+    experimental_telemetry: {
       isEnabled: true,
       functionId: 'deep-research-summary',
     },
@@ -163,7 +163,7 @@ async function processSerpResult({
           `List of follow-up questions to research the topic further, max of ${numFollowUpQuestions}`,
         ),
     }),
-    telemetry: {
+    experimental_telemetry: {
       isEnabled: true,
       functionId: 'deep-research-search',
     },
@@ -188,7 +188,7 @@ export async function writeFinalReport({
 }: {
   title: string;
   description: string;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   session: Session;
   prompt: string;
   learnings: string[];
@@ -201,7 +201,7 @@ export async function writeFinalReport({
 
   const urlsSection = `\n\n## Sources\n\n${visitedUrls.map((url) => `- ${url}`).join('\n')}`;
 
-  return createDocument({
+  return createDocumentInternal({
     title,
     description,
     dataStream,
@@ -262,10 +262,7 @@ export async function writeFinalAnswer({
           'The final answer, make it short and concise, just the answer, no other text',
         ),
     }),
-    telemetry: {
-      isEnabled: true,
-      functionId: 'deep-research-final',
-    },
+    experimental_telemetry: { isEnabled: true },
   });
 
   return res.object.exactAnswer;
@@ -279,14 +276,16 @@ export async function deepResearchInternal({
   visitedUrls = [],
   dataStream,
   completedSteps = 0,
+  level = 0,
 }: {
   query: string;
   breadth: number;
   depth: number;
   learnings?: string[];
   visitedUrls?: string[];
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   completedSteps?: number;
+  level?: number;
 }): Promise<ResearchResult> {
   // Send initial plan status
   // dataStream.writeMessageAnnotation({
@@ -308,8 +307,22 @@ export async function deepResearchInternal({
     numQueries: breadth,
   });
 
-  dataStream.writeMessageAnnotation({
-    type: 'research_update',
+  if (level === 0) {
+    dataStream.write({
+      type: 'data-researchUpdate',
+      data: {
+        id: 'research-plan-initial',
+        type: 'progress',
+        status: 'started',
+        title: 'Starting Research',
+        message: 'Starting research...',
+        timestamp: Date.now(),
+      },
+    });
+  }
+
+  dataStream.write({
+    type: 'data-researchUpdate',
     data: {
       id: `step-${completedSteps}-initial-thoughts`, // unique id for the initial state
       status: 'completed',
@@ -353,8 +366,8 @@ export async function deepResearchInternal({
 
   // TODO: Running Web Search and Web search updates should be in the same annotation step when searches run in parallel.
 
-  dataStream.writeMessageAnnotation({
-    type: 'research_update',
+  dataStream.write({
+    type: 'data-researchUpdate',
     data: {
       id: `step-${completedSteps}-web-search`,
       type: 'web',
@@ -416,8 +429,8 @@ export async function deepResearchInternal({
       return true;
     },
   );
-  dataStream.writeMessageAnnotation({
-    type: 'research_update',
+  dataStream.write({
+    type: 'data-researchUpdate',
     data: {
       id: `step-${completedSteps}-web-search`,
       type: 'web',
@@ -492,6 +505,7 @@ export async function deepResearchInternal({
           visitedUrls: [...aggregatedUrls],
           dataStream,
           completedSteps, // Pass the updated completedSteps
+          level: level + 1,
         });
         recursiveResults.push(deeperResult); // Store result from this deeper dive
         // Update completedSteps based on the recursive call's progress (if it returns it - currently it doesn't directly)
@@ -500,25 +514,28 @@ export async function deepResearchInternal({
         // Completed this branch
         console.log(`Reached last level of research for "${serpQuery.query}"`);
         // Learnings and URLs already added to aggregated lists
-        // Send final progress update (might need adjustment based on sequential steps)
-        dataStream.writeMessageAnnotation({
-          type: 'research_update',
-          data: {
-            id: 'research-progress',
-            type: 'progress',
-            status: 'completed',
-            message: `Research complete`,
-            completedSteps: completedSteps,
-            totalSteps: serpQueries.length * (depth + 1),
-            overwrite: true,
-            timestamp: Date.now(),
-          },
-        });
       }
     } catch (e: any) {
       console.log(`Error processing result for query: ${serpQuery.query}: `, e);
       // Decide how to handle processing errors, e.g., continue to next query
     }
+  }
+
+  // Send final progress update only at the top level (level 0)
+  if (level === 0) {
+    dataStream.write({
+      type: 'data-researchUpdate',
+      data: {
+        id: 'research-progress',
+        type: 'progress',
+        status: 'completed',
+        message: `Research complete`,
+        completedSteps: completedSteps,
+        totalSteps: serpQueries.length * (depth + 1),
+        overwrite: true,
+        timestamp: Date.now(),
+      },
+    });
   }
 
   // Combine results from this level and all deeper dives

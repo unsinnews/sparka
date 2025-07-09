@@ -1,6 +1,7 @@
 import type { AnonymousChat, AnonymousMessage } from '@/lib/types/anonymous';
 import { getAnonymousSession } from '@/lib/anonymous-session-client';
 import { cloneMessagesWithDocuments } from '../clone-messages';
+import type { Document } from '../db/schema';
 
 const ANONYMOUS_CHATS_KEY = 'anonymous-chats';
 const ANONYMOUS_MESSAGES_KEY = 'anonymous-messages';
@@ -261,9 +262,9 @@ export async function loadLocalAnonymousMessagesByChatId(
 }
 
 export async function cloneAnonymousChat(
-  originalMessages: any[],
-  originalChat: any,
-  originalDocuments: any[],
+  originalMessages: AnonymousMessage[],
+  originalChat: AnonymousChat,
+  originalDocuments: Document[],
   newChatId: string,
 ): Promise<void> {
   try {

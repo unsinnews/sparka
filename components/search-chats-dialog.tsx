@@ -14,7 +14,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { useGetAllChats } from '@/hooks/use-chat-store';
-import type { UIChat } from '@/lib/types/ui';
+import type { UIChat } from '@/lib/types/uiChat';
 
 type GroupedChats = {
   today: UIChat[];

@@ -1,11 +1,11 @@
-import type { StreamUpdate } from '@/lib/ai/tools/research-updates-schema';
+import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import React, { useState, type ReactNode } from 'react';
 import { ResearchTask } from './research-task';
 
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
-export const ResearchTasks = ({ updates }: { updates: StreamUpdate[] }) => {
+export const ResearchTasks = ({ updates }: { updates: ResearchUpdate[] }) => {
   const [expandedSteps, setExpandedSteps] = useState<Set<string>>(new Set());
 
   const handleToggle = (stepId: string) => {

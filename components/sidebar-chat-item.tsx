@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { Input } from '@/components/ui/input';
-import type { UIChat } from '@/lib/types/ui';
+import type { UIChat } from '@/lib/types/uiChat';
 import { ShareDialog } from '@/components/share-button';
 import { ShareMenuItem } from '@/components/upgrade-cta/share-menu-item';
 

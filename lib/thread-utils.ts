@@ -1,8 +1,10 @@
 // Generic message type that works for both DB and anonymous messages
 export interface MessageNode {
   id: string;
-  parentMessageId: string | null;
-  createdAt: Date;
+  metadata?: {
+    parentMessageId: string | null;
+    createdAt: Date;
+  };
   [key: string]: any; // Allow other properties
 }
 
@@ -14,7 +16,7 @@ export function getDefaultLeafMessage<T extends MessageNode>(
 
   // Sort by createdAt descending and return the first one
   const sorted = [...allMessages].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    (a, b) => new Date(b.metadata?.createdAt || new Date()).getTime() - new Date(a.metadata?.createdAt || new Date()).getTime(),
   );
 
   return sorted[0];
@@ -47,7 +49,7 @@ export function buildThreadFromLeaf<T extends MessageNode>(
     thread.unshift(currentMessage);
 
     // Check for self-reference
-    if (currentMessage.parentMessageId === currentMessage.id) {
+    if (currentMessage.metadata?.parentMessageId === currentMessage.id) {
       console.error(
         '[buildThreadFromLeaf] SELF-REFERENCE DETECTED for message:',
         currentMessage.id,
@@ -55,7 +57,7 @@ export function buildThreadFromLeaf<T extends MessageNode>(
       break;
     }
 
-    currentMessageId = currentMessage.parentMessageId;
+    currentMessageId = currentMessage.metadata?.parentMessageId || null;
   }
 
   return thread;

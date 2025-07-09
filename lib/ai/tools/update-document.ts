@@ -3,12 +3,12 @@ import type { Session } from 'next-auth';
 import { z } from 'zod';
 import { getDocumentById } from '@/lib/db/queries';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
-import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { StreamWriter } from '../types';
 
 interface UpdateDocumentProps {
   session: Session;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   messageId: string;
   selectedModel: AvailableProviderModels;
 }
@@ -33,7 +33,7 @@ Avoid:
 - Using this tool if there is no previous document in the conversation
 
 `,
-    parameters: z.object({
+    inputSchema: z.object({
       id: z.string().describe('The ID of the document to update'),
       description: z
         .string()
@@ -49,19 +49,22 @@ Avoid:
         };
       }
 
-      dataStream.writeData({
-        type: 'id',
-        content: document.id,
+      dataStream.write({
+        type: 'data-id',
+        data: document.id,
+        transient: true,
       });
 
-      dataStream.writeData({
-        type: 'message-id',
-        content: messageId,
+      dataStream.write({
+        type: 'data-messageId',
+        data: messageId,
+        transient: true,
       });
 
-      dataStream.writeData({
-        type: 'clear',
-        content: document.title,
+      dataStream.write({
+        type: 'data-clear',
+        data: null,
+        transient: true,
       });
 
       const documentHandler = documentHandlersByArtifactKind.find(
@@ -82,7 +85,7 @@ Avoid:
         selectedModel,
       });
 
-      dataStream.writeData({ type: 'finish', content: '' });
+      dataStream.write({ type: 'data-finish', data: null, transient: true });
 
       return {
         id,

@@ -5,8 +5,8 @@ import type { ArtifactKind } from '@/components/artifact';
 import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';
 import type { Session } from 'next-auth';
-import type { AnnotationDataStreamWriter } from '../ai/tools/annotation-stream';
 import type { AvailableProviderModels } from '../ai/all-models';
+import type { StreamWriter } from '../ai/types';
 
 export interface SaveDocumentProps {
   id: string;
@@ -19,7 +19,7 @@ export interface SaveDocumentProps {
 export interface CreateDocumentCallbackProps {
   id: string;
   title: string;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   session: Session;
   description: string;
   prompt: string;
@@ -30,7 +30,7 @@ export interface CreateDocumentCallbackProps {
 export interface UpdateDocumentCallbackProps {
   document: Document;
   description: string;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   session: Session;
   messageId: string;
   selectedModel: AvailableProviderModels;

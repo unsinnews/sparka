@@ -1,13 +1,12 @@
 import { z } from 'zod';
-import { tool, experimental_generateImage } from 'ai';
+import { tool, experimental_generateImage, type FileUIPart } from 'ai';
 import { getImageModel } from '@/lib/ai/providers';
 import { DEFAULT_IMAGE_MODEL } from '@/lib/ai/all-models';
-import type { Attachment } from 'ai';
 import OpenAI, { toFile } from 'openai';
 import { uploadFile } from '@/lib/blob';
 
 interface GenerateImageProps {
-  userAttachments?: Array<Attachment>;
+  attachments?: Array<FileUIPart>;
   lastGeneratedImage?: { imageUrl: string; name: string } | null;
 }
 
@@ -15,8 +14,8 @@ const openaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-export const generateImageTool = ({
-  userAttachments = [],
+export const generateImage = ({
+  attachments = [],
   lastGeneratedImage = null,
 }: GenerateImageProps = {}) =>
   tool({
@@ -28,7 +27,7 @@ Usage:
 - Support various art styles and subjects
 - Be as detailed as possible in the description
 - Use attached images as visual reference when available`,
-    parameters: z.object({
+    inputSchema: z.object({
       prompt: z
         .string()
         .describe(
@@ -36,21 +35,21 @@ Usage:
         ),
     }),
     execute: async ({ prompt }) => {
-      // Filter only image attachments for reference
-      const imageAttachments = userAttachments.filter((attachment) =>
-        attachment.contentType?.startsWith('image/'),
+      // Filter only image file parts for reference
+      const imageParts = attachments.filter(
+        (part) => part.type === 'file' && part.mediaType?.startsWith('image/'),
       );
 
       const hasLastGeneratedImage = lastGeneratedImage !== null;
-      const isEdit = imageAttachments.length > 0 || hasLastGeneratedImage;
+      const isEdit = imageParts.length > 0 || hasLastGeneratedImage;
       console.log('CAlling generateImageTool with isEdit', isEdit);
       if (isEdit) {
         console.log(
           'Using OpenAI edit mode with images:',
-          `lastGenerated: ${hasLastGeneratedImage ? 1 : 0}, attachments: ${imageAttachments.length}`,
+          `lastGenerated: ${hasLastGeneratedImage ? 1 : 0}, attachments: ${imageParts.length}`,
         );
 
-        // Convert attachments and lastGeneratedImage to the format expected by OpenAI
+        // Convert parts and lastGeneratedImage to the format expected by OpenAI
         const inputImages = [];
 
         // Add lastGeneratedImage first if it exists
@@ -64,21 +63,21 @@ Usage:
           inputImages.push(lastGenImage);
         }
 
-        // Add user attachments
-        const attachmentImages = await Promise.all(
-          imageAttachments.map(async (attachment) => {
-            const response = await fetch(attachment.url);
+        // Add user file parts
+        const partImages = await Promise.all(
+          imageParts.map(async (part) => {
+            const response = await fetch(part.url);
             const arrayBuffer = await response.arrayBuffer();
             const buffer = Buffer.from(arrayBuffer);
 
             // Use toFile to create the proper format for OpenAI
-            return await toFile(buffer, attachment.name || 'image.png', {
-              type: attachment.contentType || 'image/png',
+            return await toFile(buffer, part.filename || 'image.png', {
+              type: part.mediaType || 'image/png',
             });
           }),
         );
 
-        inputImages.push(...attachmentImages);
+        inputImages.push(...partImages);
 
         const rsp = await openaiClient.images.edit({
           model: 'gpt-image-1',

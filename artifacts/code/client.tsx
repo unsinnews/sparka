@@ -78,14 +78,14 @@ export const codeArtifact = new Artifact<'code', Metadata>({
     });
   },
   onStreamPart: ({ streamPart, setArtifact, setMetadata }) => {
-    if (streamPart.type === 'code-delta') {
+    if (streamPart.type === 'data-codeDelta') {
       setArtifact((draftArtifact) => ({
         ...draftArtifact,
-        content: streamPart.content as string,
+        content: streamPart.data,
         isVisible:
           draftArtifact.status === 'streaming' &&
-          (streamPart.content as string).length > 300 &&
-          (streamPart.content as string).length < 310
+          streamPart.data.length > 300 &&
+          streamPart.data.length < 310
             ? true
             : draftArtifact.isVisible,
         status: 'streaming',
@@ -271,20 +271,30 @@ export const codeArtifact = new Artifact<'code', Metadata>({
     {
       icon: <MessageIcon />,
       description: 'Add comments',
-      onClick: ({ appendMessage }) => {
+      onClick: ({ sendMessage: appendMessage }) => {
         appendMessage({
           role: 'user',
-          content: 'Add comments to the code snippet for understanding',
+          parts: [
+            {
+              type: 'text',
+              text: 'Add comments to the code snippet for understanding',
+            },
+          ],
         });
       },
     },
     {
       icon: <LogsIcon />,
       description: 'Add logs',
-      onClick: ({ appendMessage }) => {
+      onClick: ({ sendMessage: appendMessage }) => {
         appendMessage({
           role: 'user',
-          content: 'Add logs to the code snippet for debugging',
+          parts: [
+            {
+              type: 'text',
+              text: 'Add logs to the code snippet for debugging',
+            },
+          ],
         });
       },
     },

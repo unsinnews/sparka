@@ -21,13 +21,18 @@ import { z } from 'zod';
 import { generateText } from 'ai';
 import { getLanguageModel } from '@/lib/ai/providers';
 import { TRPCError } from '@trpc/server';
-import { dbChatToUIChat, dbMessageToUIMessage } from '@/lib/message-conversion';
+import {
+  dbChatToUIChat,
+  dbMessageToChatMessage,
+} from '@/lib/message-conversion';
 import { generateUUID } from '@/lib/utils';
 import {
   cloneMessagesWithDocuments,
   cloneAttachmentsInMessages,
 } from '@/lib/clone-messages';
 import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
+import type { DBMessage } from '@/lib/db/schema';
+import type { ChatMessage } from '@/lib/ai/types';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -71,7 +76,7 @@ export const chatRouter = createTRPCRouter({
       }
 
       const dbMessages = await getAllMessagesByChatId({ chatId: input.chatId });
-      return dbMessages.map(dbMessageToUIMessage);
+      return dbMessages.map(dbMessageToChatMessage);
     }),
 
   renameChat: protectedProcedure
@@ -194,7 +199,7 @@ export const chatRouter = createTRPCRouter({
         - the title should be a summary of the user's message
         - do not use quotes or colons`,
         prompt: input.message,
-        telemetry: { isEnabled: true },
+        experimental_telemetry: { isEnabled: true },
       });
 
       return { title };
@@ -237,7 +242,7 @@ export const chatRouter = createTRPCRouter({
       }
 
       const dbMessages = await getAllMessagesByChatId({ chatId: input.chatId });
-      return dbMessages.map(dbMessageToUIMessage);
+      return dbMessages.map(dbMessageToChatMessage);
     }),
 
   cloneSharedChat: protectedProcedure
@@ -294,8 +299,9 @@ export const chatRouter = createTRPCRouter({
       );
 
       // Clone attachments in messages (this has side effects - network calls to blob storage)
-      const messagesWithClonedAttachments =
-        await cloneAttachmentsInMessages(clonedMessages);
+      const messagesWithClonedAttachments = await cloneAttachmentsInMessages(
+        clonedMessages as (DBMessage & { parts: ChatMessage['parts'] })[],
+      );
 
       // Save cloned messages first, then documents due to foreign key dependency
       await saveMessages({ _messages: messagesWithClonedAttachments });

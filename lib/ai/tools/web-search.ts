@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { tool } from 'ai';
 import type { Session } from 'next-auth';
-import type { AnnotationDataStreamWriter } from './annotation-stream';
 import { webSearchStep } from './steps/web-search';
+import type { StreamWriter } from '../types';
 
 export const QueryCompletionSchema = z.object({
   type: z.literal('query_completion'),
@@ -66,12 +66,13 @@ async function isValidImageUrl(url: string): Promise<boolean> {
   }
 }
 
-interface WebSearchProps {
+export const webSearch = ({
+  session,
+  dataStream,
+}: {
   session: Session;
-  dataStream: AnnotationDataStreamWriter;
-}
-
-export const webSearch = ({ session, dataStream }: WebSearchProps) =>
+  dataStream: StreamWriter;
+}) =>
   tool({
     description: `Multi-query web search (supports depth, topic & result limits). Always cite sources inline.
 
@@ -85,7 +86,7 @@ Citation rules:
 
 Avoid:
 - Pulling content from a single known URL (use retrieve instead)`,
-    parameters: z.object({
+    inputSchema: z.object({
       search_queries: z
         .array(
           z.object({
@@ -138,6 +139,18 @@ Avoid:
       const safeSearchDepth = searchDepth ?? ['basic'];
       const safeExcludeDomains = exclude_domains ?? [];
 
+      dataStream.write({
+        type: 'data-researchUpdate',
+        data: {
+          id: 'research-plan-initial',
+          type: 'progress',
+          status: 'started',
+          title: 'Starting Research',
+          message: 'Starting research...',
+          timestamp: Date.now(),
+        },
+      });
+
       console.log('Queries:', search_queries);
       console.log('Topics:', safeTopics);
       console.log('Search Depths:', safeSearchDepth);
@@ -147,8 +160,8 @@ Avoid:
       let completedSteps = 0;
       const totalSteps = 1; // TODO: Web search is very simple for now
       // Complete plan status
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: 'research-plan',
           type: 'thoughts',
@@ -204,8 +217,8 @@ Avoid:
       const searchResults = await Promise.all(searchPromises);
 
       // Final progress update
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: 'research-progress',
           type: 'progress',

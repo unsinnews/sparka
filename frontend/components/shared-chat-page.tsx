@@ -47,6 +47,19 @@ export function SharedChatPage() {
     return notFound();
   }
 
+  console.log('initialThreadMessages', initialThreadMessages);
+
+  if (isMessagesLoading || isChatLoading) {
+    return (
+      <WithSkeleton
+        isLoading={isChatLoading || isMessagesLoading}
+        className="w-full h-full"
+      >
+        <div className="flex h-screen w-full" />
+      </WithSkeleton>
+    );
+  }
+
   return (
     <>
       <WithSkeleton

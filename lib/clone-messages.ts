@@ -1,7 +1,7 @@
-import type { YourUIMessage } from './types/ui';
 import { generateUUID } from './utils';
-import type { Attachment } from './ai/types';
+import type { ChatMessage } from './ai/types';
 import { uploadFile } from './blob';
+import type { FileUIPart } from 'ai';
 
 function cloneMessages<
   T extends { id: string; chatId: string; parentMessageId?: string | null },
@@ -50,41 +50,29 @@ function createDocumentIdMap<T extends { id: string }>(
   }
   return documentIdMap;
 }
-function updateDocumentReferencesInMessageParts<T extends { parts: any }>(
-  messages: T[],
-  documentIdMap: Map<string, string>,
-): T[] {
+function updateDocumentReferencesInMessageParts<
+  T extends { parts: ChatMessage['parts'] },
+>(messages: T[], documentIdMap: Map<string, string>): T[] {
   return messages.map((message) => {
-    const parts = message.parts as YourUIMessage['parts'];
-    let updatedParts: YourUIMessage['parts'] = [];
+    const parts = message.parts;
+    let updatedParts: ChatMessage['parts'] = [];
 
     if (Array.isArray(parts)) {
-      // TODO: Fix artifact constant not matching artifact kinds
-      // @ts-expect-error: artifact constant not matching artifact kinds
+      // TODO: refactor these part copying into a helper function to avoid triplication
       updatedParts = parts.map((part) => {
-        if (
-          part.type !== 'tool-invocation' ||
-          part.toolInvocation.state !== 'result'
-        ) {
-          return part;
-        }
-
-        if (part.toolInvocation.toolName === 'deepResearch') {
-          if (!part.toolInvocation.result.success) {
+        if (part.type === 'tool-deepResearch') {
+          if (part.state !== 'output-available') {
             return part;
           }
-          if (part.toolInvocation.result.format === 'report') {
-            const oldDocId = part.toolInvocation.result?.id;
+          if (part.output?.format === 'report') {
+            const oldDocId = part.output?.id;
             const newDocId = documentIdMap.get(oldDocId);
             if (newDocId) {
               return {
                 ...part,
-                toolInvocation: {
-                  ...part.toolInvocation,
-                  result: {
-                    ...part.toolInvocation.result,
-                    id: newDocId,
-                  },
+                output: {
+                  ...part.output,
+                  id: newDocId,
                 },
               };
             } else {
@@ -93,34 +81,49 @@ function updateDocumentReferencesInMessageParts<T extends { parts: any }>(
           } else {
             return part;
           }
-        } else if (
-          part.toolInvocation.toolName === 'updateDocument' ||
-          part.toolInvocation.toolName === 'createDocument'
-        ) {
-          if (!part.toolInvocation.result.success) {
+        } else if (part.type === 'tool-updateDocument') {
+          if (part.state !== 'output-available') {
             return part;
           }
 
-          const oldDocId = part.toolInvocation.result.id;
+          if (!part.output.success) {
+            return part;
+          }
+
+          const oldDocId = part.output?.id;
           const newDocId = documentIdMap.get(oldDocId);
           if (newDocId) {
             return {
               ...part,
-              toolInvocation: {
-                ...part.toolInvocation,
-                result: {
-                  ...part.toolInvocation.result,
-                  id: newDocId,
-                },
+              output: {
+                ...part.output,
+                id: newDocId,
               },
             };
           } else {
             throw new Error(`Document ID ${oldDocId} not found in mapping`);
           }
+        } else if (part.type === 'tool-createDocument') {
+          if (part.state !== 'output-available') {
+            return part;
+          }
+
+          const oldDocId = part.output?.id;
+          const newDocId = documentIdMap.get(oldDocId);
+          if (newDocId) {
+            return {
+              ...part,
+              output: {
+                ...part.output,
+                id: newDocId,
+              },
+            };
+          } else {
+            throw new Error(`Document ID ${oldDocId} not found in mapping`);
+          }
+        } else {
+          return part;
         }
-        throw new Error(
-          `Tool invocation ${part.toolInvocation?.toolName} not found in mapping`,
-        );
       });
     }
 
@@ -163,27 +166,25 @@ function cloneDocuments<
   return clonedDocuments;
 }
 
-export async function cloneAttachment(
-  attachment: Attachment,
-): Promise<Attachment> {
+export async function cloneFileUIPart(part: FileUIPart): Promise<FileUIPart> {
   try {
     // Skip if no URL is provided
-    if (!attachment.url) {
+    if (!part.url) {
       console.warn('Attachment has no URL, skipping clone');
-      return attachment;
+      return part;
     }
 
     // Skip if URL is not a blob URL (might be external)
-    if (!attachment.url.includes('blob.vercel-storage.com')) {
+    if (!part.url.includes('blob.vercel-storage.com')) {
       console.warn(
         'Attachment is not a Vercel blob, skipping clone:',
-        attachment.url,
+        part.url,
       );
-      return attachment;
+      return part;
     }
 
     // Fetch the original file
-    const response = await fetch(attachment.url);
+    const response = await fetch(part.url);
     if (!response.ok) {
       throw new Error(`Failed to fetch attachment: ${response.statusText}`);
     }
@@ -191,7 +192,7 @@ export async function cloneAttachment(
     const blob = await response.blob();
 
     // Extract just the base filename without any path components
-    let filename = attachment.name || 'attachment';
+    let filename = part.filename || 'attachment';
 
     // If filename contains path separators, get just the last part
     if (filename.includes('/')) {
@@ -209,34 +210,37 @@ export async function cloneAttachment(
     );
 
     return {
-      ...attachment,
+      ...part,
       url: newBlob.url,
     };
   } catch (error) {
     console.error('Failed to clone attachment:', error);
     // Return original attachment as fallback to avoid breaking the cloning process
-    return attachment;
+    return part;
   }
 }
 
 export async function cloneAttachmentsInMessages<
-  T extends { attachments: any },
+  T extends { parts: ChatMessage['parts'] },
 >(messages: T[]): Promise<T[]> {
   const clonedMessages: T[] = [];
 
   for (const message of messages) {
-    if (message.attachments && Array.isArray(message.attachments)) {
-      const attachments = message.attachments as Attachment[];
-      const clonedAttachments: Attachment[] = [];
+    if (message.parts && Array.isArray(message.parts)) {
+      const clonedParts: ChatMessage['parts'] = [];
 
-      for (const attachment of attachments) {
-        const clonedAttachment = await cloneAttachment(attachment);
-        clonedAttachments.push(clonedAttachment);
+      for (const part of message.parts) {
+        if (part.type === 'file') {
+          const clonedPart = await cloneFileUIPart(part);
+          clonedParts.push(clonedPart);
+        } else {
+          clonedParts.push(part);
+        }
       }
 
       const clonedMessage: T = {
         ...message,
-        attachments: clonedAttachments,
+        parts: clonedParts,
       };
       clonedMessages.push(clonedMessage);
     } else {

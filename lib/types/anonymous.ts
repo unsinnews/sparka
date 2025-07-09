@@ -1,7 +1,7 @@
-import type { YourToolName } from '../ai/tools/tools';
 import type { AvailableProviderModels } from '../ai/all-models';
+import type { ToolNames } from '../ai/types';
 import type { DBMessage } from '../db/schema';
-import type { UIChat } from './ui';
+import type { UIChat } from './uiChat';
 
 export interface AnonymousSession {
   id: string;
@@ -22,10 +22,7 @@ export const ANONYMOUS_LIMITS = {
     'xai/grok-3-mini-beta',
     'openai/gpt-4o-mini',
   ] as const satisfies readonly AvailableProviderModels[],
-  AVAILABLE_TOOLS: [
-    'createDocument',
-    'updateDocument',
-  ] satisfies YourToolName[],
+  AVAILABLE_TOOLS: ['createDocument', 'updateDocument'] satisfies ToolNames[],
   SESSION_DURATION: 2147483647, // Max session time
   // Rate limiting for anonymous users based on IP
   RATE_LIMIT: {

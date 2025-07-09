@@ -62,6 +62,7 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${geist.variable} ${geistMono.variable}`}
     >
+      {/* <ReactScan /> */}
       <head>
         <script
           dangerouslySetInnerHTML={{

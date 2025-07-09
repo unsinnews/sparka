@@ -16,7 +16,7 @@ Restrictions:
 Avoid:
 - Any non-Python language
 - Chart types other than line / scatter / bar`,
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe('The title of the code snippet.'),
     code: z
       .string()

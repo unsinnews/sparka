@@ -1,5 +1,5 @@
 import Exa from 'exa-js';
-import type { AnnotationDataStreamWriter } from '../annotation-stream';
+import type { StreamWriter } from '../../types';
 
 export type AcademicSearchResult = {
   source: 'academic';
@@ -24,15 +24,15 @@ export async function academicSearchStep({
 }: {
   query: string;
   maxResults: number;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   stepId: string;
   annotate?: boolean;
 }): Promise<AcademicSearchResponse> {
   try {
     // Send running annotation
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',
@@ -61,8 +61,8 @@ export async function academicSearchStep({
 
     // Send completed annotation
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',
@@ -85,8 +85,8 @@ export async function academicSearchStep({
 
     // Send error annotation
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',

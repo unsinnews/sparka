@@ -1,5 +1,5 @@
 import Exa from 'exa-js';
-import type { AnnotationDataStreamWriter } from '../annotation-stream';
+import type { StreamWriter } from '../../types';
 
 export type XSearchResult = {
   source: 'x';
@@ -36,15 +36,15 @@ export async function xSearchStep({
   query: string;
   type: 'neural' | 'keyword';
   maxResults?: number;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   stepId: string;
   annotate?: boolean;
 }): Promise<XSearchResponse> {
   try {
     // Send running status
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',
@@ -85,8 +85,8 @@ export async function xSearchStep({
 
     // Send completed status
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',
@@ -108,8 +108,8 @@ export async function xSearchStep({
 
     // Send error status
     if (annotate) {
-      dataStream.writeMessageAnnotation({
-        type: 'research_update',
+      dataStream.write({
+        type: 'data-researchUpdate',
         data: {
           id: stepId,
           type: 'web',

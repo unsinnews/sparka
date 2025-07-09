@@ -57,15 +57,10 @@ const ThoughtsSchema = TaskUpdateSchema.extend({
 
 export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
 
-export const StreamUpdateSchema = z.discriminatedUnion('type', [
+export const ResearchUpdateSchema = z.discriminatedUnion('type', [
   WebSearchSchema,
   ProgressSchema,
   ThoughtsSchema,
 ]);
 
-export type StreamUpdate = z.infer<typeof StreamUpdateSchema>;
-
-export const ResearchUpdateSchema = z.object({
-  type: z.enum(['research_update']),
-  data: StreamUpdateSchema,
-});
+export type ResearchUpdate = z.infer<typeof ResearchUpdateSchema>;

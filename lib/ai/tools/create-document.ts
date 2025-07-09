@@ -6,19 +6,20 @@ import {
   artifactKinds,
   documentHandlersByArtifactKind,
 } from '@/lib/artifacts/server';
-import type { AnnotationDataStreamWriter } from './annotation-stream';
 import type { ModelMessage } from 'ai';
 import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { StreamWriter } from '../types';
+import type { ArtifactKind } from '@/components/artifact';
 
 interface CreateDocumentProps {
   session: Session;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   contextForLLM?: ModelMessage[];
   messageId: string;
   selectedModel: AvailableProviderModels;
 }
 
-export const createDocumentTool = ({
+export const createDocument = ({
   session,
   dataStream,
   contextForLLM,
@@ -45,7 +46,7 @@ For code artifacts (only code artifacts):
 Avoid:
 - Purely conversational or explanatory responses that belong in chat
 - "Keep it in chat" requests`,
-    parameters: z.object({
+    inputSchema: z.object({
       title: z
         .string()
         .describe(
@@ -79,7 +80,7 @@ Avoid:
       `;
       }
 
-      return await createDocument({
+      return await createDocumentInternal({
         dataStream,
         kind,
         title,
@@ -92,7 +93,7 @@ Avoid:
     },
   });
 
-export async function createDocument({
+export async function createDocumentInternal({
   dataStream,
   kind,
   title,
@@ -102,8 +103,8 @@ export async function createDocument({
   messageId,
   selectedModel,
 }: {
-  dataStream: AnnotationDataStreamWriter;
-  kind: string;
+  dataStream: StreamWriter;
+  kind: ArtifactKind;
   title: string;
   description: string;
   session: Session;
@@ -113,29 +114,34 @@ export async function createDocument({
 }) {
   const id = generateUUID();
 
-  dataStream.writeData({
-    type: 'kind',
-    content: kind,
+  dataStream.write({
+    type: 'data-kind',
+    data: kind,
+    transient: true,
   });
 
-  dataStream.writeData({
-    type: 'id',
-    content: id,
+  dataStream.write({
+    type: 'data-id',
+    data: id,
+    transient: true,
   });
 
-  dataStream.writeData({
-    type: 'message-id',
-    content: messageId,
+  dataStream.write({
+    type: 'data-messageId',
+    data: messageId,
+    transient: true,
   });
 
-  dataStream.writeData({
-    type: 'title',
-    content: title,
+  dataStream.write({
+    type: 'data-title',
+    data: title,
+    transient: true,
   });
 
-  dataStream.writeData({
-    type: 'clear',
-    content: '',
+  dataStream.write({
+    type: 'data-clear',
+    data: null,
+    transient: true,
   });
 
   const documentHandler = documentHandlersByArtifactKind.find(
@@ -158,7 +164,7 @@ export async function createDocument({
     selectedModel,
   });
 
-  dataStream.writeData({ type: 'finish', content: '' });
+  dataStream.write({ type: 'data-finish', data: null, transient: true });
 
   return {
     id,

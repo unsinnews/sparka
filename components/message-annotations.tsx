@@ -1,19 +1,16 @@
-import type { MessageAnnotation } from '@/lib/ai/tools/annotations';
 import { ReasonSearchResearchProgress } from './reason-search-research-progress';
-import type {
-  StreamUpdate,
-  WebSearchUpdate,
-} from '@/lib/ai/tools/research-updates-schema';
+import type { WebSearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { Sources } from './sources';
+import type { ChatMessage } from '@/lib/ai/types';
 
 export const SourcesAnnotations = ({
-  annotations,
-}: { annotations?: MessageAnnotation[] }) => {
-  if (!annotations) return null;
+  parts,
+}: { parts?: ChatMessage['parts'] }) => {
+  if (!parts) return null;
 
-  const researchUpdates: StreamUpdate[] = annotations
-    .filter((a) => a.type === 'research_update')
-    .map((a) => a.data);
+  const researchUpdates = parts
+    .filter((part) => part.type === 'data-researchUpdate')
+    .map((u) => u.data);
 
   if (researchUpdates.length === 0) return null;
 
@@ -38,18 +35,16 @@ export const SourcesAnnotations = ({
 };
 
 export const ResearchUpdateAnnotations = ({
-  annotations,
-}: { annotations?: MessageAnnotation[] }) => {
-  if (!annotations) return null;
-  const researchUpdates = annotations.filter(
-    (a) => a.type === 'research_update',
-  );
+  parts,
+}: { parts?: ChatMessage['parts'] }) => {
+  if (!parts) return null;
 
+  const researchUpdates = parts
+    .filter((part) => part.type === 'data-researchUpdate')
+    .map((u) => u.data);
+
+  console.log('researchUpdates', researchUpdates);
   if (researchUpdates.length === 0) return null;
 
-  return (
-    <ReasonSearchResearchProgress
-      updates={researchUpdates.map((a) => a.data)}
-    />
-  );
+  return <ReasonSearchResearchProgress updates={researchUpdates} />;
 };

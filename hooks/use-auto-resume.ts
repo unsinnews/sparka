@@ -2,25 +2,26 @@
 
 import { useEffect } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { YourUIMessage } from '@/lib/types/ui';
+import type { ChatMessage } from '@/lib/ai/types';
+import { useDataStream } from '@/components/data-stream-provider';
 
 export type DataPart = { type: 'append-message'; message: string };
 
 export interface UseAutoResumeProps {
   autoResume: boolean;
-  initialMessages: YourUIMessage[];
-  experimental_resume: UseChatHelpers['experimental_resume'];
-  data: UseChatHelpers['data'];
-  setMessages: UseChatHelpers['setMessages'];
+  initialMessages: ChatMessage[];
+  resumeStream: UseChatHelpers<ChatMessage>['resumeStream'];
+  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
 }
 
 export function useAutoResume({
   autoResume,
   initialMessages,
-  experimental_resume,
-  data,
+  resumeStream,
   setMessages,
 }: UseAutoResumeProps) {
+  const { dataStream } = useDataStream();
+
   useEffect(() => {
     if (!autoResume) return;
 
@@ -28,24 +29,25 @@ export function useAutoResume({
     console.log('mostRecentMessage', mostRecentMessage);
     if (
       mostRecentMessage?.role === 'user' ||
-      (mostRecentMessage?.role === 'assistant' && mostRecentMessage.isPartial)
+      (mostRecentMessage?.role === 'assistant' &&
+        mostRecentMessage.metadata?.isPartial)
     ) {
       console.log('Running experimental_resume');
-      experimental_resume();
+      resumeStream();
     }
-
     // we intentionally run this once
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (!data || data.length === 0) return;
+    if (!dataStream) return;
+    if (dataStream.length === 0) return;
 
-    const dataPart = data[0] as DataPart;
+    const dataPart = dataStream[0];
 
-    if (dataPart.type === 'append-message') {
-      const message = JSON.parse(dataPart.message) as YourUIMessage;
+    if (dataPart.type === 'data-appendMessage') {
+      const message = JSON.parse(dataPart.data);
       setMessages([...initialMessages, message]);
     }
-  }, [data, initialMessages, setMessages]);
+  }, [dataStream, initialMessages, setMessages]);
 }

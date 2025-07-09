@@ -18,7 +18,7 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),
       system: sheetPrompt,
-      telemetry: { isEnabled: true },
+      experimental_telemetry: { isEnabled: true },
       prompt,
       schema: z.object({
         csv: z.string().describe('CSV data'),
@@ -33,9 +33,10 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
         const { csv } = object;
 
         if (csv) {
-          dataStream.writeData({
-            type: 'sheet-delta',
-            content: csv,
+          dataStream.write({
+            type: 'data-sheetDelta',
+            data: csv,
+            transient: true,
           });
 
           draftContent = csv;
@@ -43,9 +44,10 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
       }
     }
 
-    dataStream.writeData({
-      type: 'sheet-delta',
-      content: draftContent,
+    dataStream.write({
+      type: 'data-sheetDelta',
+      data: draftContent,
+      transient: true,
     });
 
     return draftContent;
@@ -56,12 +58,12 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     dataStream,
     selectedModel,
   }) => {
-    let draftContent = '';
+    const draftContent = '';
 
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),
       system: updateDocumentPrompt(document.content, 'sheet'),
-      telemetry: { isEnabled: true },
+      experimental_telemetry: { isEnabled: true },
       prompt: description,
       schema: z.object({
         csv: z.string(),
@@ -76,9 +78,10 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
         const { csv } = object;
 
         if (csv) {
-          dataStream.writeData({
-            type: 'sheet-delta',
-            content: csv,
+          dataStream.write({
+            type: 'data-sheetDelta',
+            data: csv,
+            transient: true,
           });
 
           draftContent = csv;

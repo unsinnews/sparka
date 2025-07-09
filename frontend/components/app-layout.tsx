@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useTRPC } from '@/trpc/react';
 import { useGetAllChats } from '@/hooks/use-chat-store';
 import { loadLocalAnonymousMessagesByChatId } from '@/lib/utils/anonymous-chat-storage';
-import type { YourUIMessage } from '@/lib/types/ui';
+import { dbMessageToChatMessage } from '@/lib/message-conversion';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -55,14 +55,13 @@ function usePrefetchChatMessages() {
           queryKey,
           queryFn: async () => {
             try {
-              const restoredMessages =
-                (await loadLocalAnonymousMessagesByChatId(
-                  chatId,
-                )) as unknown as YourUIMessage[];
+              const restoredMessages = (
+                await loadLocalAnonymousMessagesByChatId(chatId)
+              ).map(dbMessageToChatMessage);
               return restoredMessages;
             } catch (error) {
               console.error('Error loading anonymous messages:', error);
-              return [] as YourUIMessage[];
+              return [];
             }
           },
           staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes

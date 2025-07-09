@@ -6,7 +6,7 @@ import {
   writeFinalAnswer,
   writeFinalReport,
 } from './deep-research';
-import type { AnnotationDataStreamWriter } from '../annotation-stream';
+import type { StreamWriter } from '../../types';
 
 // TODO: Restore both to 3 or make configurable. It needs to fit in 1m execution
 const BREADTH = 3;
@@ -18,7 +18,7 @@ export const deepResearch = ({
   messageId,
 }: {
   session: Session;
-  dataStream: AnnotationDataStreamWriter;
+  dataStream: StreamWriter;
   messageId: string;
 }) =>
   tool({
@@ -29,7 +29,7 @@ Usage:
 
 Avoid:
 - Simple questions that can be answered directly`,
-    parameters: z.object({
+    inputSchema: z.object({
       query: z.string().describe('The query to research'),
       isReport: z
         .boolean()
@@ -37,6 +37,7 @@ Avoid:
     }),
     execute: async ({ query, isReport }) => {
       let combinedQuery = query;
+
       if (isReport) {
         console.log(`Creating research plan...`);
 

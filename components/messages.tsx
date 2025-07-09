@@ -3,7 +3,6 @@ import { memo } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { YourUIMessage } from '@/lib/types/ui';
 import { ResponseErrorMessage } from './response-error-message';
 import { ThinkingMessage } from './thinking-message';
 import { cn, findLastArtifact } from '@/lib/utils';
@@ -12,13 +11,14 @@ import { useStickToBottom } from 'use-stick-to-bottom';
 import { Button } from './ui/button';
 import { ArrowDown } from 'lucide-react';
 import { Greeting } from './greeting';
+import type { ChatMessage } from '@/lib/ai/types';
 
 export interface MessagesProps {
   chatId: string;
-  status: UseChatHelpers['status'];
+  status: UseChatHelpers<ChatMessage>['status'];
   votes: Array<Vote> | undefined;
-  messages: Array<YourUIMessage>;
-  chatHelpers: UseChatHelpers;
+  messages: Array<ChatMessage>;
+  chatHelpers: UseChatHelpers<ChatMessage>;
   isReadonly: boolean;
   isVisible: boolean;
   onModelChange?: (modelId: string) => void;
@@ -38,6 +38,9 @@ function PureMessages({
 
   // Find the last artifact in all messages
   const lastArtifact = findLastArtifact(messages);
+
+  // TODO: Verify if this is needed ai sdk v5
+  // useDataStream();
 
   return (
     <ScrollArea

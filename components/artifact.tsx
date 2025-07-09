@@ -17,7 +17,7 @@ import { sheetArtifact } from '@/artifacts/sheet/client';
 import { textArtifact } from '@/artifacts/text/client';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
-import type { YourUIMessage } from '@/lib/types/ui';
+import type { ChatMessage } from '@/lib/ai/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
 import { CloneChatButton } from '@/components/clone-chat-button';
@@ -52,9 +52,9 @@ function PureArtifact({
   isAuthenticated,
 }: {
   chatId: string;
-  messages: Array<YourUIMessage>;
+  messages: Array<ChatMessage>;
   votes: Array<Vote> | undefined;
-  chatHelpers: UseChatHelpers;
+  chatHelpers: UseChatHelpers<ChatMessage>;
   isReadonly: boolean;
   isAuthenticated: boolean;
 }) {
@@ -317,7 +317,7 @@ function PureArtifact({
                       status={chatHelpers.status}
                       stop={chatHelpers.stop}
                       messages={messages}
-                      append={chatHelpers.append}
+                      sendMessage={chatHelpers.sendMessage}
                       className="bg-background dark:bg-muted"
                       setMessages={chatHelpers.setMessages}
                       parentMessageId={getLastMessageId()}
@@ -464,7 +464,7 @@ function PureArtifact({
                     <Toolbar
                       isToolbarVisible={isToolbarVisible}
                       setIsToolbarVisible={setIsToolbarVisible}
-                      append={chatHelpers.append}
+                      sendMessage={chatHelpers.sendMessage}
                       status={chatHelpers.status}
                       stop={chatHelpers.stop}
                       setMessages={chatHelpers.setMessages}

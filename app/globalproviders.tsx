@@ -6,6 +6,7 @@ import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { TRPCReactProvider } from '@/trpc/react';
 import { ArtifactProvider } from '@/hooks/use-artifact';
+import { DataStreamProvider } from '@/components/data-stream-provider';
 
 export function GlobalProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -18,8 +19,10 @@ export function GlobalProviders({ children }: { children: React.ReactNode }) {
       <TRPCReactProvider>
         <TooltipProvider>
           <ArtifactProvider>
-            <Toaster position="top-center" />
-            {children}
+            <DataStreamProvider>
+              <Toaster position="top-center" />
+              {children}
+            </DataStreamProvider>
           </ArtifactProvider>
         </TooltipProvider>
       </TRPCReactProvider>

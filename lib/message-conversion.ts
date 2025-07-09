@@ -1,8 +1,6 @@
-// Unified UI types that abstract away storage implementation details
-
-import type { Attachment, Message } from 'ai';
-import type { UIChat, YourUIMessage } from '@/lib/types/ui';
+import type { UIChat } from '@/lib/types/uiChat';
 import type { DBMessage } from '@/lib/db/schema';
+import type { ChatMessage } from './ai/types';
 
 // Helper functions for type conversion
 export function dbChatToUIChat(chat: {
@@ -23,54 +21,34 @@ export function dbChatToUIChat(chat: {
   };
 }
 
-export function dbMessageToUIMessage(message: DBMessage): YourUIMessage {
+export function dbMessageToChatMessage(message: DBMessage): ChatMessage {
   return {
     id: message.id,
-    parts: message.parts as YourUIMessage['parts'],
-    role: message.role as YourUIMessage['role'],
-    // Note: content will soon be deprecated in @ai-sdk/react
-    content: '',
-    createdAt: message.createdAt,
-    experimental_attachments: (message.attachments as Array<Attachment>) ?? [],
-    annotations: message.annotations as YourUIMessage['annotations'],
-    isPartial: message.isPartial,
-    parentMessageId: message.parentMessageId,
+    parts: message.parts as ChatMessage['parts'],
+    role: message.role as ChatMessage['role'],
+    metadata: {
+      createdAt: message.createdAt,
+      isPartial: message.isPartial,
+      parentMessageId: message.parentMessageId,
+    },
   };
 }
 
-export function messageToYourUIMessage(
-  message: Message,
-  parentMessageId: string | null,
-  isPartial: boolean,
-): YourUIMessage {
-  return {
-    id: message.id,
-    parts: message.parts as YourUIMessage['parts'],
-    role: message.role as YourUIMessage['role'],
-    // Note: content will soon be deprecated in @ai-sdk/react
-    content: '',
-    createdAt: message.createdAt || new Date(),
-    experimental_attachments: message.experimental_attachments ?? [],
-    annotations: message.annotations as YourUIMessage['annotations'],
-    parentMessageId: parentMessageId,
-    isPartial: isPartial,
-  };
-}
-
-export function messageToDbMessage(
-  message: Message,
+export function chatMessageToDbMessage(
+  message: ChatMessage,
   chatId: string,
-  parentMessageId: string | null,
-  isPartial: boolean,
 ): DBMessage {
+  const parentMessageId = message.metadata?.parentMessageId || null;
+  const isPartial = message.metadata?.isPartial || false;
+
   return {
     id: message.id,
     chatId: chatId,
     role: message.role,
     parts: message.parts,
-    attachments: message.experimental_attachments || [],
-    createdAt: message.createdAt || new Date(),
-    annotations: message.annotations || [],
+    attachments: [],
+    createdAt: message.metadata?.createdAt || new Date(),
+    annotations: [],
     isPartial: isPartial,
     parentMessageId: parentMessageId,
   };

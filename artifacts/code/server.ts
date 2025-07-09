@@ -19,7 +19,7 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
       model: getLanguageModel(selectedModel),
       system: codePrompt,
       prompt,
-      telemetry: { isEnabled: true },
+      experimental_telemetry: { isEnabled: true },
       schema: z.object({
         code: z.string(),
       }),
@@ -33,9 +33,10 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
         const { code } = object;
 
         if (code) {
-          dataStream.writeData({
-            type: 'code-delta',
-            content: code ?? '',
+          dataStream.write({
+            type: 'data-codeDelta',
+            data: code ?? '',
+            transient: true,
           });
 
           draftContent = code;
@@ -51,12 +52,12 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
     dataStream,
     selectedModel,
   }) => {
-    let draftContent = '';
+    const draftContent = '';
 
     const { fullStream } = streamObject({
       model: getLanguageModel(selectedModel),
       system: updateDocumentPrompt(document.content || '', 'code'),
-      telemetry: { isEnabled: true },
+      experimental_telemetry: { isEnabled: true },
       prompt: description,
       schema: z.object({
         code: z.string(),
@@ -71,9 +72,10 @@ export const codeDocumentHandler = createDocumentHandler<'code'>({
         const { code } = object;
 
         if (code) {
-          dataStream.writeData({
-            type: 'code-delta',
-            content: code ?? '',
+          dataStream.write({
+            type: 'data-codeDelta',
+            data: code ?? '',
+            transient: true,
           });
 
           draftContent = code;

@@ -21,7 +21,7 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
       },
       system:
         'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
-      transform: smoothStream({ chunking: 'word' }),
+      experimental_transform: smoothStream({ chunking: 'word' }),
       prompt,
     });
 

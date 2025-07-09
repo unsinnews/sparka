@@ -212,10 +212,6 @@ export async function writeFinalReport({
     ),
     messageId,
     selectedModel: DEFAULT_ARTIFACT_MODEL,
-    experimental_telemetry: {
-      isEnabled: true,
-      functionId: 'deep-research-final',
-    },
   });
 
   // const res = await generateObject({

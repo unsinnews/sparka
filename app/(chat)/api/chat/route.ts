@@ -51,8 +51,6 @@ import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 
-export const maxDuration = 60;
-
 function filterReasoningParts<T extends { parts: any[] }>(messages: T[]): T[] {
   return messages.map((message) => ({
     ...message,

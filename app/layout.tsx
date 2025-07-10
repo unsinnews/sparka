@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: 'Sparka AI - AI for everyone, from everyone',
   description:
     'Multi-provider AI Chat - access Claude, ChatGPT, Gemini, and Grok with advanced features, open-source and production-ready.',
+  openGraph: {
+    siteName: 'Sparka AI',
+    url: 'https://sparka.ai',
+    title: 'Sparka AI - AI for everyone, from everyone',
+    description:
+      'Multi-provider AI Chat - access Claude, ChatGPT, Gemini, and Grok with advanced features, open-source and production-ready.',
+  },
 };
 
 export const viewport = {

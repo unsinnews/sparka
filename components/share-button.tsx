@@ -272,7 +272,7 @@ export function ShareButton({
     <Button variant="outline" size="sm" className={cn('', className)}>
       <Share size={16} />
       <span className="sr-only">Share chat</span>
-      <p>Share</p>
+      <p className="hidden md:block">Share</p>
     </Button>
   );
 

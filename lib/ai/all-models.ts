@@ -2208,7 +2208,7 @@ export type ModelDefinition = ModelDefinitionInternal & {
 const PROVIDER_ORDER = ['openai', 'google', 'anthropic', 'xai'] as const;
 
 export const allImplementedModels = allModels
-  .filter((model) => model.enabled)
+  .filter((model) => model.enabled && model.features?.output?.text === true)
   .sort((a, b) => {
     const aProviderIndex = PROVIDER_ORDER.indexOf(
       a.specification.provider as any,

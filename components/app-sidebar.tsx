@@ -7,7 +7,6 @@ import { useState, useEffect } from 'react';
 
 import { PlusIcon } from '@/components/icons';
 import { SidebarHistory } from '@/components/sidebar-history';
-import { SidebarUserNav } from '@/components/sidebar-user-nav';
 import { SearchChatsButton } from '@/components/search-chats';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,7 +21,6 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Separator } from './ui/separator';
 import { Link, useNavigate } from 'react-router';
 import { useRouter } from 'next/navigation';
 import { useChatId } from '@/providers/chat-id-provider';
@@ -57,7 +55,7 @@ function SidebarCreditsDisplay() {
           <span className="font-semibold">{remaining}</span>
         </div>
       </div>
-      
+
       {!isAuthenticated && (
         <Button
           variant="outline"
@@ -78,7 +76,7 @@ function SidebarCreditsDisplay() {
 // Helper function to get platform-specific shortcut text
 function getNewChatShortcutText() {
   if (typeof window === 'undefined') return 'Ctrl+Shift+O';
-  
+
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   return isMac ? 'Cmd+Shift+O' : 'Ctrl+Shift+O';
 }
@@ -86,7 +84,7 @@ function getNewChatShortcutText() {
 export function AppSidebar({ user }: { user: User | undefined }) {
   const navigate = useNavigate();
   const router = useRouter();
-  const { setOpenMobile, open } = useSidebar();
+  const { setOpenMobile, open, openMobile } = useSidebar();
   const { refreshChatID } = useChatId();
 
   // Update shortcut text on mount
@@ -112,7 +110,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   }, [setOpenMobile, refreshChatID, navigate]);
 
   return (
-    <Sidebar collapsible="icon" className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen">
+    <Sidebar
+      collapsible="icon"
+      className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen"
+    >
       <SidebarHeader>
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center ">
@@ -131,7 +132,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                   height={24}
                   className="w-6 h-6"
                 />
-                {open && "Sparka"}
+                {(open || openMobile) && 'Sparka'}
               </span>
             </Link>
           </div>
@@ -147,7 +148,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             >
               <PlusIcon />
               <span>New Chat</span>
-              <span className="ml-auto text-xs text-muted-foreground">{shortcutText}</span>
+              <span className="ml-auto text-xs text-muted-foreground">
+                {shortcutText}
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 
@@ -159,11 +162,11 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       <SidebarSeparator />
       <ScrollArea className="h-full">
         <SidebarContent className="max-w-[var(--sidebar-width)] pr-2">
-          {open && <SidebarHistory user={user} />}
+          {(open || openMobile) && <SidebarHistory user={user} />}
         </SidebarContent>
       </ScrollArea>
 
-      {open && (
+      {(open || openMobile) && (
         <>
           <SidebarSeparator />
           <SidebarFooter>

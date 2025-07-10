@@ -66,6 +66,9 @@ function PureMultimodalInput({
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const { getLastMessageId } = useMessageTree();
+
+  // Detect mobile devices
+  const isMobile = width ? width <= 768 : false;
   const {
     input,
     setInput,
@@ -506,17 +509,26 @@ function PureMultimodalInput({
             <ChatInputTextArea
               data-testid="multimodal-input"
               ref={textareaRef}
-              placeholder="Send a message..."
+              placeholder={
+                isMobile
+                  ? 'Send a message... (Ctrl+Enter to send)'
+                  : 'Send a message...'
+              }
               value={input}
               onChange={handleInput}
               autoFocus
               onPaste={handlePaste}
               onKeyDown={(event) => {
-                if (
-                  event.key === 'Enter' &&
-                  !event.shiftKey &&
-                  !event.nativeEvent.isComposing
-                ) {
+                // Different key combinations for mobile vs desktop
+                const shouldSubmit = isMobile
+                  ? event.key === 'Enter' &&
+                    event.ctrlKey &&
+                    !event.nativeEvent.isComposing
+                  : event.key === 'Enter' &&
+                    !event.shiftKey &&
+                    !event.nativeEvent.isComposing;
+
+                if (shouldSubmit) {
                   event.preventDefault();
 
                   if (status !== 'ready' && status !== 'error') {

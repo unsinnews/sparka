@@ -1,6 +1,6 @@
 // chat-store.ts
 import { create } from 'zustand';
-import { subscribeWithSelector } from 'zustand/middleware';
+import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import {
   AbstractChat,
   type ChatInit,
@@ -29,30 +29,33 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
   initialMessages: UI_MESSAGE[] = [],
 ) {
   return create<ChatStoreState<UI_MESSAGE>>()(
-    subscribeWithSelector((set, get) => ({
-      messages: initialMessages,
-      status: 'ready' as ChatStatus,
-      error: undefined,
+    devtools(
+      subscribeWithSelector((set, get) => ({
+        messages: initialMessages,
+        status: 'ready' as ChatStatus,
+        error: undefined,
 
-      setMessages: (messages) => set({ messages: [...messages] }),
-      setStatus: (status) => set({ status }),
-      setError: (error) => set({ error }),
+        setMessages: (messages) => set({ messages: [...messages] }),
+        setStatus: (status) => set({ status }),
+        setError: (error) => set({ error }),
 
-      pushMessage: (message) =>
-        set((state) => ({ messages: [...state.messages, message] })),
+        pushMessage: (message) =>
+          set((state) => ({ messages: [...state.messages, message] })),
 
-      popMessage: () =>
-        set((state) => ({ messages: state.messages.slice(0, -1) })),
+        popMessage: () =>
+          set((state) => ({ messages: state.messages.slice(0, -1) })),
 
-      replaceMessage: (index, message) =>
-        set((state) => ({
-          messages: [
-            ...state.messages.slice(0, index),
-            structuredClone(message), // Deep clone for React Compiler compatibility
-            ...state.messages.slice(index + 1),
-          ],
-        })),
-    })),
+        replaceMessage: (index, message) =>
+          set((state) => ({
+            messages: [
+              ...state.messages.slice(0, index),
+              structuredClone(message), // Deep clone for React Compiler compatibility
+              ...state.messages.slice(index + 1),
+            ],
+          })),
+      })),
+      { name: 'chat-store' },
+    ),
   );
 }
 

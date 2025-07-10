@@ -3,12 +3,12 @@ import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
 import { useGetChatById, useMessagesQuery } from '@/hooks/use-chat-store';
-import { useMemo, memo, useEffect } from 'react';
+import { useMemo, memo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useChatId } from '@/providers/chat-id-provider';
-import { chatStore } from '@/lib/stores/chat-store';
+import { useSetMessagesOnce } from '@/hooks/use-set-messages-once';
 
 // Memoized pure component for Chat and ChatInputProvider
 const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
@@ -36,7 +36,11 @@ export function ChatPage() {
   const { chatId: id } = useChatId();
 
   const { data: chat, isLoading: isChatLoading } = useGetChatById(id || '');
-  const { data: messages, isLoading: isMessagesLoading } = useMessagesQuery();
+  const {
+    data: messages,
+    isLoading: isMessagesLoading,
+    isRefetching: isMessagesRefetching,
+  } = useMessagesQuery();
   console.log('Rendering chat page', chat, messages);
 
   // Get messages if chat exists
@@ -48,12 +52,8 @@ export function ChatPage() {
     );
   }, [messages]);
 
-  // Set messages in chat store when initialThreadMessages change
-  useEffect(() => {
-    if (initialThreadMessages.length > 0) {
-      chatStore.getState().setMessages(initialThreadMessages);
-    }
-  }, [initialThreadMessages]);
+  // Set messages once using the custom hook
+  useSetMessagesOnce(initialThreadMessages, id || '');
 
   if ((!isChatLoading && !chat) || !id) {
     return notFound();

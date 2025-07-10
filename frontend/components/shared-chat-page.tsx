@@ -2,12 +2,12 @@
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
-import { useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
 import { notFound } from 'next/navigation';
 import { useChatId } from '@/providers/chat-id-provider';
-import { chatStore } from '@/lib/stores/chat-store';
+import { useSetMessagesOnce } from '@/hooks/use-set-messages-once';
 
 export function SharedChatPage() {
   const { sharedChatId: id } = useChatId();
@@ -29,12 +29,8 @@ export function SharedChatPage() {
     );
   }, [messages]);
 
-  // Set messages in chat store when initialThreadMessages change
-  useEffect(() => {
-    if (initialThreadMessages.length > 0) {
-      chatStore.getState().setMessages(initialThreadMessages);
-    }
-  }, [initialThreadMessages]);
+  // Set messages once using the custom hook
+  useSetMessagesOnce(initialThreadMessages, id || '');
 
   if (!id) {
     return notFound();

@@ -194,6 +194,7 @@
 
 [ ] AI SDK 5 migration
 
+[ ] Bug: A message sent in a thread, gets appended with null parent 
 [ ] External Store for messages (and setMessages)
 [ ] Do we want optional props on the metadata?
 [ ] All sendMessage operations should have metadata

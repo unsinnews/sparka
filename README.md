@@ -55,6 +55,7 @@ Sparka AI is built with modern technologies for scalability and performance:
 - **Tailwind CSS**: Responsive, utility-first styling
 - **Radix UI**: Accessible component primitives
 - **Framer Motion**: Smooth animations and transitions
+- **Zustand**: Lightweight state management
 
 ### **Backend**
 - **Vercel AI SDK**: Unified AI provider integration
@@ -64,8 +65,7 @@ Sparka AI is built with modern technologies for scalability and performance:
 - **Redis**: Caching and real-time features
 
 ### **AI Integration**
-- **Multi-Provider Architecture**: Seamless switching between AI providers
-- **Tool Integration**: Extensible system for AI capabilities
+- **AI SDK v5**: Latest Vercel AI SDK for unified provider integration
 
 
 ## 🚀 Getting Started

@@ -1,0 +1,16 @@
+{
+  "name": "Sparka AI - AI for everyone, from everyone",
+  "short_name": "Sparka AI",
+  "description": "Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant without the hassle",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

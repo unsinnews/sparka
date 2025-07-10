@@ -202,6 +202,8 @@
 [ ] All sendMessage operations should have metadata
 [x] Bug: A message sent in a thread, gets appended with null parent 
 
+[ ] Grok 4 -- add to models
+
 
 [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
 

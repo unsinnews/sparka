@@ -6,7 +6,7 @@
 
 **AI for everyone, from everyone**
 
-*Access Claude, ChatGPT, Gemini, Grok, and every major AI assistant*
+*Multi-provider AI Chat - access Claude, ChatGPT, Gemini, and Grok with advanced features, open-source and production-ready.*
 
 [**Try Sparka AI**](https://sparka.ai)
 

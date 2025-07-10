@@ -505,7 +505,7 @@ export async function POST(request: NextRequest) {
           const initialMetadata = {
             createdAt: new Date(),
             parentMessageId: userMessage.id,
-            isPartial: true,
+            isPartial: false,
           };
 
           dataStream.merge(

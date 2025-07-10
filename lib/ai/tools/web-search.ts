@@ -113,8 +113,8 @@ Avoid:
         .describe('Array of topic types to search for.')
         .nullable(),
       searchDepth: z
-        .array(z.enum(['basic', 'advanced']))
-        .describe('Array of search depths to use.')
+        .enum(['basic', 'advanced'])
+        .describe('Search depth to use. Defaults to "basic".')
         .nullable(),
       exclude_domains: z
         .array(z.string())
@@ -130,13 +130,13 @@ Avoid:
     }: {
       search_queries: { query: string; rationale: string; priority: number }[];
       topics: ('general' | 'news')[] | null;
-      searchDepth: ('basic' | 'advanced')[] | null;
+      searchDepth: 'basic' | 'advanced' | null;
       exclude_domains: string[] | null;
       thinking: { header: string; body: string };
     }) => {
       // Handle nullable arrays with defaults
       const safeTopics = topics ?? ['general'];
-      const safeSearchDepth = searchDepth ?? ['basic'];
+      const safeSearchDepth = searchDepth ?? 'basic';
       const safeExcludeDomains = exclude_domains ?? [];
 
       dataStream.write({
@@ -153,7 +153,7 @@ Avoid:
 
       console.log('Queries:', search_queries);
       console.log('Topics:', safeTopics);
-      console.log('Search Depths:', safeSearchDepth);
+      console.log('Search Depth:', safeSearchDepth);
       console.log('Exclude Domains:', safeExcludeDomains);
       console.log('Search Queries:', search_queries);
 
@@ -189,8 +189,7 @@ Avoid:
             topic: safeTopics[index] || safeTopics[0] || 'general',
             days: safeTopics[index] === 'news' ? 7 : undefined,
             maxResults: Math.min(6 - query.priority, 10),
-            searchDepth:
-              safeSearchDepth[index] || safeSearchDepth[0] || 'basic',
+            searchDepth: safeSearchDepth,
             includeAnswer: true,
             includeImages: false,
             includeImageDescriptions: false,

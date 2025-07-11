@@ -17,7 +17,7 @@ export const user = pgTable('User', {
   email: varchar('email', { length: 64 }).notNull(),
   name: varchar('name', { length: 64 }),
   image: varchar('image', { length: 256 }),
-  credits: integer('credits').notNull().default(1000),
+  credits: integer('credits').notNull().default(500),
   reservedCredits: integer('reservedCredits').notNull().default(0),
 });
 

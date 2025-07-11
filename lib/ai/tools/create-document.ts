@@ -27,10 +27,10 @@ export const createDocument = ({
   selectedModel,
 }: CreateDocumentProps) =>
   tool({
-    description: `Create a persistent document (text, code, image, or spreadsheet).  This tool orchestrates the downstream handlers that actually generate the file based on the provided title, kind and description.
+    description: `Create a persistent document (text, code, or spreadsheet).  This tool orchestrates the downstream handlers that actually generate the file based on the provided title, kind and description.
 
 Usage:
-- Substantial content (>10 lines), code, images or spreadsheets
+- Substantial content (>100 lines), code, or spreadsheets
 - Deliverables the user will likely save/reuse (emails, essays, code, etc.)
 - Explicit "create a document" like requests
 - Single-snippet code answers with Python language (always wrap in an artifact)

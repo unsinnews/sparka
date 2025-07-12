@@ -22,6 +22,7 @@ export const messageMetadataSchema = z.object({
   createdAt: z.date(),
   isPartial: z.boolean().optional(),
   parentMessageId: z.string().nullable(),
+  selectedModel: z.string().nullable(),
 });
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;

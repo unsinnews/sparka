@@ -9,10 +9,7 @@ import {
 } from 'react';
 import { MultimodalInput } from './multimodal-input';
 import type { ChatMessage } from '@/lib/ai/types';
-import {
-  ChatInputProvider,
-  useChatInput,
-} from '@/providers/chat-input-provider';
+import { ChatInputProvider } from '@/providers/chat-input-provider';
 import {
   getAttachmentsFromMessage,
   getTextContentFromMessage,
@@ -90,19 +87,19 @@ function MessageEditorContent({
 export function MessageEditor(
   props: MessageEditorProps & { onModelChange?: (modelId: string) => void },
 ) {
-  const { selectedModelId } = useChatInput(); // TODO: IT should get the model from the UI MEssage
-
   // Get the initial input value from the message content
   const initialInput = getTextContentFromMessage(props.message);
   const initialAttachments = getAttachmentsFromMessage(props.message);
 
+  // Use selectedModel from the message metadata, or fall back to current selected model
+  const messageSelectedModel = props.message.metadata?.selectedModel;
   return (
     <ChatInputProvider
       key={`edit-${props.message.id}`}
       initialInput={initialInput}
       initialAttachments={initialAttachments}
       localStorageEnabled={false}
-      overrideModelId={selectedModelId}
+      overrideModelId={messageSelectedModel || undefined}
     >
       <MessageEditorContent {...props} />
     </ChatInputProvider>

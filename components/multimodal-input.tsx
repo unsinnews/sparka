@@ -215,6 +215,7 @@ function PureMultimodalInput({
       metadata: {
         createdAt: new Date(),
         parentMessageId: effectiveParentMessageId,
+        selectedModel: selectedModelId,
       },
       role: 'user',
     };

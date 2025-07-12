@@ -312,6 +312,7 @@ export async function POST(request: NextRequest) {
             annotations: [],
             isPartial: false,
             parentMessageId: userMessage.metadata?.parentMessageId || null,
+            selectedModel: selectedChatModel,
           },
         });
       }
@@ -456,6 +457,7 @@ export async function POST(request: NextRequest) {
             annotations: [],
             isPartial: true,
             parentMessageId: userMessage.id,
+            selectedModel: selectedChatModel,
           },
         });
       }
@@ -506,6 +508,7 @@ export async function POST(request: NextRequest) {
             createdAt: new Date(),
             parentMessageId: userMessage.id,
             isPartial: false,
+            selectedModel: selectedChatModel,
           };
 
           dataStream.merge(
@@ -576,6 +579,7 @@ export async function POST(request: NextRequest) {
                     annotations: [],
                     isPartial: false,
                     parentMessageId: userMessage.id,
+                    selectedModel: selectedChatModel,
                   },
                 });
               }

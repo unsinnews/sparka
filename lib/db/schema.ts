@@ -52,6 +52,7 @@ export const message = pgTable('Message', {
   createdAt: timestamp('createdAt').notNull(),
   annotations: json('annotations'),
   isPartial: boolean('isPartial').notNull().default(false),
+  selectedModel: varchar('selectedModel', { length: 256 }).default(''),
 });
 
 export type DBMessage = InferSelectModel<typeof message>;

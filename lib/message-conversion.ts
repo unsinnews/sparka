@@ -30,6 +30,7 @@ export function dbMessageToChatMessage(message: DBMessage): ChatMessage {
       createdAt: message.createdAt,
       isPartial: message.isPartial,
       parentMessageId: message.parentMessageId,
+      selectedModel: message.selectedModel,
     },
   };
 }
@@ -40,6 +41,7 @@ export function chatMessageToDbMessage(
 ): DBMessage {
   const parentMessageId = message.metadata?.parentMessageId || null;
   const isPartial = message.metadata?.isPartial || false;
+  const selectedModel = message.metadata?.selectedModel || null;
 
   return {
     id: message.id,
@@ -51,5 +53,6 @@ export function chatMessageToDbMessage(
     annotations: [],
     isPartial: isPartial,
     parentMessageId: parentMessageId,
+    selectedModel: selectedModel,
   };
 }

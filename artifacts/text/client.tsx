@@ -12,6 +12,7 @@ import {
 } from '@/components/icons';
 import type { Suggestion } from '@/lib/db/schema';
 import { toast } from 'sonner';
+import { chatStore } from '@/lib/stores/chat-store';
 
 interface TextArtifactMetadata {
   suggestions: Array<Suggestion>;
@@ -171,8 +172,8 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
     {
       icon: <PenIcon />,
       description: 'Add final polish',
-      onClick: ({ sendMessage: appendMessage }) => {
-        appendMessage({
+      onClick: ({ sendMessage }) => {
+        sendMessage({
           role: 'user',
           parts: [
             {
@@ -180,14 +181,19 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
               text: 'Please add final polish and check for grammar, add section titles for better structure, and ensure everything reads smoothly.',
             },
           ],
+          metadata: {
+            selectedModel: 'gpt-4o',
+            createdAt: new Date(),
+            parentMessageId: chatStore.getState().getLastMessageId(),
+          },
         });
       },
     },
     {
       icon: <MessageIcon />,
       description: 'Request suggestions',
-      onClick: ({ sendMessage: appendMessage }) => {
-        appendMessage({
+      onClick: ({ sendMessage }) => {
+        sendMessage({
           role: 'user',
           parts: [
             {
@@ -195,6 +201,11 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
               text: 'Please add suggestions you have that could improve the writing.',
             },
           ],
+          metadata: {
+            selectedModel: 'gpt-4o',
+            createdAt: new Date(),
+            parentMessageId: chatStore.getState().getLastMessageId(),
+          },
         });
       },
     },

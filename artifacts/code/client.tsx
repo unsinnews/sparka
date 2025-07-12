@@ -15,6 +15,7 @@ import {
   type ConsoleOutput,
   type ConsoleOutputContent,
 } from '@/components/console';
+import { chatStore } from '@/lib/stores/chat-store';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -271,8 +272,8 @@ export const codeArtifact = new Artifact<'code', Metadata>({
     {
       icon: <MessageIcon />,
       description: 'Add comments',
-      onClick: ({ sendMessage: appendMessage }) => {
-        appendMessage({
+      onClick: ({ sendMessage }) => {
+        sendMessage({
           role: 'user',
           parts: [
             {
@@ -280,14 +281,19 @@ export const codeArtifact = new Artifact<'code', Metadata>({
               text: 'Add comments to the code snippet for understanding',
             },
           ],
+          metadata: {
+            selectedModel: 'gpt-4o',
+            createdAt: new Date(),
+            parentMessageId: chatStore.getState().getLastMessageId(),
+          },
         });
       },
     },
     {
       icon: <LogsIcon />,
       description: 'Add logs',
-      onClick: ({ sendMessage: appendMessage }) => {
-        appendMessage({
+      onClick: ({ sendMessage }) => {
+        sendMessage({
           role: 'user',
           parts: [
             {
@@ -295,6 +301,11 @@ export const codeArtifact = new Artifact<'code', Metadata>({
               text: 'Add logs to the code snippet for debugging',
             },
           ],
+          metadata: {
+            selectedModel: 'gpt-4o',
+            createdAt: new Date(),
+            parentMessageId: chatStore.getState().getLastMessageId(),
+          },
         });
       },
     },

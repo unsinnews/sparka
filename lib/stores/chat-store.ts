@@ -24,6 +24,9 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   pushMessage: (message: UI_MESSAGE) => void;
   popMessage: () => void;
   replaceMessage: (index: number, message: UI_MESSAGE) => void;
+
+  // Getters
+  getLastMessageId: () => string | null;
 }
 
 // Create the Zustand store
@@ -64,6 +67,13 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               ...state.messages.slice(index + 1),
             ],
           })),
+
+        getLastMessageId: () => {
+          const state = get();
+          return state.messages.length > 0
+            ? state.messages[state.messages.length - 1].id
+            : null;
+        },
       })),
       { name: 'chat-store' },
     ),
@@ -214,6 +224,10 @@ export const useChatActions = () =>
 // Convenience hook for just setMessages
 export const useSetMessages = () => chatStore((state) => state.setMessages);
 
+// Convenience hook for lastMessageId
+export const useLastMessageId = () =>
+  chatStore((state) => state.getLastMessageId());
+
 export class ZustandChat<
   UI_MESSAGE extends UIMessage,
 > extends AbstractChat<UI_MESSAGE> {
@@ -229,7 +243,7 @@ export class ZustandChat<
     state: ZustandChatState<UI_MESSAGE>;
     id?: string;
   }) {
-    super({ ...init, state });
+    super({ ...init, id, state });
     this.zustandState = state;
     this.store = state.storeInstance;
     console.log(

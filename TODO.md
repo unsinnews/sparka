@@ -165,7 +165,7 @@
 
 
 
-## Backlog
+## 1.0.0
 
 [x] Sparka Shared chat redirects to login
 
@@ -185,9 +185,11 @@
     [ ] Replace input / ouput token pricing in model cards with credit pricing
     [ ] Protectiong for going over token context
     [x] More space between buttons in multimodal input (hard to click on mobile)
-
+    [ ] Define a credits price model
 
 [ ] Cleanup Redis client / server
+
+
 
 [x] AI SDK 5 migration
 
@@ -195,42 +197,43 @@
 [x] Bug: Mobile sidebar is collapsed view (when opened)
 [x] Bug: Image model shouldnt be on model selector
 [ ] External Store for messages (and setMessages)
+    [ ] Update all the way so that only the message being streamed is updated
 [ ] Do we want optional props on the metadata?
 [ ] All sendMessage operations should have metadata
 [x] Bug: A message sent in a thread, gets appended with null parent 
+
+[ ] Move getLastMessageId to the chatStore
 
 [ ] Grok 4 -- add to models
 
 
 [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
 
-[ ] Create a schema for chat request body
+[ ] Chat Request input
+    [ ] Create a schema for chat request body
+    [ ] Data should be renamed to selectedTool and it should have all fields as optional
 
 [ ] Add pinned messages to prefetch
 
-[ ] Data should be renamed to selectedTool and it should have all fields as optional
 
-[ ] Quote text from 'assistant messages' functionality (like chatgpt)
 
-[ ] Define a credits price model
-
-[ ] Deep Research v2
 
 [ ] Optimizations
   [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
 
-[ ] Define how to copy images for a shared chat
+## The line
+
+
 
 [ ] Settings Page
     [ ] Define the models that you enable (like cursor)
     [ ] Show a Keyboard shortcuts help in settings
 
 
+[ ] Define how to copy images for a shared chat
 [ ] Duplicate chat (like the one for shared chats, but for your own chats)
 
 [ ] Thinking tokens should be passed as context. Find a common format instead of filtering.
-
-[ ] Chats should be sorted by updatedAt (not by createdAt)
 
 [ ] Code Execution
 
@@ -246,12 +249,14 @@
 
 [x] View Changes Button should be a toggle (should have a visible active state when active)
 
-[ ] Chat history: Virtual list for previous chats
+[ ] Chat history: 
+    [ ] Virtual list for previous chats
+    [ ] Chats should be sorted by updatedAt (not by createdAt)
 
 
 [x] Generated artifact create a new version when they render on Lexical
 
-[ ] Deep Research
+[ ] Deep Research v2
     [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
     [ ] Background execution and resuming
     [ ] Use new OpenAI deep research models
@@ -361,6 +366,8 @@
     [x] Artifacts sharing
     [ ] Add "Make this chat discoverable" option to share modal
     [ ] Add social media sharing buttons (LinkedIn, Reddit, X) to share modal
+
+[ ] Quote text from 'assistant messages' functionality (like chatgpt)
 
 [ ] The useDeleteChat hook should use trpc, and have an optimistic mutation
 [ ] Should generate title be on user message or on assistant message? At the moment it's on user for anonymous and on assistant for authenticated

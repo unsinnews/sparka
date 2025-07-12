@@ -38,7 +38,6 @@ import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { useChatId } from '@/providers/chat-id-provider';
 import { generateUUID } from '@/lib/utils';
 import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
-import { useMessageTree } from '@/providers/message-tree-provider';
 
 function PureMultimodalInput({
   chatId,
@@ -64,7 +63,6 @@ function PureMultimodalInput({
   const { setChatId } = useChatId();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
-  const { getLastMessageId } = useMessageTree();
   const setMessages = useSetMessages();
 
   // Detect mobile devices
@@ -178,7 +176,7 @@ function PureMultimodalInput({
     // Get the appropriate parent message ID
     const effectiveParentMessageId = isEditMode
       ? parentMessageId
-      : getLastMessageId();
+      : chatStore.getState().getLastMessageId();
 
     // In edit mode, trim messages to the parent message
     if (isEditMode) {
@@ -254,7 +252,6 @@ function PureMultimodalInput({
     isEditMode,
     input,
     saveChatMessage,
-    getLastMessageId,
     parentMessageId,
     selectedModelId,
     setMessages,

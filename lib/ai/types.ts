@@ -71,11 +71,12 @@ export type CustomUIDataTypes = {
   researchUpdate: ResearchUpdate;
 };
 
-export type ChatMessage = UIMessage<
-  MessageMetadata,
-  CustomUIDataTypes,
-  ChatTools
->;
+export type ChatMessage = Omit<
+  UIMessage<MessageMetadata, CustomUIDataTypes, ChatTools>,
+  'metadata'
+> & {
+  metadata: MessageMetadata;
+};
 
 export type ToolNames = keyof ChatTools;
 

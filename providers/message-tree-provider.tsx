@@ -5,7 +5,6 @@ import {
   useContext,
   useMemo,
   useCallback,
-  useRef,
   useEffect,
   useState,
 } from 'react';
@@ -27,8 +26,6 @@ interface MessageSiblingInfo {
 interface MessageTreeContextType {
   getMessageSiblingInfo: (messageId: string) => MessageSiblingInfo | null;
   navigateToSibling: (messageId: string, direction: 'prev' | 'next') => void;
-  getLastMessageId: () => string | null;
-  setLastMessageId: (messageId: string | null) => void;
   getParentMessage: (messageId: string) => ChatMessage | null;
 }
 
@@ -45,7 +42,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
-  const lastMessageIdRef = useRef<string | null>(null);
   const setMessages = useSetMessages();
 
   // Select the appropriate chat ID based on isShared flag
@@ -56,7 +52,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     if (!effectiveChatId) {
       // New chat
       setAllMessages([]);
-      lastMessageIdRef.current = null;
       return;
     }
 
@@ -69,9 +64,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     if (initialData) {
       console.log('initialData', initialData);
       setAllMessages(initialData);
-      // Initialize lastMessageId with the last message of the initial data
-      const lastMessage = initialData[initialData.length - 1];
-      lastMessageIdRef.current = lastMessage?.id || null;
     }
 
     // Subscribe to cache changes
@@ -93,9 +85,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
           const newData = event.query.state.data as ChatMessage[] | undefined;
           if (newData) {
             setAllMessages(newData);
-            // Update lastMessageId when data changes
-            const lastMessage = newData[newData.length - 1];
-            lastMessageIdRef.current = lastMessage?.id || null;
           }
         }
       }
@@ -109,14 +98,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     trpc.chat.getPublicChatMessages,
     queryClient,
   ]);
-
-  const getLastMessageId = useCallback(() => {
-    return lastMessageIdRef.current;
-  }, []);
-
-  const setLastMessageId = useCallback((messageId: string | null) => {
-    lastMessageIdRef.current = messageId;
-  }, []);
 
   // Build parent->children mapping once
   const childrenMap = useMemo(() => {
@@ -188,14 +169,12 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
 
       // Use the cleaner selector hook
       setMessages(newThread);
-      setLastMessageId(newThread[newThread.length - 1]?.id || null);
     },
     [
       allMessages,
       getMessageSiblingInfo,
       childrenMap,
       effectiveChatId,
-      setLastMessageId,
       setMessages,
     ],
   );
@@ -219,17 +198,9 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     () => ({
       getMessageSiblingInfo,
       navigateToSibling,
-      getLastMessageId,
-      setLastMessageId,
       getParentMessage,
     }),
-    [
-      getMessageSiblingInfo,
-      navigateToSibling,
-      getLastMessageId,
-      setLastMessageId,
-      getParentMessage,
-    ],
+    [getMessageSiblingInfo, navigateToSibling, getParentMessage],
   );
 
   return (

@@ -30,9 +30,9 @@ import { artifactDefinitions, type ArtifactKind } from './artifact';
 import type { ArtifactToolbarItem } from './create-artifact';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { useChatInput } from '@/providers/chat-input-provider';
-import { useMessageTree } from '@/providers/message-tree-provider';
 import type { ChatRequestOptions } from 'ai';
 import type { ChatMessage } from '@/lib/ai/types';
+import { chatStore } from '@/lib/stores/chat-store';
 
 type ToolProps = {
   description: string;
@@ -154,6 +154,8 @@ const ReadingLevelSelector = ({
     'Graduate',
   ];
 
+  const { selectedModelId } = useChatInput();
+
   const y = useMotionValue(-40 * 2);
   const dragConstraints = 5 * 40 + 2;
   const yToLevel = useTransform(y, [0, -dragConstraints], [0, 5]);
@@ -224,6 +226,11 @@ const ReadingLevelSelector = ({
                       text: `Please adjust the reading level to ${LEVELS[currentLevel]} level.`,
                     },
                   ],
+                  metadata: {
+                    selectedModel: selectedModelId,
+                    createdAt: new Date(),
+                    parentMessageId: chatStore.getState().getLastMessageId(),
+                  },
                 });
 
                 setSelectedTool(null);
@@ -324,7 +331,6 @@ const PureToolbar = ({
   const [isAnimating, setIsAnimating] = useState(false);
 
   const { selectedModelId } = useChatInput();
-  const { getLastMessageId } = useMessageTree();
 
   const append = useCallback(
     (
@@ -345,7 +351,7 @@ const PureToolbar = ({
         },
       });
     },
-    [sendMessage, selectedModelId, getLastMessageId],
+    [sendMessage, selectedModelId],
   );
 
   useOnClickOutside(toolbarRef, () => {

@@ -16,7 +16,7 @@ export function RetryButton({
   message: ChatMessage;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
-  const { getParentMessage, setLastMessageId } = useMessageTree();
+  const { getParentMessage } = useMessageTree();
   const { selectedModelId, selectedTools: data } = useChatInput();
   const setMessages = useSetMessages();
   const chatMessages = useChatMessages();
@@ -64,15 +64,12 @@ export function RetryButton({
       },
     );
 
-    setLastMessageId(parentMessage.id);
-
     toast.success('Retrying message...');
   }, [
     data,
     sendMessage,
     getParentMessage,
     message.id,
-    setLastMessageId,
     selectedModelId,
     setMessages,
     chatMessages,

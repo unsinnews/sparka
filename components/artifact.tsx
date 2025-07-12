@@ -21,8 +21,8 @@ import type { ChatMessage } from '@/lib/ai/types';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDocuments, useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { CloneChatButton } from '@/components/clone-chat-button';
-import { useMessageTree } from '@/providers/message-tree-provider';
 import { useTRPC } from '@/trpc/react';
+import { chatStore } from '@/lib/stores/chat-store';
 
 export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
 export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
@@ -77,7 +77,6 @@ function PureArtifact({
   const [document, setDocument] = useState<Document | null>(null);
   const [currentVersionIndex, setCurrentVersionIndex] = useState(-1);
   const lastSavedContentRef = useRef<string>('');
-  const { getLastMessageId } = useMessageTree();
 
   const { open: isSidebarOpen } = useSidebar();
 
@@ -327,7 +326,7 @@ function PureArtifact({
                       sendMessage={sendMessage}
                       className="bg-transparent border-none shadow-none px-0"
                       isEditMode={isReadonly}
-                      parentMessageId={getLastMessageId()}
+                      parentMessageId={chatStore.getState().getLastMessageId()}
                     />
                   </form>
                 ) : (

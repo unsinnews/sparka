@@ -9,6 +9,7 @@ import {
 import { SpreadsheetEditor } from '@/components/sheet-editor';
 import { parse, unparse } from 'papaparse';
 import { toast } from 'sonner';
+import { chatStore } from '@/lib/stores/chat-store';
 
 type Metadata = any;
 
@@ -95,20 +96,25 @@ export const sheetArtifact = new Artifact<'sheet', Metadata>({
     {
       description: 'Format and clean data',
       icon: <SparklesIcon />,
-      onClick: ({ sendMessage: appendMessage }) => {
-        appendMessage({
+      onClick: ({ sendMessage }) => {
+        sendMessage({
           role: 'user',
           parts: [
             { type: 'text', text: 'Can you please format and clean the data?' },
           ],
+          metadata: {
+            selectedModel: 'gpt-4o',
+            createdAt: new Date(),
+            parentMessageId: chatStore.getState().getLastMessageId(),
+          },
         });
       },
     },
     {
       description: 'Analyze and visualize data',
       icon: <LineChartIcon />,
-      onClick: ({ sendMessage: appendMessage }) => {
-        appendMessage({
+      onClick: ({ sendMessage }) => {
+        sendMessage({
           role: 'user',
           parts: [
             {
@@ -116,6 +122,11 @@ export const sheetArtifact = new Artifact<'sheet', Metadata>({
               text: 'Can you please analyze and visualize the data by creating a new code artifact in python?',
             },
           ],
+          metadata: {
+            selectedModel: 'gpt-4o',
+            createdAt: new Date(),
+            parentMessageId: chatStore.getState().getLastMessageId(),
+          },
         });
       },
     },

@@ -92,15 +92,6 @@ export function PureMessageActions({
           <TooltipContent>Copy</TooltipContent>
         </Tooltip>
 
-        {message.role === 'assistant' && !isReadOnly && sendMessage && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <RetryButton message={message} sendMessage={sendMessage} />
-            </TooltipTrigger>
-            <TooltipContent>Retry</TooltipContent>
-          </Tooltip>
-        )}
-
         {hasSiblings && (
           <div className="flex gap-1 items-center justify-center">
             <Tooltip>
@@ -200,7 +191,14 @@ export function PureMessageActions({
               </TooltipTrigger>
               <TooltipContent>Downvote Response</TooltipContent>
             </Tooltip>
-
+            {!isReadOnly && sendMessage && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <RetryButton message={message} sendMessage={sendMessage} />
+                </TooltipTrigger>
+                <TooltipContent>Retry</TooltipContent>
+              </Tooltip>
+            )}
             {message.metadata?.selectedModel && (
               <div className="flex items-center ml-2">
                 <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">

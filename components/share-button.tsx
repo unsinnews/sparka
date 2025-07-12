@@ -16,7 +16,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { useGetChatById, useSetVisibility } from '@/hooks/use-chat-store';
+import { useGetChatById, useSetVisibility } from '@/hooks/chat-sync-hooks';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Copy, GlobeIcon, Loader2, LockIcon, Share } from 'lucide-react';

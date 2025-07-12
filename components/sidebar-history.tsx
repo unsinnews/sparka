@@ -27,7 +27,7 @@ import {
   useRenameChat,
   usePinChat,
   useGetAllChats,
-} from '@/hooks/use-chat-store';
+} from '@/hooks/chat-sync-hooks';
 import { useChatId } from '@/providers/chat-id-provider';
 import { SidebarChatItem } from './sidebar-chat-item';
 

@@ -36,7 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { useChatId } from '@/providers/chat-id-provider';
 import { generateUUID } from '@/lib/utils';
-import { useSaveMessageMutation } from '@/hooks/use-chat-store';
+import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
 import { useMessageTree } from '@/providers/message-tree-provider';
 
 function PureMultimodalInput({

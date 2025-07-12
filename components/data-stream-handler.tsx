@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { artifactDefinitions } from './artifact';
 import type { Suggestion } from '@/lib/db/schema';
 import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
-import { useSaveDocument } from '@/hooks/use-chat-store';
+import { useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { useSession } from 'next-auth/react';
 import { useDataStream } from './data-stream-provider';
 

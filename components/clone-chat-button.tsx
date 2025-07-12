@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { useCloneChat } from '@/hooks/use-chat-store';
+import { useCloneChat } from '@/hooks/chat-sync-hooks';
 import { Loader2, Copy } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';

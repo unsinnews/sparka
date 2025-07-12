@@ -13,7 +13,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { useGetAllChats } from '@/hooks/use-chat-store';
+import { useGetAllChats } from '@/hooks/chat-sync-hooks';
 import type { UIChat } from '@/lib/types/uiChat';
 
 type GroupedChats = {

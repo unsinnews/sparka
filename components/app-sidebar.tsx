@@ -24,7 +24,7 @@ import {
 import { Link, useNavigate } from 'react-router';
 import { useRouter } from 'next/navigation';
 import { useChatId } from '@/providers/chat-id-provider';
-import { useGetCredits } from '@/hooks/use-chat-store';
+import { useGetCredits } from '@/hooks/chat-sync-hooks';
 import { useSession } from 'next-auth/react';
 import { Coins } from 'lucide-react';
 

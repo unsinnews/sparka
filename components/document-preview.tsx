@@ -21,7 +21,7 @@ import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
 import { useTRPC } from '@/trpc/react';
-import { useDocuments } from '@/hooks/use-chat-store';
+import { useDocuments } from '@/hooks/chat-sync-hooks';
 
 interface DocumentPreviewProps {
   isReadonly: boolean;

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { cn } from '@/lib/utils';
 import { useSession } from 'next-auth/react';
-import { useGetCredits } from '@/hooks/use-chat-store';
+import { useGetCredits } from '@/hooks/chat-sync-hooks';
 
 interface CreditLimitDisplayProps {
   className?: string;

@@ -1,5 +1,5 @@
 'use client';
-import { ChevronUp, Coins } from 'lucide-react';
+import { Coins } from 'lucide-react';
 import Image from 'next/image';
 import type { User } from 'next-auth';
 import { signOut } from 'next-auth/react';
@@ -17,7 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useGetCredits } from '@/hooks/use-chat-store';
+import { useGetCredits } from '@/hooks/chat-sync-hooks';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const { setTheme, theme } = useTheme();
@@ -37,12 +37,8 @@ export function SidebarUserNav({ user }: { user: User }) {
                 className="rounded-full"
               />
             </SidebarMenuButton>
-        </DropdownMenuTrigger>
-          <DropdownMenuContent
-            side="bottom"
-            align="end"
-            className="w-56"
-          >
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="bottom" align="end" className="w-56">
             <DropdownMenuItem disabled>
               <span className="font-medium">{user.email}</span>
             </DropdownMenuItem>

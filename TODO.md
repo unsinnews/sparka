@@ -186,13 +186,10 @@
     [ ] Protectiong for going over token context
     [x] More space between buttons in multimodal input (hard to click on mobile)
 
-[x] Keyboard Shortcuts
-    [x] New Chat button + show keyboard shortcut for it
-    [ ] Show keyboard shortcuts in the settings page
 
 [ ] Cleanup Redis client / server
 
-[ ] AI SDK 5 migration
+[x] AI SDK 5 migration
 
 [x] Bug: How do I enter on mobile? Enter is sumbit. Maybe we should do ctrl+enter for submit
 [x] Bug: Mobile sidebar is collapsed view (when opened)
@@ -310,6 +307,9 @@
 
 [ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
 
+[x] Keyboard Shortcuts
+    [x] New Chat button + show keyboard shortcut for it
+    [ ] Show keyboard shortcuts in the settings page
 
 
 

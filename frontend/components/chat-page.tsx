@@ -2,7 +2,7 @@
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
-import { useGetChatById, useMessagesQuery } from '@/hooks/use-chat-store';
+import { useGetChatById, useMessagesQuery } from '@/hooks/chat-sync-hooks';
 import { useMemo, memo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';

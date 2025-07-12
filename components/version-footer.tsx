@@ -1,16 +1,13 @@
 'use client';
-
-import { isAfter } from 'date-fns';
 import { motion } from 'motion/react';
 import { useWindowSize } from 'usehooks-ts';
 
 import type { Document } from '@/lib/db/schema';
-import { getDocumentTimestampByIndex } from '@/lib/utils';
 
 import { LoaderIcon } from './icons';
 import { Button } from './ui/button';
 import { useArtifact } from '@/hooks/use-artifact';
-import { useSaveDocument } from '@/hooks/use-chat-store';
+import { useSaveDocument } from '@/hooks/chat-sync-hooks';
 
 interface VersionFooterProps {
   handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
@@ -28,7 +25,10 @@ export const VersionFooter = ({
   const { width } = useWindowSize();
   const isMobile = width < 768;
 
-  const saveDocumentMutation = useSaveDocument(artifact.documentId, artifact.messageId);
+  const saveDocumentMutation = useSaveDocument(
+    artifact.documentId,
+    artifact.messageId,
+  );
 
   if (!documents) return;
 

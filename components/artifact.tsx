@@ -19,7 +19,7 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
 import { useQueryClient } from '@tanstack/react-query';
-import { useDocuments, useSaveDocument } from '@/hooks/use-chat-store';
+import { useDocuments, useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import { useTRPC } from '@/trpc/react';

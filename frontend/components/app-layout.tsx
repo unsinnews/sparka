@@ -8,7 +8,7 @@ import { MessageTreeProvider } from '@/providers/message-tree-provider';
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTRPC } from '@/trpc/react';
-import { useGetAllChats } from '@/hooks/use-chat-store';
+import { useGetAllChats } from '@/hooks/chat-sync-hooks';
 import { loadLocalAnonymousMessagesByChatId } from '@/lib/utils/anonymous-chat-storage';
 import { dbMessageToChatMessage } from '@/lib/message-conversion';
 

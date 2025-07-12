@@ -13,7 +13,7 @@ import { useSession } from 'next-auth/react';
 
 import { useSidebar } from '@/components/ui/sidebar';
 import { useAutoResume } from '@/hooks/use-auto-resume';
-import { useSaveMessageMutation } from '@/hooks/use-chat-store';
+import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import type { ChatMessage } from '@/lib/ai/types';

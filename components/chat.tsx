@@ -18,7 +18,7 @@ import { useMessageTree } from '@/providers/message-tree-provider';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import type { ChatMessage } from '@/lib/ai/types';
 import { useDataStream } from './data-stream-provider';
-import { ZustandChat, chatStore } from '@/lib/stores/chat-store';
+import { ZustandChat, chatState } from '@/lib/stores/chat-store';
 
 export function Chat({
   id,
@@ -37,7 +37,7 @@ export function Chat({
   const { setDataStream } = useDataStream();
 
   const chat = new ZustandChat<ChatMessage>({
-    store: chatStore,
+    state: chatState,
     id,
     messages: initialMessages,
     // sendExtraMessageFields: true,
@@ -59,9 +59,8 @@ export function Chat({
     },
   });
 
-  console.log('chat.tsx', id);
   const chatHelpers = useChat<ChatMessage>({
-    // @ts-expect-error private property required but not really
+    // @ts-expect-error #private property required but not really
     chat: chat,
     experimental_throttle: 100,
   });

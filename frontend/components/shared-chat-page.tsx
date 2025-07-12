@@ -7,7 +7,6 @@ import { WithSkeleton } from '@/components/ui/skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
 import { notFound } from 'next/navigation';
 import { useChatId } from '@/providers/chat-id-provider';
-import { useSetMessagesOnce } from '@/hooks/use-set-messages-once';
 
 export function SharedChatPage() {
   const { sharedChatId: id } = useChatId();
@@ -28,9 +27,6 @@ export function SharedChatPage() {
       messages.map((msg) => ({ ...msg, id: msg.id.toString() })),
     );
   }, [messages]);
-
-  // Set messages once using the custom hook
-  useSetMessagesOnce(initialThreadMessages, id || '');
 
   if (!id) {
     return notFound();
@@ -64,6 +60,10 @@ export function SharedChatPage() {
     );
   }
 
+  if (!chat) {
+    return notFound();
+  }
+
   return (
     <>
       <WithSkeleton
@@ -72,7 +72,7 @@ export function SharedChatPage() {
       >
         {/* // Shared chats don't need chat input provider */}
         <Chat
-          id={id}
+          id={chat.id}
           initialMessages={initialThreadMessages}
           isReadonly={true}
         />

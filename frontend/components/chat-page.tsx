@@ -8,7 +8,6 @@ import { WithSkeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useChatId } from '@/providers/chat-id-provider';
-import { useSetMessagesOnce } from '@/hooks/use-set-messages-once';
 
 // Memoized pure component for Chat and ChatInputProvider
 const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
@@ -52,17 +51,9 @@ export function ChatPage() {
     );
   }, [messages]);
 
-  // Set messages once using the custom hook
-  useSetMessagesOnce(initialThreadMessages, id || '');
-
   if ((!isChatLoading && !chat) || !id) {
     return notFound();
   }
-
-  // Chat exists in DB - handle visibility and permissions
-  // Note: In client-side rendering, we don't have server-side session
-  // This would need to be adapted based on your auth strategy
-  // TODO: Chat sharing should be implemented with other strategy
 
   if (isMessagesLoading || isChatLoading) {
     return (
@@ -75,6 +66,10 @@ export function ChatPage() {
     );
   }
 
+  if (!chat) {
+    return notFound();
+  }
+
   return (
     <>
       <WithSkeleton
@@ -82,7 +77,7 @@ export function ChatPage() {
         className="w-full"
       >
         <MemoizedChatWrapper
-          id={id}
+          id={chat.id}
           initialMessages={initialThreadMessages}
           isReadonly={false}
         />

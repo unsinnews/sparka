@@ -1,4 +1,3 @@
-// chat-store.ts
 import { create } from 'zustand';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
 import {
@@ -8,17 +7,20 @@ import {
   type ChatStatus,
   type UIMessage,
 } from 'ai';
+import type { ChatMessage } from '@/lib/ai/types';
 
-// Zustand store interface
 interface ChatStoreState<UI_MESSAGE extends UIMessage> {
+  id: string | undefined;
   messages: UI_MESSAGE[];
   status: ChatStatus;
   error: Error | undefined;
 
   // Actions
+  setId: (id: string | undefined) => void;
   setMessages: (messages: UI_MESSAGE[]) => void;
   setStatus: (status: ChatStatus) => void;
   setError: (error: Error | undefined) => void;
+  setNewChat: (messages: UI_MESSAGE[]) => void;
   pushMessage: (message: UI_MESSAGE) => void;
   popMessage: () => void;
   replaceMessage: (index: number, message: UI_MESSAGE) => void;
@@ -31,13 +33,21 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
   return create<ChatStoreState<UI_MESSAGE>>()(
     devtools(
       subscribeWithSelector((set, get) => ({
+        id: undefined,
         messages: initialMessages,
-        status: 'ready' as ChatStatus,
+        status: 'ready',
         error: undefined,
 
+        setId: (id) => set({ id }),
         setMessages: (messages) => set({ messages: [...messages] }),
         setStatus: (status) => set({ status }),
         setError: (error) => set({ error }),
+        setNewChat: (messages) =>
+          set({
+            messages: [...messages],
+            status: 'ready',
+            error: undefined,
+          }),
 
         pushMessage: (message) =>
           set((state) => ({ messages: [...state.messages, message] })),
@@ -169,9 +179,18 @@ class ZustandChatState<UI_MESSAGE extends UIMessage>
       }
     };
   };
+
+  // Expose store as public property
+  get storeInstance() {
+    return this.store;
+  }
 }
 
-// Custom Chat class that uses Zustand
+export const chatStore = createChatStore<ChatMessage>();
+
+// Create singleton state instance
+export const chatState = new ZustandChatState(chatStore);
+
 export class ZustandChat<
   UI_MESSAGE extends UIMessage,
 > extends AbstractChat<UI_MESSAGE> {
@@ -180,18 +199,23 @@ export class ZustandChat<
 
   constructor({
     messages,
-    store,
+    state,
+    id,
     ...init
   }: ChatInit<UI_MESSAGE> & {
-    store?: ReturnType<typeof createChatStore<UI_MESSAGE>>;
+    state: ZustandChatState<UI_MESSAGE>;
+    id?: string;
   }) {
-    // Create or use provided store
-    const chatStore = store || createChatStore(messages);
-    const state = new ZustandChatState(chatStore);
-
     super({ ...init, state });
     this.zustandState = state;
-    this.store = chatStore;
+    this.store = state.storeInstance;
+
+    // Workaround to act as `shouldRecreateChat` functionality in the `useChat` hook
+    // If the id is different from the stored id, reset the chat with new messages
+    if (id !== this.store.getState().id) {
+      this.store.getState().setId(id);
+      this.store.getState().setNewChat(messages || []);
+    }
   }
 
   // Expose the subscription methods for useChat
@@ -207,7 +231,3 @@ export class ZustandChat<
   '~registerErrorCallback' = (onChange: () => void): (() => void) =>
     this.zustandState['~registerErrorCallback'](onChange);
 }
-
-// Export a global chat store instance
-import type { ChatMessage } from '@/lib/ai/types';
-export const chatStore = createChatStore<ChatMessage>();

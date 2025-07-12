@@ -43,7 +43,6 @@ export function ResponseErrorMessage({
           regenerate({
             body: {
               data,
-              selectedChatModel: selectedModelId,
             },
           });
         }}

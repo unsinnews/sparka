@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
-import type { UIMessage } from 'ai';
 
 import { Button } from './ui/button';
 import { useMessageTree } from '@/providers/message-tree-provider';
@@ -14,7 +13,7 @@ export function RetryButton({
   message,
   sendMessage,
 }: {
-  message: UIMessage;
+  message: ChatMessage;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const { getParentMessage, setLastMessageId } = useMessageTree();
@@ -48,12 +47,22 @@ export function RetryButton({
 
     // Resend the parent user message
     // TODO: This should obtain data from the parent message
-    sendMessage(parentMessage, {
-      body: {
-        data,
-        selectedChatModel: selectedModelId,
+    sendMessage(
+      {
+        ...parentMessage,
+        metadata: {
+          ...parentMessage.metadata,
+          createdAt: parentMessage.metadata?.createdAt || new Date(),
+          selectedModel: selectedModelId,
+          parentMessageId: parentMessage.metadata?.parentMessageId || null,
+        },
       },
-    });
+      {
+        body: {
+          data,
+        },
+      },
+    );
 
     setLastMessageId(parentMessage.id);
 

@@ -342,7 +342,6 @@ const PureToolbar = ({
             generateImage: false,
             writeOrCode: false,
           },
-          selectedChatModel: selectedModelId,
         },
       });
     },

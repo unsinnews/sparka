@@ -91,6 +91,12 @@ export const LexicalChatInput = React.forwardRef<
         console.error('Lexical error:', error);
       },
       nodes: [], // Plain text only, no custom nodes
+      editorState: () => {
+        // Ensure there's always a paragraph node for cursor placement
+        const root = $getRoot();
+        const paragraph = $createParagraphNode();
+        root.append(paragraph);
+      },
     };
 
     // Handle value changes from parent
@@ -102,12 +108,12 @@ export const LexicalChatInput = React.forwardRef<
 
           if (currentText !== value) {
             root.clear();
+            const paragraph = $createParagraphNode();
             if (value) {
-              const paragraph = $createParagraphNode();
               const textNode = $createTextNode(value);
               paragraph.append(textNode);
-              root.append(paragraph);
             }
+            root.append(paragraph);
           }
         });
       }
@@ -139,6 +145,9 @@ export const LexicalChatInput = React.forwardRef<
             editor.update(() => {
               const root = $getRoot();
               root.clear();
+              // Ensure there's always a paragraph node for cursor placement
+              const paragraph = $createParagraphNode();
+              root.append(paragraph);
             });
           }
         },

@@ -63,6 +63,11 @@ function PureSuggestedActions({
                 {
                   role: 'user',
                   parts: [{ type: 'text', text: suggestedAction.action }],
+                  metadata: {
+                    selectedModel: selectedModelId,
+                    createdAt: new Date(),
+                    parentMessageId: null,
+                  },
                 },
                 {
                   body: {
@@ -73,7 +78,6 @@ function PureSuggestedActions({
                       generateImage: false,
                       writeOrCode: false,
                     },
-                    selectedChatModel: selectedModelId,
                   },
                 },
               );

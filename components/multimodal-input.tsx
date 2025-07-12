@@ -227,7 +227,6 @@ function PureMultimodalInput({
 
     sendMessage(message, {
       body: {
-        selectedChatModel: selectedModelId,
         data: selectedTools,
       },
     });

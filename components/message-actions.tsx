@@ -1,4 +1,3 @@
-import type { UIMessage } from 'ai';
 import { useCopyToClipboard } from 'usehooks-ts';
 
 import type { Vote } from '@/lib/db/schema';
@@ -32,7 +31,7 @@ export function PureMessageActions({
   sendMessage,
 }: {
   chatId: string;
-  message: UIMessage;
+  message: ChatMessage;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
@@ -201,6 +200,14 @@ export function PureMessageActions({
               </TooltipTrigger>
               <TooltipContent>Downvote Response</TooltipContent>
             </Tooltip>
+
+            {message.metadata?.selectedModel && (
+              <div className="flex items-center ml-2">
+                <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                  {message.metadata.selectedModel}
+                </span>
+              </div>
+            )}
           </>
         )}
       </div>

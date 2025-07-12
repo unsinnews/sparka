@@ -29,11 +29,7 @@ import {
   reserveCreditsWithCleanup,
   type CreditReservation,
 } from '@/lib/credits/credit-reservation';
-import {
-  getModelDefinition,
-  type AvailableProviderModels,
-  type ModelDefinition,
-} from '@/lib/ai/all-models';
+import { getModelDefinition, type ModelDefinition } from '@/lib/ai/all-models';
 import {
   createResumableStreamContext,
   type ResumableStreamContext,
@@ -142,14 +138,31 @@ export async function POST(request: NextRequest) {
     const {
       id: chatId,
       messages,
-      selectedChatModel,
       data,
     }: {
       id: string;
       messages: Array<ChatMessage>;
-      selectedChatModel: AvailableProviderModels;
       data: ChatRequestData;
     } = await request.json();
+
+    const userMessage = getMostRecentUserMessage(messages);
+
+    if (!userMessage) {
+      console.log('RESPONSE > POST /api/chat: No user message found');
+      return new Response('No user message found', { status: 400 });
+    }
+
+    // Extract selectedModel from user message metadata
+    const selectedModelId = userMessage.metadata?.selectedModel;
+
+    if (!selectedModelId) {
+      console.log(
+        'RESPONSE > POST /api/chat: No selectedModel in user message metadata',
+      );
+      return new Response('No selectedModel in user message metadata', {
+        status: 400,
+      });
+    }
 
     const session = await auth();
 
@@ -222,9 +235,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Validate model for anonymous users
-      if (
-        !ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(selectedChatModel as any)
-      ) {
+      if (!ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(selectedModelId as any)) {
         console.log(
           'RESPONSE > POST /api/chat: Model not available for anonymous users',
         );
@@ -252,18 +263,11 @@ export async function POST(request: NextRequest) {
 
     let modelDefinition: ModelDefinition;
     try {
-      modelDefinition = getModelDefinition(selectedChatModel);
+      modelDefinition = getModelDefinition(selectedModelId);
     } catch (error) {
       console.log('RESPONSE > POST /api/chat: Model not found');
       return new Response('Model not found', { status: 404 });
     }
-    const userMessage = getMostRecentUserMessage(messages);
-
-    if (!userMessage) {
-      console.log('RESPONSE > POST /api/chat: No user message found');
-      return new Response('No user message found', { status: 400 });
-    }
-
     // Skip database operations for anonymous users
     if (!isAnonymous) {
       const chat = await getChatById({ id: chatId });
@@ -312,7 +316,7 @@ export async function POST(request: NextRequest) {
             annotations: [],
             isPartial: false,
             parentMessageId: userMessage.metadata?.parentMessageId || null,
-            selectedModel: selectedChatModel,
+            selectedModel: selectedModelId,
           },
         });
       }
@@ -326,7 +330,7 @@ export async function POST(request: NextRequest) {
     else if (writeOrCode)
       explicitlyRequestedTools = ['createDocument', 'updateDocument'];
 
-    const baseModelCost = getBaseModelCost(selectedChatModel);
+    const baseModelCost = getBaseModelCost(selectedModelId);
 
     let reservation: CreditReservation | null = null;
 
@@ -457,7 +461,7 @@ export async function POST(request: NextRequest) {
             annotations: [],
             isPartial: true,
             parentMessageId: userMessage.id,
-            selectedModel: selectedChatModel,
+            selectedModel: selectedModelId,
           },
         });
       }
@@ -466,7 +470,7 @@ export async function POST(request: NextRequest) {
       const stream = createUIMessageStream<ChatMessage>({
         execute: ({ writer: dataStream }) => {
           const result = streamText({
-            model: getLanguageModel(selectedChatModel as any),
+            model: getLanguageModel(selectedModelId),
             system: systemPrompt(),
             messages: contextForLLM,
             stopWhen: stepCountIs(5),
@@ -486,7 +490,7 @@ export async function POST(request: NextRequest) {
               },
               contextForLLM,
               messageId,
-              selectedModel: selectedChatModel,
+              selectedModel: selectedModelId,
               attachments: userMessage.parts.filter(
                 (part) => part.type === 'file',
               ),
@@ -499,7 +503,7 @@ export async function POST(request: NextRequest) {
                 }
               : {}),
 
-            providerOptions: getModelProviderOptions(selectedChatModel),
+            providerOptions: getModelProviderOptions(selectedModelId),
           });
 
           result.consumeStream();
@@ -508,7 +512,7 @@ export async function POST(request: NextRequest) {
             createdAt: new Date(),
             parentMessageId: userMessage.id,
             isPartial: false,
-            selectedModel: selectedChatModel,
+            selectedModel: selectedModelId,
           };
 
           dataStream.merge(
@@ -579,7 +583,7 @@ export async function POST(request: NextRequest) {
                     annotations: [],
                     isPartial: false,
                     parentMessageId: userMessage.id,
-                    selectedModel: selectedChatModel,
+                    selectedModel: selectedModelId,
                   },
                 });
               }

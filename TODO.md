@@ -205,6 +205,9 @@
 [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
 
 [ ] Create a schema for chat request body
+
+[ ] Add pinned messages to prefetch
+
 [ ] Data should be renamed to selectedTool and it should have all fields as optional
 
 [ ] Quote text from 'assistant messages' functionality (like chatgpt)

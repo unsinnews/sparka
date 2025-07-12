@@ -280,6 +280,11 @@
     [ ] Restore from the branch named `background-tasks`
     [ ] Fix tree Provider with resumed messages
 
+
+[ ] Assistant Message ++
+    [ ] Retry message should offer you options for selecting a new model. Update the `RetryButton` and set a new model in the metadata of the parent message.
+    [ ] Tools selected for the generation of a message should be saved as part of the metadata so that they are used again in the retry
+
 [ ] Threads
     [ ] A chat request with parentMessageId, should return a stream that indicats whats the parentMesssageId for that request
     [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
@@ -314,6 +319,8 @@
     [x] New Chat button + show keyboard shortcut for it
     [ ] Show keyboard shortcuts in the settings page
 
+
+[ ] Search through chat text (like chatgpt)
 
 
 [ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.

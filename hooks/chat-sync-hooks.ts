@@ -35,7 +35,6 @@ import { getAnonymousSession } from '@/lib/anonymous-session-client';
 import { generateUUID, getTextContentFromMessage } from '@/lib/utils';
 import type { ChatMessage } from '@/lib/ai/types';
 
-// Custom hook for chat mutations
 export function useSaveChat() {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -150,7 +149,6 @@ interface ChatMutationOptions {
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }
-// Custom hook for deleting chats
 export function useDeleteChat() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -191,7 +189,6 @@ export function useDeleteChat() {
   return { deleteChat };
 }
 
-// Custom hook for renaming chats
 export function useRenameChat() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -244,7 +241,6 @@ export function useRenameChat() {
   return renameMutation;
 }
 
-// Custom hook for pinning chats
 export function usePinChat() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
@@ -300,7 +296,6 @@ export function usePinChat() {
   return pinMutation;
 }
 
-// Custom hook for deleting trailing messages
 export function useDeleteTrailingMessages() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;

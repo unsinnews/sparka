@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import {
-  AutosizeTextarea,
-  type AutosizeTextAreaRef,
-} from './autosize-textarea';
+  LexicalChatInput,
+  type LexicalChatInputRef,
+} from './lexical-chat-input';
 
-interface ChatInputTextAreaRef extends HTMLTextAreaElement {
-  adjustHeight: () => void;
+interface ChatInputTextAreaRef {
+  focus: () => void;
 }
 
 const ChatInputContainer = React.forwardRef<
@@ -38,29 +38,30 @@ ChatInputTopRow.displayName = 'ChatInputTopRow';
 
 const ChatInputTextArea = React.forwardRef<
   ChatInputTextAreaRef,
-  React.ComponentProps<typeof AutosizeTextarea> & {
+  React.ComponentProps<typeof LexicalChatInput> & {
     maxRows?: number;
   }
->(({ className, maxRows = 7, ...props }, ref) => {
-  const autosizeRef = React.useRef<AutosizeTextAreaRef>(null);
+>(({ className, maxRows = 12, ...props }, ref) => {
+  const lexicalRef = React.useRef<LexicalChatInputRef>(null);
 
-  // Calculate max height based on maxRows
-  const lineHeight = 24; // Default line height
-  const maxHeight = lineHeight * maxRows;
-  const minHeight = 44; // Default min height
+  React.useImperativeHandle(
+    ref,
+    () => ({
+      focus: () => {
+        lexicalRef.current?.focus();
+      },
+    }),
+    [],
+  );
 
   return (
-    <AutosizeTextarea
-      ref={autosizeRef}
+    <LexicalChatInput
+      ref={lexicalRef}
       className={cn(
-        'flex min-h-[44px] items-start pl-1 w-full resize-none border-0 bg-transparent p-2 focus-visible:ring-0 shadow-none outline-none overflow-auto',
+        'flex min-h-[60px] items-start pl-1 w-full resize-none border-0 bg-transparent p-2 focus-visible:ring-0 shadow-none outline-none overflow-auto',
         className,
       )}
-      style={{
-        WebkitBoxShadow: 'none',
-        MozBoxShadow: 'none',
-        boxShadow: 'none',
-      }}
+      maxRows={maxRows}
       {...props}
     />
   );

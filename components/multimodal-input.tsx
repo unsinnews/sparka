@@ -83,8 +83,8 @@ function PureMultimodalInput({
     clearAttachments,
   } = useChatInput();
 
-  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(event.target.value);
+  const handleInput = (value: string) => {
+    setInput(value);
   };
 
   // Helper function to auto-switch to PDF-compatible model
@@ -237,12 +237,7 @@ function PureMultimodalInput({
     }
     resetData();
 
-    // Reset textarea height after form submission
-    setTimeout(() => {
-      textareaRef.current?.adjustHeight();
-    }, 0);
-
-    // TODO: Is it needed to refocus every time this function is called?
+    // Refocus after submit
     if (width && width > 768) {
       textareaRef.current?.focus();
     }

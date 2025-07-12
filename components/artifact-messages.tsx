@@ -28,7 +28,6 @@ function areEqual(
   if (prevProps.status && nextProps.status) return false;
   if (prevProps.messages.length !== nextProps.messages.length) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
-  if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
 
   return true;
 }

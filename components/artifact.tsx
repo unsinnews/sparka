@@ -45,7 +45,10 @@ export interface UIArtifact {
 
 function PureArtifact({
   chatId,
-  chatHelpers,
+  sendMessage,
+  regenerate,
+  status,
+  stop,
   messages,
   votes,
   isReadonly,
@@ -54,7 +57,10 @@ function PureArtifact({
   chatId: string;
   messages: Array<ChatMessage>;
   votes: Array<Vote> | undefined;
-  chatHelpers: UseChatHelpers<ChatMessage>;
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
+  regenerate: UseChatHelpers<ChatMessage>['regenerate'];
+  status: UseChatHelpers<ChatMessage>['status'];
+  stop: UseChatHelpers<ChatMessage>['stop'];
   isReadonly: boolean;
   isAuthenticated: boolean;
 }) {
@@ -301,11 +307,11 @@ function PureArtifact({
               <div className="flex flex-col h-full justify-between items-center @container">
                 <ArtifactMessages
                   chatId={chatId}
-                  status={chatHelpers.status}
+                  status={status}
                   votes={votes}
                   messages={messages}
-                  sendMessage={chatHelpers.sendMessage}
-                  regenerate={chatHelpers.regenerate}
+                  sendMessage={sendMessage}
+                  regenerate={regenerate}
                   isReadonly={isReadonly}
                   isVisible={true}
                   artifactStatus={artifact.status}
@@ -315,10 +321,10 @@ function PureArtifact({
                   <form className="flex flex-row gap-2  relative items-end w-full  p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6">
                     <MultimodalInput
                       chatId={chatId}
-                      status={chatHelpers.status}
-                      stop={chatHelpers.stop}
+                      status={status}
+                      stop={stop}
                       messages={messages}
-                      sendMessage={chatHelpers.sendMessage}
+                      sendMessage={sendMessage}
                       className="bg-transparent border-none shadow-none px-0"
                       isEditMode={isReadonly}
                       parentMessageId={getLastMessageId()}
@@ -465,9 +471,9 @@ function PureArtifact({
                     <Toolbar
                       isToolbarVisible={isToolbarVisible}
                       setIsToolbarVisible={setIsToolbarVisible}
-                      sendMessage={chatHelpers.sendMessage}
-                      status={chatHelpers.status}
-                      stop={chatHelpers.stop}
+                      sendMessage={sendMessage}
+                      status={status}
+                      stop={stop}
                       artifactKind={artifact.kind}
                     />
                   )}
@@ -492,7 +498,10 @@ function PureArtifact({
 }
 
 export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
-  if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
+  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
+  if (prevProps.regenerate !== nextProps.regenerate) return false;
+  if (prevProps.status !== nextProps.status) return false;
+  if (prevProps.stop !== nextProps.stop) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (!equal(prevProps.messages, nextProps.messages.length)) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;

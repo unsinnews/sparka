@@ -61,6 +61,7 @@ const PurePreviewMessage = ({
   const isLastArtifact = (currentToolCallId: string) => {
     if (!lastArtifact) return false;
 
+    // TODO: Verify this works
     // We'll use the lastArtifact data directly since we don't have access to chatHelpers.messages
     // The calling component should ensure lastArtifact is correctly calculated
     return lastArtifact.toolCallId === currentToolCallId;

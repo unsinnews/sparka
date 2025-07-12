@@ -59,20 +59,14 @@ export function Chat({
     },
   });
 
-  const chatHelpers = useChat<ChatMessage>({
-    // @ts-expect-error #private property required but not really
-    chat: chat,
-    experimental_throttle: 100,
-  });
+  const { messages, status, stop, resumeStream, sendMessage, regenerate } =
+    useChat<ChatMessage>({
+      // @ts-expect-error #private property required but not really
+      chat: chat,
+      experimental_throttle: 100,
+    });
 
-  const {
-    messages: chatHelperMessages,
-    status,
-    stop,
-    resumeStream,
-  } = chatHelpers;
-
-  console.log('chatHelperMessages', chatHelperMessages);
+  console.log('chatHelperMessages', messages);
 
   // Auto-resume functionality
   useAutoResume({
@@ -83,7 +77,7 @@ export function Chat({
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),
-    enabled: chatHelperMessages.length >= 2 && !isReadonly && !!session?.user,
+    enabled: messages.length >= 2 && !isReadonly && !!session?.user,
   });
 
   const { state } = useSidebar();
@@ -100,7 +94,7 @@ export function Chat({
         <ChatHeader
           chatId={id}
           isReadonly={isReadonly}
-          hasMessages={chatHelperMessages.length > 0}
+          hasMessages={messages.length > 0}
           user={session?.user}
         />
 
@@ -108,9 +102,9 @@ export function Chat({
           chatId={id}
           votes={votes}
           status={status}
-          messages={chatHelperMessages}
-          sendMessage={chatHelpers.sendMessage}
-          regenerate={chatHelpers.regenerate}
+          messages={messages}
+          sendMessage={sendMessage}
+          regenerate={regenerate}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
         />
@@ -121,8 +115,8 @@ export function Chat({
               chatId={id}
               status={status}
               stop={stop}
-              messages={chatHelperMessages}
-              sendMessage={chatHelpers.sendMessage}
+              messages={messages}
+              sendMessage={sendMessage}
               parentMessageId={getLastMessageId()}
             />
           ) : (
@@ -133,8 +127,11 @@ export function Chat({
 
       <Artifact
         chatId={id}
-        chatHelpers={chatHelpers}
-        messages={chatHelperMessages}
+        sendMessage={sendMessage}
+        regenerate={regenerate}
+        status={status}
+        stop={stop}
+        messages={messages}
         votes={votes}
         isReadonly={isReadonly}
         isAuthenticated={!!session?.user}

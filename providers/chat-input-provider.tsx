@@ -18,8 +18,8 @@ import { getModelDefinition } from '@/lib/ai/all-models';
 interface ChatInputContextType {
   input: string;
   setInput: Dispatch<SetStateAction<string>>;
-  data: ChatRequestToolsConfig;
-  setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
+  selectedTools: ChatRequestToolsConfig;
+  setSelectedTools: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   selectedModelId: string;
@@ -75,7 +75,8 @@ export function ChatInputProvider({
     return initialInput || localStorageInput;
   });
 
-  const [data, setData] = useState<ChatRequestToolsConfig>(initialData);
+  const [selectedTools, setSelectedTools] =
+    useState<ChatRequestToolsConfig>(initialData);
   const [attachments, setAttachments] =
     useState<Array<Attachment>>(initialAttachments);
 
@@ -98,8 +99,8 @@ export function ChatInputProvider({
       const hasReasoning = modelDef.features?.reasoning === true;
 
       // If switching to a reasoning model and deep research is enabled, disable it
-      if (hasReasoning && data.deepResearch) {
-        setData((prev) => ({
+      if (hasReasoning && selectedTools.deepResearch) {
+        setSelectedTools((prev) => ({
           ...prev,
           deepResearch: false,
         }));
@@ -111,7 +112,7 @@ export function ChatInputProvider({
       // Update global default model (which handles cookie persistence)
       await changeModel(modelId as any);
     },
-    [data.deepResearch, setData, changeModel],
+    [selectedTools.deepResearch, setSelectedTools, changeModel],
   );
 
   const clearInput = useCallback(() => {
@@ -122,7 +123,7 @@ export function ChatInputProvider({
   }, [setLocalStorageInput, localStorageEnabled]);
 
   const resetData = useCallback(() => {
-    setData(initialData);
+    setSelectedTools(initialData);
   }, [initialData]);
 
   const clearAttachments = useCallback(() => {
@@ -134,8 +135,8 @@ export function ChatInputProvider({
       value={{
         input,
         setInput,
-        data,
-        setData,
+        selectedTools: selectedTools,
+        setSelectedTools: setSelectedTools,
         attachments,
         setAttachments,
         selectedModelId,

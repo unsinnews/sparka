@@ -18,7 +18,7 @@ export function RetryButton({
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const { getParentMessage, setLastMessageId } = useMessageTree();
-  const { selectedModelId, data } = useChatInput();
+  const { selectedModelId, selectedTools: data } = useChatInput();
   const setMessages = useSetMessages();
   const chatMessages = useChatMessages();
 

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { type Dispatch, type SetStateAction, useState } from 'react';
 import { Settings2 } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -18,12 +16,12 @@ import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { toolDefinitions, enabledTools } from './chat-features-definitions';
 
 export function ResponsiveTools({
-  data,
-  setData,
+  tools,
+  setTools,
   selectedModelId,
 }: {
-  data: ChatRequestToolsConfig;
-  setData: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
+  tools: ChatRequestToolsConfig;
+  setTools: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
   selectedModelId: string;
 }) {
   const { data: session } = useSession();
@@ -39,7 +37,7 @@ export function ResponsiveTools({
     }
   })();
 
-  const activeTool = enabledTools.find((key) => data[key]);
+  const activeTool = enabledTools.find((key) => tools[key]);
 
   const setTool = (tool: (typeof enabledTools)[number] | null) => {
     if (tool === 'deepResearch' && hasReasoningModel) {
@@ -59,7 +57,7 @@ export function ResponsiveTools({
       {} as Record<(typeof enabledTools)[number], boolean>,
     );
 
-    setData((prev) => ({ ...prev, ...newToolState }));
+    setTools((prev) => ({ ...prev, ...newToolState }));
   };
 
   return (
@@ -110,14 +108,14 @@ export function ResponsiveTools({
                   key={key}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setTool(data[key] ? null : key);
+                    setTool(tools[key] ? null : key);
                   }}
                   className="flex items-center gap-2"
                   disabled={isDisabled}
                 >
                   <Icon size={14} />
                   <span>{tool.name}</span>
-                  {data[key] && <span className="text-xs opacity-70">✓</span>}
+                  {tools[key] && <span className="text-xs opacity-70">✓</span>}
                   {isDisabled && (
                     <span className="text-xs opacity-60">
                       (for non-reasoning models)

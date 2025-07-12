@@ -13,7 +13,7 @@ export function ResponseErrorMessage({
   regenerate,
   messages,
 }: ErrorMessageProps) {
-  const { data, selectedModelId } = useChatInput();
+  const { selectedTools: data, selectedModelId } = useChatInput();
   const setMessages = useSetMessages();
 
   return (

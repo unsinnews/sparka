@@ -20,7 +20,7 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   setMessages: (messages: UI_MESSAGE[]) => void;
   setStatus: (status: ChatStatus) => void;
   setError: (error: Error | undefined) => void;
-  setNewChat: (messages: UI_MESSAGE[]) => void;
+  setNewChat: (id: string, messages: UI_MESSAGE[]) => void;
   pushMessage: (message: UI_MESSAGE) => void;
   popMessage: () => void;
   replaceMessage: (index: number, message: UI_MESSAGE) => void;
@@ -42,11 +42,12 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
         setMessages: (messages) => set({ messages: [...messages] }),
         setStatus: (status) => set({ status }),
         setError: (error) => set({ error }),
-        setNewChat: (messages) =>
+        setNewChat: (id, messages) =>
           set({
             messages: [...messages],
             status: 'ready',
             error: undefined,
+            id,
           }),
 
         pushMessage: (message) =>
@@ -231,13 +232,12 @@ export class ZustandChat<
     super({ ...init, state });
     this.zustandState = state;
     this.store = state.storeInstance;
-
-    // Workaround to act as `shouldRecreateChat` functionality in the `useChat` hook
-    // If the id is different from the stored id, reset the chat with new messages
-    if (id !== this.store.getState().id) {
-      this.store.getState().setId(id);
-      this.store.getState().setNewChat(messages || []);
-    }
+    console.log(
+      'building zustand chat with id',
+      id,
+      'store id',
+      this.store.getState().id,
+    );
   }
 
   // Expose the subscription methods for useChat

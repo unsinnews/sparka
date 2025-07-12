@@ -9,7 +9,6 @@ import { notFound } from 'next/navigation';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useChatId } from '@/providers/chat-id-provider';
 
-// Memoized pure component for Chat and ChatInputProvider
 const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
   id,
   initialMessages,

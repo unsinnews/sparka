@@ -11,6 +11,7 @@ export function ChatHome() {
   if (!newChatId) {
     return notFound();
   }
+  console.log('Chat Home with id', newChatId);
 
   return (
     <>

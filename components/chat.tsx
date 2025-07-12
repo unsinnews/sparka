@@ -18,7 +18,16 @@ import { useMessageTree } from '@/providers/message-tree-provider';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import type { ChatMessage } from '@/lib/ai/types';
 import { useDataStream } from './data-stream-provider';
-import { ZustandChat, chatState } from '@/lib/stores/chat-store';
+import { ZustandChat, chatState, chatStore } from '@/lib/stores/chat-store';
+import { useEffect } from 'react';
+
+function useRecreateChat(id: string, initialMessages: Array<ChatMessage>) {
+  useEffect(() => {
+    if (id !== chatStore.getState().id) {
+      chatStore.getState().setNewChat(id, initialMessages || []);
+    }
+  }, [id, initialMessages]);
+}
 
 export function Chat({
   id,
@@ -35,6 +44,8 @@ export function Chat({
   const { getLastMessageId } = useMessageTree();
 
   const { setDataStream } = useDataStream();
+
+  useRecreateChat(id, initialMessages);
 
   const chat = new ZustandChat<ChatMessage>({
     state: chatState,
@@ -65,8 +76,6 @@ export function Chat({
       chat: chat,
       experimental_throttle: 100,
     });
-
-  console.log('chatHelperMessages', messages);
 
   // Auto-resume functionality
   useAutoResume({

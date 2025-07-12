@@ -72,8 +72,8 @@ function PureMultimodalInput({
   const {
     input,
     setInput,
-    data,
-    setData,
+    selectedTools,
+    setSelectedTools,
     attachments,
     setAttachments,
     selectedModelId,
@@ -227,7 +227,7 @@ function PureMultimodalInput({
     sendMessage(message, {
       body: {
         selectedChatModel: selectedModelId,
-        data,
+        data: selectedTools,
       },
     });
 
@@ -250,7 +250,7 @@ function PureMultimodalInput({
     width,
     chatId,
     setChatId,
-    data,
+    selectedTools,
     isEditMode,
     input,
     saveChatMessage,
@@ -548,8 +548,8 @@ function PureMultimodalInput({
                 onModelChange={handleModelChange}
               />
               <ResponsiveTools
-                data={data}
-                setData={setData}
+                tools={selectedTools}
+                setTools={setSelectedTools}
                 selectedModelId={selectedModelId}
               />
             </div>

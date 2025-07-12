@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
 import { useDataStream } from '@/components/data-stream-provider';
+import { useSetMessages } from '@/lib/stores/chat-store';
 
 export type DataPart = { type: 'append-message'; message: string };
 
@@ -11,16 +12,15 @@ export interface UseAutoResumeProps {
   autoResume: boolean;
   initialMessages: ChatMessage[];
   resumeStream: UseChatHelpers<ChatMessage>['resumeStream'];
-  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
 }
 
 export function useAutoResume({
   autoResume,
   initialMessages,
   resumeStream,
-  setMessages,
 }: UseAutoResumeProps) {
   const { dataStream } = useDataStream();
+  const setMessages = useSetMessages();
 
   useEffect(() => {
     if (!autoResume) return;

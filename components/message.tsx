@@ -12,7 +12,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import { Retrieve } from './retrieve';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
@@ -26,6 +25,7 @@ import { Skeleton } from './ui/skeleton';
 import { ImageModal } from './image-modal';
 import { GeneratedImage } from './generated-image';
 import type { ChatMessage } from '@/lib/ai/types';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 const PurePreviewMessage = ({
   chatId,
@@ -33,7 +33,7 @@ const PurePreviewMessage = ({
   vote,
   isLoading,
   isReadonly,
-  chatHelpers,
+  sendMessage,
   lastArtifact,
   parentMessageId,
 }: {
@@ -42,7 +42,7 @@ const PurePreviewMessage = ({
   vote: Vote | undefined;
   isLoading: boolean;
   isReadonly: boolean;
-  chatHelpers: UseChatHelpers<ChatMessage>;
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   lastArtifact: { messageIndex: number; toolCallId: string } | null;
   parentMessageId: string | null;
 }) => {
@@ -61,15 +61,9 @@ const PurePreviewMessage = ({
   const isLastArtifact = (currentToolCallId: string) => {
     if (!lastArtifact) return false;
 
-    const { messages } = chatHelpers;
-    const currentMessageIndex = messages.findIndex(
-      (msg) => msg.id === message.id,
-    );
-
-    return (
-      lastArtifact.messageIndex === currentMessageIndex &&
-      lastArtifact.toolCallId === currentToolCallId
-    );
+    // We'll use the lastArtifact data directly since we don't have access to chatHelpers.messages
+    // The calling component should ensure lastArtifact is correctly calculated
+    return lastArtifact.toolCallId === currentToolCallId;
   };
 
   const handleImageClick = (imageUrl: string, imageName?: string) => {
@@ -216,7 +210,7 @@ const PurePreviewMessage = ({
                         chatId={chatId}
                         message={message}
                         setMode={setMode}
-                        chatHelpers={chatHelpers}
+                        sendMessage={sendMessage}
                         parentMessageId={parentMessageId}
                       />
                     </div>
@@ -554,7 +548,7 @@ const PurePreviewMessage = ({
               vote={vote}
               isLoading={isLoading}
               isReadOnly={isReadonly}
-              chatHelpers={chatHelpers}
+              sendMessage={sendMessage}
             />
           </div>
         </div>
@@ -575,7 +569,7 @@ export const PreviewMessage = memo(
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.message.id !== nextProps.message.id) return false;
     if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
-    if (prevProps.chatHelpers !== nextProps.chatHelpers) return false;
+    if (prevProps.sendMessage !== nextProps.sendMessage) return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
     if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;

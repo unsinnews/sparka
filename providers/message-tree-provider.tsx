@@ -17,7 +17,7 @@ import { useTRPC } from '@/trpc/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useChatId } from './chat-id-provider';
 import type { ChatMessage } from '@/lib/ai/types';
-import { chatStore } from '@/lib/stores/chat-store';
+import { useSetMessages } from '@/lib/stores/chat-store';
 
 interface MessageSiblingInfo {
   siblings: ChatMessage[];
@@ -46,6 +46,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
   const queryClient = useQueryClient();
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
   const lastMessageIdRef = useRef<string | null>(null);
+  const setMessages = useSetMessages();
 
   // Select the appropriate chat ID based on isShared flag
   const effectiveChatId = isShared ? sharedChatId : chatId;
@@ -185,8 +186,8 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
         leaf ? leaf.id : targetSibling.id,
       );
 
-      // Use the chat store directly instead of registered setMessages
-      chatStore.getState().setMessages(newThread);
+      // Use the cleaner selector hook
+      setMessages(newThread);
       setLastMessageId(newThread[newThread.length - 1]?.id || null);
     },
     [
@@ -195,6 +196,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
       childrenMap,
       effectiveChatId,
       setLastMessageId,
+      setMessages,
     ],
   );
 

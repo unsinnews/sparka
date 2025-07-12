@@ -304,7 +304,8 @@ function PureArtifact({
                   status={chatHelpers.status}
                   votes={votes}
                   messages={messages}
-                  chatHelpers={chatHelpers}
+                  sendMessage={chatHelpers.sendMessage}
+                  regenerate={chatHelpers.regenerate}
                   isReadonly={isReadonly}
                   isVisible={true}
                   artifactStatus={artifact.status}
@@ -318,8 +319,8 @@ function PureArtifact({
                       stop={chatHelpers.stop}
                       messages={messages}
                       sendMessage={chatHelpers.sendMessage}
-                      className="bg-background dark:bg-muted"
-                      setMessages={chatHelpers.setMessages}
+                      className="bg-transparent border-none shadow-none px-0"
+                      isEditMode={isReadonly}
                       parentMessageId={getLastMessageId()}
                     />
                   </form>
@@ -467,7 +468,6 @@ function PureArtifact({
                       sendMessage={chatHelpers.sendMessage}
                       status={chatHelpers.status}
                       stop={chatHelpers.stop}
-                      setMessages={chatHelpers.setMessages}
                       artifactKind={artifact.kind}
                     />
                   )}

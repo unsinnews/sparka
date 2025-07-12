@@ -1,6 +1,4 @@
 'use client';
-
-import type { ChatRequestOptions } from 'ai';
 import {
   type Dispatch,
   type SetStateAction,
@@ -9,7 +7,6 @@ import {
   useRef,
   useCallback,
 } from 'react';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import { MultimodalInput } from './multimodal-input';
 import type { ChatMessage } from '@/lib/ai/types';
 import {
@@ -20,20 +17,20 @@ import {
   getAttachmentsFromMessage,
   getTextContentFromMessage,
 } from '@/lib/utils';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 export type MessageEditorProps = {
   chatId: string;
   message: ChatMessage;
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
-  chatHelpers: UseChatHelpers<ChatMessage>;
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   parentMessageId: string | null;
 };
 
 function MessageEditorContent({
   chatId,
-  message,
   setMode,
-  chatHelpers,
+  sendMessage,
   parentMessageId,
 }: MessageEditorProps & { onModelChange?: (modelId: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -60,19 +57,19 @@ function MessageEditorContent({
   const handleAppend = useCallback(
     async (
       message: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>[0],
-      options?: ChatRequestOptions,
+      options?: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>[1],
     ) => {
       setIsSubmitting(true);
 
       setMode('view');
 
       // Save the message manually to keep local state in sync
-      const res = await chatHelpers.sendMessage(message, options);
+      const res = await sendMessage(message, options);
 
       setIsSubmitting(false);
       return res;
     },
-    [setIsSubmitting, setMode, chatHelpers],
+    [setIsSubmitting, setMode, sendMessage],
   );
 
   return (
@@ -82,7 +79,6 @@ function MessageEditorContent({
         status={isSubmitting ? 'submitted' : 'ready'}
         stop={() => setIsSubmitting(false)}
         messages={[]}
-        setMessages={chatHelpers.setMessages}
         sendMessage={handleAppend}
         isEditMode={true}
         parentMessageId={parentMessageId}

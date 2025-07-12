@@ -29,14 +29,14 @@ export function PureMessageActions({
   vote,
   isLoading,
   isReadOnly,
-  chatHelpers,
+  sendMessage,
 }: {
   chatId: string;
   message: UIMessage;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
-  chatHelpers?: UseChatHelpers<ChatMessage>;
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -93,10 +93,10 @@ export function PureMessageActions({
           <TooltipContent>Copy</TooltipContent>
         </Tooltip>
 
-        {message.role === 'assistant' && !isReadOnly && chatHelpers && (
+        {message.role === 'assistant' && !isReadOnly && sendMessage && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <RetryButton message={message} chatHelpers={chatHelpers} />
+              <RetryButton message={message} sendMessage={sendMessage} />
             </TooltipTrigger>
             <TooltipContent>Retry</TooltipContent>
           </Tooltip>
@@ -212,8 +212,13 @@ export const MessageActions = memo(
   PureMessageActions,
   (prevProps, nextProps) => {
     if (!equal(prevProps.vote, nextProps.vote)) return false;
+    if (prevProps.chatId !== nextProps.chatId) return false;
+    if (prevProps.message !== nextProps.message) return false;
+    if (prevProps.vote !== nextProps.vote) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
+    if (prevProps.sendMessage !== nextProps.sendMessage) return false;
+
     return true;
   },
 );

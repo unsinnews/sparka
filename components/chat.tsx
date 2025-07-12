@@ -67,7 +67,6 @@ export function Chat({
 
   const {
     messages: chatHelperMessages,
-    setMessages,
     status,
     stop,
     resumeStream,
@@ -80,7 +79,6 @@ export function Chat({
     autoResume: true,
     initialMessages: initialMessages,
     resumeStream,
-    setMessages,
   });
 
   const { data: votes } = useQuery({
@@ -111,7 +109,8 @@ export function Chat({
           votes={votes}
           status={status}
           messages={chatHelperMessages}
-          chatHelpers={chatHelpers}
+          sendMessage={chatHelpers.sendMessage}
+          regenerate={chatHelpers.regenerate}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
         />
@@ -123,7 +122,6 @@ export function Chat({
               status={status}
               stop={stop}
               messages={chatHelperMessages}
-              setMessages={setMessages}
               sendMessage={chatHelpers.sendMessage}
               parentMessageId={getLastMessageId()}
             />

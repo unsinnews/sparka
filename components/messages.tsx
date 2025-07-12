@@ -18,7 +18,8 @@ export interface MessagesProps {
   status: UseChatHelpers<ChatMessage>['status'];
   votes: Array<Vote> | undefined;
   messages: Array<ChatMessage>;
-  chatHelpers: UseChatHelpers<ChatMessage>;
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
+  regenerate: (options?: any) => void;
   isReadonly: boolean;
   isVisible: boolean;
   onModelChange?: (modelId: string) => void;
@@ -29,7 +30,8 @@ function PureMessages({
   status,
   votes,
   messages,
-  chatHelpers,
+  sendMessage,
+  regenerate,
   isReadonly,
   isVisible,
 }: MessagesProps) {
@@ -66,7 +68,7 @@ function PureMessages({
                 : undefined
             }
             parentMessageId={messages[index - 1]?.id || null}
-            chatHelpers={chatHelpers}
+            sendMessage={sendMessage}
             isReadonly={isReadonly}
             lastArtifact={lastArtifact}
           />
@@ -77,7 +79,7 @@ function PureMessages({
           messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
 
         {status === 'error' && (
-          <ResponseErrorMessage chatHelpers={chatHelpers} messages={messages} />
+          <ResponseErrorMessage regenerate={regenerate} messages={messages} />
         )}
 
         <div className="shrink-0 min-w-[24px] min-h-[24px]" />
@@ -108,7 +110,8 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (prevProps.isVisible !== nextProps.isVisible) return false;
 
   if (!equal(prevProps.messages, nextProps.messages)) return false;
-  if (!equal(prevProps.chatHelpers, nextProps.chatHelpers)) return false;
+  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
+  if (prevProps.regenerate !== nextProps.regenerate) return false;
 
   return true;
 });

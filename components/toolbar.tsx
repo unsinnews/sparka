@@ -308,7 +308,6 @@ const PureToolbar = ({
   sendMessage,
   status,
   stop,
-  setMessages,
   artifactKind,
 }: {
   isToolbarVisible: boolean;
@@ -316,7 +315,6 @@ const PureToolbar = ({
   status: UseChatHelpers<ChatMessage>['status'];
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   stop: UseChatHelpers<ChatMessage>['stop'];
-  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
   artifactKind: ArtifactKind;
 }) => {
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -455,7 +453,7 @@ const PureToolbar = ({
             className="p-3"
             onClick={() => {
               stop();
-              setMessages((messages) => messages);
+              // No need to call setMessages here as we're just stopping
             }}
           >
             <StopIcon />

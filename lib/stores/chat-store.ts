@@ -191,6 +191,28 @@ export const chatStore = createChatStore<ChatMessage>();
 // Create singleton state instance
 export const chatState = new ZustandChatState(chatStore);
 
+// Selector hooks for cleaner API
+export const useChatMessages = () => chatStore((state) => state.messages);
+export const useChatStatus = () => chatStore((state) => state.status);
+export const useChatError = () => chatStore((state) => state.error);
+export const useChatId = () => chatStore((state) => state.id);
+
+// Action hooks for cleaner API
+export const useChatActions = () =>
+  chatStore((state) => ({
+    setMessages: state.setMessages,
+    pushMessage: state.pushMessage,
+    popMessage: state.popMessage,
+    replaceMessage: state.replaceMessage,
+    setStatus: state.setStatus,
+    setError: state.setError,
+    setId: state.setId,
+    setNewChat: state.setNewChat,
+  }));
+
+// Convenience hook for just setMessages
+export const useSetMessages = () => chatStore((state) => state.setMessages);
+
 export class ZustandChat<
   UI_MESSAGE extends UIMessage,
 > extends AbstractChat<UI_MESSAGE> {

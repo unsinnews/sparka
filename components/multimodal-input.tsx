@@ -8,6 +8,7 @@ import { useWindowSize } from 'usehooks-ts';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'motion/react';
 import { useSession } from 'next-auth/react';
+import { chatStore, useSetMessages } from '@/lib/stores/chat-store';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { AttachmentList } from './attachment-list';
@@ -44,7 +45,6 @@ function PureMultimodalInput({
   status,
   stop,
   messages,
-  setMessages,
   sendMessage,
   className,
   isEditMode = false,
@@ -54,7 +54,6 @@ function PureMultimodalInput({
   status: UseChatHelpers<ChatMessage>['status'];
   stop: () => void;
   messages: Array<ChatMessage>;
-  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   isEditMode?: boolean;
@@ -66,6 +65,7 @@ function PureMultimodalInput({
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const { getLastMessageId } = useMessageTree();
+  const setMessages = useSetMessages();
 
   // Detect mobile devices
   const isMobile = width ? width <= 768 : false;
@@ -187,16 +187,14 @@ function PureMultimodalInput({
         setMessages([]);
       } else {
         // Find the parent message and trim to that point
-        setMessages((currentMessages) => {
-          const parentIndex = currentMessages.findIndex(
-            (msg) => msg.id === parentMessageId,
-          );
-          if (parentIndex !== -1) {
-            // Keep messages up to and including the parent
-            return currentMessages.slice(0, parentIndex + 1);
-          }
-          return currentMessages;
-        });
+        const currentMessages = chatStore.getState().messages;
+        const parentIndex = currentMessages.findIndex(
+          (msg) => msg.id === parentMessageId,
+        );
+        if (parentIndex !== -1) {
+          // Keep messages up to and including the parent
+          setMessages(currentMessages.slice(0, parentIndex + 1));
+        }
       }
     }
 
@@ -263,8 +261,8 @@ function PureMultimodalInput({
     saveChatMessage,
     getLastMessageId,
     parentMessageId,
-    setMessages,
     selectedModelId,
+    setMessages,
   ]);
 
   const uploadFile = async (file: File) => {
@@ -563,7 +561,7 @@ function PureMultimodalInput({
             <div className="flex gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
               {status !== 'ready' ? (
-                <StopButton stop={stop} setMessages={setMessages} />
+                <StopButton stop={stop} />
               ) : (
                 <SendButton
                   input={input}
@@ -633,10 +631,8 @@ const AttachmentsButton = memo(PureAttachmentsButton);
 
 function PureStopButton({
   stop,
-  setMessages,
 }: {
   stop: () => void;
-  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
 }) {
   return (
     <Button
@@ -645,7 +641,7 @@ function PureStopButton({
       onClick={(event) => {
         event.preventDefault();
         stop();
-        setMessages((messages) => messages);
+        // No need to call setMessages here as we're just stopping
       }}
     >
       <StopIcon size={14} />

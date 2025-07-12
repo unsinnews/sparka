@@ -2,25 +2,28 @@ import { useCallback } from 'react';
 import { RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import type { UIMessage } from 'ai';
-import type { UseChatHelpers } from '@ai-sdk/react';
 
 import { Button } from './ui/button';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import { useChatInput } from '@/providers/chat-input-provider';
 import type { ChatMessage } from '@/lib/ai/types';
+import { useSetMessages, useChatMessages } from '@/lib/stores/chat-store';
+import type { UseChatHelpers } from '@ai-sdk/react';
 
 export function RetryButton({
   message,
-  chatHelpers,
+  sendMessage,
 }: {
   message: UIMessage;
-  chatHelpers: UseChatHelpers<ChatMessage>;
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const { getParentMessage, setLastMessageId } = useMessageTree();
   const { selectedModelId, data } = useChatInput();
+  const setMessages = useSetMessages();
+  const chatMessages = useChatMessages();
 
   const handleRetry = useCallback(() => {
-    if (!chatHelpers) {
+    if (!sendMessage) {
       toast.error('Cannot retry this message');
       return;
     }
@@ -33,27 +36,19 @@ export function RetryButton({
       return;
     }
 
-    // Get grandparent message ID
-    const grandParentMessage = getParentMessage(parentMessage.id);
-    const grandParentMessageId = grandParentMessage?.id || null;
-
-    // Find the parent message index in chatHelpers.messages for slicing
-
-    // Remove the current assistant message and any messages after it
-    chatHelpers.setMessages((messages) => {
-      const parentMessageIdx = messages.findIndex(
-        (msg) => msg.id === parentMessage.id,
-      );
-      if (parentMessageIdx === -1) {
-        toast.error('Cannot find the user message to retry');
-        return messages;
-      }
-      return messages.slice(0, parentMessageIdx);
-    });
+    // Find the parent message index in store messages for slicing
+    const parentMessageIdx = chatMessages.findIndex(
+      (msg) => msg.id === parentMessage.id,
+    );
+    if (parentMessageIdx === -1) {
+      toast.error('Cannot find the user message to retry');
+      return;
+    }
+    setMessages(chatMessages.slice(0, parentMessageIdx));
 
     // Resend the parent user message
     // TODO: This should obtain data from the parent message
-    chatHelpers.sendMessage(parentMessage, {
+    sendMessage(parentMessage, {
       body: {
         data,
         selectedChatModel: selectedModelId,
@@ -65,11 +60,13 @@ export function RetryButton({
     toast.success('Retrying message...');
   }, [
     data,
-    chatHelpers,
+    sendMessage,
     getParentMessage,
     message.id,
     setLastMessageId,
     selectedModelId,
+    setMessages,
+    chatMessages,
   ]);
 
   return (

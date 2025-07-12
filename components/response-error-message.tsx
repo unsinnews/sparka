@@ -1,19 +1,21 @@
 import { Button } from './ui/button';
 import { RefreshCcwIcon } from 'lucide-react';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import { useChatInput } from '@/providers/chat-input-provider';
 import type { ChatMessage } from '@/lib/ai/types';
+import { useSetMessages } from '@/lib/stores/chat-store';
 
 interface ErrorMessageProps {
-  chatHelpers: UseChatHelpers<ChatMessage>;
+  regenerate: (options?: any) => void;
   messages: Array<ChatMessage>;
 }
 
 export function ResponseErrorMessage({
-  chatHelpers,
+  regenerate,
   messages,
 }: ErrorMessageProps) {
   const { data, selectedModelId } = useChatInput();
+  const setMessages = useSetMessages();
+
   return (
     <div className="flex flex-col items-center mx-auto px-6 py-8 rounded-lg shadow-sm gap-4 w-full md:max-w-2xl">
       <div className="flex items-center gap-2 ">
@@ -37,8 +39,8 @@ export function ResponseErrorMessage({
               ? messages.slice(0, -1)
               : messages;
 
-          chatHelpers.setMessages(newMessages);
-          chatHelpers.regenerate({
+          setMessages(newMessages);
+          regenerate({
             body: {
               data,
               selectedChatModel: selectedModelId,

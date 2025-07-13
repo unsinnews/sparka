@@ -204,7 +204,11 @@
 
 [ ] Move getLastMessageId to the chatStore
 
-[ ] Grok 4 -- add to models
+
+[ ] Models
+    [ ] Grok 4 -- add to models
+    [ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
+    [ ] More Gemini models
 
 
 [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
@@ -215,19 +219,64 @@
 
 [ ] Add pinned messages to prefetch
 
+[ ] Performance Optimizations
+    [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
+    [ ] Don't update context input with multimodal. Only obtain text on send 
+    [x] Optimize the MessageTreeProvider with a messageMap in a reference
+    [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
 
 
+[ ] Reactive updates
+    [ ] Build a store for Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
+    [ ] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
+    [ ] Optimization: The message streaming re-renders the whole message conversation / chat
 
-[ ] Optimizations
-  [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
+[ ] Higher maximum height on lexical editor (lexical-chat-input.tsx)
+
+
+[ ] User Message ++
+    [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
+    [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
+    [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
+    [ ] Retry mechanism should include all info about user submission
+
+[ ] Optimize the number of getVotes query calls
+
 
 ## The line
 
 
+[ ] Assistant Message ++
+    [ ] Retry message should offer you options for selecting a new model. Update the `RetryButton` and set a new model in the metadata of the parent message.
+    [ ] Tools selected for the generation of a message should be saved as part of the metadata so that they are used again in the retry
+
+
+[ ] MultiModalInput
+    [x] Migrate to Lexical (there is a background agent with part of the work)
+    [ ] Use rich format for links
+    [x] Selected model should be part of the Chat-input-context
+    [ ] Chat bottom row should not update on type
+    [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
+    [ ] Save edits to localstorage?
+
+[ ] Models++
+    [ ] Cleanup up the providers.ts file
+    [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
+    [ ] Propagate model selection to deep research (and create new selectables for them)
+
+
+[ ] Threads
+    [ ] A chat request with parentMessageId, should return a stream that indicats whats the parentMesssageId for that request
+    [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
+    [ ] Artifacts should belong to the current thread
+    [ ] Combination o
 
 [ ] Settings Page
     [ ] Define the models that you enable (like cursor)
     [ ] Show a Keyboard shortcuts help in settings
+
+
+[ ] Bug: Analyze PDF with GPT-4o-mini is not working. Can it work?
 
 
 [ ] Define how to copy images for a shared chat
@@ -235,7 +284,7 @@
 
 [ ] Thinking tokens should be passed as context. Find a common format instead of filtering.
 
-[ ] Code Execution
+[ ] Code Execution ++
 
 [ ] Tooltips are shifted when the sidebar is open
 
@@ -261,59 +310,42 @@
     [ ] Background execution and resuming
     [ ] Use new OpenAI deep research models
 
-[ ] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
-    [ ] There is a branch called `image-edits` with WIP code for this.
-    [ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")
-    [ ] gpt-image-1 is able to interpret input images as context
-    [ ] Move images from artifact to main thread
-
-
-[ ] User Message ++
-    [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
-    [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
-    [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
-    [ ] Retry mechanism should include all info about user submission
-
-[x] Artifacts should use the selected model to generate the document
-
-[ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
-
-[ ] Is last artifact detection in messages is more complex than needed.
 
 [ ] Durable streams
     [x] Create a message-continues data part and call resume from the frontend
     [ ] Restore from the branch named `background-tasks`
     [ ] Fix tree Provider with resumed messages
 
+[x] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
+    [x] There is a branch called `image-edits` with WIP code for this.
+    [x] gpt-image-1 is able to interpret input images as context
+    [x] Move images from artifact to main thread
 
-[ ] Assistant Message ++
-    [ ] Retry message should offer you options for selecting a new model. Update the `RetryButton` and set a new model in the metadata of the parent message.
-    [ ] Tools selected for the generation of a message should be saved as part of the metadata so that they are used again in the retry
+[ ] Pass messages to the create-document tools (Stashed as "pass contextForLLM to document handlers")
+
+[x] Artifacts should use the selected model to generate the document
+
+[ ] Get rid of deleteTrailingMessagesAsync or allow message deletion
+
+[ ] "Is last artifact" detection in messages is more complex than needed.
 
 [ ] Threads
-    [ ] A chat request with parentMessageId, should return a stream that indicats whats the parentMesssageId for that request
+    [ ] A chat request with parentMessageId, should return a stream that indicates whats the parentMesssageId for that request
     [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
     [ ] Artifacts should belong to the current thread
     [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 
-[ ] Optimize the MessageTreeProvider with a messageMap in a reference
-
-[ ] MultiModalInput
-    [ ] Migrate to Lexical (there is a background agent with part of the work)
-    [ ] Use rich format for links
-    [ ] Selected model should be part of the Chat-input-context
-    [ ] Chat bottom row should not update on type
-    [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
 
 [ ] Copy code button is too close to language / filename top header
 
-[ ] Retry Assistant message with a new model
-    [ ] Model selected needs to be part of the message **info**
-    [ ] Model needs to be part of the request data
-    [ ] Current model that generated the message should be detailed in the message actions (like t3)
+[x] Message Assistant with model info
+    [x] Model selected needs to be part of the message **info**
+    [x] Model needs to be part of the request data
+    [x] Current model that generated the message should be detailed in the message actions (like t3)
 
-[ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
-[ ] Dont scroll to bottom when switching branches
+
+[ ] Don't scroll to bottom when switching branches
+
 [x] Optimize the Model Selector component
     [x] with lazy loading 
     [x] With memoization
@@ -330,14 +362,7 @@
 
 [ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.
 
-[ ] Extended messages
-    [ ] Each user message should save the selected model, data, etc.
-    [ ] Each assistant message should save the model used to generate it
 
-[ ] Reactive updates
-    [ ] Build a stor fore Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
-    [ ] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
-    [ ] Optimization: The message streaming re-renders the whole message conversation / chat
 
 [x] When unauthed, the cookie should switch to default model if not in the free models
 [x] Chat action buttons make smaller, remove borders
@@ -346,13 +371,12 @@
 [ ] Change Sparka Google Oauth to Sparka AI
 
 [ ] Code
-    [ ] Extend code editing and syntax hihglighting to typescript
+    [ ] Extend code editing and syntax highlighting to typescript
     [ ] Add run support for JavaScript / TypeSCript
 
 [x] Image generation
     [x] Improve the tool description to make it more clear that it's an image generation tool
 
-[ ] Perf optimization: On getQuery cache subscription, update the tree. Keep the message tree in a reference
 
 
 [x] Create a menu in the assistant message actions to retry (creating a new branch)
@@ -361,6 +385,8 @@
 [ ] BYOK (Bring Your Own Key)
 
 [ ] MCP Support
+
+[ ] MCP-UI
 
 [ ] Chat sharing
     [x] Artifacts sharing
@@ -372,7 +398,6 @@
 [ ] The useDeleteChat hook should use trpc, and have an optimistic mutation
 [ ] Should generate title be on user message or on assistant message? At the moment it's on user for anonymous and on assistant for authenticated
 
-[ ] More Gemini models
 
 [x] Demo without logging in
    [x] /chat/[id] should load for cookies for unauthenticated users
@@ -382,11 +407,12 @@
    [x] Display remaining messages in the chat, with a sign to login to reset the limit
    [x] Reduce anonymous message limit to 10
    [x] Artifacts handling for anonymous users
+
+
 [ ] Response (errors) from stream route (/api/chat) should be in error stream data format
 
 [ ] Images should be stored in a blob (and not in tool part results)
 
-[ ] Optimize the number of getVotes query calls
 [x] Why does visibility selector takes chat visibility as a prop?
 [x] React Query Prefetch for the selected route
 [ ] React Query Prefetch for the selected route with SSR
@@ -400,13 +426,11 @@
 [ ] Deep research should have a step in which it decides if the question can be answered or it should continue researching.
 [ ] Unify Deep research and reasonSearch
 [ ] Add manus-like plan as a document
-[ ] Security: User should only be able to see their own chats.
-[ ] Migrate routes to TRPC (and use it in the frontend)
-[ ] Organize authorization as a layer at the beggining of each trpc procedure
+[ ] Security: Verify that anonymous users can't see other users chats.
+    [ ] Organize authorization as a layer at the beginning of each trpc procedure
+[x] Migrate routes to TRPC (and use it in the frontend)
 
-[ ] Cleanup up the providers.ts file
-[ ] Refactor Model, providers, modelCosts so that it's easier to add new models
-[ ] Propagate model selection to deep research (and create new selectables for them)
+
 [ ] Save file uploads in Blob with non-public access
 [ ] Deleting a chat should delete all the images and PDFs uploaded to blobs
 [ ] Create a layer to coordinate queries (db related) and other funcions (e.g. blob deletion)
@@ -426,9 +450,7 @@
 [x] Only render last document as preview, others as pill
 [ ] Migrate to tailwind 4 (and migrate container queries)
 
-[ ] Reduce number of re-renders (memoization)
 [ ] Open canvas button on navbar like chatgpt
-[ ] Open canvas button like chatgpt
 
 
 ### System
@@ -440,14 +462,14 @@
 [ ] Chat Branching
     [ ] Chat should be forkable (even shared ones)
 
-[ ] Add more providers (Google, Deepseek, etc)
+[ ] Add more providers (Deepseek, etc)
 
-[ ] Implement credit budget handling to disalbe tools that can't be on each step by using prepareStep from AI SDK 5
+[ ] Implement credit budget handling to disable tools that can't be on each step by using prepareStep from AI SDK 5
 [ ] Fix broken CI workflows
 [ ] Long running jobs
     [ ] Restore deep research for reasoning models once we can go longer than 1m in request time.
 [ ] Offer model variants without reasoning (for the ones that can be run with or without reasoning)
-[ ] Optiomize all-models by only using allImplementedModels. Needs to propagate discriminated unions typing correctly
+[ ] Optimize all-models by only using allImplementedModels. Needs to propagate discriminated unions typing correctly
 [ ] Model definitions need more flexibility (or model variants). E.g. google provider have different tiers size, reasoning, etc
 
 [ ] Migrate to Biome 2.0

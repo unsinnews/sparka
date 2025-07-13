@@ -20,9 +20,9 @@ export type DataPart = { type: 'append-message'; message: string };
 
 export const messageMetadataSchema = z.object({
   createdAt: z.date(),
-  isPartial: z.boolean().optional(),
   parentMessageId: z.string().nullable(),
-  selectedModel: z.string().nullable(),
+  selectedModel: z.string(),
+  isPartial: z.boolean().optional(),
 });
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;

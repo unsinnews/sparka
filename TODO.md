@@ -180,59 +180,49 @@
     [x] move mutation to use-chat-store and create support for anonymous users
     [x] Do an optimistic update for the pinned chats
 
-[ ] Usage improvements
+[x] Usage improvements
     [x] Move login to a more visibile place (like chatgpt). Leave previous place for the CTA
-    [ ] Replace input / ouput token pricing in model cards with credit pricing
-    [ ] Protectiong for going over token context
     [x] More space between buttons in multimodal input (hard to click on mobile)
-    [ ] Define a credits price model
-
-[ ] Cleanup Redis client / server
-
-
+    
 
 [x] AI SDK 5 migration
 
 [x] Bug: How do I enter on mobile? Enter is sumbit. Maybe we should do ctrl+enter for submit
 [x] Bug: Mobile sidebar is collapsed view (when opened)
 [x] Bug: Image model shouldnt be on model selector
-[ ] External Store for messages (and setMessages)
-    [ ] Update all the way so that only the message being streamed is updated
 [ ] Do we want optional props on the metadata?
-[ ] All sendMessage operations should have metadata
+[x] All sendMessage operations should have metadata
 [x] Bug: A message sent in a thread, gets appended with null parent 
 
-[ ] Move getLastMessageId to the chatStore
+[x] Move getLastMessageId to the chatStore
 
 
-[ ] Models
-    [ ] Grok 4 -- add to models
-    [ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
-    [ ] More Gemini models
+[ ] Grok 4 -- add to models
+
+[ ] Optimize the number of getVotes query calls
+
+[ ] Higher maximum height on lexical editor (lexical-chat-input.tsx)
 
 
-[ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
-
-[ ] Chat Request input
-    [ ] Create a schema for chat request body
-    [ ] Data should be renamed to selectedTool and it should have all fields as optional
-
-[ ] Add pinned messages to prefetch
+[ ] Tokens
+    [ ] Replace input / ouput token pricing in model cards with credit pricing
+    [ ] Protecting against going over token context
+    [ ] Define a credits price model
 
 [ ] Performance Optimizations
     [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
     [ ] Don't update context input with multimodal. Only obtain text on send 
     [x] Optimize the MessageTreeProvider with a messageMap in a reference
     [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
-
-
-[ ] Reactive updates
+    [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
+    [ ] Use store correctly so that only the message being streamed is updated
     [ ] Build a store for Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
     [ ] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
     [ ] Optimization: The message streaming re-renders the whole message conversation / chat
 
-[ ] Higher maximum height on lexical editor (lexical-chat-input.tsx)
 
+
+## Backlog
 
 [ ] User Message ++
     [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
@@ -240,11 +230,19 @@
     [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
     [ ] Retry mechanism should include all info about user submission
 
-[ ] Optimize the number of getVotes query calls
+[ ] Replace Metadata "isPartial" with a more robust `data-` stream state (or checking if the message has part `finish`)
 
+[ ] Add pinned messages to prefetch
 
-## The line
+[ ] Cleanup Redis client / server
 
+[ ] Chat Request input
+    [ ] Create a schema for chat request body
+    [ ] Data selectedTools should only have 1 ? or it should have all fields as optional
+
+[ ] Models
+    [ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
+    [ ] More Gemini models
 
 [ ] Assistant Message ++
     [ ] Retry message should offer you options for selecting a new model. Update the `RetryButton` and set a new model in the metadata of the parent message.

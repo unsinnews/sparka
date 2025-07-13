@@ -89,6 +89,8 @@ export function Chat({
     });
   }, [id, saveChatMessage, setDataStream, isAuthenticated]);
 
+  const isLoading = id !== chatStore.getState().id;
+
   const { messages, status, stop, resumeStream, sendMessage, regenerate } =
     useChat<ChatMessage>({
       // @ts-expect-error #private property required but not really
@@ -105,7 +107,8 @@ export function Chat({
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),
-    enabled: messages.length >= 2 && !isReadonly && !!session?.user,
+    enabled:
+      messages.length >= 2 && !isReadonly && !!session?.user && !isLoading,
   });
 
   const { state } = useSidebar();

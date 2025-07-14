@@ -233,27 +233,9 @@ function PureMultimodalInput({
       },
     });
 
-    // // In edit mode, trim messages to the parent message
-    // if (isEditMode) {
-    //   if (parentMessageId === null) {
-    //     // If no parent, clear all messages
-    //     setMessages([message]);
-    //   } else {
-    //     // Find the parent message and trim to that point
-    //     const currentMessages = chatStore.getState().messages;
-    //     const parentIndex = currentMessages.findIndex(
-    //       (msg) => msg.id === parentMessageId,
-    //     );
-    //     if (parentIndex !== -1) {
-    //       // Keep messages up to and including the parent
-    //       const messagesUpToParent = currentMessages.slice(0, parentIndex + 1);
-    //       setMessages([...messagesUpToParent, message]);
-    //     }
-    //   }
-    // }
-
     clearAttachments();
     if (!isEditMode) {
+      console.log('clearing input');
       clearInput();
     }
     resetData();

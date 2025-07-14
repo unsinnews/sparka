@@ -1,7 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { $getRoot, type EditorState, type LexicalEditor } from 'lexical';
+import {
+  $createParagraphNode,
+  $createTextNode,
+  $getRoot,
+  type EditorState,
+  type LexicalEditor,
+} from 'lexical';
 import {
   LexicalComposer,
   type InitialConfigType,
@@ -115,6 +121,26 @@ export const LexicalChatInput = React.forwardRef<
       }),
       [editor],
     );
+
+    // Handle value changes from parent
+    React.useEffect(() => {
+      if (editor && value !== undefined) {
+        editor.update(() => {
+          const root = $getRoot();
+          const currentText = root.getTextContent();
+
+          if (currentText !== value) {
+            root.clear();
+            const paragraph = $createParagraphNode();
+            if (value) {
+              const textNode = $createTextNode(value);
+              paragraph.append(textNode);
+            }
+            root.append(paragraph);
+          }
+        });
+      }
+    }, [editor, value]);
 
     const PlaceholderComponent = React.useCallback(
       () => (

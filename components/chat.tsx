@@ -2,7 +2,7 @@
 import { useChat } from './custom-use-chat';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
-import { cn, generateUUID } from '@/lib/utils';
+import { cn, generateUUID, fetchWithErrorHandlers } from '@/lib/utils';
 import { Artifact } from './artifact';
 import { MultimodalInput } from './multimodal-input';
 import { Messages } from './messages';
@@ -20,7 +20,6 @@ import { useDataStream } from './data-stream-provider';
 import { ZustandChat, chatState, chatStore } from '@/lib/stores/chat-store';
 import { useEffect, useMemo } from 'react';
 import { DefaultChatTransport } from 'ai';
-import { fetchWithErrorHandlers } from '@/lib/utils';
 
 function useRecreateChat(id: string, initialMessages: Array<ChatMessage>) {
   useEffect(() => {
@@ -47,6 +46,8 @@ export function Chat({
 
   useRecreateChat(id, initialMessages);
 
+  const isAuthenticated = !!session?.user;
+
   const chat = useMemo(() => {
     console.log('renewing chat');
     return new ZustandChat<ChatMessage>({
@@ -71,6 +72,7 @@ export function Chat({
             body: {
               id,
               message: messages.at(-1),
+              prevMessages: isAuthenticated ? [] : messages.slice(0, -1),
               ...body,
             },
           };
@@ -85,7 +87,7 @@ export function Chat({
         toast.error(error.message ?? 'An error occured, please try again!');
       },
     });
-  }, [id, saveChatMessage, setDataStream]);
+  }, [id, saveChatMessage, setDataStream, isAuthenticated]);
 
   const { messages, status, stop, resumeStream, sendMessage, regenerate } =
     useChat<ChatMessage>({

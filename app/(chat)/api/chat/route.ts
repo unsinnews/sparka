@@ -140,10 +140,12 @@ export async function POST(request: NextRequest) {
     const {
       id: chatId,
       message: userMessage,
+      prevMessages: anonymousPreviousMessages,
       data,
     }: {
       id: string;
       message: ChatMessage;
+      prevMessages: ChatMessage[];
       data: ChatRequestData;
     } = await request.json();
 
@@ -391,8 +393,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const dbMessages = await getAllMessagesByChatId({ chatId });
-    const messages = dbMessages.map(dbMessageToChatMessage);
+    const messages = isAnonymous
+      ? [...anonymousPreviousMessages, userMessage]
+      : (await getAllMessagesByChatId({ chatId })).map(dbMessageToChatMessage);
 
     // Filter out reasoning parts to ensure compatibility between different models
     const messagesWithoutReasoning = filterReasoningParts(messages.slice(-5));

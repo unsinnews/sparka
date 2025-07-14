@@ -26,36 +26,62 @@ import { ImageModal } from './image-modal';
 import { GeneratedImage } from './generated-image';
 import type { ChatMessage } from '@/lib/ai/types';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { chatStore, useChatId, useMessageById } from '@/lib/stores/chat-store';
+
+// Helper function to check if this is the last artifact
+const isLastArtifact = (
+  messages: any[],
+  currentToolCallId: string,
+): boolean => {
+  let lastArtifact: {
+    messageIndex: number;
+    toolCallId: string;
+  } | null = null;
+
+  // This logic mirrors findLastArtifact from lib/utils
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    if (message.role === 'assistant') {
+      for (const part of (message as any).parts) {
+        if (
+          (part.type === 'tool-createDocument' ||
+            part.type === 'tool-updateDocument' ||
+            part.type === 'tool-deepResearch') &&
+          part.state === 'output-available'
+        ) {
+          lastArtifact = {
+            messageIndex: i,
+            toolCallId: part.toolCallId,
+          };
+          break;
+        }
+      }
+      if (lastArtifact) break;
+    }
+  }
+
+  return lastArtifact?.toolCallId === currentToolCallId;
+};
 
 interface BaseMessageProps {
-  chatId: string;
-  message: ChatMessage;
+  messageId: string;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadonly: boolean;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-  lastArtifact: { messageIndex: number; toolCallId: string } | null;
   parentMessageId: string | null;
 }
 
 const PureUserMessage = ({
-  chatId,
-  message,
+  messageId,
   vote,
   isLoading,
   isReadonly,
   sendMessage,
   parentMessageId,
-}: Pick<
-  BaseMessageProps,
-  | 'chatId'
-  | 'message'
-  | 'vote'
-  | 'isLoading'
-  | 'isReadonly'
-  | 'sendMessage'
-  | 'parentMessageId'
->) => {
+}: BaseMessageProps) => {
+  const chatId = useChatId();
+  const message = useMessageById(messageId);
   const [mode, setMode] = useState<'view' | 'edit'>('view');
   const [imageModal, setImageModal] = useState<{
     isOpen: boolean;
@@ -83,13 +109,14 @@ const PureUserMessage = ({
     });
   };
 
+  if (!message) return null;
   const textPart = message.parts.find((part) => part.type === 'text');
-  if (!textPart) return null;
+  if (!textPart || !chatId) return null;
 
   return (
     <div
       className={cn(
-        'w-full',
+        'w-full flex flex-col items-end',
         mode === 'edit'
           ? 'max-w-full'
           : 'group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:w-fit',
@@ -156,15 +183,18 @@ const PureUserMessage = ({
           </div>
         )}
 
-        <MessageActions
-          key={`action-${message.id}`}
-          chatId={chatId}
-          message={message}
-          vote={vote}
-          isLoading={isLoading}
-          isReadOnly={isReadonly}
-          sendMessage={sendMessage}
-        />
+        <div className="self-end">
+          <MessageActions
+            key={`action-${message.id}`}
+            chatId={chatId}
+            messageId={message.id}
+            role={message.role}
+            vote={vote}
+            isLoading={isLoading}
+            isReadOnly={isReadonly}
+            sendMessage={sendMessage}
+          />
+        </div>
       </div>
       <ImageModal
         isOpen={imageModal.isOpen}
@@ -177,9 +207,7 @@ const PureUserMessage = ({
 };
 
 const UserMessage = memo(PureUserMessage, (prevProps, nextProps) => {
-  if (prevProps.chatId !== nextProps.chatId) return false;
-  if (prevProps.message.id !== nextProps.message.id) return false;
-  if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
+  if (prevProps.messageId !== nextProps.messageId) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
   if (prevProps.sendMessage !== nextProps.sendMessage) return false;
   if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
@@ -190,28 +218,16 @@ const UserMessage = memo(PureUserMessage, (prevProps, nextProps) => {
 });
 
 const PureAssistantMessage = ({
-  chatId,
-  message,
+  messageId,
   vote,
   isLoading,
   isReadonly,
   sendMessage,
-  lastArtifact,
-}: Pick<
-  BaseMessageProps,
-  | 'chatId'
-  | 'message'
-  | 'vote'
-  | 'isLoading'
-  | 'isReadonly'
-  | 'sendMessage'
-  | 'lastArtifact'
->) => {
-  // Helper function to check if this is the last artifact
-  const isLastArtifact = (currentToolCallId: string) => {
-    if (!lastArtifact) return false;
-    return lastArtifact.toolCallId === currentToolCallId;
-  };
+}: Omit<BaseMessageProps, 'parentMessageId'>) => {
+  const chatId = useChatId();
+  const message = useMessageById(messageId);
+
+  if (!chatId || !message) return null;
 
   return (
     <div className="w-full">
@@ -290,7 +306,10 @@ const PureAssistantMessage = ({
 
             if (state === 'output-available') {
               const { output, input } = part;
-              const shouldShowFullPreview = isLastArtifact(toolCallId);
+              const shouldShowFullPreview = isLastArtifact(
+                chatStore.getState().messages,
+                toolCallId,
+              );
 
               if ('error' in output) {
                 return (
@@ -345,7 +364,10 @@ const PureAssistantMessage = ({
 
             if (state === 'output-available') {
               const { output, input } = part;
-              const shouldShowFullPreview = isLastArtifact(toolCallId);
+              const shouldShowFullPreview = isLastArtifact(
+                chatStore.getState().messages,
+                toolCallId,
+              );
 
               if ('error' in output) {
                 return (
@@ -544,7 +566,10 @@ const PureAssistantMessage = ({
 
             if (state === 'output-available') {
               const { output, input } = part;
-              const shouldShowFullPreview = isLastArtifact(toolCallId);
+              const shouldShowFullPreview = isLastArtifact(
+                chatStore.getState().messages,
+                toolCallId,
+              );
               if (output.format === 'report') {
                 return (
                   <div key={toolCallId}>
@@ -579,7 +604,8 @@ const PureAssistantMessage = ({
         <MessageActions
           key={`action-${message.id}`}
           chatId={chatId}
-          message={message}
+          messageId={message.id}
+          role={message.role}
           vote={vote}
           isLoading={isLoading}
           isReadOnly={isReadonly}
@@ -591,12 +617,9 @@ const PureAssistantMessage = ({
 };
 
 const AssistantMessage = memo(PureAssistantMessage, (prevProps, nextProps) => {
-  if (prevProps.chatId !== nextProps.chatId) return false;
-  if (prevProps.message.id !== nextProps.message.id) return false;
-  if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
+  if (prevProps.messageId !== nextProps.messageId) return false;
+  if (prevProps.vote !== nextProps.vote) return false;
   if (prevProps.isLoading !== nextProps.isLoading) return false;
-  if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
-  if (!equal(prevProps.vote, nextProps.vote)) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
   if (prevProps.sendMessage !== nextProps.sendMessage) return false;
 
@@ -604,15 +627,16 @@ const AssistantMessage = memo(PureAssistantMessage, (prevProps, nextProps) => {
 });
 
 const PurePreviewMessage = ({
-  chatId,
-  message,
+  messageId,
   vote,
   isLoading,
   isReadonly,
   sendMessage,
-  lastArtifact,
   parentMessageId,
 }: BaseMessageProps) => {
+  const message = useMessageById(messageId);
+  if (!message) return null;
+
   return (
     <AnimatePresence>
       <motion.div
@@ -624,8 +648,7 @@ const PurePreviewMessage = ({
       >
         {message.role === 'user' ? (
           <UserMessage
-            chatId={chatId}
-            message={message}
+            messageId={messageId}
             vote={vote}
             isLoading={isLoading}
             isReadonly={isReadonly}
@@ -634,13 +657,11 @@ const PurePreviewMessage = ({
           />
         ) : (
           <AssistantMessage
-            chatId={chatId}
-            message={message}
+            messageId={messageId}
             vote={vote}
             isLoading={isLoading}
             isReadonly={isReadonly}
             sendMessage={sendMessage}
-            lastArtifact={lastArtifact}
           />
         )}
       </motion.div>
@@ -652,11 +673,9 @@ export const PreviewMessage = memo(
   PurePreviewMessage,
   (prevProps, nextProps) => {
     if (prevProps.isLoading !== nextProps.isLoading) return false;
-    if (prevProps.message.id !== nextProps.message.id) return false;
-    if (!equal(prevProps.message.parts, nextProps.message.parts)) return false;
+    if (prevProps.messageId !== nextProps.messageId) return false;
     if (prevProps.sendMessage !== nextProps.sendMessage) return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
-    if (!equal(prevProps.lastArtifact, nextProps.lastArtifact)) return false;
     if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
 
     return true;

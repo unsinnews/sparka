@@ -305,10 +305,7 @@ function PureArtifact({
 
               <div className="flex flex-col h-full justify-between items-center @container">
                 <ArtifactMessages
-                  chatId={chatId}
-                  status={status}
                   votes={votes}
-                  messages={messages}
                   sendMessage={sendMessage}
                   regenerate={regenerate}
                   isReadonly={isReadonly}

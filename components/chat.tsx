@@ -1,5 +1,5 @@
 'use client';
-import { useChat } from '@ai-sdk/react';
+import { useChat } from './custom-use-chat';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID } from '@/lib/utils';
@@ -18,7 +18,7 @@ import { CloneChatButton } from '@/components/clone-chat-button';
 import type { ChatMessage } from '@/lib/ai/types';
 import { useDataStream } from './data-stream-provider';
 import { ZustandChat, chatState, chatStore } from '@/lib/stores/chat-store';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 function useRecreateChat(id: string, initialMessages: Array<ChatMessage>) {
   useEffect(() => {
@@ -45,28 +45,32 @@ export function Chat({
 
   useRecreateChat(id, initialMessages);
 
-  const chat = new ZustandChat<ChatMessage>({
-    state: chatState,
-    id,
-    messages: initialMessages,
-    // sendExtraMessageFields: true,
-    generateId: generateUUID,
-    onFinish: ({ message }) => {
-      console.log('onFinish message', message);
-      saveChatMessage({
-        message,
-        chatId: id,
-      });
-    },
-    onData: (dataPart) => {
-      console.log('onData', dataPart);
-      setDataStream((ds) => (ds ? [...ds, dataPart] : []));
-    },
-    onError: (error: any) => {
-      console.error(error);
-      toast.error(error.message ?? 'An error occured, please try again!');
-    },
-  });
+  const chat = useMemo(() => {
+    console.log('renewing chat');
+    return new ZustandChat<ChatMessage>({
+      state: chatState,
+
+      id,
+      // messages: initialMessages,
+      // sendExtraMessageFields: true,
+      generateId: generateUUID,
+      onFinish: ({ message }) => {
+        console.log('onFinish message', message);
+        saveChatMessage({
+          message,
+          chatId: id,
+        });
+      },
+      onData: (dataPart) => {
+        console.log('onData', dataPart);
+        setDataStream((ds) => (ds ? [...ds, dataPart] : []));
+      },
+      onError: (error: any) => {
+        console.error(error);
+        toast.error(error.message ?? 'An error occured, please try again!');
+      },
+    });
+  }, [id, saveChatMessage, setDataStream]);
 
   const { messages, status, stop, resumeStream, sendMessage, regenerate } =
     useChat<ChatMessage>({
@@ -106,10 +110,7 @@ export function Chat({
         />
 
         <Messages
-          chatId={id}
           votes={votes}
-          status={status}
-          messages={messages}
           sendMessage={sendMessage}
           regenerate={regenerate}
           isReadonly={isReadonly}

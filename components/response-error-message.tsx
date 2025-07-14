@@ -1,18 +1,13 @@
 import { Button } from './ui/button';
 import { RefreshCcwIcon } from 'lucide-react';
 import { useChatInput } from '@/providers/chat-input-provider';
-import type { ChatMessage } from '@/lib/ai/types';
-import { useSetMessages } from '@/lib/stores/chat-store';
+import { chatStore, useSetMessages } from '@/lib/stores/chat-store';
 
 interface ErrorMessageProps {
   regenerate: (options?: any) => void;
-  messages: Array<ChatMessage>;
 }
 
-export function ResponseErrorMessage({
-  regenerate,
-  messages,
-}: ErrorMessageProps) {
+export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
   const { selectedTools: data, selectedModelId } = useChatInput();
   const setMessages = useSetMessages();
 
@@ -34,12 +29,10 @@ export function ResponseErrorMessage({
       <Button
         onClick={async () => {
           // Remove last message from assistant if exists
-          const newMessages =
-            messages.at(-1)?.role === 'assistant'
-              ? messages.slice(0, -1)
-              : messages;
-
-          setMessages(newMessages);
+          const messagesWithoutLastAssistant = chatStore
+            .getState()
+            .messages.slice(0, -1);
+          setMessages(messagesWithoutLastAssistant);
           regenerate({
             body: {
               data,

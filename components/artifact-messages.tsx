@@ -24,10 +24,12 @@ function areEqual(
   )
     return true;
 
-  if (prevProps.status !== nextProps.status) return false;
-  if (prevProps.status && nextProps.status) return false;
-  if (prevProps.messages.length !== nextProps.messages.length) return false;
+  // Remove the status and messages checks since they're now in the store
   if (!equal(prevProps.votes, nextProps.votes)) return false;
+  if (prevProps.artifactStatus !== nextProps.artifactStatus) return false;
+  if (prevProps.isReadonly !== nextProps.isReadonly) return false;
+  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
+  if (prevProps.regenerate !== nextProps.regenerate) return false;
 
   return true;
 }

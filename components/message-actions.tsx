@@ -21,17 +21,20 @@ import { RetryButton } from './retry-button';
 import { memo } from 'react';
 import equal from 'fast-deep-equal';
 import type { ChatMessage } from '@/lib/ai/types';
+import { chatStore } from '@/lib/stores/chat-store';
 
 export function PureMessageActions({
   chatId,
-  message,
+  messageId,
+  role,
   vote,
   isLoading,
   isReadOnly,
   sendMessage,
 }: {
   chatId: string;
-  message: ChatMessage;
+  messageId: string;
+  role: string;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
@@ -56,7 +59,7 @@ export function PureMessageActions({
   );
 
   // Get sibling info for navigation
-  const siblingInfo = getMessageSiblingInfo(message.id);
+  const siblingInfo = getMessageSiblingInfo(messageId);
   const hasSiblings = siblingInfo && siblingInfo.siblings.length > 1;
 
   if (isLoading) return null;
@@ -71,6 +74,11 @@ export function PureMessageActions({
               size="sm"
               className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
               onClick={async () => {
+                const message = chatStore
+                  .getState()
+                  .messages.find((m) => m.id === messageId);
+                if (!message) return;
+
                 const textFromParts = message.parts
                   ?.filter((part) => part.type === 'text')
                   .map((part) => part.text)
@@ -100,7 +108,7 @@ export function PureMessageActions({
                   variant="ghost"
                   size="sm"
                   className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 px-0"
-                  onClick={() => navigateToSibling(message.id, 'prev')}
+                  onClick={() => navigateToSibling(messageId, 'prev')}
                   disabled={siblingInfo.siblingIndex === 0}
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
@@ -119,7 +127,7 @@ export function PureMessageActions({
                   variant="ghost"
                   size="sm"
                   className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 px-0"
-                  onClick={() => navigateToSibling(message.id, 'next')}
+                  onClick={() => navigateToSibling(messageId, 'next')}
                   disabled={
                     siblingInfo.siblingIndex === siblingInfo.siblings.length - 1
                   }
@@ -132,7 +140,7 @@ export function PureMessageActions({
           </div>
         )}
 
-        {message.role === 'assistant' && !isReadOnly && isAuthenticated && (
+        {role === 'assistant' && !isReadOnly && isAuthenticated && (
           <>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -146,7 +154,7 @@ export function PureMessageActions({
                     toast.promise(
                       voteMessageMutation.mutateAsync({
                         chatId,
-                        messageId: message.id,
+                        messageId: messageId,
                         type: 'up' as const,
                       }),
                       {
@@ -175,7 +183,7 @@ export function PureMessageActions({
                     toast.promise(
                       voteMessageMutation.mutateAsync({
                         chatId,
-                        messageId: message.id,
+                        messageId: messageId,
                         type: 'down' as const,
                       }),
                       {
@@ -194,18 +202,28 @@ export function PureMessageActions({
             {!isReadOnly && sendMessage && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <RetryButton message={message} sendMessage={sendMessage} />
+                  <RetryButton
+                    messageId={messageId}
+                    sendMessage={sendMessage}
+                  />
                 </TooltipTrigger>
                 <TooltipContent>Retry</TooltipContent>
               </Tooltip>
             )}
-            {message.metadata?.selectedModel && (
-              <div className="flex items-center ml-2">
-                <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                  {message.metadata.selectedModel}
-                </span>
-              </div>
-            )}
+            {(() => {
+              const message = chatStore
+                .getState()
+                .messages.find((m) => m.id === messageId);
+              return (
+                message?.metadata?.selectedModel && (
+                  <div className="flex items-center ml-2">
+                    <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                      {message.metadata.selectedModel}
+                    </span>
+                  </div>
+                )
+              );
+            })()}
           </>
         )}
       </div>
@@ -218,7 +236,8 @@ export const MessageActions = memo(
   (prevProps, nextProps) => {
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.chatId !== nextProps.chatId) return false;
-    if (prevProps.message !== nextProps.message) return false;
+    if (prevProps.messageId !== nextProps.messageId) return false;
+    if (prevProps.role !== nextProps.role) return false;
     if (prevProps.vote !== nextProps.vote) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;

@@ -10,10 +10,10 @@ import { useSetMessages, useChatMessages } from '@/lib/stores/chat-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
 
 export function RetryButton({
-  message,
+  messageId,
   sendMessage,
 }: {
-  message: ChatMessage;
+  messageId: string;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const { getParentMessage } = useMessageTree();
@@ -28,7 +28,7 @@ export function RetryButton({
     }
 
     // Get parent message from message tree
-    const parentMessage = getParentMessage(message.id);
+    const parentMessage = getParentMessage(messageId);
 
     if (!parentMessage || parentMessage.role !== 'user') {
       toast.error('Cannot find the user message to retry');
@@ -69,7 +69,7 @@ export function RetryButton({
     data,
     sendMessage,
     getParentMessage,
-    message.id,
+    messageId,
     selectedModelId,
     setMessages,
     chatMessages,

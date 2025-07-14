@@ -8,12 +8,19 @@ import {
   type UIMessage,
 } from 'ai';
 import type { ChatMessage } from '@/lib/ai/types';
+import { throttle } from '@/components/custom-throttle';
 
 interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   id: string | undefined;
   messages: UI_MESSAGE[];
   status: ChatStatus;
   error: Error | undefined;
+
+  // Cached selectors to prevent infinite loops
+  _cachedMessageIds: string[] | null;
+  // Throttled messages cache
+  _throttledMessages: UI_MESSAGE[] | null;
+  _throttledMessagesTimestamp: number;
 
   // Actions
   setId: (id: string | undefined) => void;
@@ -27,54 +34,128 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
 
   // Getters
   getLastMessageId: () => string | null;
+  getMessageIds: () => string[];
+  getThrottledMessages: () => UI_MESSAGE[];
+  getInternalMessages: () => UI_MESSAGE[];
 }
+
+// Throttling configuration
+const MESSAGES_THROTTLE_MS = 100;
 
 // Create the Zustand store
 export function createChatStore<UI_MESSAGE extends UIMessage>(
   initialMessages: UI_MESSAGE[] = [],
 ) {
+  let throttledMessagesUpdater: (() => void) | null = null;
+
   return create<ChatStoreState<UI_MESSAGE>>()(
     devtools(
-      subscribeWithSelector((set, get) => ({
-        id: undefined,
-        messages: initialMessages,
-        status: 'ready',
-        error: undefined,
+      subscribeWithSelector((set, get) => {
+        // Initialize throttled messages updater
+        if (!throttledMessagesUpdater) {
+          throttledMessagesUpdater = throttle(() => {
+            const state = get();
+            set({
+              _throttledMessages: [...state.messages],
+              _throttledMessagesTimestamp: Date.now(),
+            });
+          }, MESSAGES_THROTTLE_MS);
+        }
 
-        setId: (id) => set({ id }),
-        setMessages: (messages) => set({ messages: [...messages] }),
-        setStatus: (status) => set({ status }),
-        setError: (error) => set({ error }),
-        setNewChat: (id, messages) =>
-          set({
-            messages: [...messages],
-            status: 'ready',
-            error: undefined,
-            id,
-          }),
+        return {
+          id: undefined,
+          messages: initialMessages,
+          status: 'ready',
+          error: undefined,
 
-        pushMessage: (message) =>
-          set((state) => ({ messages: [...state.messages, message] })),
+          // Initialize cached values
+          _cachedMessageIds: null,
+          _throttledMessages: [...initialMessages],
+          _throttledMessagesTimestamp: Date.now(),
 
-        popMessage: () =>
-          set((state) => ({ messages: state.messages.slice(0, -1) })),
+          setId: (id) => set({ id }),
+          setMessages: (messages) => {
+            set({
+              messages: [...messages],
+            });
+            throttledMessagesUpdater?.();
+          },
+          setStatus: (status) => set({ status }),
+          setError: (error) => set({ error }),
+          setNewChat: (id, messages) => {
+            set({
+              messages: [...messages],
+              status: 'ready',
+              error: undefined,
+              id,
+            });
+            throttledMessagesUpdater?.();
+          },
 
-        replaceMessage: (index, message) =>
-          set((state) => ({
-            messages: [
-              ...state.messages.slice(0, index),
-              structuredClone(message), // Deep clone for React Compiler compatibility
-              ...state.messages.slice(index + 1),
-            ],
-          })),
+          pushMessage: (message) => {
+            set((state) => ({
+              messages: [...state.messages, message],
+            }));
+            throttledMessagesUpdater?.();
+          },
 
-        getLastMessageId: () => {
-          const state = get();
-          return state.messages.length > 0
-            ? state.messages[state.messages.length - 1].id
-            : null;
-        },
-      })),
+          popMessage: () => {
+            set((state) => ({
+              messages: state.messages.slice(0, -1),
+            }));
+            throttledMessagesUpdater?.();
+          },
+
+          replaceMessage: (index, message) => {
+            set((state) => ({
+              messages: [
+                ...state.messages.slice(0, index),
+                structuredClone(message), // Deep clone for React Compiler compatibility
+                ...state.messages.slice(index + 1),
+              ],
+            }));
+            throttledMessagesUpdater?.();
+          },
+
+          getLastMessageId: () => {
+            const state = get();
+            return state.messages.length > 0
+              ? state.messages[state.messages.length - 1].id
+              : null;
+          },
+
+          getMessageIds: () => {
+            const state = get();
+            const throttledMessages =
+              state._throttledMessages || state.messages;
+            const newMessageIds = throttledMessages.map((msg) => msg.id);
+
+            // Only update cache if IDs actually changed
+            if (
+              state._cachedMessageIds === null ||
+              state._cachedMessageIds.length !== newMessageIds.length ||
+              !state._cachedMessageIds.every(
+                (id, index) => id === newMessageIds[index],
+              )
+            ) {
+              set({ _cachedMessageIds: newMessageIds });
+              return newMessageIds;
+            }
+
+            return state._cachedMessageIds;
+          },
+
+          getThrottledMessages: () => {
+            const state = get();
+            return state._throttledMessages || state.messages;
+          },
+
+          getInternalMessages: () => {
+            const state = get();
+            return state.messages;
+          },
+        };
+      }),
       { name: 'chat-store' },
     ),
   );
@@ -92,9 +173,9 @@ class ZustandChatState<UI_MESSAGE extends UIMessage>
   constructor(store: ReturnType<typeof createChatStore<UI_MESSAGE>>) {
     this.store = store;
 
-    // Subscribe to Zustand store changes and notify React callbacks
+    // Subscribe to throttled messages changes and notify React callbacks
     this.store.subscribe(
-      (state) => state.messages,
+      (state) => state._throttledMessages,
       () => this.messagesCallbacks.forEach((callback) => callback()),
       { equalityFn: (a, b) => a === b },
     );
@@ -153,11 +234,9 @@ class ZustandChatState<UI_MESSAGE extends UIMessage>
     onChange: () => void,
     throttleWaitMs?: number,
   ): (() => void) => {
-    // Note: You could implement throttling here if needed
     const callback = throttleWaitMs
-      ? this.throttle(onChange, throttleWaitMs)
+      ? throttle(onChange, throttleWaitMs)
       : onChange;
-
     this.messagesCallbacks.add(callback);
     return () => {
       this.messagesCallbacks.delete(callback);
@@ -178,19 +257,6 @@ class ZustandChatState<UI_MESSAGE extends UIMessage>
     };
   };
 
-  // Simple throttle implementation
-  private throttle = (func: () => void, wait: number) => {
-    let timeout: NodeJS.Timeout | null = null;
-    return () => {
-      if (!timeout) {
-        timeout = setTimeout(() => {
-          func();
-          timeout = null;
-        }, wait);
-      }
-    };
-  };
-
   // Expose store as public property
   get storeInstance() {
     return this.store;
@@ -202,11 +268,23 @@ export const chatStore = createChatStore<ChatMessage>();
 // Create singleton state instance
 export const chatState = new ZustandChatState(chatStore);
 
-// Selector hooks for cleaner API
-export const useChatMessages = () => chatStore((state) => state.messages);
+// Selector hooks for cleaner API - these use throttled messages
+export const useChatMessages = () =>
+  chatStore((state) => state.getThrottledMessages());
 export const useChatStatus = () => chatStore((state) => state.status);
 export const useChatError = () => chatStore((state) => state.error);
 export const useChatId = () => chatStore((state) => state.id);
+
+export const useMessageIds = () => chatStore((state) => state.getMessageIds());
+
+export const useMessageById = (messageId: string) =>
+  chatStore((state) =>
+    state.getThrottledMessages().find((msg) => msg.id === messageId),
+  );
+
+// Internal messages hook for immediate access (no throttling)
+export const useInternalMessages = () =>
+  chatStore((state) => state.getInternalMessages());
 
 // Action hooks for cleaner API
 export const useChatActions = () =>
@@ -223,10 +301,6 @@ export const useChatActions = () =>
 
 // Convenience hook for just setMessages
 export const useSetMessages = () => chatStore((state) => state.setMessages);
-
-// Convenience hook for lastMessageId
-export const useLastMessageId = () =>
-  chatStore((state) => state.getLastMessageId());
 
 export class ZustandChat<
   UI_MESSAGE extends UIMessage,

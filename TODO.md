@@ -196,6 +196,8 @@
 
 [x] Move getLastMessageId to the chatStore
 
+[ ] The message tree seems not to be getting the correct parent  WTF. RElated to ^
+
 
 [ ] Grok 4 -- add to models
 
@@ -206,7 +208,7 @@
 
 [ ] Tokens
     [ ] Replace input / ouput token pricing in model cards with credit pricing
-    [ ] Protecting against going over token context
+    [ ] Protecting against going ovlearer token context
     [ ] Define a credits price model
 
 [ ] Performance Optimizations

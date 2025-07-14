@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge';
 
 import type { Document } from '@/lib/db/schema';
 import type { Attachment, ChatMessage } from './ai/types';
+import { ChatSDKError, type ErrorCode } from './ai/errors';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -12,6 +13,28 @@ export function cn(...inputs: ClassValue[]) {
 interface ApplicationError extends Error {
   info: string;
   status: number;
+}
+
+export async function fetchWithErrorHandlers(
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) {
+  try {
+    const response = await fetch(input, init);
+
+    if (!response.ok) {
+      const { code, cause } = await response.json();
+      throw new ChatSDKError(code as ErrorCode, cause);
+    }
+
+    return response;
+  } catch (error: unknown) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new ChatSDKError('offline:chat');
+    }
+
+    throw error;
+  }
 }
 
 export function findLastArtifact(

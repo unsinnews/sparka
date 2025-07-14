@@ -49,6 +49,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
 
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
+    // TODO: IS this effect still needed or can it be replaced with a useQuery ?
     if (!effectiveChatId) {
       // New chat
       setAllMessages([]);
@@ -167,7 +168,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
         leaf ? leaf.id : targetSibling.id,
       );
 
-      // Use the cleaner selector hook
       setMessages(newThread);
     },
     [

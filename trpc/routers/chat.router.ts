@@ -37,6 +37,14 @@ import type { ChatMessage } from '@/lib/ai/types';
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
     const chats = await getChatsByUserId({ id: ctx.user.id });
+
+    // Sort chats by pinned status, then by creation date
+    chats.sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
     return chats.map(dbChatToUIChat);
   }),
 

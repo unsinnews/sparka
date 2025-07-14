@@ -17,7 +17,7 @@ export function RetryButton({
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const { getParentMessage } = useMessageTree();
-  const { selectedModelId, selectedTools: data } = useChatInput();
+  const { selectedTools: data } = useChatInput();
   const setMessages = useSetMessages();
   const chatMessages = useChatMessages();
 
@@ -46,14 +46,14 @@ export function RetryButton({
     setMessages(chatMessages.slice(0, parentMessageIdx));
 
     // Resend the parent user message
-    // TODO: This should obtain data from the parent message
+    // TODO: This should obtain selectedTools from the parent message
     sendMessage(
       {
         ...parentMessage,
         metadata: {
           ...parentMessage.metadata,
           createdAt: parentMessage.metadata?.createdAt || new Date(),
-          selectedModel: selectedModelId,
+          selectedModel: parentMessage.metadata?.selectedModel || '',
           parentMessageId: parentMessage.metadata?.parentMessageId || null,
         },
       },
@@ -70,7 +70,6 @@ export function RetryButton({
     sendMessage,
     getParentMessage,
     messageId,
-    selectedModelId,
     setMessages,
     chatMessages,
   ]);

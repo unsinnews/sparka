@@ -138,7 +138,6 @@ export function Chat({
               chatId={id}
               status={status}
               stop={stop}
-              messages={messages}
               sendMessage={sendMessage}
               parentMessageId={chatStore.getState().getLastMessageId()}
             />

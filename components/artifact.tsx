@@ -319,7 +319,6 @@ function PureArtifact({
                       chatId={chatId}
                       status={status}
                       stop={stop}
-                      messages={messages}
                       sendMessage={sendMessage}
                       className="bg-transparent border-none shadow-none px-0"
                       isEditMode={isReadonly}

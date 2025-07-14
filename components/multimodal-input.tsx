@@ -8,7 +8,11 @@ import { useWindowSize } from 'usehooks-ts';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'motion/react';
 import { useSession } from 'next-auth/react';
-import { chatStore, useSetMessages } from '@/lib/stores/chat-store';
+import {
+  chatStore,
+  useSetMessages,
+  useMessageIds,
+} from '@/lib/stores/chat-store';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
 import { AttachmentList } from './attachment-list';
@@ -43,7 +47,6 @@ function PureMultimodalInput({
   chatId,
   status,
   stop,
-  messages,
   sendMessage,
   className,
   isEditMode = false,
@@ -52,7 +55,6 @@ function PureMultimodalInput({
   chatId: string;
   status: UseChatHelpers<ChatMessage>['status'];
   stop: () => void;
-  messages: Array<ChatMessage>;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   isEditMode?: boolean;
@@ -64,6 +66,7 @@ function PureMultimodalInput({
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const setMessages = useSetMessages();
+  const messageIds = useMessageIds();
 
   // Detect mobile devices
   const isMobile = width ? width <= 768 : false;
@@ -452,7 +455,7 @@ function PureMultimodalInput({
 
   return (
     <div className="relative w-full flex flex-col gap-4">
-      {messages.length === 0 &&
+      {messageIds.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 &&
         !isEditMode && (
@@ -703,9 +706,6 @@ export const MultimodalInput = memo(
     if (prevProps.isEditMode !== nextProps.isEditMode) return false;
     if (prevProps.chatId !== nextProps.chatId) return false;
     if (prevProps.className !== nextProps.className) return false;
-
-    // Messages comparison - only check length and last message for performance
-    if (prevProps.messages.length !== nextProps.messages.length) return false;
 
     return true;
   },

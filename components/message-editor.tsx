@@ -75,7 +75,6 @@ function MessageEditorContent({
         chatId={chatId}
         status={isSubmitting ? 'submitted' : 'ready'}
         stop={() => setIsSubmitting(false)}
-        messages={[]}
         sendMessage={handleAppend}
         isEditMode={true}
         parentMessageId={parentMessageId}

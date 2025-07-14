@@ -24,7 +24,6 @@ function areEqual(
   )
     return true;
 
-  // Remove the status and messages checks since they're now in the store
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (prevProps.artifactStatus !== nextProps.artifactStatus) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;

@@ -2,7 +2,7 @@ import {
   finalizeCreditsUsage,
   releaseReservedCredits,
 } from '@/lib/repositories/credits';
-import { reserveCredits } from '@/lib/credits/credits-utils';
+import { reserveCredits } from './reserveCredits';
 
 export class CreditReservation {
   private userId: string;

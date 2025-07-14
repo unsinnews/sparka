@@ -190,28 +190,19 @@
 [x] Bug: How do I enter on mobile? Enter is sumbit. Maybe we should do ctrl+enter for submit
 [x] Bug: Mobile sidebar is collapsed view (when opened)
 [x] Bug: Image model shouldnt be on model selector
-[ ] Do we want optional props on the metadata?
 [x] All sendMessage operations should have metadata
 [x] Bug: A message sent in a thread, gets appended with null parent 
 
 [x] Move getLastMessageId to the chatStore
 
-[ ] The message tree seems not to be getting the correct parent  WTF. RElated to ^
+[x] The message tree seems not to be getting the correct parent  WTF. RElated to ^
 
 
 [ ] Grok 4 -- add to models
 
 [x] Optimize the number of getVotes query calls
 
-[ ] Lexical editor doesn't show the cursor when the text is empty
-
-[ ] The streaming tokens are not showed in the UI?
-    [ ] renders too
-
-[ ] Tokens
-    [ ] Replace input / ouput token pricing in model cards with credit pricing
-    [ ] Protecting against going ovlearer token context
-    [ ] Define a credits price model
+[x] Lexical editor doesn't show the cursor when the text is empty
 
 [ ] Performance Optimizations
     [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
@@ -223,8 +214,12 @@
     [ ] Build a store for Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
     [ ] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
     [ ] Optimization: The message streaming re-renders the whole message conversation / chat
+    [ ] Lexical editor should hold the input state, no need to replicate it in the chat input provider. We can hold the lexical editor ref in the chat input provider.
 
+[ ] Do we want optional props on the metadata?
 
+[ ] Tokens
+    [ ] Protecting against going over token context
 
 ## Backlog
 
@@ -235,6 +230,11 @@
     [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
     [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
     [ ] Retry mechanism should include all info about user submission
+
+    
+[ ] Create a settings page
+    [ ] Define a credits price model
+    [ ] Show usage (like cursor)
 
 [ ] Replace Metadata "isPartial" with a more robust `data-` stream state (or checking if the message has part `finish`)
 

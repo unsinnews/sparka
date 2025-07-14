@@ -19,11 +19,12 @@ import {
 } from '@/lib/db/queries';
 import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
-import { getTools, toolsDefinitions, allTools } from '@/lib/ai/tools/tools';
+import { getTools } from '@/lib/ai/tools/tools';
+import { toolsDefinitions, allTools } from '@/lib/ai/tools/tools-definitions';
 import type { NextRequest } from 'next/server';
 import {
   filterAffordableTools,
-  getBaseModelCost,
+  getBaseModelCostByModelId,
 } from '@/lib/credits/credits-utils';
 import { getLanguageModel, getModelProviderOptions } from '@/lib/ai/providers';
 import {
@@ -332,7 +333,7 @@ export async function POST(request: NextRequest) {
     else if (writeOrCode)
       explicitlyRequestedTools = ['createDocument', 'updateDocument'];
 
-    const baseModelCost = getBaseModelCost(selectedModelId);
+    const baseModelCost = getBaseModelCostByModelId(selectedModelId);
 
     let reservation: CreditReservation | null = null;
 

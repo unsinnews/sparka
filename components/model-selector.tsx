@@ -7,6 +7,7 @@ import {
   useState,
   memo,
   type ComponentProps,
+  useCallback,
 } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
@@ -216,9 +217,9 @@ export function PureModelSelector({
     [featureFilters],
   );
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setFeatureFilters(initialFilters);
-  };
+  }, []);
 
   // Only render the expensive popover content when it's open
   const popoverContent = useMemo(() => {

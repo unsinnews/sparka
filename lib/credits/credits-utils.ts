@@ -1,10 +1,10 @@
 import {
   getModelDefinition,
   type AvailableProviderModels,
+  type ModelDefinition,
 } from '../ai/all-models';
-import { toolsDefinitions, allTools } from '../ai/tools/tools';
+import { toolsDefinitions } from '../ai/tools/tools-definitions';
 import type { ToolNames } from '../ai/types';
-import { reserveAvailableCredits } from '../repositories/credits';
 
 export function filterAffordableTools(
   tools: ToolNames[],
@@ -24,56 +24,12 @@ export function getMaxToolCost(tools: ToolNames[]): number {
   }, 0);
 }
 
-export async function reserveCredits({
-  userId,
-  baseModelCost,
-  maxSteps = 5,
-}: {
-  userId: string;
-  baseModelCost: number;
-  maxSteps?: number;
-}): Promise<
-  | {
-      success: true;
-      budget: number;
-    }
-  | {
-      success: false;
-      error: string;
-    }
-> {
-  const maxToolCost = getMaxToolCost(allTools);
-  const totalBudget = baseModelCost + maxToolCost * maxSteps;
-
-  const reservation = await reserveAvailableCredits({
-    userId,
-    maxAmount: totalBudget,
-    minAmount: baseModelCost,
-  });
-
-  if (!reservation.success) {
-    return {
-      success: false,
-      error: reservation.error,
-    };
-  }
-
-  if (reservation.reservedAmount < baseModelCost) {
-    return {
-      success: false,
-      error: 'Insufficient credits for the selected model',
-    };
-  }
-  return {
-    success: true,
-    budget: reservation.reservedAmount,
-  };
-}
-
-export function getBaseModelCost(modelId: AvailableProviderModels) {
+export function getBaseModelCostByModelId(modelId: AvailableProviderModels) {
   const model = getModelDefinition(modelId);
-
-  if (!model?.pricing) {
+  return getBaseModelCost(model);
+}
+export function getBaseModelCost(model: ModelDefinition) {
+  if (!model.pricing) {
     return 10; // fallback for models without pricing
   }
 

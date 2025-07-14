@@ -518,10 +518,11 @@ function PureMultimodalInput({
             </ChatInputTopRow>
           </motion.div>
 
-          <ScrollArea className="max-h-[70vh]">
+          <ScrollArea className="max-h-[50vh]">
             <ChatInputTextArea
               data-testid="multimodal-input"
               ref={textareaRef}
+              className="min-h-[80px]"
               placeholder={
                 isMobile
                   ? 'Send a message... (Ctrl+Enter to send)'

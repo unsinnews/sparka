@@ -44,9 +44,12 @@ export function Chat({
 
   const { setDataStream } = useDataStream();
 
+  // Workaround to act as `shouldRecreateChat` functionality in the `useChat` hook
+  // If the id is different from the stored id, reset the chat with new messages
   useRecreateChat(id, initialMessages);
 
   const isAuthenticated = !!session?.user;
+  const isLoading = id !== chatStore.getState().id;
 
   const chat = useMemo(() => {
     console.log('renewing chat');
@@ -88,8 +91,6 @@ export function Chat({
       },
     });
   }, [id, saveChatMessage, setDataStream, isAuthenticated]);
-
-  const isLoading = id !== chatStore.getState().id;
 
   const { messages, status, stop, resumeStream, sendMessage, regenerate } =
     useChat<ChatMessage>({

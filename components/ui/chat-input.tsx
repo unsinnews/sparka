@@ -38,33 +38,11 @@ ChatInputTopRow.displayName = 'ChatInputTopRow';
 
 const ChatInputTextArea = React.forwardRef<
   ChatInputTextAreaRef,
-  React.ComponentProps<typeof LexicalChatInput> & {
-    maxRows?: number;
-  }
->(({ className, maxRows = 12, ...props }, ref) => {
+  React.ComponentProps<typeof LexicalChatInput>
+>(({ className, ...props }, ref) => {
   const lexicalRef = React.useRef<LexicalChatInputRef>(null);
 
-  React.useImperativeHandle(
-    ref,
-    () => ({
-      focus: () => {
-        lexicalRef.current?.focus();
-      },
-    }),
-    [],
-  );
-
-  return (
-    <LexicalChatInput
-      ref={lexicalRef}
-      className={cn(
-        'flex min-h-[60px] items-start pl-1 w-full resize-none border-0 bg-transparent p-2 focus-visible:ring-0 shadow-none outline-none overflow-auto',
-        className,
-      )}
-      maxRows={maxRows}
-      {...props}
-    />
-  );
+  return <LexicalChatInput ref={lexicalRef} className={className} {...props} />;
 });
 ChatInputTextArea.displayName = 'ChatInputTextArea';
 

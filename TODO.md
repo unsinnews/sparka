@@ -201,10 +201,12 @@
 
 [ ] Grok 4 -- add to models
 
-[ ] Optimize the number of getVotes query calls
+[x] Optimize the number of getVotes query calls
 
-[ ] Higher maximum height on lexical editor (lexical-chat-input.tsx)
+[ ] Lexical editor doesn't show the cursor when the text is empty
 
+[ ] The streaming tokens are not showed in the UI?
+    [ ] renders too
 
 [ ] Tokens
     [ ] Replace input / ouput token pricing in model cards with credit pricing
@@ -225,6 +227,8 @@
 
 
 ## Backlog
+
+[ ] Higher maximum height on lexical editor (lexical-chat-input.tsx)
 
 [ ] User Message ++
     [ ] The user message should just be MultiModalInput with "view" mode (or non editing)

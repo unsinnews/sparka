@@ -15,8 +15,9 @@ import {
   saveMessage,
   updateMessage,
   getMessageById,
+  getAllMessagesByChatId,
 } from '@/lib/db/queries';
-import { generateUUID, getMostRecentUserMessage } from '@/lib/utils';
+import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
 import { getTools, toolsDefinitions, allTools } from '@/lib/ai/tools/tools';
 import type { NextRequest } from 'next/server';
@@ -46,6 +47,7 @@ import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
+import { dbMessageToChatMessage } from '@/lib/message-conversion';
 
 function filterReasoningParts<T extends { parts: any[] }>(messages: T[]): T[] {
   return messages.map((message) => ({
@@ -137,15 +139,13 @@ export async function POST(request: NextRequest) {
   try {
     const {
       id: chatId,
-      messages,
+      message: userMessage,
       data,
     }: {
       id: string;
-      messages: Array<ChatMessage>;
+      message: ChatMessage;
       data: ChatRequestData;
     } = await request.json();
-
-    const userMessage = getMostRecentUserMessage(messages);
 
     if (!userMessage) {
       console.log('RESPONSE > POST /api/chat: No user message found');
@@ -390,6 +390,9 @@ export async function POST(request: NextRequest) {
         text: `(I want to use ${explicitlyRequestedTools.join(', or ')})`,
       });
     }
+
+    const dbMessages = await getAllMessagesByChatId({ chatId });
+    const messages = dbMessages.map(dbMessageToChatMessage);
 
     // Filter out reasoning parts to ensure compatibility between different models
     const messagesWithoutReasoning = filterReasoningParts(messages.slice(-5));

@@ -19,6 +19,8 @@ import type { ChatMessage } from '@/lib/ai/types';
 import { useDataStream } from './data-stream-provider';
 import { ZustandChat, chatState, chatStore } from '@/lib/stores/chat-store';
 import { useEffect, useMemo } from 'react';
+import { DefaultChatTransport } from 'ai';
+import { fetchWithErrorHandlers } from '@/lib/utils';
 
 function useRecreateChat(id: string, initialMessages: Array<ChatMessage>) {
   useEffect(() => {
@@ -61,6 +63,19 @@ export function Chat({
           chatId: id,
         });
       },
+      transport: new DefaultChatTransport({
+        api: '/api/chat',
+        fetch: fetchWithErrorHandlers,
+        prepareSendMessagesRequest({ messages, id, body }) {
+          return {
+            body: {
+              id,
+              message: messages.at(-1),
+              ...body,
+            },
+          };
+        },
+      }),
       onData: (dataPart) => {
         console.log('onData', dataPart);
         setDataStream((ds) => (ds ? [...ds, dataPart] : []));

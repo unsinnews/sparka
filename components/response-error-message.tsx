@@ -1,6 +1,5 @@
 import { Button } from './ui/button';
 import { RefreshCcwIcon } from 'lucide-react';
-import { useChatInput } from '@/providers/chat-input-provider';
 import { chatStore, useSetMessages } from '@/lib/stores/chat-store';
 
 interface ErrorMessageProps {
@@ -8,7 +7,6 @@ interface ErrorMessageProps {
 }
 
 export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
-  const { selectedTools: data, selectedModelId } = useChatInput();
   const setMessages = useSetMessages();
 
   return (
@@ -33,11 +31,7 @@ export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
             .getState()
             .messages.slice(0, -1);
           setMessages(messagesWithoutLastAssistant);
-          regenerate({
-            body: {
-              data,
-            },
-          });
+          regenerate();
         }}
         variant="outline"
         className=" "

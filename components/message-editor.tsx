@@ -92,13 +92,13 @@ export function MessageEditor(
 
   // Use selectedModel from the message metadata, or fall back to current selected model
   const messageSelectedModel = props.message.metadata?.selectedModel;
-
   const { parentMessageId, ...rest } = props;
   return (
     <ChatInputProvider
       key={`edit-${props.message.id}`}
       initialInput={initialInput}
       initialAttachments={initialAttachments}
+      initialTool={props.message.metadata?.selectedTool}
       localStorageEnabled={false}
       overrideModelId={messageSelectedModel || undefined}
     >

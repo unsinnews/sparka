@@ -18,11 +18,40 @@ import type { ResearchUpdate } from './tools/research-updates-schema';
 
 export type DataPart = { type: 'append-message'; message: string };
 
+export const toolNameSchema = z.enum([
+  'getWeather',
+  'createDocument',
+  'updateDocument',
+  'requestSuggestions',
+  'readDocument',
+  'retrieve',
+  'webSearch',
+  'stockChart',
+  'codeInterpreter',
+  'generateImage',
+  'deepResearch',
+]);
+
+const _ = toolNameSchema.options satisfies ToolName[];
+
+type ToolNameInternal = z.infer<typeof toolNameSchema>;
+
+export const frontendToolsSchema = z.enum([
+  'webSearch',
+  'deepResearch',
+  'generateImage',
+  'createDocument',
+]);
+
+const __ = frontendToolsSchema.options satisfies ToolNameInternal[];
+
+export type UiToolName = z.infer<typeof frontendToolsSchema>;
 export const messageMetadataSchema = z.object({
   createdAt: z.date(),
   parentMessageId: z.string().nullable(),
   selectedModel: z.string(),
   isPartial: z.boolean().optional(),
+  selectedTool: frontendToolsSchema.optional(),
 });
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
@@ -78,7 +107,7 @@ export type ChatMessage = Omit<
   metadata: MessageMetadata;
 };
 
-export type ToolNames = keyof ChatTools;
+export type ToolName = keyof ChatTools;
 
 export type StreamWriter = UIMessageStreamWriter<ChatMessage>;
 

@@ -66,9 +66,3 @@ export function getTools({
     deepResearch: deepResearch({ session, dataStream, messageId }),
   };
 }
-
-export type ToolDefinition = {
-  name: string;
-  description: string;
-  cost: number;
-};

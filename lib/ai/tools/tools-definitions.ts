@@ -1,7 +1,6 @@
-import type { ToolNames } from '../types';
-import type { ToolDefinition } from './tools';
+import { toolNameSchema, type ToolName } from '../types';
 
-export const toolsDefinitions: Record<ToolNames, ToolDefinition> = {
+export const toolsDefinitions: Record<ToolName, ToolDefinition> = {
   getWeather: {
     name: 'getWeather',
     description: 'Get the weather in a specific location',
@@ -64,6 +63,9 @@ export const toolsDefinitions: Record<ToolNames, ToolDefinition> = {
   },
 };
 
-export const allTools: ToolNames[] = Object.keys(
-  toolsDefinitions,
-) as ToolNames[];
+export const allTools = toolNameSchema.options;
+export type ToolDefinition = {
+  name: string;
+  description: string;
+  cost: number;
+};

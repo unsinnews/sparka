@@ -36,7 +36,7 @@ import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from 'resumable-stream';
-import type { ChatMessage, ToolNames } from '@/lib/ai/types';
+import type { ChatMessage, ToolName } from '@/lib/ai/types';
 
 import { after } from 'next/server';
 import {
@@ -49,6 +49,7 @@ import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 import { dbMessageToChatMessage } from '@/lib/message-conversion';
+import { buildThreadFromLeaf } from '@/lib/thread-utils';
 
 function filterReasoningParts<T extends { parts: any[] }>(messages: T[]): T[] {
   return messages.map((message) => ({
@@ -125,29 +126,16 @@ export function getRedisPublisher() {
   return redisPublisher;
 }
 
-export type ChatRequestToolsConfig = {
-  deepResearch: boolean;
-  reason: boolean;
-  webSearch: boolean;
-  generateImage: boolean;
-  writeOrCode: boolean;
-};
-export type ChatRequestData = ChatRequestToolsConfig & {
-  parentMessageId: string | null;
-};
-
 export async function POST(request: NextRequest) {
   try {
     const {
       id: chatId,
       message: userMessage,
       prevMessages: anonymousPreviousMessages,
-      data,
     }: {
       id: string;
       message: ChatMessage;
       prevMessages: ChatMessage[];
-      data: ChatRequestData;
     } = await request.json();
 
     if (!userMessage) {
@@ -258,12 +246,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const deepResearch = data.deepResearch;
-    const webSearch = data.webSearch;
-    const reason = data.reason;
-    const generateImage = data.generateImage;
-    const writeOrCode = data.writeOrCode;
-
+    // Extract selectedTool from user message metadata
+    const selectedTool = userMessage.metadata.selectedTool || null;
+    console.log('RESPONSE > POST /api/chat: selectedTool', selectedTool);
     let modelDefinition: ModelDefinition;
     try {
       modelDefinition = getModelDefinition(selectedModelId);
@@ -320,17 +305,21 @@ export async function POST(request: NextRequest) {
             isPartial: false,
             parentMessageId: userMessage.metadata?.parentMessageId || null,
             selectedModel: selectedModelId,
+            selectedTool: selectedTool,
           },
         });
       }
     }
 
-    let explicitlyRequestedTools: ToolNames[] | null = null;
-    if (deepResearch) explicitlyRequestedTools = ['deepResearch'];
-    // else if (reason) explicitlyRequestedTool = 'reasonSearch';
-    else if (webSearch) explicitlyRequestedTools = ['webSearch'];
-    else if (generateImage) explicitlyRequestedTools = ['generateImage'];
-    else if (writeOrCode)
+    let explicitlyRequestedTools: ToolName[] | null = null;
+    if (selectedTool === 'deepResearch')
+      explicitlyRequestedTools = ['deepResearch'];
+    // else if (selectedTool === 'reason') explicitlyRequestedTool = 'reasonSearch';
+    else if (selectedTool === 'webSearch')
+      explicitlyRequestedTools = ['webSearch'];
+    else if (selectedTool === 'generateImage')
+      explicitlyRequestedTools = ['generateImage'];
+    else if (selectedTool === 'createDocument')
       explicitlyRequestedTools = ['createDocument', 'updateDocument'];
 
     const baseModelCost = getBaseModelCostByModelId(selectedModelId);
@@ -358,7 +347,7 @@ export async function POST(request: NextRequest) {
       await setAnonymousSession(anonymousSession);
     }
 
-    const activeTools = filterAffordableTools(
+    let activeTools = filterAffordableTools(
       isAnonymous ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS : allTools,
       isAnonymous
         ? ANONYMOUS_LIMITS.CREDITS
@@ -386,17 +375,27 @@ export async function POST(request: NextRequest) {
       explicitlyRequestedTools &&
       explicitlyRequestedTools.length > 0
     ) {
+      console.log(
+        'Setting explicitly requested tools',
+        explicitlyRequestedTools,
+      );
+      activeTools = explicitlyRequestedTools;
       // Add context of user selection to the user message
       // TODO: Consider doing this in the system prompt instead
       userMessage.parts.push({
         type: 'text',
-        text: `(I want to use ${explicitlyRequestedTools.join(', or ')})`,
+        text: `I want to use the tools ${explicitlyRequestedTools.join(', or ')})`,
       });
     }
 
-    const messages = isAnonymous
-      ? [...anonymousPreviousMessages, userMessage]
-      : (await getAllMessagesByChatId({ chatId })).map(dbMessageToChatMessage);
+    const messageThreadToParent = isAnonymous
+      ? anonymousPreviousMessages
+      : await getThreadUpToMessageId(
+          chatId,
+          userMessage.metadata.parentMessageId,
+        );
+
+    const messages = [...messageThreadToParent, userMessage].slice(-5);
 
     // Filter out reasoning parts to ensure compatibility between different models
     const messagesWithoutReasoning = filterReasoningParts(messages.slice(-5));
@@ -469,6 +468,7 @@ export async function POST(request: NextRequest) {
             isPartial: true,
             parentMessageId: userMessage.id,
             selectedModel: selectedModelId,
+            selectedTool: null,
           },
         });
       }
@@ -559,7 +559,7 @@ export async function POST(request: NextRequest) {
 
                   const toolDef =
                     toolsDefinitions[
-                      toolResult.type.replace('tool-', '') as ToolNames
+                      toolResult.type.replace('tool-', '') as ToolName
                     ];
 
                   if (!toolDef) {
@@ -591,6 +591,7 @@ export async function POST(request: NextRequest) {
                     isPartial: false,
                     parentMessageId: userMessage.id,
                     selectedModel: selectedModelId,
+                    selectedTool: null,
                   },
                 });
               }
@@ -686,6 +687,21 @@ export async function POST(request: NextRequest) {
       status: 404,
     });
   }
+}
+
+async function getThreadUpToMessageId(
+  chatId: string,
+  messageId: string | null,
+) {
+  if (!messageId) {
+    return [];
+  }
+
+  const messages = (await getAllMessagesByChatId({ chatId })).map(
+    dbMessageToChatMessage,
+  );
+
+  return buildThreadFromLeaf(messages, messageId);
 }
 
 export async function DELETE(request: Request) {

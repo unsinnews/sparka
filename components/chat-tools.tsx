@@ -10,18 +10,18 @@ import {
 } from './ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
 import { getModelDefinition } from '@/lib/ai/all-models';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { toolDefinitions, enabledTools } from './chat-features-definitions';
+import type { UiToolName } from '@/lib/ai/types';
 
 export function ResponsiveTools({
   tools,
   setTools,
   selectedModelId,
 }: {
-  tools: ChatRequestToolsConfig;
-  setTools: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
+  tools: UiToolName | null;
+  setTools: Dispatch<SetStateAction<UiToolName | null>>;
   selectedModelId: string;
 }) {
   const { data: session } = useSession();
@@ -37,9 +37,9 @@ export function ResponsiveTools({
     }
   })();
 
-  const activeTool = enabledTools.find((key) => tools[key]);
+  const activeTool = tools;
 
-  const setTool = (tool: (typeof enabledTools)[number] | null) => {
+  const setTool = (tool: UiToolName | null) => {
     if (tool === 'deepResearch' && hasReasoningModel) {
       return;
     }
@@ -49,15 +49,7 @@ export function ResponsiveTools({
       return;
     }
 
-    const newToolState = enabledTools.reduce(
-      (acc, key) => {
-        acc[key] = key === tool;
-        return acc;
-      },
-      {} as Record<(typeof enabledTools)[number], boolean>,
-    );
-
-    setTools((prev) => ({ ...prev, ...newToolState }));
+    setTools(tool);
   };
 
   return (
@@ -108,14 +100,16 @@ export function ResponsiveTools({
                   key={key}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setTool(tools[key] ? null : key);
+                    setTool(tools === key ? null : key);
                   }}
                   className="flex items-center gap-2"
                   disabled={isDisabled}
                 >
                   <Icon size={14} />
                   <span>{tool.name}</span>
-                  {tools[key] && <span className="text-xs opacity-70">✓</span>}
+                  {tools === key && (
+                    <span className="text-xs opacity-70">✓</span>
+                  )}
                   {isDisabled && (
                     <span className="text-xs opacity-60">
                       (for non-reasoning models)

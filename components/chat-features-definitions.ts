@@ -1,18 +1,11 @@
+import type { ToolName, UiToolName } from '@/lib/ai/types';
 import {
   GlobeIcon,
   Telescope,
-  Lightbulb,
   type LucideIcon,
   Images,
   Edit3,
 } from 'lucide-react';
-
-export type ToolName =
-  | 'webSearch'
-  | 'deepResearch'
-  | 'reason'
-  | 'generateImage'
-  | 'writeOrCode';
 
 export interface ToolDefinition {
   name: string;
@@ -21,7 +14,7 @@ export interface ToolDefinition {
   key: ToolName;
 }
 
-export const toolDefinitions: Record<ToolName, ToolDefinition> = {
+export const toolDefinitions: Record<UiToolName, ToolDefinition> = {
   webSearch: {
     key: 'webSearch',
     name: 'Web Search',
@@ -34,29 +27,23 @@ export const toolDefinitions: Record<ToolName, ToolDefinition> = {
     description: 'Get comprehensive analysis with citations.',
     icon: Telescope,
   },
-  reason: {
-    key: 'reason',
-    name: 'Reasoning',
-    description: 'Get step-by-step logical analysis.',
-    icon: Lightbulb,
-  },
   generateImage: {
     key: 'generateImage',
     name: 'Create an image',
     description: 'Generate images from text descriptions.',
     icon: Images,
   },
-  writeOrCode: {
-    key: 'writeOrCode',
+  createDocument: {
+    key: 'createDocument',
     name: 'Write or code',
     description: 'Create documents, code, or run code in a sandbox.',
     icon: Edit3,
   },
 };
 
-export const enabledTools: ToolName[] = [
+export const enabledTools: UiToolName[] = [
   'webSearch',
   'deepResearch',
   'generateImage',
-  'writeOrCode',
+  'createDocument',
 ];

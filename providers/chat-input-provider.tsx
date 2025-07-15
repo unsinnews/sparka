@@ -9,8 +9,7 @@ import React, {
   type Dispatch,
   type SetStateAction,
 } from 'react';
-import type { Attachment } from '@/lib/ai/types';
-import type { ChatRequestToolsConfig } from '@/app/(chat)/api/chat/route';
+import type { Attachment, UiToolName } from '@/lib/ai/types';
 import { useLocalStorage } from 'usehooks-ts';
 import { useDefaultModel, useModelChange } from './default-model-provider';
 import { getModelDefinition } from '@/lib/ai/all-models';
@@ -18,8 +17,8 @@ import { getModelDefinition } from '@/lib/ai/all-models';
 interface ChatInputContextType {
   input: string;
   setInput: Dispatch<SetStateAction<string>>;
-  selectedTools: ChatRequestToolsConfig;
-  setSelectedTools: Dispatch<SetStateAction<ChatRequestToolsConfig>>;
+  selectedTool: UiToolName | null;
+  setSelectedTool: Dispatch<SetStateAction<UiToolName | null>>;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   selectedModelId: string;
@@ -36,7 +35,7 @@ const ChatInputContext = createContext<ChatInputContextType | undefined>(
 interface ChatInputProviderProps {
   children: ReactNode;
   initialInput?: string;
-  initialData?: ChatRequestToolsConfig;
+  initialTool?: UiToolName | null;
   initialAttachments?: Array<Attachment>;
   overrideModelId?: string; // For message editing where we want to use the original model
   localStorageEnabled?: boolean;
@@ -45,13 +44,7 @@ interface ChatInputProviderProps {
 export function ChatInputProvider({
   children,
   initialInput = '',
-  initialData = {
-    deepResearch: false,
-    webSearch: false,
-    reason: false,
-    generateImage: false,
-    writeOrCode: false,
-  },
+  initialTool = null,
   initialAttachments = [],
   overrideModelId,
   localStorageEnabled = true,
@@ -75,8 +68,9 @@ export function ChatInputProvider({
     return initialInput || localStorageInput;
   });
 
-  const [selectedTools, setSelectedTools] =
-    useState<ChatRequestToolsConfig>(initialData);
+  const [selectedTool, setSelectedTool] = useState<UiToolName | null>(
+    initialTool,
+  );
   const [attachments, setAttachments] =
     useState<Array<Attachment>>(initialAttachments);
 
@@ -98,12 +92,9 @@ export function ChatInputProvider({
       const modelDef = getModelDefinition(modelId as any);
       const hasReasoning = modelDef.features?.reasoning === true;
 
-      // If switching to a reasoning model and deep research is enabled, disable it
-      if (hasReasoning && selectedTools.deepResearch) {
-        setSelectedTools((prev) => ({
-          ...prev,
-          deepResearch: false,
-        }));
+      // If switching to a reasoning model and deep research is selected, disable it
+      if (hasReasoning && selectedTool === 'deepResearch') {
+        setSelectedTool(null);
       }
 
       // Update local state immediately
@@ -112,7 +103,7 @@ export function ChatInputProvider({
       // Update global default model (which handles cookie persistence)
       await changeModel(modelId as any);
     },
-    [selectedTools.deepResearch, setSelectedTools, changeModel],
+    [selectedTool, setSelectedTool, changeModel],
   );
 
   const clearInput = useCallback(() => {
@@ -123,8 +114,8 @@ export function ChatInputProvider({
   }, [setLocalStorageInput, localStorageEnabled]);
 
   const resetData = useCallback(() => {
-    setSelectedTools(initialData);
-  }, [initialData]);
+    setSelectedTool(initialTool);
+  }, [initialTool]);
 
   const clearAttachments = useCallback(() => {
     setAttachments([]);
@@ -135,8 +126,8 @@ export function ChatInputProvider({
       value={{
         input,
         setInput,
-        selectedTools: selectedTools,
-        setSelectedTools: setSelectedTools,
+        selectedTool,
+        setSelectedTool,
         attachments,
         setAttachments,
         selectedModelId,

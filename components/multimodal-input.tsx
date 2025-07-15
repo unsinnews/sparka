@@ -73,8 +73,8 @@ function PureMultimodalInput({
   const {
     input,
     setInput,
-    selectedTools,
-    setSelectedTools,
+    selectedTool,
+    setSelectedTool,
     attachments,
     setAttachments,
     selectedModelId,
@@ -218,6 +218,7 @@ function PureMultimodalInput({
         createdAt: new Date(),
         parentMessageId: effectiveParentMessageId,
         selectedModel: selectedModelId,
+        selectedTool: selectedTool || undefined,
       },
       role: 'user',
     };
@@ -227,11 +228,7 @@ function PureMultimodalInput({
       chatId,
     });
 
-    sendMessage(message, {
-      body: {
-        data: selectedTools,
-      },
-    });
+    sendMessage(message);
 
     clearAttachments();
     if (!isEditMode) {
@@ -253,7 +250,7 @@ function PureMultimodalInput({
     width,
     chatId,
     setChatId,
-    selectedTools,
+    selectedTool,
     isEditMode,
     input,
     saveChatMessage,
@@ -551,8 +548,8 @@ function PureMultimodalInput({
                 onModelChange={handleModelChange}
               />
               <ResponsiveTools
-                tools={selectedTools}
-                setTools={setSelectedTools}
+                tools={selectedTool}
+                setTools={setSelectedTool}
                 selectedModelId={selectedModelId}
               />
             </div>

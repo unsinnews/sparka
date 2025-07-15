@@ -203,6 +203,7 @@
 [x] Optimize the number of getVotes query calls
 
 [x] Lexical editor doesn't show the cursor when the text is empty
+[x] Higher maximum height on lexical editor (lexical-chat-input.tsx)
 
 [ ] Performance Optimizations
     [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
@@ -216,14 +217,17 @@
     [ ] Optimization: The message streaming re-renders the whole message conversation / chat
     [ ] Lexical editor should hold the input state, no need to replicate it in the chat input provider. We can hold the lexical editor ref in the chat input provider.
 
-[ ] Do we want optional props on the metadata?
+[ ] Lexical editor submit on enter sometimes adds the enter to the message
+
 
 [ ] Tokens
     [ ] Protecting against going over token context
 
 ## Backlog
 
-[ ] Higher maximum height on lexical editor (lexical-chat-input.tsx)
+
+[ ] Do we want optional props on the metadata?
+[ ] Cleanup tool definitions type architecture (ToolName, UiToolName, ToolNameInternal, getTools, ChatTools)
 
 [ ] User Message ++
     [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
@@ -244,7 +248,7 @@
 
 [ ] Chat Request input
     [ ] Create a schema for chat request body
-    [ ] Data selectedTools should only have 1 ? or it should have all fields as optional
+    [x] Data selectedTools should only have 1
 
 [ ] Models
     [ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)

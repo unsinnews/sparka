@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 
 import { Button } from './ui/button';
 import { useMessageTree } from '@/providers/message-tree-provider';
-import { useChatInput } from '@/providers/chat-input-provider';
 import type { ChatMessage } from '@/lib/ai/types';
 import { useSetMessages, useChatMessages } from '@/lib/stores/chat-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
@@ -17,7 +16,6 @@ export function RetryButton({
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const { getParentMessage } = useMessageTree();
-  const { selectedTools: data } = useChatInput();
   const setMessages = useSetMessages();
   const chatMessages = useChatMessages();
 
@@ -46,7 +44,6 @@ export function RetryButton({
     setMessages(chatMessages.slice(0, parentMessageIdx));
 
     // Resend the parent user message
-    // TODO: This should obtain selectedTools from the parent message
     sendMessage(
       {
         ...parentMessage,
@@ -57,22 +54,11 @@ export function RetryButton({
           parentMessageId: parentMessage.metadata?.parentMessageId || null,
         },
       },
-      {
-        body: {
-          data,
-        },
-      },
+      {},
     );
 
     toast.success('Retrying message...');
-  }, [
-    data,
-    sendMessage,
-    getParentMessage,
-    messageId,
-    setMessages,
-    chatMessages,
-  ]);
+  }, [sendMessage, getParentMessage, messageId, setMessages, chatMessages]);
 
   return (
     <Button

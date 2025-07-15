@@ -1,6 +1,6 @@
 import type { UIChat } from '@/lib/types/uiChat';
 import type { DBMessage } from '@/lib/db/schema';
-import type { ChatMessage } from './ai/types';
+import type { ChatMessage, UiToolName } from './ai/types';
 
 // Helper functions for type conversion
 export function dbChatToUIChat(chat: {
@@ -31,6 +31,7 @@ export function dbMessageToChatMessage(message: DBMessage): ChatMessage {
       isPartial: message.isPartial,
       parentMessageId: message.parentMessageId,
       selectedModel: message.selectedModel || '',
+      selectedTool: (message.selectedTool as UiToolName | null) || undefined,
     },
   };
 }
@@ -54,5 +55,6 @@ export function chatMessageToDbMessage(
     isPartial: isPartial,
     parentMessageId: parentMessageId,
     selectedModel: selectedModel,
+    selectedTool: message.metadata?.selectedTool || null,
   };
 }

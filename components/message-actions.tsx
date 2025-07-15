@@ -238,7 +238,6 @@ export const MessageActions = memo(
     if (prevProps.chatId !== nextProps.chatId) return false;
     if (prevProps.messageId !== nextProps.messageId) return false;
     if (prevProps.role !== nextProps.role) return false;
-    if (prevProps.vote !== nextProps.vote) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
     if (prevProps.sendMessage !== nextProps.sendMessage) return false;

@@ -207,14 +207,13 @@
 
 [ ] Performance Optimizations
     [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
-    [ ] Don't update context input with multimodal. Only obtain text on send 
     [x] Optimize the MessageTreeProvider with a messageMap in a reference
     [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
     [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
     [ ] Use store correctly so that only the message being streamed is updated
     [ ] Build a store for Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
-    [ ] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
-    [ ] Optimization: The message streaming re-renders the whole message conversation / chat
+    [x] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
+    [x] Optimization: The message streaming re-renders the whole message conversation / chat
     [ ] Lexical editor should hold the input state, no need to replicate it in the chat input provider. We can hold the lexical editor ref in the chat input provider.
 
 [ ] Lexical editor submit on enter sometimes adds the enter to the message
@@ -235,7 +234,7 @@
     [ ] The user message should just be MultiModalInput with "view" mode (or non editing)
     [ ] Pasted links in the prompt should have rich formatting (in both multimodal input and user message)
     [ ] Clicking on an attached image (in multimodal input or in message view) should expand the image in a modal 
-    [ ] Retry mechanism should include all info about user submission
+    [x] Retry mechanism should include all info about user submission
 
     
 [ ] Create a settings page

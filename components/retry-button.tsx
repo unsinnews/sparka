@@ -3,9 +3,8 @@ import { RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from './ui/button';
-import { useMessageTree } from '@/providers/message-tree-provider';
 import type { ChatMessage } from '@/lib/ai/types';
-import { useSetMessages, useChatMessages } from '@/lib/stores/chat-store';
+import { useSetMessages, chatStore } from '@/lib/stores/chat-store';
 import type { UseChatHelpers } from '@ai-sdk/react';
 
 export function RetryButton({
@@ -15,9 +14,7 @@ export function RetryButton({
   messageId: string;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
-  const { getParentMessage } = useMessageTree();
   const setMessages = useSetMessages();
-  const chatMessages = useChatMessages();
 
   const handleRetry = useCallback(() => {
     if (!sendMessage) {
@@ -25,23 +22,18 @@ export function RetryButton({
       return;
     }
 
-    // Get parent message from message tree
-    const parentMessage = getParentMessage(messageId);
-
-    if (!parentMessage || parentMessage.role !== 'user') {
-      toast.error('Cannot find the user message to retry');
-      return;
-    }
-
     // Find the parent message index in store messages for slicing
-    const parentMessageIdx = chatMessages.findIndex(
+    const currentMessages = chatStore.getState().messages;
+    const parentMessageIdx = currentMessages.findIndex(
       (msg) => msg.id === parentMessage.id,
     );
     if (parentMessageIdx === -1) {
       toast.error('Cannot find the user message to retry');
       return;
     }
-    setMessages(chatMessages.slice(0, parentMessageIdx));
+
+    const parentMessage = currentMessages[parentMessageIdx];
+    setMessages(currentMessages.slice(0, parentMessageIdx));
 
     // Resend the parent user message
     sendMessage(
@@ -58,7 +50,7 @@ export function RetryButton({
     );
 
     toast.success('Retrying message...');
-  }, [sendMessage, getParentMessage, messageId, setMessages, chatMessages]);
+  }, [sendMessage, messageId, setMessages]);
 
   return (
     <Button

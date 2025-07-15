@@ -26,7 +26,6 @@ interface MessageSiblingInfo {
 interface MessageTreeContextType {
   getMessageSiblingInfo: (messageId: string) => MessageSiblingInfo | null;
   navigateToSibling: (messageId: string, direction: 'prev' | 'next') => void;
-  getParentMessage: (messageId: string) => ChatMessage | null;
 }
 
 const MessageTreeContext = createContext<MessageTreeContextType | undefined>(
@@ -179,28 +178,12 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     ],
   );
 
-  const getParentMessage = useCallback(
-    (messageId: string): ChatMessage | null => {
-      if (!allMessages) return null;
-      const message = allMessages.find((m) => m.id === messageId);
-      if (!message) return null;
-
-      const parentId = message.metadata?.parentMessageId || null;
-      if (!parentId) return null;
-
-      const parentMessage = allMessages.find((m) => m.id === parentId);
-      return parentMessage ?? null;
-    },
-    [allMessages],
-  );
-
   const value = useMemo(
     () => ({
       getMessageSiblingInfo,
       navigateToSibling,
-      getParentMessage,
     }),
-    [getMessageSiblingInfo, navigateToSibling, getParentMessage],
+    [getMessageSiblingInfo, navigateToSibling],
   );
 
   return (

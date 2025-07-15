@@ -16,7 +16,6 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
   useSidebar,
@@ -121,6 +120,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               to="/"
               onClick={() => {
                 setOpenMobile(false);
+                refreshChatID();
+                navigate('/');
               }}
               className="flex flex-row gap-2 items-center"
             >
@@ -138,20 +139,20 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           </div>
 
           <SidebarMenuItem className="mt-4">
-            <SidebarMenuButton
+            <Link
+              to="/"
               onClick={() => {
                 setOpenMobile(false);
                 refreshChatID();
-                navigate('/');
               }}
-              className="w-full justify-start"
+              className="flex items-center gap-2 w-full justify-start px-2 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
             >
               <PlusIcon />
               <span>New Chat</span>
               <span className="ml-auto text-xs text-muted-foreground">
                 {shortcutText}
               </span>
-            </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
 
           <SidebarMenuItem>

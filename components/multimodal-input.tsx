@@ -511,19 +511,13 @@ function PureMultimodalInput({
               onChange={handleInput}
               autoFocus
               onPaste={handlePaste}
-              onKeyDown={(event) => {
+              onEnterSubmit={(event) => {
                 // Different key combinations for mobile vs desktop
                 const shouldSubmit = isMobile
-                  ? event.key === 'Enter' &&
-                    event.ctrlKey &&
-                    !event.nativeEvent.isComposing
-                  : event.key === 'Enter' &&
-                    !event.shiftKey &&
-                    !event.nativeEvent.isComposing;
+                  ? event.ctrlKey && !event.isComposing
+                  : !event.shiftKey && !event.isComposing;
 
                 if (shouldSubmit) {
-                  event.preventDefault();
-
                   if (status !== 'ready' && status !== 'error') {
                     toast.error(
                       'Please wait for the model to finish its response!',
@@ -535,7 +529,10 @@ function PureMultimodalInput({
                   } else {
                     submitForm();
                   }
+                  return true; // Prevent default Enter behavior
                 }
+
+                return false; // Allow default behavior (e.g., Shift+Enter for new line)
               }}
             />
           </ScrollArea>

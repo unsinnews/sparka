@@ -7,6 +7,8 @@ import {
   $getRoot,
   type EditorState,
   type LexicalEditor,
+  COMMAND_PRIORITY_HIGH,
+  KEY_ENTER_COMMAND,
 } from 'lexical';
 import {
   LexicalComposer,
@@ -19,6 +21,36 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { cn } from '@/lib/utils';
+
+// Plugin to handle Enter key submissions
+function EnterKeySubmitPlugin({
+  onEnterSubmit,
+}: {
+  onEnterSubmit?: (event: KeyboardEvent) => boolean;
+}) {
+  const [editor] = useLexicalComposerContext();
+
+  React.useEffect(() => {
+    return editor.registerCommand(
+      KEY_ENTER_COMMAND,
+      (event: KeyboardEvent) => {
+        // Call the custom handler if provided
+        if (onEnterSubmit) {
+          const handled = onEnterSubmit(event);
+          if (handled) {
+            // Prevent default Enter behavior (adding newline)
+            return true;
+          }
+        }
+        // Allow default behavior for non-submit cases (Shift+Enter, etc.)
+        return false;
+      },
+      COMMAND_PRIORITY_HIGH,
+    );
+  }, [editor, onEnterSubmit]);
+
+  return null;
+}
 
 // Plugin to get editor instance for imperative ref
 function EditorRefPlugin({
@@ -43,6 +75,7 @@ interface LexicalChatInputProps {
   onChange?: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   onPaste?: (event: React.ClipboardEvent<HTMLDivElement>) => void;
+  onEnterSubmit?: (event: KeyboardEvent) => boolean;
   placeholder?: string;
   autoFocus?: boolean;
   className?: string;
@@ -72,6 +105,7 @@ export const LexicalChatInput = React.forwardRef<
       onChange,
       onKeyDown,
       onPaste,
+      onEnterSubmit,
       placeholder = 'Type a message...',
       autoFocus = false,
       className,
@@ -183,6 +217,7 @@ export const LexicalChatInput = React.forwardRef<
           <HistoryPlugin />
           {/* {autoFocus && <AutoFocusPlugin />} */}
           <EditorRefPlugin setEditor={setEditor} />
+          <EnterKeySubmitPlugin onEnterSubmit={onEnterSubmit} />
         </div>
       </LexicalComposer>
     );

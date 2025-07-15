@@ -223,6 +223,8 @@
 [ ] Tokens
     [ ] Protecting against going over token context
 
+[ ] On store setup new chat, the artifact should also be cleared (artifact should be in the chat store)
+
 ## Backlog
 
 

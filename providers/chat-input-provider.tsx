@@ -8,15 +8,15 @@ import React, {
   type ReactNode,
   type Dispatch,
   type SetStateAction,
+  useRef,
 } from 'react';
 import type { Attachment, UiToolName } from '@/lib/ai/types';
-import { useLocalStorage } from 'usehooks-ts';
 import { useDefaultModel, useModelChange } from './default-model-provider';
 import { getModelDefinition } from '@/lib/ai/all-models';
+import type { LexicalChatInputRef } from '@/components/ui/lexical-chat-input';
 
 interface ChatInputContextType {
-  input: string;
-  setInput: Dispatch<SetStateAction<string>>;
+  editorRef: React.RefObject<LexicalChatInputRef>;
   selectedTool: UiToolName | null;
   setSelectedTool: Dispatch<SetStateAction<UiToolName | null>>;
   attachments: Array<Attachment>;
@@ -26,6 +26,9 @@ interface ChatInputContextType {
   clearInput: () => void;
   resetData: () => void;
   clearAttachments: () => void;
+  getInputValue: () => string;
+  handleInputChange: (value: string) => void;
+  getInitialInput: () => string;
 }
 
 const ChatInputContext = createContext<ChatInputContextType | undefined>(
@@ -49,9 +52,29 @@ export function ChatInputProvider({
   overrideModelId,
   localStorageEnabled = true,
 }: ChatInputProviderProps) {
-  const [localStorageInput, setLocalStorageInput] = useLocalStorage<string>(
-    'input',
-    '',
+  // Helper functions for localStorage access without state
+  const getLocalStorageInput = useCallback(() => {
+    if (!localStorageEnabled) return '';
+    try {
+      return localStorage.getItem('input') || '';
+    } catch {
+      return '';
+    }
+  }, [localStorageEnabled]);
+
+  const setLocalStorageInput = useCallback(
+    (value: string) => {
+      if (!localStorageEnabled) return;
+      // Defer localStorage operation to avoid blocking caller
+      queueMicrotask(() => {
+        try {
+          localStorage.setItem('input', value);
+        } catch {
+          // Silently fail if localStorage is not available
+        }
+      });
+    },
+    [localStorageEnabled],
   );
 
   const defaultModel = useDefaultModel();
@@ -62,30 +85,20 @@ export function ChatInputProvider({
     overrideModelId || defaultModel,
   );
 
-  // Use localStorage value if enabled and no initial input provided, otherwise use initialInput
-  const [input, setInputState] = useState(() => {
-    if (!localStorageEnabled) return initialInput;
-    return initialInput || localStorageInput;
-  });
-
   const [selectedTool, setSelectedTool] = useState<UiToolName | null>(
     initialTool,
   );
   const [attachments, setAttachments] =
     useState<Array<Attachment>>(initialAttachments);
 
-  const setInput = useCallback(
-    (value: SetStateAction<string>) => {
-      const newValue = typeof value === 'function' ? value(input) : value;
-      setInputState(newValue);
+  // Create ref for lexical editor
+  const editorRef = useRef<LexicalChatInputRef>(null);
 
-      // Only update localStorage if enabled
-      if (localStorageEnabled) {
-        setLocalStorageInput(newValue);
-      }
-    },
-    [input, setLocalStorageInput, localStorageEnabled],
-  );
+  // Get the initial input value from localStorage if enabled and no initial input provided
+  const getInitialInput = useCallback(() => {
+    if (!localStorageEnabled) return initialInput;
+    return initialInput || getLocalStorageInput();
+  }, [initialInput, getLocalStorageInput, localStorageEnabled]);
 
   const handleModelChange = useCallback(
     async (modelId: string) => {
@@ -107,11 +120,9 @@ export function ChatInputProvider({
   );
 
   const clearInput = useCallback(() => {
-    setInputState('');
-    if (localStorageEnabled) {
-      setLocalStorageInput('');
-    }
-  }, [setLocalStorageInput, localStorageEnabled]);
+    editorRef.current?.clear();
+    setLocalStorageInput('');
+  }, [setLocalStorageInput]);
 
   const resetData = useCallback(() => {
     setSelectedTool(initialTool);
@@ -121,11 +132,24 @@ export function ChatInputProvider({
     setAttachments([]);
   }, []);
 
+  const getInputValue = useCallback(() => {
+    return editorRef.current?.getValue() || '';
+  }, []);
+
+  // Save to localStorage when input changes (will be called by the lexical editor)
+  const handleInputChange = useCallback(
+    (value: string) => {
+      if (localStorageEnabled) {
+        setLocalStorageInput(value);
+      }
+    },
+    [setLocalStorageInput, localStorageEnabled],
+  );
+
   return (
     <ChatInputContext.Provider
       value={{
-        input,
-        setInput,
+        editorRef,
         selectedTool,
         setSelectedTool,
         attachments,
@@ -135,6 +159,9 @@ export function ChatInputProvider({
         clearInput,
         resetData,
         clearAttachments,
+        getInputValue,
+        handleInputChange,
+        getInitialInput,
       }}
     >
       {children}

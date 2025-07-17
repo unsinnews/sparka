@@ -5,9 +5,7 @@ import {
   type LexicalChatInputRef,
 } from './lexical-chat-input';
 
-interface ChatInputTextAreaRef {
-  focus: () => void;
-}
+interface ChatInputTextAreaRef extends LexicalChatInputRef {}
 
 const ChatInputContainer = React.forwardRef<
   HTMLDivElement,
@@ -40,9 +38,7 @@ const ChatInputTextArea = React.forwardRef<
   ChatInputTextAreaRef,
   React.ComponentProps<typeof LexicalChatInput>
 >(({ className, ...props }, ref) => {
-  const lexicalRef = React.useRef<LexicalChatInputRef>(null);
-
-  return <LexicalChatInput ref={lexicalRef} className={className} {...props} />;
+  return <LexicalChatInput ref={ref} className={className} {...props} />;
 });
 ChatInputTextArea.displayName = 'ChatInputTextArea';
 

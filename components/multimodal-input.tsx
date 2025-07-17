@@ -23,7 +23,6 @@ import {
   ChatInputTopRow,
   ChatInputTextArea,
   ChatInputBottomRow,
-  type ChatInputTextAreaRef,
 } from './ui/chat-input';
 import { SuggestedActions } from './suggested-actions';
 import type { UseChatHelpers } from '@ai-sdk/react';
@@ -60,7 +59,6 @@ function PureMultimodalInput({
   isEditMode?: boolean;
   parentMessageId: string | null;
 }) {
-  const textareaRef = useRef<ChatInputTextAreaRef>(null);
   const { width } = useWindowSize();
   const { setChatId } = useChatId();
   const { data: session } = useSession();
@@ -71,8 +69,7 @@ function PureMultimodalInput({
   // Detect mobile devices
   const isMobile = width ? width <= 768 : false;
   const {
-    input,
-    setInput,
+    editorRef,
     selectedTool,
     setSelectedTool,
     attachments,
@@ -82,11 +79,10 @@ function PureMultimodalInput({
     clearInput,
     resetData,
     clearAttachments,
+    getInputValue,
+    handleInputChange,
+    getInitialInput,
   } = useChatInput();
-
-  const handleInput = (value: string) => {
-    setInput(value);
-  };
 
   // Helper function to auto-switch to PDF-compatible model
   const switchToPdfCompatibleModel = useCallback(() => {
@@ -173,6 +169,8 @@ function PureMultimodalInput({
   );
 
   const submitForm = useCallback(() => {
+    const input = getInputValue();
+
     window.history.replaceState({}, '', `/chat/${chatId}`);
     setChatId(chatId);
 
@@ -239,7 +237,7 @@ function PureMultimodalInput({
 
     // Refocus after submit
     if (width && width > 768) {
-      textareaRef.current?.focus();
+      editorRef.current?.focus();
     }
   }, [
     attachments,
@@ -252,11 +250,12 @@ function PureMultimodalInput({
     setChatId,
     selectedTool,
     isEditMode,
-    input,
+    getInputValue,
     saveChatMessage,
     parentMessageId,
     selectedModelId,
     setMessages,
+    editorRef,
   ]);
 
   const uploadFile = async (file: File) => {
@@ -500,15 +499,15 @@ function PureMultimodalInput({
           <ScrollArea className="max-h-[50vh]">
             <ChatInputTextArea
               data-testid="multimodal-input"
-              ref={textareaRef}
+              ref={editorRef}
               className="min-h-[80px]"
               placeholder={
                 isMobile
                   ? 'Send a message... (Ctrl+Enter to send)'
                   : 'Send a message...'
               }
-              value={input}
-              onChange={handleInput}
+              initialValue={getInitialInput()}
+              onInputChange={handleInputChange}
               autoFocus
               onPaste={handlePaste}
               onEnterSubmit={(event) => {
@@ -524,7 +523,7 @@ function PureMultimodalInput({
                     );
                   } else if (uploadQueue.length > 0) {
                     toast.error('Please wait for files to finish uploading!');
-                  } else if (input.trim().length === 0) {
+                  } else if (getInputValue().trim().length === 0) {
                     toast.error('Please enter a message before sending!');
                   } else {
                     submitForm();
@@ -556,7 +555,7 @@ function PureMultimodalInput({
                 <StopButton stop={stop} />
               ) : (
                 <SendButton
-                  input={input}
+                  getInputValue={getInputValue}
                   submitForm={submitForm}
                   uploadQueue={uploadQueue}
                 />
@@ -645,11 +644,11 @@ const StopButton = memo(PureStopButton);
 
 function PureSendButton({
   submitForm,
-  input,
+  getInputValue,
   uploadQueue,
 }: {
   submitForm: () => void;
-  input: string;
+  getInputValue: () => string;
   uploadQueue: Array<string>;
 }) {
   return (
@@ -660,7 +659,7 @@ function PureSendButton({
         event.preventDefault();
         submitForm();
       }}
-      disabled={input.trim().length === 0 || uploadQueue.length > 0}
+      disabled={getInputValue().trim().length === 0 || uploadQueue.length > 0}
     >
       <ArrowUpIcon size={14} />
     </Button>
@@ -670,7 +669,7 @@ function PureSendButton({
 const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
     return false;
-  if (prevProps.input !== nextProps.input) return false;
+  if (prevProps.getInputValue() !== nextProps.getInputValue()) return false;
   if (prevProps.submitForm !== nextProps.submitForm) return false;
   return true;
 });

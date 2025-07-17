@@ -38,6 +38,8 @@ function EnterKeySubmitPlugin({
         if (onEnterSubmit) {
           const handled = onEnterSubmit(event);
           if (handled) {
+            // Prevent the default Enter behavior immediately
+            event.preventDefault();
             // Prevent default Enter behavior (adding newline)
             return true;
           }
@@ -68,11 +70,12 @@ function EditorRefPlugin({
 interface LexicalChatInputRef {
   focus: () => void;
   clear: () => void;
+  getValue: () => string;
 }
 
 interface LexicalChatInputProps {
-  value?: string;
-  onChange?: (value: string) => void;
+  initialValue?: string;
+  onInputChange?: (value: string) => void;
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   onPaste?: (event: React.ClipboardEvent<HTMLDivElement>) => void;
   onEnterSubmit?: (event: KeyboardEvent) => boolean;
@@ -101,8 +104,8 @@ export const LexicalChatInput = React.forwardRef<
 >(
   (
     {
-      value = '',
-      onChange,
+      initialValue = '',
+      onInputChange,
       onKeyDown,
       onPaste,
       onEnterSubmit,
@@ -125,15 +128,15 @@ export const LexicalChatInput = React.forwardRef<
 
     const handleChange = React.useCallback(
       (editorState: EditorState) => {
-        if (onChange) {
+        if (onInputChange) {
           editorState.read(() => {
             const root = $getRoot();
             const textContent = root.getTextContent();
-            onChange(textContent);
+            onInputChange(textContent);
           });
         }
       },
-      [onChange],
+      [onInputChange],
     );
 
     React.useImperativeHandle(
@@ -152,29 +155,38 @@ export const LexicalChatInput = React.forwardRef<
             });
           }
         },
+        getValue: () => {
+          if (editor) {
+            return editor.getEditorState().read(() => {
+              const root = $getRoot();
+              return root.getTextContent();
+            });
+          }
+          return '';
+        },
       }),
       [editor],
     );
 
     // Handle value changes from parent
     React.useEffect(() => {
-      if (editor && value !== undefined) {
+      if (editor && initialValue !== undefined) {
         editor.update(() => {
           const root = $getRoot();
           const currentText = root.getTextContent();
 
-          if (currentText !== value) {
+          if (currentText !== initialValue) {
             root.clear();
             const paragraph = $createParagraphNode();
-            if (value) {
-              const textNode = $createTextNode(value);
+            if (initialValue) {
+              const textNode = $createTextNode(initialValue);
               paragraph.append(textNode);
             }
             root.append(paragraph);
           }
         });
       }
-    }, [editor, value]);
+    }, [editor, initialValue]);
 
     const PlaceholderComponent = React.useCallback(
       () => (

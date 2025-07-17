@@ -65,14 +65,11 @@ export function ChatInputProvider({
   const setLocalStorageInput = useCallback(
     (value: string) => {
       if (!localStorageEnabled) return;
-      // Defer localStorage operation to avoid blocking caller
-      queueMicrotask(() => {
-        try {
-          localStorage.setItem('input', value);
-        } catch {
-          // Silently fail if localStorage is not available
-        }
-      });
+      try {
+        localStorage.setItem('input', value);
+      } catch {
+        // Silently fail if localStorage is not available
+      }
     },
     [localStorageEnabled],
   );

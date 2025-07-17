@@ -82,6 +82,7 @@ function PureMultimodalInput({
     getInputValue,
     handleInputChange,
     getInitialInput,
+    isEmpty,
   } = useChatInput();
 
   // Helper function to auto-switch to PDF-compatible model
@@ -523,7 +524,7 @@ function PureMultimodalInput({
                     );
                   } else if (uploadQueue.length > 0) {
                     toast.error('Please wait for files to finish uploading!');
-                  } else if (getInputValue().trim().length === 0) {
+                  } else if (isEmpty) {
                     toast.error('Please enter a message before sending!');
                   } else {
                     submitForm();
@@ -555,7 +556,7 @@ function PureMultimodalInput({
                 <StopButton stop={stop} />
               ) : (
                 <SendButton
-                  getInputValue={getInputValue}
+                  isEmpty={isEmpty}
                   submitForm={submitForm}
                   uploadQueue={uploadQueue}
                 />
@@ -644,11 +645,11 @@ const StopButton = memo(PureStopButton);
 
 function PureSendButton({
   submitForm,
-  getInputValue,
+  isEmpty,
   uploadQueue,
 }: {
   submitForm: () => void;
-  getInputValue: () => string;
+  isEmpty: boolean;
   uploadQueue: Array<string>;
 }) {
   return (
@@ -659,7 +660,7 @@ function PureSendButton({
         event.preventDefault();
         submitForm();
       }}
-      disabled={getInputValue().trim().length === 0 || uploadQueue.length > 0}
+      disabled={isEmpty || uploadQueue.length > 0}
     >
       <ArrowUpIcon size={14} />
     </Button>
@@ -669,7 +670,7 @@ function PureSendButton({
 const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
     return false;
-  if (prevProps.getInputValue() !== nextProps.getInputValue()) return false;
+  if (prevProps.isEmpty !== nextProps.isEmpty) return false;
   if (prevProps.submitForm !== nextProps.submitForm) return false;
   return true;
 });

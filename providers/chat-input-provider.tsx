@@ -29,6 +29,7 @@ interface ChatInputContextType {
   getInputValue: () => string;
   handleInputChange: (value: string) => void;
   getInitialInput: () => string;
+  isEmpty: boolean;
 }
 
 const ChatInputContext = createContext<ChatInputContextType | undefined>(
@@ -88,6 +89,12 @@ export function ChatInputProvider({
   const [attachments, setAttachments] =
     useState<Array<Attachment>>(initialAttachments);
 
+  // Track if input is empty for reactive UI updates
+  const [isEmpty, setIsEmpty] = useState<boolean>(() => {
+    const initial = initialInput || getLocalStorageInput();
+    return initial.trim().length === 0;
+  });
+
   // Create ref for lexical editor
   const editorRef = useRef<LexicalChatInputRef>(null);
 
@@ -119,6 +126,7 @@ export function ChatInputProvider({
   const clearInput = useCallback(() => {
     editorRef.current?.clear();
     setLocalStorageInput('');
+    setIsEmpty(true);
   }, [setLocalStorageInput]);
 
   const resetData = useCallback(() => {
@@ -139,6 +147,8 @@ export function ChatInputProvider({
       if (localStorageEnabled) {
         setLocalStorageInput(value);
       }
+      // Update isEmpty state reactively
+      setIsEmpty(value.trim().length === 0);
     },
     [setLocalStorageInput, localStorageEnabled],
   );
@@ -159,6 +169,7 @@ export function ChatInputProvider({
         getInputValue,
         handleInputChange,
         getInitialInput,
+        isEmpty,
       }}
     >
       {children}

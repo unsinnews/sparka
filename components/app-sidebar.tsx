@@ -16,6 +16,7 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
   useSidebar,
@@ -138,7 +139,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             </Link>
           </div>
 
-          <SidebarMenuItem className="mt-4">
+          <SidebarMenuButton className="mt-4" asChild>
             <Link
               to="/"
               onClick={() => {
@@ -153,7 +154,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 {shortcutText}
               </span>
             </Link>
-          </SidebarMenuItem>
+          </SidebarMenuButton>
 
           <SidebarMenuItem>
             <SearchChatsButton />

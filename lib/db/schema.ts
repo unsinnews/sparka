@@ -14,6 +14,7 @@ import {
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
+  createdAt: timestamp('createdAt').notNull().defaultNow(),
   email: varchar('email', { length: 64 }).notNull(),
   name: varchar('name', { length: 64 }),
   image: varchar('image', { length: 256 }),

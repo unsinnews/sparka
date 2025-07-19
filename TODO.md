@@ -227,6 +227,8 @@
 ## Backlog
 
 
+[ ] Deep Research and estimation based on model cost
+
 [ ] Transparency animation on text chunk streaming
 [ ] Block by block MD memoization (https://ai-sdk.dev/cookbook/next/markdown-chatbot-with-memoization)
 [ ] Mermaid diagram rendering

@@ -66,7 +66,7 @@ async function getCreditReservation(userId: string, baseModelCost: number) {
   const reservedCredits = await reserveCreditsWithCleanup(
     userId,
     baseModelCost,
-    5,
+    1, // TODO: Reserving for many steps is not a good model. It will fail often
   );
 
   if (!reservedCredits.success) {
@@ -355,6 +355,14 @@ export async function POST(request: NextRequest) {
           ? reservation.budget - baseModelCost
           : 0,
     );
+
+    // Let's not allow deepResearch if the model support reasoning (it's expensive and slow)
+    if (
+      modelDefinition.features?.reasoning &&
+      activeTools.some((tool) => tool === 'deepResearch')
+    ) {
+      activeTools = activeTools.filter((tool) => tool !== 'deepResearch');
+    }
 
     if (
       explicitlyRequestedTools &&

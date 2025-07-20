@@ -244,6 +244,9 @@
     [ ] Background execution and resuming
     [ ] Use new OpenAI deep research models
 
+[ ] Deep research should have a step in which it decides if the question can be answered or it should continue researching.
+[ ] Unify Deep research and reasonSearch
+
 
 
 [ ] Agent Tool (like ChatGPT)
@@ -483,8 +486,6 @@
 [x] Create a button to Deep Research
 [x] Write a chron job that deletes chatStream rows older than 24hs
 [ ] Clearly define what's an update and what's a tool action in the backend, so that it can be used with more flexibility without changing frontend
-[ ] Deep research should have a step in which it decides if the question can be answered or it should continue researching.
-[ ] Unify Deep research and reasonSearch
 [ ] Add manus-like plan as a document
 [ ] Security: Verify that anonymous users can't see other users chats.
     [ ] Organize authorization as a layer at the beginning of each trpc procedure
@@ -527,7 +528,7 @@
 [ ] Implement credit budget handling to disable tools that can't be on each step by using prepareStep from AI SDK 5
 [ ] Fix broken CI workflows
 [ ] Long running jobs
-    [ ] Restore deep research for reasoning models once we can go longer than 1m in request time.
+    [x] Restore deep research for reasoning models once we can go longer than 1m in request time.
 [ ] Offer model variants without reasoning (for the ones that can be run with or without reasoning)
 [ ] Optimize all-models by only using allImplementedModels. Needs to propagate discriminated unions typing correctly
 [ ] Model definitions need more flexibility (or model variants). E.g. google provider have different tiers size, reasoning, etc

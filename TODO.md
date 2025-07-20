@@ -293,6 +293,8 @@
     [ ] Tools selected for the generation of a message should be saved as part of the metadata so that they are used again in the retry
 
 
+[ ] Save partial message on abort (stop) with AI SDK 5
+
 [ ] MultiModalInput
     [x] Migrate to Lexical (there is a background agent with part of the work)
     [ ] Use rich format for links
@@ -362,7 +364,7 @@
     [ ] Fix tree Provider with resumed messages
 
 [ ] Multi MCP (Connectors)
-    [ ] Try picaos, ACI, Smithery
+    [ ] Try picaos, ACI, **Smithery**
 
 
 [x] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))

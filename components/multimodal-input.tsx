@@ -76,13 +76,11 @@ function PureMultimodalInput({
     setAttachments,
     selectedModelId,
     handleModelChange,
-    clearInput,
-    resetData,
-    clearAttachments,
     getInputValue,
     handleInputChange,
     getInitialInput,
     isEmpty,
+    handleSubmit,
   } = useChatInput();
 
   // Helper function to auto-switch to PDF-compatible model
@@ -169,7 +167,7 @@ function PureMultimodalInput({
     [selectedModelId, switchToPdfCompatibleModel, switchToImageCompatibleModel],
   );
 
-  const submitForm = useCallback(() => {
+  const coreSubmitLogic = useCallback(() => {
     const input = getInputValue();
 
     window.history.replaceState({}, '', `/chat/${chatId}`);
@@ -229,13 +227,6 @@ function PureMultimodalInput({
 
     sendMessage(message);
 
-    clearAttachments();
-    if (!isEditMode) {
-      console.log('clearing input');
-      clearInput();
-    }
-    resetData();
-
     // Refocus after submit
     if (width && width > 768) {
       editorRef.current?.focus();
@@ -243,9 +234,6 @@ function PureMultimodalInput({
   }, [
     attachments,
     sendMessage,
-    clearAttachments,
-    clearInput,
-    resetData,
     width,
     chatId,
     setChatId,
@@ -258,6 +246,10 @@ function PureMultimodalInput({
     setMessages,
     editorRef,
   ]);
+
+  const submitForm = useCallback(() => {
+    handleSubmit(coreSubmitLogic, isEditMode);
+  }, [handleSubmit, coreSubmitLogic, isEditMode]);
 
   const uploadFile = async (file: File) => {
     const formData = new FormData();

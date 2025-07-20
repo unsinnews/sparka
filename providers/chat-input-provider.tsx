@@ -23,13 +23,11 @@ interface ChatInputContextType {
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   selectedModelId: string;
   handleModelChange: (modelId: string) => Promise<void>;
-  clearInput: () => void;
-  resetData: () => void;
-  clearAttachments: () => void;
   getInputValue: () => string;
   handleInputChange: (value: string) => void;
   getInitialInput: () => string;
   isEmpty: boolean;
+  handleSubmit: (submitFn: () => void, isEditMode?: boolean) => void;
 }
 
 const ChatInputContext = createContext<ChatInputContextType | undefined>(
@@ -153,6 +151,26 @@ export function ChatInputProvider({
     [setLocalStorageInput, localStorageEnabled],
   );
 
+  // Unified submit handler that ensures consistent behavior for both Enter key and send button
+  const handleSubmit = useCallback(
+    (submitFn: () => void, isEditMode = false) => {
+      // Call the actual submission function
+      submitFn();
+
+      // Clear attachments for all submissions
+      clearAttachments();
+
+      // Clear input only when not in edit mode
+      if (!isEditMode) {
+        clearInput();
+      }
+
+      // Reset data (tools, etc.)
+      resetData();
+    },
+    [clearAttachments, clearInput, resetData],
+  );
+
   return (
     <ChatInputContext.Provider
       value={{
@@ -163,13 +181,11 @@ export function ChatInputProvider({
         setAttachments,
         selectedModelId,
         handleModelChange,
-        clearInput,
-        resetData,
-        clearAttachments,
         getInputValue,
         handleInputChange,
         getInitialInput,
         isEmpty,
+        handleSubmit,
       }}
     >
       {children}

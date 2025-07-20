@@ -198,39 +198,65 @@
 [x] The message tree seems not to be getting the correct parent  WTF. RElated to ^
 
 
-[ ] Grok 4 -- add to models
 
 [x] Optimize the number of getVotes query calls
 
 [x] Lexical editor doesn't show the cursor when the text is empty
 [x] Higher maximum height on lexical editor (lexical-chat-input.tsx)
 
-[ ] Performance Optimizations
-    [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
+[x] Performance Optimizations
     [x] Optimize the MessageTreeProvider with a messageMap in a reference
-    [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
-    [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
-    [ ] Use store correctly so that only the message being streamed is updated
-    [ ] Build a store for Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
+    [x] Use store correctly so that only the message being streamed is updated
     [x] getParentMessageID should be part of the MessageTreeProvider (store-like) and return the parent message based on a reference Map 
     [x] Optimization: The message streaming re-renders the whole message conversation / chat
-    [ ] Lexical editor should hold the input state, no need to replicate it in the chat input provider. We can hold the lexical editor ref in the chat input provider.
+    [x] Lexical editor should hold the input state, no need to replicate it in the chat input provider. We can hold the lexical editor ref in the chat input provider.
 
-[ ] Lexical editor submit on enter sometimes adds the enter to the message
+
+[x] Lexical editor submit on enter sometimes adds the enter to the message
 
 
 [ ] Tokens
     [ ] Protecting against going over token context
 
-[ ] On store setup new chat, the artifact should also be cleared (artifact should be in the chat store)
 
 ## Backlog
+
+
+[ ] Migrate to Next.js Router for navigation (And get rid of react-router)
+
+
+[ ] Agent Tool (like ChatGPT)
+    [ ] Browser with GUI / Sandbox (Browserbase Operator / e2b Surf) 
+        [ ] Screen as image input
+        [ ] Stagehand is great for browser navigation without a computer use model
+            [ ] Stagehand agent seems quite capable
+        [ ] Browserbase MCP could be a quick PoC integration
+        [ ] Sandbox (e2b-desktop or similar) for more power and control
+        [ ] Vercel Sandbox https://ship-25-agents-workshop.vercel.app/docs/sandbox
+    [ ] Text browser (Scraping)
+    [ ] Terminal (Command line)
+    [ ] Access to sources (connectors)
+
+
+[ ] Sentry integration to track errors
+
+[ ]  Anonymous chats should not have the same page segment as authenticated chats. (they are trying to load an authenticated chat now)
+
+[ ] On store setup new chat, the artifact should also be cleared (artifact should be in the chat store)
+[ ] Use `/` in input  to open tools as context menu
+
+
+[ ] Performance Optimizations
+    [ ] Message depends on the whole chatHelpers, therefore it renders everytime a chunk is recevived
+    [ ] On getQuery cache subscription, update the tree. Keep the message tree in a reference
+    [ ] The updating cache for messages cause re-renders on the chat page. This is not needed.
+    [ ] Build a store for Chat Input Provider so that it doesn't cause renders when unrelated parts of context changes
+    [ ] Markdown Memoization per block  (https://ai-sdk.dev/cookbook/next/markdown-chatbot-with-memoization)
 
 
 [ ] Deep Research and estimation based on model cost
 
 [ ] Transparency animation on text chunk streaming
-[ ] Block by block MD memoization (https://ai-sdk.dev/cookbook/next/markdown-chatbot-with-memoization)
 [ ] Mermaid diagram rendering
 
 [ ] Do we want optional props on the metadata?
@@ -260,6 +286,7 @@
 [ ] Models
     [ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
     [ ] More Gemini models
+    [ ] Grok 4 -- add to models
 
 [ ] Assistant Message ++
     [ ] Retry message should offer you options for selecting a new model. Update the `RetryButton` and set a new model in the metadata of the parent message.
@@ -322,14 +349,21 @@
 
 [ ] Deep Research v2
     [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
+    [ ] Update deep research architecture to https://blog.langchain.com/open-deep-research
     [ ] Background execution and resuming
     [ ] Use new OpenAI deep research models
 
+[ ] Security
+    [ ] BotId Protection https://vercel.com/docs/botid
 
 [ ] Durable streams
     [x] Create a message-continues data part and call resume from the frontend
     [ ] Restore from the branch named `background-tasks`
     [ ] Fix tree Provider with resumed messages
+
+[ ] Multi MCP (Connectors)
+    [ ] Try picaos, ACI, Smithery
+
 
 [x] Image as context for image generation (Blocked by AI SDK not having editImages function (to call openai edit images endpoint))
     [x] There is a branch called `image-edits` with WIP code for this.
@@ -365,7 +399,7 @@
     [x] with lazy loading 
     [x] With memoization
 
-[ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1RVBM7x
+[ ] Nicer model icons (and include in selectable trigger), like in https://ai-sdk.dev/playground/s/YUzrs1 RVBM7x
 
 [x] Keyboard Shortcuts
     [x] New Chat button + show keyboard shortcut for it

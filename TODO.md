@@ -223,6 +223,18 @@
 
 
 [ ] Migrate to Next.js Router for navigation (And get rid of react-router)
+[ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.
+[ ] Anonymous chats should not have the same page segment as authenticated chats. (they are trying to load an authenticated chat now)
+
+
+[ ] Deep Research and estimation based on model cost
+
+[ ] Deep Research v2
+    [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
+    [ ] Update deep research architecture to https://blog.langchain.com/open-deep-research
+    [ ] Background execution and resuming
+    [ ] Use new OpenAI deep research models
+
 
 
 [ ] Agent Tool (like ChatGPT)
@@ -240,7 +252,6 @@
 
 [ ] Sentry integration to track errors
 
-[ ]  Anonymous chats should not have the same page segment as authenticated chats. (they are trying to load an authenticated chat now)
 
 [ ] On store setup new chat, the artifact should also be cleared (artifact should be in the chat store)
 [ ] Use `/` in input  to open tools as context menu
@@ -254,7 +265,6 @@
     [ ] Markdown Memoization per block  (https://ai-sdk.dev/cookbook/next/markdown-chatbot-with-memoization)
 
 
-[ ] Deep Research and estimation based on model cost
 
 [ ] Transparency animation on text chunk streaming
 [ ] Mermaid diagram rendering
@@ -283,6 +293,11 @@
     [ ] Create a schema for chat request body
     [x] Data selectedTools should only have 1
 
+[ ] Models++
+    [ ] Cleanup up the providers.ts file
+    [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
+    [ ] Propagate model selection to deep research (and create new selectables for them)
+
 [ ] Models
     [ ] Create Non-thinking variants of models (e.g. Claude-4-Sonnet)
     [ ] More Gemini models
@@ -300,27 +315,21 @@
     [ ] Use rich format for links
     [x] Selected model should be part of the Chat-input-context
     [ ] Chat bottom row should not update on type
-    [ ] The MultiiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
-    [ ] Save edits to localstorage?
-
-[ ] Models++
-    [ ] Cleanup up the providers.ts file
-    [ ] Refactor Model, providers, modelCosts so that it's easier to add new models
-    [ ] Propagate model selection to deep research (and create new selectables for them)
-
+    [ ] The MultiModal input shouldn't know about chatHelpers, it should get functions related to them from a provider
+    [ ] Save edit message text to localstorage
 
 [ ] Threads
-    [ ] A chat request with parentMessageId, should return a stream that indicats whats the parentMesssageId for that request
+    [ ] A chat request with parentMessageId, should return a stream that indicates whats the parentMesssageId for that request
     [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
     [ ] Artifacts should belong to the current thread
-    [ ] Combination o
+    [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 
 [ ] Settings Page
     [ ] Define the models that you enable (like cursor)
     [ ] Show a Keyboard shortcuts help in settings
 
 
-[ ] Bug: Analyze PDF with GPT-4o-mini is not working. Can it work?
+[ ] Bug: Analyze PDF with GPT-4o-mini is not working. Is it allowed by the model?
 
 
 [ ] Define how to copy images for a shared chat
@@ -344,16 +353,11 @@
 
 [ ] Chat history: 
     [ ] Virtual list for previous chats
-    [ ] Chats should be sorted by updatedAt (not by createdAt)
+    [x] Chats should be sorted by updatedAt (not by createdAt)
 
 
 [x] Generated artifact create a new version when they render on Lexical
 
-[ ] Deep Research v2
-    [x] Fix vercel timing out (Now  5m Max should be enough). Update the vercel.json and use Fluid Compute
-    [ ] Update deep research architecture to https://blog.langchain.com/open-deep-research
-    [ ] Background execution and resuming
-    [ ] Use new OpenAI deep research models
 
 [ ] Security
     [ ] BotId Protection https://vercel.com/docs/botid
@@ -362,6 +366,10 @@
     [x] Create a message-continues data part and call resume from the frontend
     [ ] Restore from the branch named `background-tasks`
     [ ] Fix tree Provider with resumed messages
+
+[ ] MCP-UI
+
+[ ] MCP Support
 
 [ ] Multi MCP (Connectors)
     [ ] Try picaos, ACI, **Smithery**
@@ -380,14 +388,9 @@
 
 [ ] "Is last artifact" detection in messages is more complex than needed.
 
-[ ] Threads
-    [ ] A chat request with parentMessageId, should return a stream that indicates whats the parentMesssageId for that request
-    [ ] A resumed stream will try to append to any message in the chatId, regardless of the thread it's in. Maybe use the `stop` helper?
-    [ ] Artifacts should belong to the current thread
-    [ ] Combination of thread switching and resumable streams doesn't work reliably. The stream should have the last message Id and not just the chat
 
 
-[ ] Copy code button is too close to language / filename top header
+[ ] Copy code button is too close to language / filename top header in code block
 
 [x] Message Assistant with model info
     [x] Model selected needs to be part of the message **info**
@@ -408,10 +411,9 @@
     [ ] Show keyboard shortcuts in the settings page
 
 
-[ ] Search through chat text (like chatgpt)
+[ ] Search through chat text (like chatgpt) for chat history search
 
 
-[ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.
 
 
 
@@ -435,9 +437,7 @@
 
 [ ] BYOK (Bring Your Own Key)
 
-[ ] MCP Support
 
-[ ] MCP-UI
 
 [ ] Chat sharing
     [x] Artifacts sharing

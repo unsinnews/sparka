@@ -10,7 +10,7 @@ import {
   type ReactNode,
   useCallback,
 } from 'react';
-import { useLocation } from 'react-router';
+import { useParams, usePathname } from 'next/navigation';
 
 interface ChatIdContextType {
   chatId: string | null;
@@ -24,21 +24,20 @@ interface ChatIdContextType {
 const ChatIdContext = createContext<ChatIdContextType | undefined>(undefined);
 
 export function ChatIdProvider({ children }: { children: ReactNode }) {
-  const location = useLocation();
+  const pathname = usePathname();
+  const params = useParams();
 
-  // Use useMemo to derive state from pathname instead of useState + useEffect
+  // Use useMemo to derive state from pathname and params
   const { chatId: urlChatId, sharedChatId } = useMemo(() => {
-    const pathname = location.pathname;
-
     if (pathname?.startsWith('/chat/')) {
       return {
-        chatId: pathname.split('/')[2] || null,
+        chatId: (params?.id as string) || null,
         sharedChatId: null,
       };
     } else if (pathname?.startsWith('/share/')) {
       return {
         chatId: null,
-        sharedChatId: pathname.split('/')[2] || null,
+        sharedChatId: (params?.id as string) || null,
       };
     } else {
       return {
@@ -46,7 +45,7 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
         sharedChatId: null,
       };
     }
-  }, [location.pathname]);
+  }, [pathname, params?.id]);
 
   // State for manual chatId updates (like after replaceState)
   const [manualChatId, setManualChatId] = useState<string | null>(null);
@@ -58,7 +57,7 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
   // Clear manual override when pathname actually changes through navigation
   useEffect(() => {
     setManualChatId(null);
-  }, [location.pathname, location.key]);
+  }, [pathname]);
 
   const chatId = manualChatId ?? urlChatId;
 

@@ -21,7 +21,7 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Link, useNavigate } from 'react-router';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useChatId } from '@/providers/chat-id-provider';
 import { useGetCredits } from '@/hooks/chat-sync-hooks';
@@ -82,7 +82,6 @@ function getNewChatShortcutText() {
 }
 
 export function AppSidebar({ user }: { user: User | undefined }) {
-  const navigate = useNavigate();
   const router = useRouter();
   const { setOpenMobile, open, openMobile } = useSidebar();
   const { refreshChatID } = useChatId();
@@ -101,13 +100,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         e.preventDefault();
         setOpenMobile(false);
         refreshChatID();
-        navigate('/');
+        router.push('/');
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [setOpenMobile, refreshChatID, navigate]);
+  }, [setOpenMobile, refreshChatID, router]);
 
   return (
     <Sidebar
@@ -118,11 +117,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center ">
             <Link
-              to="/"
+              href="/"
               onClick={() => {
                 setOpenMobile(false);
                 refreshChatID();
-                navigate('/');
               }}
               className="flex flex-row gap-2 items-center"
             >
@@ -141,7 +139,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
 
           <SidebarMenuButton className="mt-4" asChild>
             <Link
-              to="/"
+              href="/"
               onClick={() => {
                 setOpenMobile(false);
                 refreshChatID();

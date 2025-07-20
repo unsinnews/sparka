@@ -1,7 +1,7 @@
 'use client';
 
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import { useNavigate } from 'react-router';
+import { useRouter } from 'next/navigation';
 import type { User } from 'next-auth';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
@@ -43,7 +43,7 @@ type GroupedChats = {
 export function SidebarHistory({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
   const { chatId, refreshChatID } = useChatId();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const { mutate: renameChatMutation } = useRenameChat();
   const { mutate: pinChatMutation } = usePinChat();
@@ -84,7 +84,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
     if (deleteId === chatId) {
       refreshChatID();
-      navigate('/');
+      router.push('/');
     }
   };
 

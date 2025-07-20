@@ -1,5 +1,6 @@
 'use client';
 
+import type { User } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import { SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -12,8 +13,9 @@ import { useGetAllChats } from '@/hooks/chat-sync-hooks';
 import { loadLocalAnonymousMessagesByChatId } from '@/lib/utils/anonymous-chat-storage';
 import { dbMessageToChatMessage } from '@/lib/message-conversion';
 
-interface AppLayoutProps {
+interface ChatLayoutWrapperProps {
   children: React.ReactNode;
+  user: User | undefined;
 }
 
 // Custom hook to prefetch messages for all chats in history (runs once)
@@ -82,20 +84,16 @@ function usePrefetchChatMessages() {
   }, [chats, isAuthenticated, queryClient, trpc.chat.getChatMessages]);
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
-  const { data: session } = useSession();
-
+export function ChatLayoutWrapper({ children, user }: ChatLayoutWrapperProps) {
   // Prefetch messages for all chats in the background (runs once)
   usePrefetchChatMessages();
 
   return (
-    <>
-      <ChatIdProvider>
-        <MessageTreeProvider>
-          <AppSidebar user={session?.user} />
-          <SidebarInset>{children}</SidebarInset>
-        </MessageTreeProvider>
-      </ChatIdProvider>
-    </>
+    <ChatIdProvider>
+      <MessageTreeProvider>
+        <AppSidebar user={user} />
+        <SidebarInset>{children}</SidebarInset>
+      </MessageTreeProvider>
+    </ChatIdProvider>
   );
 }

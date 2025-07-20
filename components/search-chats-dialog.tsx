@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { useRouter } from 'next/navigation';
 import { MessageSquare } from 'lucide-react';
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 
@@ -125,15 +125,15 @@ export function SearchChatsDialog({
   onOpenChange,
   onSelectChat,
 }: SearchChatsDialogProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleSelectChat = useCallback(
     (chatId: string) => {
       onOpenChange(false);
       onSelectChat();
-      navigate(`/chat/${chatId}`);
+      router.push(`/chat/${chatId}`);
     },
-    [navigate, onOpenChange, onSelectChat],
+    [router, onOpenChange, onSelectChat],
   );
 
   return (

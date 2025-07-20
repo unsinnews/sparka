@@ -2,12 +2,11 @@
 import { useWindowSize } from 'usehooks-ts';
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, GitIcon } from './icons';
+import { GitIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { ShareButton } from './share-button';
-import { useNavigate } from 'react-router';
 import { Share, LogIn } from 'lucide-react';
 import { useChatId } from '@/providers/chat-id-provider';
 import { useSession } from 'next-auth/react';
@@ -27,7 +26,6 @@ function PureChatHeader({
   user: User | undefined;
 }) {
   const { open } = useSidebar();
-  const navigate = useNavigate();
   const router = useRouter();
   const { refreshChatID } = useChatId();
   const { width: windowWidth } = useWindowSize();
@@ -38,9 +36,7 @@ function PureChatHeader({
     <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
       <SidebarToggle />
 
-      {!isReadonly && hasMessages && (
-        <ShareButton chatId={chatId} />
-      )}
+      {!isReadonly && hasMessages && <ShareButton chatId={chatId} />}
       {isReadonly && (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -61,12 +57,7 @@ function PureChatHeader({
       )}
 
       <div className="ml-auto flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="p-2 h-8 w-8"
-          asChild
-        >
+        <Button variant="ghost" size="sm" className="p-2 h-8 w-8" asChild>
           <a
             href="https://github.com/franciscomoretti/sparka"
             target="_blank"
@@ -76,7 +67,7 @@ function PureChatHeader({
             <GitIcon />
           </a>
         </Button>
-        
+
         {isAuthenticated && user ? (
           <SidebarUserNav user={user} />
         ) : (

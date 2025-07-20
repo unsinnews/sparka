@@ -1,5 +1,5 @@
 'use client';
-import { Link } from 'react-router';
+import Link from 'next/link';
 import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { PinIcon } from 'lucide-react';
@@ -94,7 +94,7 @@ const PureSidebarChatItem = ({
         </div>
       ) : (
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link to={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+          <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
             <span>{chat.title}</span>
           </Link>
         </SidebarMenuButton>

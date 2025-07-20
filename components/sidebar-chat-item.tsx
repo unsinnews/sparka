@@ -94,7 +94,11 @@ const PureSidebarChatItem = ({
         </div>
       ) : (
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link href={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+          <Link
+            href={`/chat/${chat.id}`}
+            prefetch={false} // TODO: Restore the prefetching
+            onClick={() => setOpenMobile(false)}
+          >
             <span>{chat.title}</span>
           </Link>
         </SidebarMenuButton>

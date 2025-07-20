@@ -1,4 +1,4 @@
-import { ChatPage } from '@/app/chat/[id]/chat-page';
+import { ChatPage } from '@/app/(chat)/chat/[id]/chat-page';
 import { HydrateClient, prefetch, trpc } from '@/trpc/server';
 import { Suspense } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';

@@ -1,5 +1,4 @@
-'use client';
-import { ChatHome } from '@/frontend/components/chat-home';
+import { ChatHome } from '@/app/chat-home';
 
 export default function HomePage() {
   return <ChatHome />;

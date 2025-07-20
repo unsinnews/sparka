@@ -2,12 +2,12 @@
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
-import { useGetChatById, useMessagesQuery } from '@/hooks/chat-sync-hooks';
 import { useMemo, memo } from 'react';
-import { WithSkeleton } from '@/components/ui/skeleton';
 import { notFound } from 'next/navigation';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useChatId } from '@/providers/chat-id-provider';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { useTRPC } from '@/trpc/react';
 
 const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
   id,
@@ -32,16 +32,14 @@ const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
 
 export function ChatPage() {
   const { chatId: id } = useChatId();
+  const trpc = useTRPC();
 
-  const { data: chat, isLoading: isChatLoading } = useGetChatById(id || '');
-  const {
-    data: messages,
-    isLoading: isMessagesLoading,
-    isRefetching: isMessagesRefetching,
-  } = useMessagesQuery();
-  console.log('Rendering chat page', chat, messages);
-
-  // Get messages if chat exists
+  const { data: chat } = useSuspenseQuery(
+    trpc.chat.getChatById.queryOptions({ chatId: id || '' }),
+  );
+  const { data: messages } = useSuspenseQuery(
+    trpc.chat.getChatMessages.queryOptions({ chatId: id || '' }),
+  );
 
   const initialThreadMessages = useMemo(() => {
     if (!messages) return [];
@@ -50,20 +48,11 @@ export function ChatPage() {
     );
   }, [messages]);
 
-  if ((!isChatLoading && !chat) || !id) {
+  if (!id) {
     return notFound();
   }
 
-  if (isMessagesLoading || isChatLoading) {
-    return (
-      <WithSkeleton
-        isLoading={isChatLoading || isMessagesLoading}
-        className="w-full h-full"
-      >
-        <div className="flex h-screen w-full" />
-      </WithSkeleton>
-    );
-  }
+  console.log('Rendering chat page', chat, messages);
 
   if (!chat) {
     return notFound();
@@ -71,16 +60,11 @@ export function ChatPage() {
 
   return (
     <>
-      <WithSkeleton
-        isLoading={isChatLoading || isMessagesLoading}
-        className="w-full"
-      >
-        <MemoizedChatWrapper
-          id={chat.id}
-          initialMessages={initialThreadMessages}
-          isReadonly={false}
-        />
-      </WithSkeleton>
+      <MemoizedChatWrapper
+        id={chat.id}
+        initialMessages={initialThreadMessages}
+        isReadonly={false}
+      />
       <DataStreamHandler id={id} />
     </>
   );

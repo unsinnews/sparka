@@ -1,5 +1,4 @@
-'use client';
-import { SharedChatPage } from '@/frontend/components/shared-chat-page';
+import { SharedChatPage } from '@/app/share/[id]/shared-chat-page';
 
 export default function SharedChatPageRoute() {
   return <SharedChatPage />;

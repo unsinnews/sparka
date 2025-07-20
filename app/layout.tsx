@@ -11,6 +11,7 @@ import { DefaultModelProvider } from '@/providers/default-model-provider';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { ChatLayoutWrapper } from '@/components/chat-layout-wrapper';
+import { ChatPrefetch } from '@/components/chat-prefetch';
 
 import './globals.css';
 
@@ -114,6 +115,7 @@ export default async function RootLayout({
         <GlobalProviders>
           <SessionProvider session={session}>
             <AnonymousSessionInit />
+            <ChatPrefetch />
             <SidebarProvider defaultOpen={!isCollapsed}>
               <DefaultModelProvider defaultModel={defaultModel}>
                 <ChatLayoutWrapper user={session?.user}>

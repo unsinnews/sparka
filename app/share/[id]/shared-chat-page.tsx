@@ -47,8 +47,6 @@ export function SharedChatPage() {
     return notFound();
   }
 
-  console.log('initialThreadMessages', initialThreadMessages);
-
   if (isMessagesLoading || isChatLoading) {
     return (
       <WithSkeleton

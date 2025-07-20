@@ -1,6 +1,29 @@
-'use client';
-import { ChatPage } from '@/frontend/components/chat-page';
+import { ChatPage } from '@/app/chat/[id]/chat-page';
+import { HydrateClient, prefetch, trpc } from '@/trpc/server';
+import { Suspense } from 'react';
+import { WithSkeleton } from '@/components/ui/skeleton';
 
-export default function ChatPageRoute() {
-  return <ChatPage />;
+export default async function ChatPageRoute({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: chatId } = await params;
+
+  // Prefetch the queries used in chat-page.tsx
+  prefetch(trpc.chat.getChatById.queryOptions({ chatId }));
+  prefetch(trpc.chat.getChatMessages.queryOptions({ chatId }));
+  return (
+    <HydrateClient>
+      <Suspense
+        fallback={
+          <WithSkeleton isLoading={true} className="w-full h-full">
+            <div className="flex h-screen w-full" />
+          </WithSkeleton>
+        }
+      >
+        <ChatPage />
+      </Suspense>
+    </HydrateClient>
+  );
 }

@@ -2,18 +2,14 @@ import type { UIChat } from '@/lib/types/uiChat';
 import type { DBMessage } from '@/lib/db/schema';
 import type { ChatMessage, UiToolName } from './ai/types';
 
+import type { Chat } from '@/lib/db/schema';
+
 // Helper functions for type conversion
-export function dbChatToUIChat(chat: {
-  id: string;
-  createdAt: Date;
-  title: string;
-  visibility: 'private' | 'public';
-  userId: string;
-  isPinned: boolean;
-}): UIChat {
+export function dbChatToUIChat(chat: Chat): UIChat {
   return {
     id: chat.id,
     createdAt: chat.createdAt,
+    updatedAt: chat.updatedAt,
     title: chat.title,
     visibility: chat.visibility,
     userId: chat.userId,

@@ -60,6 +60,7 @@ export async function saveChat({
     return await db.insert(chat).values({
       id,
       createdAt: new Date(),
+      updatedAt: new Date(),
       userId,
       title,
     });
@@ -95,7 +96,7 @@ export async function getChatsByUserId({ id }: { id: string }) {
       .select()
       .from(chat)
       .where(eq(chat.userId, id))
-      .orderBy(desc(chat.createdAt));
+      .orderBy(desc(chat.updatedAt));
   } catch (error) {
     console.error('Failed to get chats by user from database');
     throw error;
@@ -127,13 +128,19 @@ export async function saveMessage({
   _message: DBMessage;
 }) {
   try {
-    return await db.insert(message).values(_message);
+    const result = await db.insert(message).values(_message);
+
+    // Update chat's updatedAt timestamp
+    await updateChatUpdatedAt({ chatId: _message.chatId });
+
+    return result;
   } catch (error) {
     console.error('Failed to save message in database', error);
     throw error;
   }
 }
 
+// TODO: This should indicate the it's only updating messages for a single chat
 export async function saveMessages({
   _messages,
 }: {
@@ -143,7 +150,15 @@ export async function saveMessages({
     if (_messages.length === 0) {
       return;
     }
-    return await db.insert(message).values(_messages);
+    const result = await db.insert(message).values(_messages);
+
+    // Update chat's updatedAt timestamp for all affected chats
+    const uniqueChatIds = [...new Set(_messages.map((msg) => msg.chatId))];
+    await Promise.all(
+      uniqueChatIds.map((chatId) => updateChatUpdatedAt({ chatId })),
+    );
+
+    return result;
   } catch (error) {
     console.error('Failed to save messages in database', error);
     throw error;
@@ -619,6 +634,24 @@ export async function updateChatIsPinnedById({
       .where(eq(chat.id, chatId));
   } catch (error) {
     console.error('Failed to update chat isPinned by id from database');
+    throw error;
+  }
+}
+
+export async function updateChatUpdatedAt({
+  chatId,
+}: {
+  chatId: string;
+}) {
+  try {
+    return await db
+      .update(chat)
+      .set({
+        updatedAt: new Date(),
+      })
+      .where(eq(chat.id, chatId));
+  } catch (error) {
+    console.error('Failed to update chat updatedAt by id from database');
     throw error;
   }
 }

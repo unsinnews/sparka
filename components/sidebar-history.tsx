@@ -152,7 +152,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
     const groups = nonPinnedChats.reduce(
       (groups, chat) => {
-        const chatDate = new Date(chat.createdAt);
+        const chatDate = new Date(chat.updatedAt);
 
         if (isToday(chatDate)) {
           groups.today.push(chat);
@@ -178,10 +178,10 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       } as GroupedChats,
     );
 
-    // Add pinned chats (sorted by most recent first)
+    // Add pinned chats (sorted by most recently updated first)
     groups.pinned = pinnedChats.sort(
       (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     );
 
     return groups;

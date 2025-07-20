@@ -142,6 +142,7 @@ export async function saveAnonymousChatToStorage(
       id: chat.id,
       title: chat.title,
       createdAt: chat.createdAt.toISOString(),
+      updatedAt: chat.updatedAt.toISOString(),
       visibility: chat.visibility,
       isPinned: chat.isPinned || false,
       userId: session.id,
@@ -247,6 +248,18 @@ export async function saveAnonymousMessage(
     allMessages.push(message);
 
     localStorage.setItem(ANONYMOUS_MESSAGES_KEY, JSON.stringify(allMessages));
+
+    // Update the chat's updatedAt timestamp
+    const existingChats = JSON.parse(
+      localStorage.getItem(ANONYMOUS_CHATS_KEY) || '[]',
+    );
+    const updatedChats = existingChats.map((c: AnonymousChat) => {
+      if (c.id === message.chatId && c.userId === session.id) {
+        return { ...c, updatedAt: new Date().toISOString() };
+      }
+      return c;
+    });
+    localStorage.setItem(ANONYMOUS_CHATS_KEY, JSON.stringify(updatedChats));
   } catch (error) {
     console.error('Error saving anonymous message:', error);
     throw error;
@@ -312,6 +325,7 @@ export async function cloneAnonymousChat(
       id: newChatId,
       title: `Copy of ${originalChat.title}`,
       createdAt: new Date(),
+      updatedAt: new Date(),
       visibility: 'private' as const,
       isPinned: false, // New cloned chats are not pinned by default
     };
@@ -391,9 +405,10 @@ export async function loadAnonymousChatsFromStorage(): Promise<
       .map((chat: AnonymousChat) => ({
         ...chat,
         createdAt: new Date(chat.createdAt),
+        updatedAt: new Date(chat.updatedAt || chat.createdAt),
         isPinned: chat.isPinned || false,
       }))
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
   } catch (error) {
     console.error('Error loading anonymous chats:', error);
     return [];
@@ -426,6 +441,7 @@ export async function loadAnonymousChatById(
     return {
       ...chat,
       createdAt: new Date(chat.createdAt),
+      updatedAt: new Date(chat.updatedAt || chat.createdAt),
       isPinned: chat.isPinned || false,
     };
   } catch (error) {

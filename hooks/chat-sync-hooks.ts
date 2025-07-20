@@ -57,6 +57,7 @@ export function useSaveChat() {
         id: chatId,
         title: 'Untitled',
         createdAt: new Date(),
+        updatedAt: new Date(),
         visibility: 'private' as const,
       };
 
@@ -518,17 +519,6 @@ export function useSaveMessageMutation() {
             queryKey: trpc.credits.getAvailableCredits.queryKey(),
           });
         }
-        // Invalidate chats (for chat title)
-        // Only invalidate chats if this is the first assistant message
-        const hasAssistantMessage = previousMessages?.some(
-          (msg) => msg.role === 'assistant',
-        );
-        if (!hasAssistantMessage && message.role === 'assistant') {
-          console.log('invalidating chats');
-          queryClient.invalidateQueries({
-            queryKey: trpc.chat.getAllChats.queryKey(),
-          });
-        }
       } else {
         // Check if this this the fist message in the cache
         const messagesQueryKey = trpc.chat.getChatMessages.queryKey({
@@ -542,8 +532,13 @@ export function useSaveMessageMutation() {
             isAuthenticated,
           );
         }
-
         // Update credits
+      }
+      if (message.role === 'assistant') {
+        // Get updated list of chats (to sort by updated at)
+        queryClient.invalidateQueries({
+          queryKey: trpc.chat.getAllChats.queryKey(),
+        });
       }
     },
   });
@@ -738,6 +733,7 @@ export function useGetAllChats(limit?: number) {
           return chats.map((chat: any) => ({
             id: chat.id,
             createdAt: chat.createdAt,
+            updatedAt: chat.updatedAt || chat.createdAt,
             title: chat.title,
             visibility: chat.visibility,
             userId: '',
@@ -775,6 +771,7 @@ export function useGetChatById(chatId: string) {
           return {
             id: chat.id,
             createdAt: chat.createdAt,
+            updatedAt: chat.updatedAt || chat.createdAt,
             title: chat.title,
             visibility: chat.visibility,
             userId: '',

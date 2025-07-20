@@ -1,0 +1,1 @@
+UPDATE "Chat" SET "updatedAt" = "createdAt" WHERE "updatedAt" != "createdAt"; 

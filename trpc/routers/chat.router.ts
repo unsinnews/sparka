@@ -38,11 +38,11 @@ export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
     const chats = await getChatsByUserId({ id: ctx.user.id });
 
-    // Sort chats by pinned status, then by creation date
+    // Sort chats by pinned status, then by last updated date
     chats.sort((a, b) => {
       if (a.isPinned && !b.isPinned) return -1;
       if (!a.isPinned && b.isPinned) return 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
     });
 
     return chats.map(dbChatToUIChat);

@@ -25,14 +25,6 @@ import type { UIChat } from '@/lib/types/uiChat';
 import { ShareDialog } from '@/components/share-button';
 import { ShareMenuItem } from '@/components/upgrade-cta/share-menu-item';
 
-type GroupedChats = {
-  today: UIChat[];
-  yesterday: UIChat[];
-  lastWeek: UIChat[];
-  lastMonth: UIChat[];
-  older: UIChat[];
-};
-
 const PureSidebarChatItem = ({
   chat,
   isActive,

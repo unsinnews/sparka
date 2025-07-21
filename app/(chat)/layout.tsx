@@ -35,7 +35,7 @@ export default async function ChatLayout({
   return (
     <ChatProviders user={session?.user}>
       <SidebarProvider defaultOpen={!isCollapsed}>
-        <AppSidebar user={session?.user} />
+        <AppSidebar />
         <SidebarInset>
           <DefaultModelProvider defaultModel={defaultModel}>
             <KeyboardShortcuts />

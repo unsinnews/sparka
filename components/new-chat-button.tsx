@@ -2,10 +2,9 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useChatId } from '@/providers/chat-id-provider';
 import { PlusIcon } from '@/components/icons';
-import { SidebarMenuButton } from '@/components/ui/sidebar';
 import { getNewChatShortcutText } from '@/components/keyboard-shortcuts';
 
 export function NewChatButton() {

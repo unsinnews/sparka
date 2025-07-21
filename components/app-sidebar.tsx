@@ -1,5 +1,4 @@
 'use client';
-import type { User } from 'next-auth';
 
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SearchChatsButton } from '@/components/search-chats';
@@ -18,7 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 import { SidebarTopRow } from '@/components/sidebar-top-row';
 
-export function AppSidebar({ user }: { user: User | undefined }) {
+export function AppSidebar() {
   const { open, openMobile } = useSidebar();
 
   return (
@@ -42,7 +41,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       <SidebarSeparator />
       <ScrollArea className="h-full">
         <SidebarContent className="max-w-[var(--sidebar-width)] pr-2">
-          {(open || openMobile) && <SidebarHistory user={user} />}
+          {(open || openMobile) && <SidebarHistory />}
         </SidebarContent>
       </ScrollArea>
 

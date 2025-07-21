@@ -1,14 +1,11 @@
 'use client';
-import { useWindowSize } from 'usehooks-ts';
 import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
 import { GitIcon } from './icons';
-import { useSidebar } from './ui/sidebar';
 import { memo } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { ShareButton } from './share-button';
 import { Share, LogIn } from 'lucide-react';
-import { useChatId } from '@/providers/chat-id-provider';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { SidebarUserNav } from './sidebar-user-nav';
@@ -25,10 +22,7 @@ function PureChatHeader({
   hasMessages: boolean;
   user: User | undefined;
 }) {
-  const { open } = useSidebar();
   const router = useRouter();
-  const { refreshChatID } = useChatId();
-  const { width: windowWidth } = useWindowSize();
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
 

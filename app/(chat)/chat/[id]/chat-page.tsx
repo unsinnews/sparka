@@ -52,8 +52,6 @@ export function ChatPage() {
     return notFound();
   }
 
-  console.log('Rendering chat page', chat, messages);
-
   if (!chat) {
     return notFound();
   }

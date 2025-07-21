@@ -22,7 +22,7 @@ export default async function ChatPageRoute({
           </WithSkeleton>
         }
       >
-        <ChatPage />
+        <ChatPage id={chatId} />
       </Suspense>
     </HydrateClient>
   );

@@ -19,7 +19,7 @@ export function ChatProviders({ children, user }: ChatProvidersProps) {
       <DataStreamProvider>
         <ChatIdProvider>
           <AnonymousSessionInit />
-          <ChatPrefetch />
+          <ChatPrefetch user={user} />
           <MessageTreeProvider>{children}</MessageTreeProvider>
         </ChatIdProvider>
       </DataStreamProvider>

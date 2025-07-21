@@ -1,13 +1,16 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { useSession } from 'next-auth/react';
+import type { User } from 'next-auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTRPC } from '@/trpc/react';
 import { useGetAllChats } from '@/hooks/chat-sync-hooks';
 
-export function ChatPrefetch() {
-  const { data: session } = useSession();
+interface ChatPrefetchProps {
+  user: User | undefined;
+}
+
+export function ChatPrefetch({ user }: ChatPrefetchProps) {
   const { data: chats } = useGetAllChats(10);
   const queryClient = useQueryClient();
   const trpc = useTRPC();
@@ -15,7 +18,7 @@ export function ChatPrefetch() {
 
   useEffect(() => {
     // Only prefetch for authenticated users with chats
-    if (hasPrefetched.current || !session?.user || !chats?.length) return;
+    if (hasPrefetched.current || !user || !chats?.length) return;
 
     console.log('Prefetching chat messages for authenticated user');
     hasPrefetched.current = true;
@@ -38,7 +41,7 @@ export function ChatPrefetch() {
       .catch((error) => {
         console.error('Error prefetching chat messages:', error);
       });
-  }, [chats, session?.user, queryClient, trpc.chat.getChatMessages]);
+  }, [chats, user, queryClient, trpc.chat.getChatMessages]);
 
   return null;
 }

@@ -5,7 +5,6 @@ import { getDefaultThread } from '@/lib/thread-utils';
 import { useMemo, memo } from 'react';
 import { notFound } from 'next/navigation';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
-import { useChatId } from '@/providers/chat-id-provider';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useTRPC } from '@/trpc/react';
 
@@ -30,8 +29,7 @@ const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
   );
 });
 
-export function ChatPage() {
-  const { chatId: id } = useChatId();
+export function ChatPage({ id }: { id: string }) {
   const trpc = useTRPC();
 
   const { data: chat } = useSuspenseQuery(

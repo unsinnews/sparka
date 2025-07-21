@@ -715,7 +715,6 @@ export function useGetAllChats(limit?: number) {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const trpc = useTRPC();
-  console.log('useGetAllChats', isAuthenticated);
   // Memoize the tRPC query options to prevent recreation
   const getAllChatsQueryOptions = useMemo(() => {
     const options = trpc.chat.getAllChats.queryOptions();

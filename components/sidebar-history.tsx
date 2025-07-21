@@ -21,7 +21,7 @@ export function SidebarHistory() {
   const { mutate: renameChatMutation } = useRenameChat();
   const { mutate: pinChatMutation } = usePinChat();
 
-  const { data: chats, isLoading } = useGetAllChats(100);
+  const { data: chats, isLoading } = useGetAllChats(50);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);

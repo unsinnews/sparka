@@ -88,8 +88,11 @@ const PureSidebarChatItem = ({
         <SidebarMenuButton asChild isActive={isActive}>
           <Link
             href={`/chat/${chat.id}`}
-            prefetch={false} // TODO: Restore the prefetching
-            onClick={() => setOpenMobile(false)}
+            prefetch={false} // TODO: Restore the prefetching after solving conflict with ppr
+            onClick={() => {
+              window.history.pushState(null, '', `/chat/${chat.id}`);
+              setOpenMobile(false);
+            }}
           >
             <span>{chat.title}</span>
           </Link>

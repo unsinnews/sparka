@@ -225,6 +225,13 @@
 
 
 [ ] Migrate to Next.js Router for navigation (And get rid of react-router)
+    [ ] Basic migration
+    [ ] App router optimization
+       [ ] Apply learnings from next-faster
+       [ ] Link prefetching and ppr have a problem. Prefetching causes an error 500 and page reloads.
+       [ ] Do we really need to windows history push on sidebar-chat-item?
+       
+
 [ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.
 [ ] Anonymous chats should not have the same page segment as authenticated chats. (they are trying to load an authenticated chat now)
 

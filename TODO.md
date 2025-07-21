@@ -221,6 +221,8 @@
 
 ## Backlog
 
+[ ] Anthropic limits are too low. Get from other provider or open-router.
+
 
 [ ] Migrate to Next.js Router for navigation (And get rid of react-router)
 [ ] The HomePage and ChatPage should be the same component. Should be less code and allow nicer transitions.

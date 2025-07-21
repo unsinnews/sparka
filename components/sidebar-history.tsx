@@ -1,18 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -20,22 +8,18 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import {
-  useDeleteChat,
   useRenameChat,
   usePinChat,
   useGetAllChats,
 } from '@/hooks/chat-sync-hooks';
-import { useChatId } from '@/providers/chat-id-provider';
 import { GroupedChatsList } from './grouped-chats-list';
+import { DeleteDialog } from './delete-dialog';
 
 export function SidebarHistory() {
   const { setOpenMobile } = useSidebar();
-  const { chatId, refreshChatID } = useChatId();
-  const router = useRouter();
 
   const { mutate: renameChatMutation } = useRenameChat();
   const { mutate: pinChatMutation } = usePinChat();
-  const { deleteChat } = useDeleteChat();
 
   const { data: chats, isLoading } = useGetAllChats(100);
 
@@ -55,26 +39,6 @@ export function SidebarHistory() {
     },
     [pinChatMutation],
   );
-
-  const handleDelete = useCallback(async () => {
-    if (!deleteId) return;
-
-    try {
-      await deleteChat(deleteId, {
-        onSuccess: () => toast.success('Chat deleted successfully'),
-        onError: () => toast.error('Failed to delete chat'),
-      });
-    } catch (error) {
-      // Error already handled by onError callback
-    }
-
-    setShowDeleteDialog(false);
-
-    if (deleteId === chatId) {
-      refreshChatID();
-      router.push('/');
-    }
-  }, [deleteId, deleteChat, chatId, refreshChatID, router]);
 
   if (!isLoading && chats?.length === 0) {
     return (
@@ -125,7 +89,6 @@ export function SidebarHistory() {
             {chats && (
               <GroupedChatsList
                 chats={chats}
-                chatId={chatId}
                 onDelete={(chatId) => {
                   setDeleteId(chatId);
                   setShowDeleteDialog(true);
@@ -138,23 +101,11 @@ export function SidebarHistory() {
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              chat and remove it from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        deleteId={deleteId}
+        showDeleteDialog={showDeleteDialog}
+        setShowDeleteDialog={setShowDeleteDialog}
+      />
     </>
   );
 }

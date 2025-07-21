@@ -1,5 +1,6 @@
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { useMemo } from 'react';
+import { useParams, usePathname } from 'next/navigation';
 import type { UIChat } from '@/lib/types/uiChat';
 import { SidebarChatItem } from './sidebar-chat-item';
 
@@ -14,7 +15,6 @@ type GroupedChats = {
 
 interface GroupedChatsListProps {
   chats: UIChat[];
-  chatId: string | null;
   onDelete: (chatId: string) => void;
   onRename: (chatId: string, title: string) => void;
   onPin: (chatId: string, isPinned: boolean) => void;
@@ -23,12 +23,22 @@ interface GroupedChatsListProps {
 
 export function GroupedChatsList({
   chats,
-  chatId,
   onDelete,
   onRename,
   onPin,
   setOpenMobile,
 }: GroupedChatsListProps) {
+  const pathname = usePathname();
+  const params = useParams();
+
+  // Extract chatId from URL for /chat routes
+  const chatId = useMemo(() => {
+    if (pathname?.startsWith('/chat/')) {
+      return (params?.id as string) || null;
+    }
+    return null;
+  }, [pathname, params?.id]);
+
   const groupedChats = useMemo(() => {
     const now = new Date();
     const oneWeekAgo = subWeeks(now, 1);

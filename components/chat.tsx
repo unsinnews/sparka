@@ -1,5 +1,4 @@
 'use client';
-import { useChat } from './custom-use-chat';
 import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn, generateUUID, fetchWithErrorHandlers } from '@/lib/utils';
@@ -20,6 +19,7 @@ import { useDataStream } from './data-stream-provider';
 import { ZustandChat, chatState, chatStore } from '@/lib/stores/chat-store';
 import { useEffect, useMemo } from 'react';
 import { DefaultChatTransport } from 'ai';
+import { useChat } from '@ai-sdk/react';
 
 function useRecreateChat(id: string, initialMessages: Array<ChatMessage>) {
   useEffect(() => {

@@ -8,7 +8,7 @@ import {
   type UIMessage,
 } from 'ai';
 import type { ChatMessage } from '@/lib/ai/types';
-import { throttle } from '@/components/custom-throttle';
+import { throttle } from '@/components/throttle';
 
 interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   id: string | undefined;

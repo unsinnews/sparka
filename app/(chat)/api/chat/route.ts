@@ -511,6 +511,9 @@ export async function POST(request: NextRequest) {
               ),
               lastGeneratedImage,
             }),
+            onError: (error) => {
+              console.error('streamText error', error);
+            },
             abortSignal: abortController.signal, // Pass abort signal to streamText
             ...(modelDefinition.features?.fixedTemperature
               ? {
@@ -621,7 +624,7 @@ export async function POST(request: NextRequest) {
         onError: (error) => {
           // Clear timeout on error
           clearTimeout(timeoutId);
-          console.error(error);
+          console.error('onError', error);
           // Release reserved credits on error (fire and forget)
           if (reservation) {
             reservation.cleanup();
@@ -680,6 +683,7 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       clearTimeout(timeoutId);
+      console.error('error found in try block', error);
       if (reservation) {
         await reservation.cleanup();
       }

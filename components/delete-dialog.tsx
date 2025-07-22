@@ -27,7 +27,7 @@ export function DeleteDialog({
   showDeleteDialog,
   setShowDeleteDialog,
 }: DeleteDialogProps) {
-  const { chatId, refreshChatID } = useChatId();
+  const { id: chatId, type, refreshChatID } = useChatId();
   const router = useRouter();
   const { deleteChat } = useDeleteChat();
 
@@ -45,11 +45,12 @@ export function DeleteDialog({
 
     setShowDeleteDialog(false);
 
-    if (deleteId === chatId) {
+    if (deleteId === chatId && type === 'chat') {
       refreshChatID();
       router.push('/');
     }
   }, [
+    type,
     deleteId,
     deleteChat,
     chatId,

@@ -6,10 +6,8 @@ import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
 import { notFound } from 'next/navigation';
-import { useChatId } from '@/providers/chat-id-provider';
 
-export function SharedChatPage() {
-  const { sharedChatId: id } = useChatId();
+export function SharedChatPage({ id }: { id: string }) {
   const {
     data: chat,
     isLoading: isChatLoading,

@@ -37,19 +37,19 @@ interface MessageTreeProviderProps {
 }
 
 export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
-  const { chatId, sharedChatId, isShared } = useChatId();
+  const { id, type } = useChatId();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const [allMessages, setAllMessages] = useState<ChatMessage[]>([]);
   const setMessages = useSetMessages();
 
   // Select the appropriate chat ID based on isShared flag
-  const effectiveChatId = isShared ? sharedChatId : chatId;
-
+  const isShared = type === 'shared';
+  const effectiveChatId = id;
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
     // TODO: IS this effect still needed or can it be replaced with a useQuery ?
-    if (!effectiveChatId) {
+    if (type === 'provisional') {
       // New chat
       setAllMessages([]);
       return;
@@ -93,6 +93,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
     return unsubscribe;
   }, [
     effectiveChatId,
+    type,
     isShared,
     trpc.chat.getChatMessages,
     trpc.chat.getPublicChatMessages,

@@ -110,7 +110,7 @@ export function useMessagesQuery() {
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
   const trpc = useTRPC();
-  const { chatId } = useChatId();
+  const { id: chatId, type } = useChatId();
 
   // Memoize the tRPC query options for messages by chat ID
   const getMessagesByChatIdQueryOptions = useMemo(() => {
@@ -120,7 +120,7 @@ export function useMessagesQuery() {
     if (isAuthenticated) {
       return {
         ...options,
-        enabled: !!chatId,
+        enabled: !!chatId && type === 'chat',
       };
     } else {
       return {
@@ -140,7 +140,7 @@ export function useMessagesQuery() {
         enabled: !!chatId,
       };
     }
-  }, [trpc.chat.getChatMessages, isAuthenticated, chatId]);
+  }, [trpc.chat.getChatMessages, isAuthenticated, chatId, type]);
 
   // Query for messages by chat ID (only when chatId is available)
   return useQuery(getMessagesByChatIdQueryOptions);
@@ -666,12 +666,12 @@ export function useSaveDocument(
 
 export function useDocuments(id: string, disable: boolean) {
   const trpc = useTRPC();
-  const { isShared } = useChatId();
+  const { type } = useChatId();
   const { data: session } = useSession();
   const isAuthenticated = !!session?.user;
 
   const documentsQueryOptions = useMemo(() => {
-    if (isShared) {
+    if (type === 'shared') {
       return trpc.document.getPublicDocuments.queryOptions(
         { id: id },
         {
@@ -704,7 +704,7 @@ export function useDocuments(id: string, disable: boolean) {
     trpc.document.getPublicDocuments,
     id,
     disable,
-    isShared,
+    type,
     isAuthenticated,
   ]);
 

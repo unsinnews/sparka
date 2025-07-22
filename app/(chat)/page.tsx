@@ -1,5 +1,5 @@
-import { ChatHome } from '@/app/(chat)/chat-home';
+import { DeferredChatPage } from './chat/[id]/deferred-chat-page';
 
 export default function HomePage() {
-  return <ChatHome />;
+  return <DeferredChatPage />;
 }

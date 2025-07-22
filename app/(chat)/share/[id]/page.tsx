@@ -1,5 +1,5 @@
-import { SharedChatPage } from '@/app/(chat)/share/[id]/shared-chat-page';
+import { DeferredChatPage } from '../../chat/[id]/deferred-chat-page';
 
 export default function SharedChatPageRoute() {
-  return <SharedChatPage />;
+  return <DeferredChatPage />; // TODO: Add id to the deferred chat page
 }

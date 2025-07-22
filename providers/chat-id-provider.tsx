@@ -13,10 +13,8 @@ import {
 import { usePathname } from 'next/navigation';
 
 interface ChatIdContextType {
-  chatId: string | null;
-  sharedChatId: string | null;
-  provisionalChatId: string | null;
-  isShared: boolean;
+  id: string;
+  type: 'chat' | 'provisional' | 'shared';
   refreshChatID: () => void;
   setChatId: (chatId: string | null) => void;
 }
@@ -68,17 +66,28 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
     setProvisionalChatId(generateUUID());
   }, []);
 
-  const value = useMemo(
-    () => ({
-      chatId,
-      sharedChatId,
-      provisionalChatId,
+  const value = useMemo(() => {
+    let id: string;
+    let type: 'chat' | 'provisional' | 'shared';
+
+    if (sharedChatId) {
+      id = sharedChatId;
+      type = 'shared';
+    } else if (chatId) {
+      id = chatId;
+      type = 'chat';
+    } else {
+      id = provisionalChatId || generateUUID();
+      type = 'provisional';
+    }
+
+    return {
+      id,
+      type,
       refreshChatID,
-      isShared: sharedChatId !== null,
       setChatId,
-    }),
-    [chatId, sharedChatId, setChatId, provisionalChatId, refreshChatID],
-  );
+    };
+  }, [chatId, sharedChatId, setChatId, provisionalChatId, refreshChatID]);
 
   return (
     <ChatIdContext.Provider value={value}>{children}</ChatIdContext.Provider>

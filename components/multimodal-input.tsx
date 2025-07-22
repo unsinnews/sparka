@@ -38,7 +38,6 @@ import {
 import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
-import { useChatId } from '@/providers/chat-id-provider';
 import { generateUUID } from '@/lib/utils';
 import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
 
@@ -60,7 +59,6 @@ function PureMultimodalInput({
   parentMessageId: string | null;
 }) {
   const { width } = useWindowSize();
-  const { setChatId } = useChatId();
   const { data: session } = useSession();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const setMessages = useSetMessages();
@@ -169,9 +167,10 @@ function PureMultimodalInput({
 
   const coreSubmitLogic = useCallback(() => {
     const input = getInputValue();
-
-    window.history.replaceState({}, '', `/chat/${chatId}`);
-    setChatId(chatId);
+    // For new chats, we need to update the url to include the chatId
+    if (window.location.pathname === '/') {
+      window.history.pushState({}, '', `/chat/${chatId}`);
+    }
 
     // Get the appropriate parent message ID
     const effectiveParentMessageId = isEditMode
@@ -236,7 +235,6 @@ function PureMultimodalInput({
     sendMessage,
     width,
     chatId,
-    setChatId,
     selectedTool,
     isEditMode,
     getInputValue,

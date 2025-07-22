@@ -44,8 +44,6 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
   const setMessages = useSetMessages();
 
   // Select the appropriate chat ID based on isShared flag
-  const isShared = type === 'shared';
-  const effectiveChatId = id;
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
     // TODO: IS this effect still needed or can it be replaced with a useQuery ?
@@ -54,9 +52,10 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
       setAllMessages([]);
     }
 
-    const queryKey = isShared
-      ? trpc.chat.getPublicChatMessages.queryKey({ chatId: effectiveChatId })
-      : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
+    const queryKey =
+      type === 'shared'
+        ? trpc.chat.getPublicChatMessages.queryKey({ chatId: id })
+        : trpc.chat.getChatMessages.queryKey({ chatId: id });
 
     // Get initial data
     const initialData = queryClient.getQueryData<ChatMessage[]>(queryKey);
@@ -72,11 +71,12 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
         const eventQueryKey = event.query.queryKey;
 
         // Get current query key to avoid stale closure issues
-        const currentQueryKey = isShared
-          ? trpc.chat.getPublicChatMessages.queryKey({
-              chatId: effectiveChatId,
-            })
-          : trpc.chat.getChatMessages.queryKey({ chatId: effectiveChatId });
+        const currentQueryKey =
+          type === 'shared'
+            ? trpc.chat.getPublicChatMessages.queryKey({
+                chatId: id,
+              })
+            : trpc.chat.getChatMessages.queryKey({ chatId: id });
 
         // Compare query keys (simple deep comparison for this case)
         if (JSON.stringify(eventQueryKey) === JSON.stringify(currentQueryKey)) {
@@ -91,9 +91,8 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
 
     return unsubscribe;
   }, [
-    effectiveChatId,
+    id,
     type,
-    isShared,
     trpc.chat.getChatMessages,
     trpc.chat.getPublicChatMessages,
     queryClient,
@@ -147,7 +146,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
 
   const navigateToSibling = useCallback(
     (messageId: string, direction: 'prev' | 'next') => {
-      if (!allMessages || !effectiveChatId) return;
+      if (!allMessages || !id) return;
       const siblingInfo = getMessageSiblingInfo(messageId);
       if (!siblingInfo || siblingInfo.siblings.length <= 1) return;
 
@@ -169,13 +168,7 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
 
       setMessages(newThread);
     },
-    [
-      allMessages,
-      getMessageSiblingInfo,
-      childrenMap,
-      effectiveChatId,
-      setMessages,
-    ],
+    [allMessages, getMessageSiblingInfo, childrenMap, id, setMessages],
   );
 
   const value = useMemo(

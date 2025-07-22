@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { GlobalProviders } from './globalproviders';
+import Script from 'next/script';
 
 import './globals.css';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Toaster } from 'sonner';
+import { TRPCReactProvider } from '@/trpc/react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sparka.ai'),
@@ -78,7 +81,19 @@ export default async function RootLayout({
         />
       </head>
       <body className="antialiased">
-        <GlobalProviders>{children}</GlobalProviders>
+        <Script
+          src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
+          strategy="beforeInteractive"
+        />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Toaster position="top-center" />
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

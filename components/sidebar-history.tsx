@@ -1,55 +1,27 @@
 'use client';
 
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
-import { useNavigate } from 'react-router';
-import type { User } from 'next-auth';
 import { useCallback, useState } from 'react';
-import { toast } from 'sonner';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   useSidebar,
 } from '@/components/ui/sidebar';
-import type { UIChat } from '@/lib/types/uiChat';
 import {
-  useDeleteChat,
   useRenameChat,
   usePinChat,
   useGetAllChats,
 } from '@/hooks/chat-sync-hooks';
-import { useChatId } from '@/providers/chat-id-provider';
-import { SidebarChatItem } from './sidebar-chat-item';
+import { GroupedChatsList } from './grouped-chats-list';
+import { DeleteDialog } from './delete-dialog';
 
-type GroupedChats = {
-  pinned: UIChat[];
-  today: UIChat[];
-  yesterday: UIChat[];
-  lastWeek: UIChat[];
-  lastMonth: UIChat[];
-  older: UIChat[];
-};
-
-export function SidebarHistory({ user }: { user: User | undefined }) {
+export function SidebarHistory() {
   const { setOpenMobile } = useSidebar();
-  const { chatId, refreshChatID } = useChatId();
-  const navigate = useNavigate();
 
   const { mutate: renameChatMutation } = useRenameChat();
   const { mutate: pinChatMutation } = usePinChat();
-  const { deleteChat } = useDeleteChat();
 
-  const { data: chats, isLoading } = useGetAllChats(100);
+  const { data: chats, isLoading } = useGetAllChats(50);
 
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -68,27 +40,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     [pinChatMutation],
   );
 
-  const handleDelete = async () => {
-    if (!deleteId) return;
-
-    try {
-      await deleteChat(deleteId, {
-        onSuccess: () => toast.success('Chat deleted successfully'),
-        onError: () => toast.error('Failed to delete chat'),
-      });
-    } catch (error) {
-      // Error already handled by onError callback
-    }
-
-    setShowDeleteDialog(false);
-
-    if (deleteId === chatId) {
-      refreshChatID();
-      navigate('/');
-    }
-  };
-
-  if (!user && !isLoading && chats?.length === 0) {
+  if (!isLoading && chats?.length === 0) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -129,231 +81,31 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     );
   }
 
-  if (chats?.length === 0) {
-    return (
-      <SidebarGroup>
-        <SidebarGroupContent>
-          <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2">
-            Your conversations will appear here once you start chatting!
-          </div>
-        </SidebarGroupContent>
-      </SidebarGroup>
-    );
-  }
-
-  const groupChatsByDate = (chats: UIChat[]): GroupedChats => {
-    const now = new Date();
-    const oneWeekAgo = subWeeks(now, 1);
-    const oneMonthAgo = subMonths(now, 1);
-
-    // Separate pinned and non-pinned chats
-    const pinnedChats = chats.filter((chat) => chat.isPinned);
-    const nonPinnedChats = chats.filter((chat) => !chat.isPinned);
-
-    const groups = nonPinnedChats.reduce(
-      (groups, chat) => {
-        const chatDate = new Date(chat.updatedAt);
-
-        if (isToday(chatDate)) {
-          groups.today.push(chat);
-        } else if (isYesterday(chatDate)) {
-          groups.yesterday.push(chat);
-        } else if (chatDate > oneWeekAgo) {
-          groups.lastWeek.push(chat);
-        } else if (chatDate > oneMonthAgo) {
-          groups.lastMonth.push(chat);
-        } else {
-          groups.older.push(chat);
-        }
-
-        return groups;
-      },
-      {
-        pinned: [],
-        today: [],
-        yesterday: [],
-        lastWeek: [],
-        lastMonth: [],
-        older: [],
-      } as GroupedChats,
-    );
-
-    // Add pinned chats (sorted by most recently updated first)
-    groups.pinned = pinnedChats.sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    );
-
-    return groups;
-  };
-
   return (
     <>
       <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu>
-            {chats &&
-              (() => {
-                const groupedChats = groupChatsByDate(chats);
-
-                return (
-                  <>
-                    {groupedChats.pinned.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
-                          Pinned
-                        </div>
-                        {groupedChats.pinned.map((chat) => (
-                          <SidebarChatItem
-                            key={chat.id}
-                            chat={chat}
-                            isActive={chat.id === chatId}
-                            onDelete={(chatId) => {
-                              setDeleteId(chatId);
-                              setShowDeleteDialog(true);
-                            }}
-                            onRename={renameChat}
-                            onPin={pinChat}
-                            setOpenMobile={setOpenMobile}
-                          />
-                        ))}
-                      </>
-                    )}
-
-                    {groupedChats.today.length > 0 && (
-                      <>
-                        <div
-                          className={`px-2 py-1 text-xs text-sidebar-foreground/50 ${groupedChats.pinned.length > 0 ? 'mt-6' : ''}`}
-                        >
-                          Today
-                        </div>
-                        {groupedChats.today.map((chat) => (
-                          <SidebarChatItem
-                            key={chat.id}
-                            chat={chat}
-                            isActive={chat.id === chatId}
-                            onDelete={(chatId) => {
-                              setDeleteId(chatId);
-                              setShowDeleteDialog(true);
-                            }}
-                            onRename={renameChat}
-                            onPin={pinChat}
-                            setOpenMobile={setOpenMobile}
-                          />
-                        ))}
-                      </>
-                    )}
-
-                    {groupedChats.yesterday.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Yesterday
-                        </div>
-                        {groupedChats.yesterday.map((chat) => (
-                          <SidebarChatItem
-                            key={chat.id}
-                            chat={chat}
-                            isActive={chat.id === chatId}
-                            onDelete={(chatId) => {
-                              setDeleteId(chatId);
-                              setShowDeleteDialog(true);
-                            }}
-                            onRename={renameChat}
-                            onPin={pinChat}
-                            setOpenMobile={setOpenMobile}
-                          />
-                        ))}
-                      </>
-                    )}
-
-                    {groupedChats.lastWeek.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Last 7 days
-                        </div>
-                        {groupedChats.lastWeek.map((chat) => (
-                          <SidebarChatItem
-                            key={chat.id}
-                            chat={chat}
-                            isActive={chat.id === chatId}
-                            onDelete={(chatId) => {
-                              setDeleteId(chatId);
-                              setShowDeleteDialog(true);
-                            }}
-                            onRename={renameChat}
-                            onPin={pinChat}
-                            setOpenMobile={setOpenMobile}
-                          />
-                        ))}
-                      </>
-                    )}
-
-                    {groupedChats.lastMonth.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Last 30 days
-                        </div>
-                        {groupedChats.lastMonth.map((chat) => (
-                          <SidebarChatItem
-                            key={chat.id}
-                            chat={chat}
-                            isActive={chat.id === chatId}
-                            onDelete={(chatId) => {
-                              setDeleteId(chatId);
-                              setShowDeleteDialog(true);
-                            }}
-                            onRename={renameChat}
-                            onPin={pinChat}
-                            setOpenMobile={setOpenMobile}
-                          />
-                        ))}
-                      </>
-                    )}
-
-                    {groupedChats.older.length > 0 && (
-                      <>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 mt-6">
-                          Older
-                        </div>
-                        {groupedChats.older.map((chat) => (
-                          <SidebarChatItem
-                            key={chat.id}
-                            chat={chat}
-                            isActive={chat.id === chatId}
-                            onDelete={(chatId) => {
-                              setDeleteId(chatId);
-                              setShowDeleteDialog(true);
-                            }}
-                            onRename={renameChat}
-                            onPin={pinChat}
-                            setOpenMobile={setOpenMobile}
-                          />
-                        ))}
-                      </>
-                    )}
-                  </>
-                );
-              })()}
+            {chats && (
+              <GroupedChatsList
+                chats={chats}
+                onDelete={(chatId) => {
+                  setDeleteId(chatId);
+                  setShowDeleteDialog(true);
+                }}
+                onRename={renameChat}
+                onPin={pinChat}
+                setOpenMobile={setOpenMobile}
+              />
+            )}
           </SidebarMenu>
         </SidebarGroupContent>
       </SidebarGroup>
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              chat and remove it from our servers.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>
-              Continue
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteDialog
+        deleteId={deleteId}
+        showDeleteDialog={showDeleteDialog}
+        setShowDeleteDialog={setShowDeleteDialog}
+      />
     </>
   );
 }

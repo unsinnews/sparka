@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { useCloneChat } from '@/hooks/chat-sync-hooks';
 import { Loader2, Copy } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 interface CloneChatButtonProps {
@@ -12,7 +12,7 @@ interface CloneChatButtonProps {
 }
 
 export function CloneChatButton({ chatId, className }: CloneChatButtonProps) {
-  const navigate = useNavigate();
+  const router = useRouter();
   const copyChat = useCloneChat();
 
   const handleCloneChat = async () => {
@@ -21,7 +21,7 @@ export function CloneChatButton({ chatId, className }: CloneChatButtonProps) {
         chatId,
       });
 
-      navigate(`/chat/${result.chatId}`);
+      router.push(`/chat/${result.chatId}`);
       toast.success('Chat saved to your chats!');
     } catch (error) {
       console.error('Failed to clone chat:', error);

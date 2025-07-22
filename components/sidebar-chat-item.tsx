@@ -1,5 +1,5 @@
 'use client';
-import { Link } from 'react-router';
+import Link from 'next/link';
 import { memo, useState } from 'react';
 import { toast } from 'sonner';
 import { PinIcon } from 'lucide-react';
@@ -24,14 +24,6 @@ import { Input } from '@/components/ui/input';
 import type { UIChat } from '@/lib/types/uiChat';
 import { ShareDialog } from '@/components/share-button';
 import { ShareMenuItem } from '@/components/upgrade-cta/share-menu-item';
-
-type GroupedChats = {
-  today: UIChat[];
-  yesterday: UIChat[];
-  lastWeek: UIChat[];
-  lastMonth: UIChat[];
-  older: UIChat[];
-};
 
 const PureSidebarChatItem = ({
   chat,
@@ -94,7 +86,23 @@ const PureSidebarChatItem = ({
         </div>
       ) : (
         <SidebarMenuButton asChild isActive={isActive}>
-          <Link to={`/chat/${chat.id}`} onClick={() => setOpenMobile(false)}>
+          <Link
+            href={`/chat/${chat.id}`}
+            prefetch={false} // TODO: Restore the prefetching after solving conflict with ppr
+            onClick={(e) => {
+              // Allow middle-click and ctrl+click to open in new tab
+              if (e.button === 1 || e.ctrlKey || e.metaKey) {
+                return;
+              }
+
+              // Prevent default Link navigation for normal clicks
+              e.preventDefault();
+
+              // Use History API for client-side navigation
+              window.history.pushState(null, '', `/chat/${chat.id}`);
+              setOpenMobile(false);
+            }}
+          >
             <span>{chat.title}</span>
           </Link>
         </SidebarMenuButton>

@@ -1,14 +1,15 @@
-import Script from 'next/script';
-import { AnonymousSessionInit } from '@/components/anonymous-session-init';
-import { SidebarProvider } from '@/components/ui/sidebar';
-import { SessionProvider } from 'next-auth/react';
+import { ChatProviders } from './chat-providers';
 import { auth } from '../(auth)/auth';
 import { cookies } from 'next/headers';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { DefaultModelProvider } from '@/providers/default-model-provider';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/all-models';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
+import { AppSidebar } from '@/components/app-sidebar';
+import { KeyboardShortcuts } from '@/components/keyboard-shortcuts';
+import { SessionProvider } from 'next-auth/react';
 
-export default async function ShellLayout({
+export default async function ChatLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -33,20 +34,19 @@ export default async function ShellLayout({
   }
 
   return (
-    <>
-      <Script
-        src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"
-        strategy="beforeInteractive"
-      />
-      <SessionProvider session={session}>
-        <AnonymousSessionInit />
-
+    <SessionProvider session={session}>
+      <ChatProviders user={session?.user}>
         <SidebarProvider defaultOpen={!isCollapsed}>
-          <DefaultModelProvider defaultModel={defaultModel}>
-            {children}
-          </DefaultModelProvider>
+          <AppSidebar />
+          <SidebarInset>
+            <DefaultModelProvider defaultModel={defaultModel}>
+              <KeyboardShortcuts />
+
+              {children}
+            </DefaultModelProvider>
+          </SidebarInset>
         </SidebarProvider>
-      </SessionProvider>
-    </>
+      </ChatProviders>
+    </SessionProvider>
   );
 }

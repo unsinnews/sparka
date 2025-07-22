@@ -49,10 +49,9 @@ export function MessageTreeProvider({ children }: MessageTreeProviderProps) {
   // Subscribe to query cache changes for the specific chat messages query
   useEffect(() => {
     // TODO: IS this effect still needed or can it be replaced with a useQuery ?
-    if (type === 'provisional') {
+    if (type === 'provisional' && window.location.pathname === '/') {
       // New chat
       setAllMessages([]);
-      return;
     }
 
     const queryKey = isShared

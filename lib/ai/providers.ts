@@ -2,10 +2,11 @@ import { extractReasoningMiddleware, wrapLanguageModel } from 'ai';
 import type { LanguageModelV2 } from '@ai-sdk/provider';
 
 import { openai, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
-import { anthropic, type AnthropicProviderOptions } from '@ai-sdk/anthropic';
+import type { AnthropicProviderOptions } from '@ai-sdk/anthropic';
 import { xai } from '@ai-sdk/xai';
 import { google, type GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
 import { type AvailableProviderModels, getModelDefinition } from './all-models';
+import { gateway } from '@ai-sdk/gateway';
 
 const telemetryConfig = {
   telemetry: {
@@ -23,7 +24,8 @@ export const getLanguageModel = (modelId: AvailableProviderModels) => {
   if (spec.provider === 'openai') {
     provider = openai.responses(spec.modelIdShort);
   } else if (spec.provider === 'anthropic') {
-    provider = anthropic(spec.modelIdShort);
+    // provider = anthropic(spec.modelIdShort);
+    provider = gateway(spec.modelIdShort);
   } else if (spec.provider === 'xai') {
     provider = xai(spec.modelIdShort);
   } else if (spec.provider === 'google') {

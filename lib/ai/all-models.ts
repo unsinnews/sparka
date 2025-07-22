@@ -192,8 +192,8 @@ export const allModels = [
     specification: {
       specificationVersion: 'v2',
       provider: 'anthropic',
-      modelId: 'anthropic/claude-opus-4-0',
-      modelIdShort: 'claude-opus-4-0',
+      modelId: 'anthropic/claude-opus-4',
+      modelIdShort: 'claude-opus-4',
     },
     pricing: {
       inputMTok: 15,
@@ -228,8 +228,8 @@ export const allModels = [
     specification: {
       specificationVersion: 'v2',
       provider: 'anthropic',
-      modelId: 'anthropic/claude-sonnet-4-0',
-      modelIdShort: 'claude-sonnet-4-0',
+      modelId: 'anthropic/claude-sonnet-4',
+      modelIdShort: 'claude-sonnet-4',
     },
     pricing: {
       inputMTok: 3,

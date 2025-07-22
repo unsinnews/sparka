@@ -1,6 +1,6 @@
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns';
 import { useMemo } from 'react';
-import { useParams, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import type { UIChat } from '@/lib/types/uiChat';
 import { SidebarChatItem } from './sidebar-chat-item';
 
@@ -29,15 +29,14 @@ export function GroupedChatsList({
   setOpenMobile,
 }: GroupedChatsListProps) {
   const pathname = usePathname();
-  const params = useParams();
 
   // Extract chatId from URL for /chat routes
   const chatId = useMemo(() => {
     if (pathname?.startsWith('/chat/')) {
-      return (params?.id as string) || null;
+      return pathname.replace('/chat/', '') || null;
     }
     return null;
-  }, [pathname, params?.id]);
+  }, [pathname]);
 
   const groupedChats = useMemo(() => {
     const now = new Date();

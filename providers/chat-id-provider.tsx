@@ -10,7 +10,7 @@ import {
   type ReactNode,
   useCallback,
 } from 'react';
-import { useParams, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 interface ChatIdContextType {
   chatId: string | null;
@@ -25,19 +25,18 @@ const ChatIdContext = createContext<ChatIdContextType | undefined>(undefined);
 
 export function ChatIdProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const params = useParams();
 
-  // Use useMemo to derive state from pathname and params
+  // Use useMemo to derive state from pathname
   const { chatId: urlChatId, sharedChatId } = useMemo(() => {
     if (pathname?.startsWith('/chat/')) {
       return {
-        chatId: (params?.id as string) || null,
+        chatId: pathname.replace('/chat/', '') || null,
         sharedChatId: null,
       };
     } else if (pathname?.startsWith('/share/')) {
       return {
         chatId: null,
-        sharedChatId: (params?.id as string) || null,
+        sharedChatId: pathname.replace('/share/', '') || null,
       };
     } else {
       return {
@@ -45,7 +44,7 @@ export function ChatIdProvider({ children }: { children: ReactNode }) {
         sharedChatId: null,
       };
     }
-  }, [pathname, params?.id]);
+  }, [pathname]);
 
   // State for manual chatId updates (like after replaceState)
   const [manualChatId, setManualChatId] = useState<string | null>(null);

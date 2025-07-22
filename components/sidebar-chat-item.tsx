@@ -89,7 +89,16 @@ const PureSidebarChatItem = ({
           <Link
             href={`/chat/${chat.id}`}
             prefetch={false} // TODO: Restore the prefetching after solving conflict with ppr
-            onClick={() => {
+            onClick={(e) => {
+              // Allow middle-click and ctrl+click to open in new tab
+              if (e.button === 1 || e.ctrlKey || e.metaKey) {
+                return;
+              }
+
+              // Prevent default Link navigation for normal clicks
+              e.preventDefault();
+
+              // Use History API for client-side navigation
               window.history.pushState(null, '', `/chat/${chat.id}`);
               setOpenMobile(false);
             }}

@@ -128,47 +128,44 @@ export function ModelCard({
       )}
 
       {/* Key Features Row */}
-      <div className="flex items-center justify-between w-full">
-        <div className="flex gap-1">{featureIcons}</div>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          {maxTokens && (
-            <div className="flex items-center gap-1">
-              <span className="font-medium">{maxTokens.toLocaleString()}</span>
-              <span>max</span>
-            </div>
-          )}
-          {contextLength && (
-            <div className="flex items-center gap-1">
-              <span className="font-medium">
-                {contextLength.toLocaleString()}
-              </span>
-              <span>ctx</span>
-            </div>
-          )}
-        </div>
+      <div className="flex justify-start items-center gap-3 text-xs text-muted-foreground text-start">
+        {maxTokens && (
+          <div className="flex items-center gap-1">
+            <span className="font-medium">{maxTokens.toLocaleString()}</span>
+            <span>Max out</span>
+          </div>
+        )}
+        {contextLength && (
+          <div className="flex items-center gap-1">
+            <span className="font-medium">
+              {contextLength.toLocaleString()}
+            </span>
+            <span>Max in</span>
+          </div>
+        )}
       </div>
 
       {/* Features Row */}
       {hasFeatures && (
         <div className="flex flex-wrap gap-1 mt-3 w-full">
           {model.features?.reasoning && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="outline" className="text-xs">
               Reasoning
             </Badge>
           )}
           {model.features?.functionCalling && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="outline" className="text-xs">
               Function Calling
             </Badge>
           )}
           {model.features?.input?.image && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="outline" className="text-xs">
               Vision
             </Badge>
           )}
           {model.features?.input?.pdf && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="outline" className="text-xs">
               PDF
             </Badge>
           )}
@@ -181,13 +178,17 @@ export function ModelCard({
           {model.pricing.input && (
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              <span>${model.pricing.input}/1K in</span>
+              <span>
+                ${(Number(model.pricing.input) * 1000000).toFixed(2)}/1M in
+              </span>
             </div>
           )}
           {model.pricing.output && (
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              <span>${model.pricing.output}/1K out</span>
+              <span>
+                ${(Number(model.pricing.output) * 1000000).toFixed(2)}/1M out
+              </span>
             </div>
           )}
         </div>

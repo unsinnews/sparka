@@ -28,12 +28,18 @@ export function ResponsiveTools({
   const isAnonymous = !session?.user;
   const [showLoginPopover, setShowLoginPopover] = useState(false);
 
-  const hasReasoningModel = (() => {
+  const { hasReasoningModel, hasUnspecifiedFeatures } = (() => {
     try {
       const modelDef = getModelDefinition(selectedModelId as any);
-      return modelDef.features?.reasoning === true;
+      return {
+        hasReasoningModel: modelDef.features?.reasoning === true,
+        hasUnspecifiedFeatures: !modelDef.features,
+      };
     } catch {
-      return false;
+      return {
+        hasReasoningModel: false,
+        hasUnspecifiedFeatures: false,
+      };
     }
   })();
 
@@ -41,6 +47,10 @@ export function ResponsiveTools({
 
   const setTool = (tool: UiToolName | null) => {
     if (tool === 'deepResearch' && hasReasoningModel) {
+      return;
+    }
+
+    if (hasUnspecifiedFeatures && tool !== null) {
       return;
     }
 
@@ -93,7 +103,10 @@ export function ResponsiveTools({
           >
             {enabledTools.map((key) => {
               const tool = toolDefinitions[key];
-              const isDisabled = key === 'deepResearch' && hasReasoningModel;
+              const isDeepResearchDisabled =
+                key === 'deepResearch' && hasReasoningModel;
+              const isToolDisabled =
+                hasUnspecifiedFeatures || isDeepResearchDisabled;
               const Icon = tool.icon;
               return (
                 <DropdownMenuItem
@@ -103,14 +116,17 @@ export function ResponsiveTools({
                     setTool(tools === key ? null : key);
                   }}
                   className="flex items-center gap-2"
-                  disabled={isDisabled}
+                  disabled={isToolDisabled}
                 >
                   <Icon size={14} />
                   <span>{tool.name}</span>
                   {tools === key && (
                     <span className="text-xs opacity-70">✓</span>
                   )}
-                  {isDisabled && (
+                  {hasUnspecifiedFeatures && (
+                    <span className="text-xs opacity-60">(not supported)</span>
+                  )}
+                  {!hasUnspecifiedFeatures && isDeepResearchDisabled && (
                     <span className="text-xs opacity-60">
                       (for non-reasoning models)
                     </span>

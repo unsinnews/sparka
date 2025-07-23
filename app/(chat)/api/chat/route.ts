@@ -357,14 +357,19 @@ export async function POST(request: NextRequest) {
           : 0,
     );
 
-    // Let's not allow deepResearch if the model support reasoning (it's expensive and slow)
-    if (
-      modelDefinition.features?.reasoning &&
-      activeTools.some((tool: ToolName) => tool === 'deepResearch')
-    ) {
-      activeTools = activeTools.filter(
-        (tool: ToolName) => tool !== 'deepResearch',
-      );
+    // Disable all tools for models with unspecified features
+    if (!modelDefinition.features) {
+      activeTools = [];
+    } else {
+      // Let's not allow deepResearch if the model support reasoning (it's expensive and slow)
+      if (
+        modelDefinition.features.reasoning &&
+        activeTools.some((tool: ToolName) => tool === 'deepResearch')
+      ) {
+        activeTools = activeTools.filter(
+          (tool: ToolName) => tool !== 'deepResearch',
+        );
+      }
     }
 
     if (

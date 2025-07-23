@@ -106,9 +106,14 @@ export function ChatInputProvider({
     async (modelId: string) => {
       const modelDef = getModelDefinition(modelId as any);
       const hasReasoning = modelDef.features?.reasoning === true;
+      const hasUnspecifiedFeatures = !modelDef.features;
 
+      // If switching to a model with unspecified features, disable all tools
+      if (hasUnspecifiedFeatures && selectedTool !== null) {
+        setSelectedTool(null);
+      }
       // If switching to a reasoning model and deep research is selected, disable it
-      if (hasReasoning && selectedTool === 'deepResearch') {
+      else if (hasReasoning && selectedTool === 'deepResearch') {
         setSelectedTool(null);
       }
 

@@ -5,6 +5,8 @@ import type { GatewayModelId } from '@ai-sdk/gateway';
 
 const disabledModels: Partial<Record<GatewayModelId, true>> = {
   'anthropic/claude-4-opus': true,
+  'morph/morph-v3-large': true,
+  'morph/morph-v3-fast': true,
 };
 
 export type ModelDefinition = ModelData & {

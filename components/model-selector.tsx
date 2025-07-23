@@ -206,6 +206,18 @@ export function PureModelSelector({
     [optimisticModelId],
   );
 
+  // Get selected model's provider icon
+  const selectedModelDefinition = useMemo(() => {
+    if (!selectedChatModel) return null;
+    return getModelDefinitionCached(selectedChatModel.id);
+  }, [selectedChatModel]);
+
+  const selectedProviderIcon = useMemo(() => {
+    if (!selectedModelDefinition) return null;
+    const provider = selectedModelDefinition.owned_by as Provider;
+    return getProviderIcon(provider);
+  }, [selectedModelDefinition]);
+
   const activeFilterCount = useMemo(
     () => Object.values(featureFilters).filter(Boolean).length,
     [featureFilters],
@@ -419,7 +431,12 @@ export function PureModelSelector({
           aria-expanded={open}
           className={cn('w-fit md:px-2 md:h-[34px] gap-0', className)}
         >
-          <p className="truncate">{selectedChatModel?.name}</p>
+          <div className="flex items-center gap-2">
+            {selectedProviderIcon && (
+              <div className="flex-shrink-0">{selectedProviderIcon}</div>
+            )}
+            <p className="truncate">{selectedChatModel?.name}</p>
+          </div>
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

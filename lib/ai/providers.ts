@@ -15,43 +15,52 @@ const telemetryConfig = {
   },
 };
 
+function extractModelIdShort(gatewayModelId: string): string {
+  // Extract the short model ID from gateway format (e.g., "openai/gpt-4o-mini" -> "gpt-4o-mini")
+  const parts = gatewayModelId.split('/');
+  return parts.length > 1 ? parts[1] : gatewayModelId;
+}
+
 export const getLanguageModel = (modelId: AvailableProviderModels) => {
   const model = getModelDefinition(modelId);
+  const provider = model.owned_by;
+  const modelIdShort = extractModelIdShort(model.id);
 
-  const spec = model.specification;
-
-  let provider: LanguageModelV2;
-  if (spec.provider === 'openai') {
-    provider = openai.responses(spec.modelIdShort);
-  } else if (spec.provider === 'anthropic') {
-    // provider = anthropic(spec.modelIdShort);
-    provider = gateway(spec.modelIdShort);
-  } else if (spec.provider === 'xai') {
-    provider = xai(spec.modelIdShort);
-  } else if (spec.provider === 'google') {
-    provider = google(spec.modelIdShort);
+  let languageProvider: LanguageModelV2;
+  if (provider === 'openai') {
+    languageProvider = openai.responses(modelIdShort);
+  } else if (provider === 'anthropic') {
+    // provider = anthropic(modelIdShort);
+    languageProvider = gateway(model.id);
+  } else if (provider === 'xai') {
+    languageProvider = xai(modelIdShort);
+  } else if (provider === 'google') {
+    languageProvider = google(modelIdShort);
   } else {
-    throw new Error(`Provider ${spec.provider} not supported`);
+    throw new Error(`Provider ${provider} not supported`);
   }
 
   // Wrap with reasoning middleware if the model supports reasoning
-  if (model.features?.reasoning && model.specification.provider === 'xai') {
+  if (model.features?.reasoning && provider === 'xai') {
     console.log('Wrapping reasoning middleware for', model.id);
     return wrapLanguageModel({
-      model: provider,
+      model: languageProvider,
       middleware: extractReasoningMiddleware({ tagName: 'think' }),
     });
   }
 
-  return provider;
+  return languageProvider;
 };
 
 export const getImageModel = (modelId: AvailableProviderModels) => {
   const model = getModelDefinition(modelId);
-  if (model.specification.provider === 'openai') {
-    return openai.image(model.specification.modelIdShort);
+  const provider = model.owned_by;
+  const modelIdShort = extractModelIdShort(model.id);
+
+  if (provider === 'openai') {
+    return openai.image(modelIdShort);
   }
-  throw new Error(`Provider ${model.specification.provider} not supported`);
+  throw new Error(`Provider ${provider} not supported`);
 };
 
 const MODEL_ALIASES = {
@@ -77,21 +86,24 @@ export const getModelProviderOptions = (
       google: GoogleGenerativeAIProviderOptions;
     } => {
   const model = getModelDefinition(providerModelId);
+  const provider = model.owned_by;
+  const modelIdShort = extractModelIdShort(model.id);
 
-  const spec = model.specification;
-  if (spec.provider === 'openai') {
-    const mId = spec.modelIdShort;
-    if (mId === 'o4-mini' || mId === 'o3' || mId === 'o3-mini') {
+  if (provider === 'openai') {
+    if (
+      modelIdShort === 'o4-mini' ||
+      modelIdShort === 'o3' ||
+      modelIdShort === 'o3-mini'
+    ) {
       return {
         openai: {
           reasoningSummary: 'auto',
         } satisfies OpenAIResponsesProviderOptions,
       };
     } else {
-      mId;
       return { openai: {} };
     }
-  } else if (spec.provider === 'anthropic') {
+  } else if (provider === 'anthropic') {
     if (model.features?.reasoning) {
       return {
         anthropic: {
@@ -104,11 +116,11 @@ export const getModelProviderOptions = (
     } else {
       return { anthropic: {} };
     }
-  } else if (spec.provider === 'xai') {
+  } else if (provider === 'xai') {
     return {
       xai: {},
     };
-  } else if (spec.provider === 'google') {
+  } else if (provider === 'google') {
     if (model.features?.reasoning) {
       return {
         google: {
@@ -121,6 +133,6 @@ export const getModelProviderOptions = (
       return { google: {} };
     }
   } else {
-    throw new Error(`Provider ${model.specification.provider} not supported`);
+    throw new Error(`Provider ${provider} not supported`);
   }
 };

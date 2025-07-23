@@ -33,7 +33,11 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ModelCard } from '@/components/model-card';
 import { cn } from '@/lib/utils';
-import { allImplementedModels, getModelDefinition } from '@/lib/ai/all-models';
+import {
+  chatModels,
+  getModelDefinition,
+  type ModelDefinition,
+} from '@/lib/ai/all-models';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -43,11 +47,11 @@ import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
 import { AnthropicIcon, GoogleIcon, OpenAIIcon, XAIIcon } from './icons';
 
 import { ChevronUpIcon, FilterIcon, Building } from 'lucide-react';
+import type { GatewayModelId } from '@ai-sdk/gateway';
 
 type FeatureFilter = Record<string, boolean>;
 
 // Pre-compute static data outside component to avoid re-computation
-const chatModels = allImplementedModels;
 const enabledFeatures = getEnabledFeatures();
 const initialFilters = enabledFeatures.reduce<FeatureFilter>((acc, feature) => {
   acc[feature.key] = false;
@@ -55,12 +59,17 @@ const initialFilters = enabledFeatures.reduce<FeatureFilter>((acc, feature) => {
 }, {});
 
 // Cache model definitions to avoid repeated calls
-const modelDefinitionsCache = new Map();
-const getModelDefinitionCached = (modelId: string) => {
+const modelDefinitionsCache = new Map<GatewayModelId, ModelDefinition>();
+const getModelDefinitionCached = (modelId: GatewayModelId) => {
   if (!modelDefinitionsCache.has(modelId)) {
     modelDefinitionsCache.set(modelId, getModelDefinition(modelId));
   }
-  return modelDefinitionsCache.get(modelId);
+
+  const res = modelDefinitionsCache.get(modelId);
+  if (!res) {
+    throw new Error(`Model definition not found for ${modelId}`);
+  }
+  return res;
 };
 
 function getProviderIcon(provider: string, size = 16) {
@@ -159,7 +168,7 @@ export function PureModelSelector({
 
     return chatModels.filter((model) => {
       const modelDef = getModelDefinitionCached(model.id);
-      const features = modelDef.features;
+      const features = modelDef?.features;
 
       if (!features) return false;
 
@@ -327,13 +336,13 @@ export function PureModelSelector({
                   const { id } = chatModel;
                   const modelDefinition = getModelDefinitionCached(id);
                   const disabled = modelAvailability.isModelDisabled(id);
-                  const provider = modelDefinition.specification.provider;
+                  const provider = modelDefinition.owned_by;
                   const isSelected = id === optimisticModelId;
                   const featureIcons = getFeatureIcons(modelDefinition);
 
                   // Create searchable value combining model name and provider
                   const searchValue =
-                    `${modelDefinition.name} ${provider}`.toLowerCase();
+                    `${modelDefinition.name} ${modelDefinition.owned_by}`.toLowerCase();
 
                   return (
                     <Tooltip key={id}>

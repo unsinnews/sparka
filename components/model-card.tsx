@@ -51,8 +51,8 @@ export function ModelCard({
   disabledReason?: string;
   className?: string;
 }) {
-  const { features, pricing, shortDescription } = model;
-  const provider = model.specification.provider;
+  const { features, pricing, description } = model;
+  const provider = model.owned_by;
 
   // Define feature mappings for the model card
   const featureBadges = [
@@ -106,9 +106,9 @@ export function ModelCard({
       </div>
 
       {/* Description */}
-      {shortDescription && (
+      {description && (
         <p className="text-xs text-muted-foreground mb-3 line-clamp-2 text-left">
-          {shortDescription}
+          {description}
         </p>
       )}
 
@@ -139,11 +139,11 @@ export function ModelCard({
       </div>
 
       {/* Context Window */}
-      {features?.contextWindow && (
+      {model.context_window && model.max_tokens && (
         <div className="text-xs text-muted-foreground mb-2">
           <span className="font-medium">Context:</span>{' '}
-          {formatTokens(features.contextWindow.input)} in /{' '}
-          {formatTokens(features.contextWindow.output)} out
+          {formatTokens(model.context_window)} in /{' '}
+          {formatTokens(model.max_tokens)} out
         </div>
       )}
 
@@ -164,8 +164,9 @@ export function ModelCard({
       {/* Pricing */}
       {pricing && (
         <div className="text-xs text-muted-foreground">
-          <span className="font-medium">Pricing:</span> ${pricing.inputMTok}/M
-          in, ${pricing.outputMTok}/M out
+          <span className="font-medium">Pricing:</span> $
+          {(Number.parseFloat(pricing.input) * 1000000).toFixed(2)}/M in, $
+          {(Number.parseFloat(pricing.output) * 1000000).toFixed(2)}/M out
         </div>
       )}
     </div>

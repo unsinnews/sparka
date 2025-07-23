@@ -3,13 +3,13 @@ import { modelsData } from '@/providers/models-generated';
 import { modelFeatures, type ModelFeatures } from './model-features';
 import type { GatewayModelId } from '@ai-sdk/gateway';
 
-const disabledModels: Partial<Record<GatewayModelId, boolean>> = {
+const disabledModels: Partial<Record<GatewayModelId, true>> = {
   'claude-4-opus': true,
 };
 
 export type ModelDefinition = ModelData & {
   features?: ModelFeatures;
-  disabled?: boolean;
+  disabled?: true;
 };
 
 export const allModels = modelsData
@@ -22,17 +22,18 @@ export const allModels = modelsData
       disabled,
     };
   })
-  .filter((model) => model.disabled === false);
-
-// Extract types from the allModels array
+  .filter((model) => !model.disabled);
 
 export type AvailableProviderModels = (typeof allModels)[number]['id'];
 
-// Preferred provider order
 const PROVIDER_ORDER = ['openai', 'google', 'anthropic', 'xai'];
 
-export const allImplementedModels = allModels
-  .filter((model) => model.disabled && model.features?.output?.text === true)
+export const chatModels = allModels
+  .filter(
+    (model) =>
+      !model.disabled &&
+      (model.features?.output?.text === true || !model.features), // Let's show models even if we haven't created features yet
+  )
   .sort((a, b) => {
     const aProviderIndex = PROVIDER_ORDER.indexOf(a.owned_by);
     const bProviderIndex = PROVIDER_ORDER.indexOf(b.owned_by);

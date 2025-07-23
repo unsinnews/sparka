@@ -4,7 +4,7 @@ import { modelFeatures, type ModelFeatures } from './model-features';
 import type { GatewayModelId } from '@ai-sdk/gateway';
 
 const disabledModels: Partial<Record<GatewayModelId, true>> = {
-  'claude-4-opus': true,
+  'anthropic/claude-4-opus': true,
 };
 
 export type ModelDefinition = ModelData & {

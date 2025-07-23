@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { execSync } = require('node:child_process');
 
 async function fetchAndConvertModels() {
   try {
@@ -21,17 +22,68 @@ async function fetchAndConvertModels() {
     fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2));
     console.log('Saved JSON file:', jsonPath);
 
+    // Extract unique providers from owned_by property
+    const providers = [
+      ...new Set(jsonData.data.map((model) => model.owned_by)),
+    ].sort();
+
     // Generate TypeScript content
     const outputPath = path.join(__dirname, '../providers/models-generated.ts');
-    const tsContent = `import type { ModelData } from '@/providers/model-data';
+    const tsContent = `import type { GatewayModelId } from '@ai-sdk/gateway';
+
+// List of unique providers extracted from models data
+export const providers = ${JSON.stringify(providers, null, 2)} as const;
+
+export type Provider = (typeof providers)[number];
+
+export interface ModelData {
+  id: GatewayModelId;
+  object: string;
+  owned_by: Provider;
+  name: string;
+  description: string;
+  context_window: number; // Max input tokens
+  max_tokens: number; // Max output tokens
+  pricing: {
+    input: string; // Input price per token
+    output: string; // Output price per token
+  };
+}
 
 // Define the data with proper typing
-export const modelsData: ModelData[] = ${JSON.stringify(jsonData.data, null, 2)};
+export const modelsData: ModelData[] = ${JSON.stringify(
+      jsonData.data.map(({ created, ...model }) => model),
+      null,
+      2,
+    )};
 `;
 
     // Write the TypeScript file
     fs.writeFileSync(outputPath, tsContent);
     console.log('Generated TypeScript file:', outputPath);
+
+    // Format the generated TypeScript file with biome
+    try {
+      console.log('Formatting TypeScript file with biome...');
+      execSync(`npx biome format --write "${outputPath}"`, {
+        cwd: path.join(__dirname, '..'),
+        stdio: 'inherit',
+      });
+      console.log('Successfully formatted TypeScript file');
+    } catch (formatError) {
+      console.warn(
+        'Warning: Failed to format with biome:',
+        formatError.message,
+      );
+    }
+
+    // Also write the providers list to a separate JSON file
+    const providersJsonPath = path.join(
+      __dirname,
+      '../providers/providers-list.json',
+    );
+    fs.writeFileSync(providersJsonPath, JSON.stringify(providers, null, 2));
+    console.log('Generated providers list:', providersJsonPath);
   } catch (error) {
     console.error('Error fetching or converting models:', error);
     process.exit(1);

@@ -37,7 +37,7 @@ export const getLanguageModel = (modelId: AvailableProviderModels) => {
   } else if (provider === 'google') {
     languageProvider = google(modelIdShort);
   } else {
-    throw new Error(`Provider ${provider} not supported`);
+    languageProvider = gateway(model.id);
   }
 
   // Wrap with reasoning middleware if the model supports reasoning
@@ -84,7 +84,8 @@ export const getModelProviderOptions = (
     }
   | {
       google: GoogleGenerativeAIProviderOptions;
-    } => {
+    }
+  | Record<string, never> => {
   const model = getModelDefinition(providerModelId);
   const provider = model.owned_by;
   const modelIdShort = extractModelIdShort(model.id);
@@ -133,6 +134,6 @@ export const getModelProviderOptions = (
       return { google: {} };
     }
   } else {
-    throw new Error(`Provider ${provider} not supported`);
+    return {};
   }
 };

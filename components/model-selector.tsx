@@ -44,10 +44,11 @@ import { Badge } from '@/components/ui/badge';
 import { getEnabledFeatures } from '@/lib/features-config';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
-import { AnthropicIcon, GoogleIcon, OpenAIIcon, XAIIcon } from './icons';
 
-import { ChevronUpIcon, FilterIcon, Building } from 'lucide-react';
+import { ChevronUpIcon, FilterIcon } from 'lucide-react';
 import type { GatewayModelId } from '@ai-sdk/gateway';
+import type { Provider } from '@/providers/models-generated';
+import { getProviderIcon } from './get-provider-icon';
 
 type FeatureFilter = Record<string, boolean>;
 
@@ -71,22 +72,6 @@ const getModelDefinitionCached = (modelId: GatewayModelId) => {
   }
   return res;
 };
-
-function getProviderIcon(provider: string, size = 16) {
-  const iconProps = { size };
-  switch (provider) {
-    case 'openai':
-      return <OpenAIIcon {...iconProps} />;
-    case 'anthropic':
-      return <AnthropicIcon {...iconProps} />;
-    case 'xai':
-      return <XAIIcon {...iconProps} />;
-    case 'google':
-      return <GoogleIcon {...iconProps} />;
-    default:
-      return <Building className={`w-${size / 4} h-${size / 4}`} />;
-  }
-}
 
 function getFeatureIcons(modelDefinition: any) {
   const features = modelDefinition.features;
@@ -336,7 +321,7 @@ export function PureModelSelector({
                   const { id } = chatModel;
                   const modelDefinition = getModelDefinitionCached(id);
                   const disabled = modelAvailability.isModelDisabled(id);
-                  const provider = modelDefinition.owned_by;
+                  const provider = modelDefinition.owned_by as Provider;
                   const isSelected = id === optimisticModelId;
                   const featureIcons = getFeatureIcons(modelDefinition);
 

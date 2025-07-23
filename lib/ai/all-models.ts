@@ -1,4 +1,4 @@
-import type { ModelData } from '@/providers/model-data';
+import type { ModelData } from '@/providers/models-generated';
 import { modelsData } from '@/providers/models-generated';
 import { modelFeatures, type ModelFeatures } from './model-features';
 import type { GatewayModelId } from '@ai-sdk/gateway';

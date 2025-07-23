@@ -13,10 +13,11 @@ export interface Pricing {
 interface ModelDefinitionInternal {
   id: string;
   name: string;
-  enabled: boolean;
   specification: ModelSpecification;
   pricing?: Pricing;
   shortDescription?: string;
+
+  enabled: boolean;
   features?: {
     reasoning: boolean;
     functionCalling: boolean;
@@ -84,8 +85,8 @@ export const allModels = [
     specification: {
       specificationVersion: 'v2',
       provider: 'anthropic',
-      modelId: 'anthropic/claude-3-5-sonnet-latest',
-      modelIdShort: 'claude-3-5-sonnet-latest',
+      modelId: 'anthropic/claude-3.5-sonnet',
+      modelIdShort: 'claude-3.5-sonnet',
     },
     pricing: {
       inputMTok: 3,

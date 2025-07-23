@@ -33,21 +33,26 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { ModelCard } from '@/components/model-card';
 import { cn } from '@/lib/utils';
-import { allImplementedModels, getModelDefinition } from '@/lib/ai/all-models';
+import {
+  chatModels,
+  getModelDefinition,
+  type ModelDefinition,
+} from '@/lib/ai/all-models';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { getEnabledFeatures } from '@/lib/features-config';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
-import { AnthropicIcon, GoogleIcon, OpenAIIcon, XAIIcon } from './icons';
 
-import { ChevronUpIcon, FilterIcon, Building } from 'lucide-react';
+import { ChevronUpIcon, FilterIcon } from 'lucide-react';
+import type { GatewayModelId } from '@ai-sdk/gateway';
+import type { Provider } from '@/providers/models-generated';
+import { getProviderIcon } from './get-provider-icon';
 
 type FeatureFilter = Record<string, boolean>;
 
 // Pre-compute static data outside component to avoid re-computation
-const chatModels = allImplementedModels;
 const enabledFeatures = getEnabledFeatures();
 const initialFilters = enabledFeatures.reduce<FeatureFilter>((acc, feature) => {
   acc[feature.key] = false;
@@ -55,29 +60,18 @@ const initialFilters = enabledFeatures.reduce<FeatureFilter>((acc, feature) => {
 }, {});
 
 // Cache model definitions to avoid repeated calls
-const modelDefinitionsCache = new Map();
-const getModelDefinitionCached = (modelId: string) => {
+const modelDefinitionsCache = new Map<GatewayModelId, ModelDefinition>();
+const getModelDefinitionCached = (modelId: GatewayModelId) => {
   if (!modelDefinitionsCache.has(modelId)) {
     modelDefinitionsCache.set(modelId, getModelDefinition(modelId));
   }
-  return modelDefinitionsCache.get(modelId);
-};
 
-function getProviderIcon(provider: string, size = 16) {
-  const iconProps = { size };
-  switch (provider) {
-    case 'openai':
-      return <OpenAIIcon {...iconProps} />;
-    case 'anthropic':
-      return <AnthropicIcon {...iconProps} />;
-    case 'xai':
-      return <XAIIcon {...iconProps} />;
-    case 'google':
-      return <GoogleIcon {...iconProps} />;
-    default:
-      return <Building className={`w-${size / 4} h-${size / 4}`} />;
+  const res = modelDefinitionsCache.get(modelId);
+  if (!res) {
+    throw new Error(`Model definition not found for ${modelId}`);
   }
-}
+  return res;
+};
 
 function getFeatureIcons(modelDefinition: any) {
   const features = modelDefinition.features;
@@ -159,7 +153,7 @@ export function PureModelSelector({
 
     return chatModels.filter((model) => {
       const modelDef = getModelDefinitionCached(model.id);
-      const features = modelDef.features;
+      const features = modelDef?.features;
 
       if (!features) return false;
 
@@ -211,6 +205,18 @@ export function PureModelSelector({
     () => chatModels.find((chatModel) => chatModel.id === optimisticModelId),
     [optimisticModelId],
   );
+
+  // Get selected model's provider icon
+  const selectedModelDefinition = useMemo(() => {
+    if (!selectedChatModel) return null;
+    return getModelDefinitionCached(selectedChatModel.id);
+  }, [selectedChatModel]);
+
+  const selectedProviderIcon = useMemo(() => {
+    if (!selectedModelDefinition) return null;
+    const provider = selectedModelDefinition.owned_by as Provider;
+    return getProviderIcon(provider);
+  }, [selectedModelDefinition]);
 
   const activeFilterCount = useMemo(
     () => Object.values(featureFilters).filter(Boolean).length,
@@ -327,13 +333,13 @@ export function PureModelSelector({
                   const { id } = chatModel;
                   const modelDefinition = getModelDefinitionCached(id);
                   const disabled = modelAvailability.isModelDisabled(id);
-                  const provider = modelDefinition.specification.provider;
+                  const provider = modelDefinition.owned_by as Provider;
                   const isSelected = id === optimisticModelId;
                   const featureIcons = getFeatureIcons(modelDefinition);
 
                   // Create searchable value combining model name and provider
                   const searchValue =
-                    `${modelDefinition.name} ${provider}`.toLowerCase();
+                    `${modelDefinition.name} ${modelDefinition.owned_by}`.toLowerCase();
 
                   return (
                     <Tooltip key={id}>
@@ -425,7 +431,12 @@ export function PureModelSelector({
           aria-expanded={open}
           className={cn('w-fit md:px-2 md:h-[34px] gap-0', className)}
         >
-          <p className="truncate">{selectedChatModel?.name}</p>
+          <div className="flex items-center gap-2">
+            {selectedProviderIcon && (
+              <div className="flex-shrink-0">{selectedProviderIcon}</div>
+            )}
+            <p className="truncate">{selectedChatModel?.name}</p>
+          </div>
           <ChevronUpIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

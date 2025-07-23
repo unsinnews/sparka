@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { chatModels } from '@/lib/ai/legacy-models';
+import { legacyChatModels } from '@/lib/ai/legacy-models';
 import { expect, type Page } from '@playwright/test';
 
 export class ChatPage {
@@ -94,7 +94,7 @@ export class ChatPage {
   }
 
   public async chooseModelFromSelector(chatModelId: string) {
-    const chatModel = chatModels.find(
+    const chatModel = legacyChatModels.find(
       (chatModel) => chatModel.id === chatModelId,
     );
 

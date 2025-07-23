@@ -21,6 +21,7 @@ import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
 import { getTools } from '@/lib/ai/tools/tools';
 import { toolsDefinitions, allTools } from '@/lib/ai/tools/tools-definitions';
+import type { ToolName } from '@/lib/ai/types';
 import type { NextRequest } from 'next/server';
 import {
   filterAffordableTools,
@@ -36,7 +37,7 @@ import {
   createResumableStreamContext,
   type ResumableStreamContext,
 } from 'resumable-stream';
-import type { ChatMessage, ToolName } from '@/lib/ai/types';
+import type { ChatMessage } from '@/lib/ai/types';
 
 import { after } from 'next/server';
 import {
@@ -347,7 +348,7 @@ export async function POST(request: NextRequest) {
       await setAnonymousSession(anonymousSession);
     }
 
-    let activeTools = filterAffordableTools(
+    let activeTools: ToolName[] = filterAffordableTools(
       isAnonymous ? ANONYMOUS_LIMITS.AVAILABLE_TOOLS : allTools,
       isAnonymous
         ? ANONYMOUS_LIMITS.CREDITS
@@ -359,15 +360,19 @@ export async function POST(request: NextRequest) {
     // Let's not allow deepResearch if the model support reasoning (it's expensive and slow)
     if (
       modelDefinition.features?.reasoning &&
-      activeTools.some((tool) => tool === 'deepResearch')
+      activeTools.some((tool: ToolName) => tool === 'deepResearch')
     ) {
-      activeTools = activeTools.filter((tool) => tool !== 'deepResearch');
+      activeTools = activeTools.filter(
+        (tool: ToolName) => tool !== 'deepResearch',
+      );
     }
 
     if (
       explicitlyRequestedTools &&
       explicitlyRequestedTools.length > 0 &&
-      !activeTools.some((tool) => explicitlyRequestedTools.includes(tool))
+      !activeTools.some((tool: ToolName) =>
+        explicitlyRequestedTools.includes(tool),
+      )
     ) {
       console.log(
         'RESPONSE > POST /api/chat: Insufficient budget for requested tool:',

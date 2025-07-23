@@ -215,6 +215,10 @@
 [x] Lexical editor submit on enter sometimes adds the enter to the message
 
 
+[ ] Gateway models
+    [ ] Cleanup the README and .env.example
+
+
 [ ] Tokens
     [ ] Protecting against going over token context
 

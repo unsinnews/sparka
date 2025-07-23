@@ -1,0 +1,52 @@
+import type { ModelData } from '@/providers/model-data';
+
+// Define the data with proper typing
+const typedModelsData: ModelData[] = [
+  {
+    id: 'alibaba/qwen-3-14b',
+    object: 'model',
+    created: 1753255803,
+    owned_by: 'alibaba',
+    name: 'Qwen3-14B',
+    description:
+      'Qwen3 is the latest generation of large language models in Qwen series, offering a comprehensive suite of dense and mixture-of-experts (MoE) models. Built upon extensive training, Qwen3 delivers groundbreaking advancements in reasoning, instruction-following, agent capabilities, and multilingual support',
+    context_window: 40960,
+    max_tokens: 8192,
+    pricing: {
+      input: '0.00000008',
+      output: '0.00000024',
+    },
+  },
+  {
+    id: 'xai/grok-3-mini-fast',
+    object: 'model',
+    created: 1753255803,
+    owned_by: 'xai',
+    name: 'Grok 3 Mini Fast Beta',
+    description:
+      "xAI's lightweight model that thinks before responding. Great for simple or logic-based tasks that do not require deep domain knowledge. The raw thinking traces are accessible. The fast model variant is served on faster infrastructure, offering response times that are significantly faster than the standard. The increased speed comes at a higher cost per output token.",
+    context_window: 131072,
+    max_tokens: 8192,
+    pricing: {
+      input: '0.0000006',
+      output: '0.000004',
+    },
+  },
+  {
+    id: 'xai/grok-4',
+    object: 'model',
+    created: 1753255803,
+    owned_by: 'xai',
+    name: 'Grok 4',
+    description:
+      "xAI's latest and greatest flagship model, offering unparalleled performance in natural language, math and reasoning - the perfect jack of all trades.",
+    context_window: 256000,
+    max_tokens: 8192,
+    pricing: {
+      input: '0.000003',
+      output: '0.000015',
+    },
+  },
+];
+
+export const modelsSmall = typedModelsData;

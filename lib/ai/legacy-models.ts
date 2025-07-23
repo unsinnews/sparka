@@ -4,7 +4,7 @@ interface ChatModel {
   description: string;
 }
 
-export const chatModels: Array<ChatModel> = [
+export const legacyChatModels: Array<ChatModel> = [
   {
     id: 'chat-model',
     name: 'Chat model',

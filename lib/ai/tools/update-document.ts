@@ -3,14 +3,14 @@ import type { Session } from 'next-auth';
 import { z } from 'zod';
 import { getDocumentById } from '@/lib/db/queries';
 import { documentHandlersByArtifactKind } from '@/lib/artifacts/server';
-import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
 
 interface UpdateDocumentProps {
   session: Session;
   dataStream: StreamWriter;
   messageId: string;
-  selectedModel: AvailableProviderModels;
+  selectedModel: ModelId;
 }
 
 export const updateDocument = ({

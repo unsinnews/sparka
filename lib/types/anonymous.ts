@@ -1,4 +1,4 @@
-import type { AvailableProviderModels } from '../ai/all-models';
+import type { ModelId } from '../ai/model-id';
 import type { ToolName } from '../ai/types';
 import type { DBMessage } from '../db/schema';
 import type { UIChat } from './uiChat';
@@ -19,9 +19,9 @@ export const ANONYMOUS_LIMITS = {
   CREDITS: process.env.NODE_ENV === 'production' ? 10 : 1000,
   AVAILABLE_MODELS: [
     'openai/gpt-3.5-turbo',
-    'xai/grok-3-mini-beta',
+    'google/gemini-2.0-flash',
     'openai/gpt-4o-mini',
-  ] as const satisfies readonly AvailableProviderModels[],
+  ] as const satisfies ModelId[],
   AVAILABLE_TOOLS: ['createDocument', 'updateDocument'] satisfies ToolName[],
   SESSION_DURATION: 2147483647, // Max session time
   // Rate limiting for anonymous users based on IP

@@ -7,7 +7,7 @@ import {
   documentHandlersByArtifactKind,
 } from '@/lib/artifacts/server';
 import type { ModelMessage } from 'ai';
-import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
 import type { ArtifactKind } from '@/components/artifact';
 
@@ -16,7 +16,7 @@ interface CreateDocumentProps {
   dataStream: StreamWriter;
   contextForLLM?: ModelMessage[];
   messageId: string;
-  selectedModel: AvailableProviderModels;
+  selectedModel: ModelId;
 }
 
 export const createDocument = ({
@@ -110,7 +110,7 @@ export async function createDocumentInternal({
   session: Session;
   prompt: string;
   messageId: string;
-  selectedModel: AvailableProviderModels;
+  selectedModel: ModelId;
 }) {
   const id = generateUUID();
 

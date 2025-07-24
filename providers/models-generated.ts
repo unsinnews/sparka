@@ -1,4 +1,4 @@
-import type { GatewayModelId } from '@ai-sdk/gateway';
+import type { ModelId } from '@/lib/ai/model-id';
 
 // List of unique providers extracted from models data
 export const providers = [
@@ -19,12 +19,12 @@ export const providers = [
   'xai',
 ] as const;
 
-export type Provider = (typeof providers)[number];
+export type ProviderId = (typeof providers)[number];
 
 export interface ModelData {
-  id: GatewayModelId;
+  id: ModelId;
   object: string;
-  owned_by: Provider;
+  owned_by: ProviderId;
   name: string;
   description: string;
   context_window: number; // Max input tokens

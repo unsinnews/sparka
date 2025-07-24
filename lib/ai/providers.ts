@@ -1,12 +1,11 @@
 import { extractReasoningMiddleware, wrapLanguageModel } from 'ai';
-import type { LanguageModelV2 } from '@ai-sdk/provider';
 
 import { openai, type OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
 import type { AnthropicProviderOptions } from '@ai-sdk/anthropic';
-import { xai } from '@ai-sdk/xai';
-import { google, type GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
-import { type AvailableProviderModels, getModelDefinition } from './all-models';
+import type { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
+import { getImageModelDefinition, getModelDefinition } from './all-models';
 import { gateway } from '@ai-sdk/gateway';
+import type { ImageModelId, ModelId } from './model-id';
 
 const telemetryConfig = {
   telemetry: {
@@ -15,33 +14,18 @@ const telemetryConfig = {
   },
 };
 
-function extractModelIdShort(gatewayModelId: string): string {
+function extractModelIdShort(modelId: ModelId): string {
   // Extract the short model ID from gateway format (e.g., "openai/gpt-4o-mini" -> "gpt-4o-mini")
-  const parts = gatewayModelId.split('/');
-  return parts.length > 1 ? parts[1] : gatewayModelId;
+  const parts = modelId.split('/');
+  return parts.length > 1 ? parts[1] : modelId;
 }
 
-export const getLanguageModel = (modelId: AvailableProviderModels) => {
+export const getLanguageModel = (modelId: ModelId) => {
   const model = getModelDefinition(modelId);
-  const provider = model.owned_by;
-  const modelIdShort = extractModelIdShort(model.id);
-
-  let languageProvider: LanguageModelV2;
-  if (provider === 'openai') {
-    languageProvider = openai.responses(modelIdShort);
-  } else if (provider === 'anthropic') {
-    // provider = anthropic(modelIdShort);
-    languageProvider = gateway(model.id);
-  } else if (provider === 'xai') {
-    languageProvider = xai(modelIdShort);
-  } else if (provider === 'google') {
-    languageProvider = google(modelIdShort);
-  } else {
-    languageProvider = gateway(model.id);
-  }
+  const languageProvider = gateway(model.id);
 
   // Wrap with reasoning middleware if the model supports reasoning
-  if (model.features?.reasoning && provider === 'xai') {
+  if (model.features?.reasoning && model.owned_by === 'xai') {
     console.log('Wrapping reasoning middleware for', model.id);
     return wrapLanguageModel({
       model: languageProvider,
@@ -52,8 +36,8 @@ export const getLanguageModel = (modelId: AvailableProviderModels) => {
   return languageProvider;
 };
 
-export const getImageModel = (modelId: AvailableProviderModels) => {
-  const model = getModelDefinition(modelId);
+export const getImageModel = (modelId: ImageModelId) => {
+  const model = getImageModelDefinition(modelId);
   const provider = model.owned_by;
   const modelIdShort = extractModelIdShort(model.id);
 
@@ -71,7 +55,7 @@ const MODEL_ALIASES = {
 };
 
 export const getModelProviderOptions = (
-  providerModelId: AvailableProviderModels,
+  providerModelId: ModelId,
 ):
   | {
       openai: OpenAIResponsesProviderOptions;
@@ -87,14 +71,11 @@ export const getModelProviderOptions = (
     }
   | Record<string, never> => {
   const model = getModelDefinition(providerModelId);
-  const provider = model.owned_by;
-  const modelIdShort = extractModelIdShort(model.id);
-
-  if (provider === 'openai') {
+  if (model.owned_by === 'openai') {
     if (
-      modelIdShort === 'o4-mini' ||
-      modelIdShort === 'o3' ||
-      modelIdShort === 'o3-mini'
+      model.id === 'openai/o4-mini' ||
+      model.id === 'openai/o3' ||
+      model.id === 'openai/o3-mini'
     ) {
       return {
         openai: {
@@ -104,7 +85,7 @@ export const getModelProviderOptions = (
     } else {
       return { openai: {} };
     }
-  } else if (provider === 'anthropic') {
+  } else if (model.owned_by === 'anthropic') {
     if (model.features?.reasoning) {
       return {
         anthropic: {
@@ -117,11 +98,11 @@ export const getModelProviderOptions = (
     } else {
       return { anthropic: {} };
     }
-  } else if (provider === 'xai') {
+  } else if (model.owned_by === 'xai') {
     return {
       xai: {},
     };
-  } else if (provider === 'google') {
+  } else if (model.owned_by === 'google') {
     if (model.features?.reasoning) {
       return {
         google: {

@@ -1,4 +1,4 @@
-import type { GatewayModelId } from '@ai-sdk/gateway';
+import type { ImageModelId, ModelId } from '@/lib/ai/model-id';
 
 export interface ModelFeatures {
   reasoning: boolean;
@@ -18,8 +18,8 @@ export interface ModelFeatures {
   fixedTemperature?: number;
 }
 
-export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
-  'anthropic/claude-v3-opus': {
+export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
+  'anthropic/claude-3-opus': {
     reasoning: false,
     functionCalling: true,
     input: {
@@ -34,7 +34,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'anthropic/claude-v3.5-sonnet': {
+  'anthropic/claude-3.5-sonnet': {
     reasoning: false,
     functionCalling: true,
     input: {
@@ -79,7 +79,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'anthropic/claude-4-opus-20250514': {
+  'anthropic/claude-4-opus': {
     reasoning: true,
     functionCalling: true,
     input: {
@@ -94,7 +94,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'anthropic/claude-4-sonnet-20250514': {
+  'anthropic/claude-4-sonnet': {
     reasoning: true,
     functionCalling: true,
     knowledgeCutoff: new Date('2025-03-01'),
@@ -110,7 +110,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'google/gemini-2.5-flash-preview-05-20': {
+  'google/gemini-2.5-flash': {
     reasoning: true,
     functionCalling: true,
     knowledgeCutoff: new Date('2025-01-01'),
@@ -126,7 +126,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'google/gemini-2.5-pro-preview-06-05': {
+  'google/gemini-2.5-pro': {
     reasoning: true,
     functionCalling: true,
     knowledgeCutoff: new Date('2025-01-01'),
@@ -140,54 +140,6 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       image: false,
       text: true,
       audio: false,
-    },
-  },
-  'google/gemini-2.5-flash-native-audio-05-20': {
-    reasoning: true,
-    functionCalling: true,
-    knowledgeCutoff: new Date('2025-01-01'),
-    input: {
-      image: false,
-      text: true,
-      pdf: false,
-      audio: true,
-    },
-    output: {
-      image: false,
-      text: true,
-      audio: true,
-    },
-  },
-  'google/gemini-2.5-flash-preview-tts': {
-    reasoning: false,
-    functionCalling: false,
-    knowledgeCutoff: new Date('2025-01-01'),
-    input: {
-      image: false,
-      text: true,
-      pdf: false,
-      audio: false,
-    },
-    output: {
-      image: false,
-      text: false,
-      audio: true,
-    },
-  },
-  'google/gemini-2.5-pro-preview-tts': {
-    reasoning: false,
-    functionCalling: false,
-    knowledgeCutoff: new Date('2025-01-01'),
-    input: {
-      image: false,
-      text: true,
-      pdf: false,
-      audio: false,
-    },
-    output: {
-      image: false,
-      text: false,
-      audio: true,
     },
   },
   'google/gemini-2.0-flash': {
@@ -222,54 +174,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'google/gemini-1.5-pro': {
-    reasoning: false,
-    functionCalling: true,
-    knowledgeCutoff: new Date('2024-09-01'),
-    input: {
-      image: true,
-      text: true,
-      pdf: true,
-      audio: true,
-    },
-    output: {
-      image: false,
-      text: true,
-      audio: false,
-    },
-  },
-  'google/gemini-1.5-flash': {
-    reasoning: false,
-    functionCalling: true,
-    knowledgeCutoff: new Date('2024-09-01'),
-    input: {
-      image: true,
-      text: true,
-      pdf: true,
-      audio: true,
-    },
-    output: {
-      image: false,
-      text: true,
-      audio: false,
-    },
-  },
-  'google/gemini-1.5-flash-8b': {
-    reasoning: false,
-    functionCalling: true,
-    knowledgeCutoff: new Date('2024-10-01'),
-    input: {
-      image: true,
-      text: true,
-      pdf: true,
-      audio: true,
-    },
-    output: {
-      image: false,
-      text: true,
-      audio: false,
-    },
-  },
+
   'openai/o3-mini': {
     reasoning: true,
     functionCalling: true,
@@ -446,23 +351,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'openai/gpt-image-1': {
-    reasoning: false,
-    functionCalling: false,
-    knowledgeCutoff: new Date('2025-04-01'),
-    input: {
-      image: true,
-      text: true,
-      pdf: false,
-      audio: false,
-    },
-    output: {
-      image: true,
-      text: false,
-      audio: false,
-    },
-  },
-  'xai/grok-beta': {
+  'xai/grok-2': {
     reasoning: false,
     functionCalling: true,
     input: {
@@ -477,7 +366,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'xai/grok-vision-beta': {
+  'xai/grok-2-vision': {
     reasoning: false,
     functionCalling: true,
     input: {
@@ -492,37 +381,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'xai/grok-2-1212': {
-    reasoning: false,
-    functionCalling: true,
-    input: {
-      image: false,
-      text: true,
-      pdf: false,
-      audio: false,
-    },
-    output: {
-      image: false,
-      text: true,
-      audio: false,
-    },
-  },
-  'xai/grok-2-vision-1212': {
-    reasoning: false,
-    functionCalling: true,
-    input: {
-      image: true,
-      text: true,
-      pdf: false,
-      audio: false,
-    },
-    output: {
-      image: false,
-      text: true,
-      audio: false,
-    },
-  },
-  'xai/grok-3-beta': {
+  'xai/grok-3': {
     reasoning: true,
     functionCalling: true,
     input: {
@@ -537,7 +396,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'xai/grok-3-fast-beta': {
+  'xai/grok-3-fast': {
     reasoning: true,
     functionCalling: true,
     input: {
@@ -552,7 +411,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'xai/grok-3-mini-beta': {
+  'xai/grok-3-mini': {
     reasoning: true,
     functionCalling: true,
     input: {
@@ -567,7 +426,7 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'xai/grok-3-mini-fast-beta': {
+  'xai/grok-3-mini-fast': {
     reasoning: true,
     functionCalling: true,
     input: {
@@ -583,3 +442,23 @@ export const modelFeatures: Partial<Record<GatewayModelId, ModelFeatures>> = {
     },
   },
 };
+
+export const imageModelsFeatures: Partial<Record<ImageModelId, ModelFeatures>> =
+  {
+    'openai/gpt-image-1': {
+      reasoning: false,
+      functionCalling: false,
+      knowledgeCutoff: new Date('2025-04-01'),
+      input: {
+        image: true,
+        text: true,
+        pdf: false,
+        audio: false,
+      },
+      output: {
+        image: true,
+        text: false,
+        audio: false,
+      },
+    },
+  };

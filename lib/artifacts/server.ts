@@ -5,7 +5,7 @@ import type { ArtifactKind } from '@/components/artifact';
 import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';
 import type { Session } from 'next-auth';
-import type { AvailableProviderModels } from '../ai/all-models';
+import type { ModelId } from '../ai/model-id';
 import type { StreamWriter } from '../ai/types';
 
 export interface SaveDocumentProps {
@@ -24,7 +24,7 @@ export interface CreateDocumentCallbackProps {
   description: string;
   prompt: string;
   messageId: string;
-  selectedModel: AvailableProviderModels;
+  selectedModel: ModelId;
 }
 
 export interface UpdateDocumentCallbackProps {
@@ -33,7 +33,7 @@ export interface UpdateDocumentCallbackProps {
   dataStream: StreamWriter;
   session: Session;
   messageId: string;
-  selectedModel: AvailableProviderModels;
+  selectedModel: ModelId;
 }
 
 export interface DocumentHandler<T = ArtifactKind> {

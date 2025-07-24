@@ -8,6 +8,7 @@ import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { AppSidebar } from '@/components/app-sidebar';
 import { KeyboardShortcuts } from '@/components/keyboard-shortcuts';
 import { SessionProvider } from 'next-auth/react';
+import type { ModelId } from '@/lib/ai/model-id';
 
 export default async function ChatLayout({
   children,
@@ -17,7 +18,7 @@ export default async function ChatLayout({
   const [session, cookieStore] = await Promise.all([auth(), cookies()]);
   const isCollapsed = cookieStore.get('sidebar:state')?.value !== 'true';
 
-  const cookieModel = cookieStore.get('chat-model')?.value;
+  const cookieModel = cookieStore.get('chat-model')?.value as ModelId;
   const isAnonymous = !session?.user;
 
   // Check if the model from cookie is available for anonymous users

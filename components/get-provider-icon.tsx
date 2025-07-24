@@ -1,5 +1,5 @@
 'use client';
-import type { Provider } from '@/providers/models-generated';
+import type { ProviderId } from '@/providers/models-generated';
 import {
   OpenAI,
   Anthropic,
@@ -16,7 +16,7 @@ import {
   Moonshot,
 } from '@lobehub/icons';
 
-export function getProviderIcon(provider: Provider, size = 16) {
+export function getProviderIcon(provider: ProviderId, size = 16) {
   const iconProps = { size };
   switch (provider) {
     case 'openai':

@@ -216,7 +216,9 @@
 
 
 [ ] Gateway models
-    [ ] Cleanup the README and .env.example
+    [x] Replace usages of other models with the gateway models throughout the repo
+    [ ] Cleanup the README and .env.example (+ add installation instruction that include env variables)
+    [ ] Create a script to search features from the internet and fill out the model-features file automatically
 
 
 [ ] Tokens

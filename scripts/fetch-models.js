@@ -29,7 +29,7 @@ async function fetchAndConvertModels() {
 
     // Generate TypeScript content
     const outputPath = path.join(__dirname, '../providers/models-generated.ts');
-    const tsContent = `import type { GatewayModelId } from '@ai-sdk/gateway';
+    const tsContent = `import type { ModelId } from '@/lib/ai/model-id';
 
 // List of unique providers extracted from models data
 export const providers = ${JSON.stringify(providers, null, 2)} as const;
@@ -37,7 +37,7 @@ export const providers = ${JSON.stringify(providers, null, 2)} as const;
 export type Provider = (typeof providers)[number];
 
 export interface ModelData {
-  id: GatewayModelId;
+  id: ModelId;
   object: string;
   owned_by: Provider;
   name: string;

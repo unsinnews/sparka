@@ -11,7 +11,7 @@ import type { Session } from 'next-auth';
 import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
 import { generateImage } from '@/lib/ai/tools/generate-image';
-import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
 
 export function getTools({
@@ -27,7 +27,7 @@ export function getTools({
   session: Session;
   contextForLLM?: ModelMessage[];
   messageId: string;
-  selectedModel: AvailableProviderModels;
+  selectedModel: ModelId;
   attachments: Array<FileUIPart>;
   lastGeneratedImage: { imageUrl: string; name: string } | null;
 }) {

@@ -8,12 +8,12 @@ import {
   useCallback,
   type ReactNode,
 } from 'react';
-import type { AvailableProviderModels } from '@/lib/ai/all-models';
+import type { ModelId } from '@/lib/ai/model-id';
 import { toast } from 'sonner';
 
 interface DefaultModelContextType {
-  defaultModel: AvailableProviderModels;
-  changeModel: (modelId: AvailableProviderModels) => Promise<void>;
+  defaultModel: ModelId;
+  changeModel: (modelId: ModelId) => Promise<void>;
 }
 
 const DefaultModelContext = createContext<DefaultModelContextType | undefined>(
@@ -22,18 +22,17 @@ const DefaultModelContext = createContext<DefaultModelContextType | undefined>(
 
 interface DefaultModelClientProviderProps {
   children: ReactNode;
-  defaultModel: AvailableProviderModels;
+  defaultModel: ModelId;
 }
 
 export function DefaultModelProvider({
   children,
   defaultModel: initialModel,
 }: DefaultModelClientProviderProps) {
-  const [currentModel, setCurrentModel] =
-    useState<AvailableProviderModels>(initialModel);
+  const [currentModel, setCurrentModel] = useState<ModelId>(initialModel);
 
   const changeModel = useCallback(
-    async (modelId: AvailableProviderModels) => {
+    async (modelId: ModelId) => {
       // Update local state immediately
       setCurrentModel(modelId);
 

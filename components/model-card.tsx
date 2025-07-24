@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Calendar, Building, CheckCircle } from 'lucide-react';
 import type { ModelDefinition } from '@/lib/ai/all-models';
-import type { Provider } from '@/providers/models-generated';
+import type { ProviderId } from '@/providers/models-generated';
 import { cn } from '@/lib/utils';
 import { getFeatureConfig, isFeatureEnabled } from '@/lib/features-config';
 import { getProviderIcon } from './get-provider-icon';
@@ -53,7 +53,7 @@ export function ModelCard({
   disabledReason?: string;
   className?: string;
 }) {
-  const provider = model.owned_by as Provider;
+  const provider = model.owned_by as ProviderId;
   const description = model.description;
   const maxTokens = model.max_tokens;
   const contextLength = model.context_window;

@@ -46,8 +46,8 @@ import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { LoginCtaBanner } from '@/components/upgrade-cta/login-cta-banner';
 
 import { ChevronUpIcon, FilterIcon } from 'lucide-react';
-import type { GatewayModelId } from '@ai-sdk/gateway';
-import type { Provider } from '@/providers/models-generated';
+import type { ModelId } from '@/lib/ai/model-id';
+import type { ProviderId } from '@/providers/models-generated';
 import { getProviderIcon } from './get-provider-icon';
 
 type FeatureFilter = Record<string, boolean>;
@@ -60,8 +60,8 @@ const initialFilters = enabledFeatures.reduce<FeatureFilter>((acc, feature) => {
 }, {});
 
 // Cache model definitions to avoid repeated calls
-const modelDefinitionsCache = new Map<GatewayModelId, ModelDefinition>();
-const getModelDefinitionCached = (modelId: GatewayModelId) => {
+const modelDefinitionsCache = new Map<ModelId, ModelDefinition>();
+const getModelDefinitionCached = (modelId: ModelId) => {
   if (!modelDefinitionsCache.has(modelId)) {
     modelDefinitionsCache.set(modelId, getModelDefinition(modelId));
   }
@@ -129,8 +129,8 @@ export function PureModelSelector({
   className,
   onModelChange,
 }: {
-  selectedModelId: string;
-  onModelChange?: (modelId: string) => void;
+  selectedModelId: ModelId;
+  onModelChange?: (modelId: ModelId) => void;
 } & ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
@@ -185,11 +185,11 @@ export function PureModelSelector({
 
   // Memoize model availability checks
   const modelAvailability = useMemo(() => {
-    const isModelAvailableForAnonymous = (modelId: string) => {
+    const isModelAvailableForAnonymous = (modelId: ModelId) => {
       return ANONYMOUS_LIMITS.AVAILABLE_MODELS.includes(modelId as any);
     };
 
-    const isModelDisabled = (modelId: string) => {
+    const isModelDisabled = (modelId: ModelId) => {
       return isAnonymous && !isModelAvailableForAnonymous(modelId);
     };
 
@@ -214,7 +214,7 @@ export function PureModelSelector({
 
   const selectedProviderIcon = useMemo(() => {
     if (!selectedModelDefinition) return null;
-    const provider = selectedModelDefinition.owned_by as Provider;
+    const provider = selectedModelDefinition.owned_by as ProviderId;
     return getProviderIcon(provider);
   }, [selectedModelDefinition]);
 
@@ -333,7 +333,7 @@ export function PureModelSelector({
                   const { id } = chatModel;
                   const modelDefinition = getModelDefinitionCached(id);
                   const disabled = modelAvailability.isModelDisabled(id);
-                  const provider = modelDefinition.owned_by as Provider;
+                  const provider = modelDefinition.owned_by as ProviderId;
                   const isSelected = id === optimisticModelId;
                   const featureIcons = getFeatureIcons(modelDefinition);
 

@@ -51,6 +51,7 @@ import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 import { dbMessageToChatMessage } from '@/lib/message-conversion';
 import { buildThreadFromLeaf } from '@/lib/thread-utils';
+import type { ModelId } from '@/lib/ai/model-id';
 
 function filterReasoningParts<T extends { parts: any[] }>(messages: T[]): T[] {
   return messages.map((message) => ({
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract selectedModel from user message metadata
-    const selectedModelId = userMessage.metadata?.selectedModel;
+    const selectedModelId = userMessage.metadata?.selectedModel as ModelId;
 
     if (!selectedModelId) {
       console.log(

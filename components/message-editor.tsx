@@ -15,6 +15,7 @@ import {
   getTextContentFromMessage,
 } from '@/lib/utils';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import type { ModelId } from '@/lib/ai/model-id';
 
 export type MessageEditorProps = {
   chatId: string;
@@ -91,7 +92,7 @@ export function MessageEditor(
   const initialAttachments = getAttachmentsFromMessage(props.message);
 
   // Use selectedModel from the message metadata, or fall back to current selected model
-  const messageSelectedModel = props.message.metadata?.selectedModel;
+  const messageSelectedModel = props.message.metadata?.selectedModel as ModelId;
   const { parentMessageId, ...rest } = props;
   return (
     <ChatInputProvider

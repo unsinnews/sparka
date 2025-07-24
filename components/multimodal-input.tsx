@@ -33,7 +33,7 @@ import { ScrollArea } from './ui/scroll-area';
 import {
   getModelDefinition,
   DEFAULT_PDF_MODEL,
-  DEFAULT_IMAGE_MODEL,
+  DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL,
 } from '@/lib/ai/all-models';
 import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -91,9 +91,11 @@ function PureMultimodalInput({
 
   // Helper function to auto-switch to image-compatible model
   const switchToImageCompatibleModel = useCallback(() => {
-    const defaultImageModelDef = getModelDefinition(DEFAULT_IMAGE_MODEL);
+    const defaultImageModelDef = getModelDefinition(
+      DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL,
+    );
     toast.success(`Switched to ${defaultImageModelDef.name} (supports images)`);
-    handleModelChange(DEFAULT_IMAGE_MODEL);
+    handleModelChange(DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL);
     return defaultImageModelDef;
   }, [handleModelChange]);
 

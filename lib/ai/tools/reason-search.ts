@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { generateObject, tool } from 'ai';
 import Exa from 'exa-js';
 import type { Session } from 'next-auth';
-import { openai } from '@ai-sdk/openai';
+import { gateway } from '@ai-sdk/gateway';
 import { webSearchStep, type WebSearchResult } from './steps/web-search';
 import { xSearchStep, type XSearchResult } from './steps/x-search';
 import {
@@ -60,7 +60,7 @@ export const createReasonSearch = ({
 
       // Now generate the research plan
       const { object: researchPlan } = await generateObject({
-        model: openai('gpt-4o'),
+        model: gateway('openai/gpt-4o'),
         temperature: 0,
         schema: z.object({
           search_queries: z
@@ -219,7 +219,7 @@ export const createReasonSearch = ({
 
       // After all analyses are complete, analyze limitations and gaps
       const { object: gapAnalysis } = await generateObject({
-        model: openai('gpt-4o'),
+        model: gateway('openai/gpt-4o'),
         temperature: 0,
         schema: z.object({
           limitations: z.array(
@@ -380,7 +380,7 @@ export const createReasonSearch = ({
 
       // Perform final synthesis of all findings
       const { object: finalSynthesis } = await generateObject({
-        model: openai('gpt-4o'),
+        model: gateway('openai/gpt-4o'),
         temperature: 0,
         schema: z.object({
           key_findings: z.array(

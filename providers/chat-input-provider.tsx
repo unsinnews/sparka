@@ -14,6 +14,7 @@ import type { Attachment, UiToolName } from '@/lib/ai/types';
 import { useDefaultModel, useModelChange } from './default-model-provider';
 import { getModelDefinition } from '@/lib/ai/all-models';
 import type { LexicalChatInputRef } from '@/components/ui/lexical-chat-input';
+import type { ModelId } from '@/lib/ai/model-id';
 
 interface ChatInputContextType {
   editorRef: React.RefObject<LexicalChatInputRef>;
@@ -21,8 +22,8 @@ interface ChatInputContextType {
   setSelectedTool: Dispatch<SetStateAction<UiToolName | null>>;
   attachments: Array<Attachment>;
   setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
-  selectedModelId: string;
-  handleModelChange: (modelId: string) => Promise<void>;
+  selectedModelId: ModelId;
+  handleModelChange: (modelId: ModelId) => Promise<void>;
   getInputValue: () => string;
   handleInputChange: (value: string) => void;
   getInitialInput: () => string;
@@ -39,7 +40,7 @@ interface ChatInputProviderProps {
   initialInput?: string;
   initialTool?: UiToolName | null;
   initialAttachments?: Array<Attachment>;
-  overrideModelId?: string; // For message editing where we want to use the original model
+  overrideModelId?: ModelId; // For message editing where we want to use the original model
   localStorageEnabled?: boolean;
 }
 
@@ -77,7 +78,7 @@ export function ChatInputProvider({
   const changeModel = useModelChange();
 
   // Initialize selectedModelId from override or default model
-  const [selectedModelId, setSelectedModelId] = useState<string>(
+  const [selectedModelId, setSelectedModelId] = useState<ModelId>(
     overrideModelId || defaultModel,
   );
 
@@ -103,8 +104,8 @@ export function ChatInputProvider({
   }, [initialInput, getLocalStorageInput, localStorageEnabled]);
 
   const handleModelChange = useCallback(
-    async (modelId: string) => {
-      const modelDef = getModelDefinition(modelId as any);
+    async (modelId: ModelId) => {
+      const modelDef = getModelDefinition(modelId);
       const hasReasoning = modelDef.features?.reasoning === true;
       const hasUnspecifiedFeatures = !modelDef.features;
 
@@ -121,7 +122,7 @@ export function ChatInputProvider({
       setSelectedModelId(modelId);
 
       // Update global default model (which handles cookie persistence)
-      await changeModel(modelId as any);
+      await changeModel(modelId);
     },
     [selectedTool, setSelectedTool, changeModel],
   );

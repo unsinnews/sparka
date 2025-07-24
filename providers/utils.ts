@@ -1,6 +1,6 @@
-import type { GatewayModelId } from '@ai-sdk/gateway';
+import type { ModelId } from '@/lib/ai/model-id';
 
-export function getModelAndProvider(modelId: GatewayModelId) {
+export function getModelAndProvider(modelId: ModelId) {
   const [provider, model] = modelId.split('/');
   if (!provider || !model) {
     throw new Error(`Invalid model ID: ${modelId}`);

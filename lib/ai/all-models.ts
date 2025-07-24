@@ -1,9 +1,14 @@
 import type { ModelData } from '@/providers/models-generated';
 import { modelsData } from '@/providers/models-generated';
-import { modelFeatures, type ModelFeatures } from './model-features';
-import type { GatewayModelId } from '@ai-sdk/gateway';
+import {
+  imageModelsFeatures,
+  modelFeatures,
+  type ModelFeatures,
+} from './model-features';
+import type { ImageModelId, ModelId } from './model-id';
+import { imageModelsData, type ImageModelData } from '@/providers/image-models';
 
-const disabledModels: Partial<Record<GatewayModelId, true>> = {
+const disabledModels: Partial<Record<ModelId, true>> = {
   'anthropic/claude-4-opus': true,
   'morph/morph-v3-large': true,
   'morph/morph-v3-fast': true,
@@ -12,6 +17,10 @@ const disabledModels: Partial<Record<GatewayModelId, true>> = {
 export type ModelDefinition = ModelData & {
   features?: ModelFeatures;
   disabled?: true;
+};
+
+export type ImageModelDefinition = ImageModelData & {
+  features?: ModelFeatures;
 };
 
 export const allModels = modelsData
@@ -26,7 +35,13 @@ export const allModels = modelsData
   })
   .filter((model) => !model.disabled);
 
-export type AvailableProviderModels = (typeof allModels)[number]['id'];
+const allImageModels = imageModelsData.map((model) => {
+  const features = imageModelsFeatures[model.id];
+  return {
+    ...model,
+    features,
+  };
+});
 
 const PROVIDER_ORDER = ['openai', 'google', 'anthropic', 'xai'];
 
@@ -67,8 +82,28 @@ function getModelsByIdDict(): Map<string, ModelDefinition> {
   return _modelsByIdCache;
 }
 
-export function getModelDefinition(
-  modelId: AvailableProviderModels,
+export function getModelDefinition(modelId: ModelId): ModelDefinition {
+  const modelsByIdDict = getModelsByIdDict();
+  const model = modelsByIdDict.get(modelId);
+  if (!model) {
+    throw new Error(`Model ${modelId} not found`);
+  }
+  return model;
+}
+
+const _imageModelsByIdCache = new Map<string, ImageModelDefinition>();
+
+function getImageModelsByIdDict(): Map<string, ImageModelDefinition> {
+  if (_imageModelsByIdCache.size === 0) {
+    allImageModels.forEach((model) => {
+      _imageModelsByIdCache.set(model.id, model);
+    });
+  }
+  return _imageModelsByIdCache;
+}
+
+export function getImageModelDefinition(
+  modelId: ImageModelId,
 ): ModelDefinition {
   const modelsByIdDict = getModelsByIdDict();
   const model = modelsByIdDict.get(modelId);
@@ -78,10 +113,11 @@ export function getModelDefinition(
   return model;
 }
 
-export const DEFAULT_CHAT_MODEL: GatewayModelId = 'openai/gpt-4o-mini';
-export const DEFAULT_PDF_MODEL: GatewayModelId = 'openai/gpt-4o-mini';
-export const DEFAULT_IMAGE_MODEL: GatewayModelId = 'openai/gpt-image-1';
-export const DEFAULT_TITLE_MODEL: GatewayModelId = 'openai/gpt-4o-mini';
-export const DEFAULT_ARTIFACT_MODEL: GatewayModelId = 'openai/gpt-4.1-nano';
-export const DEFAULT_ARTIFACT_SUGGESTION_MODEL: GatewayModelId =
+export const DEFAULT_CHAT_MODEL: ModelId = 'openai/gpt-4o-mini';
+export const DEFAULT_PDF_MODEL: ModelId = 'openai/gpt-4o-mini';
+export const DEFAULT_TITLE_MODEL: ModelId = 'openai/gpt-4o-mini';
+export const DEFAULT_ARTIFACT_MODEL: ModelId = 'openai/gpt-4.1-nano';
+export const DEFAULT_ARTIFACT_SUGGESTION_MODEL: ModelId = 'openai/gpt-4o-mini';
+export const DEFAULT_IMAGE_MODEL: ImageModelId = 'openai/gpt-image-1';
+export const DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL: ModelId =
   'openai/gpt-4o-mini';

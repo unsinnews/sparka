@@ -20,7 +20,7 @@ Access every major AI assistant Claude, GPT-4, Gemini, Grok, and 20+ models thro
 
 ## ✨ Features
 
-- **🤖 Multi-Model Chat** - Access 20+ AI models including Claude, GPT-4, Gemini, and Grok in one interface.
+- **🤖 Multi-Model Chat** - Access 70+ AI models including Claude, GPT-4, Gemini, and Grok in one interface.
 
 - **🔐 Authentication & Sync** - Secure authentication with chat history sync across all devices.
 
@@ -66,6 +66,7 @@ Sparka AI is built with modern technologies for scalability and performance:
 
 ### **AI Integration**
 - **AI SDK v5**: Latest Vercel AI SDK for unified provider integration
+- **AI SDK Gateway**: Models from various AI providers with automatic fallbacks
 
 
 ## 🚀 Getting Started

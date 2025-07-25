@@ -20,7 +20,6 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   _cachedMessageIds: string[] | null;
   // Throttled messages cache
   _throttledMessages: UI_MESSAGE[] | null;
-  _throttledMessagesTimestamp: number;
 
   // Actions
   setId: (id: string | undefined) => void;
@@ -57,7 +56,6 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             const state = get();
             set({
               _throttledMessages: [...state.messages],
-              _throttledMessagesTimestamp: Date.now(),
             });
           }, MESSAGES_THROTTLE_MS);
         }
@@ -71,7 +69,6 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           // Initialize cached values
           _cachedMessageIds: null,
           _throttledMessages: [...initialMessages],
-          _throttledMessagesTimestamp: Date.now(),
 
           setId: (id) => set({ id }),
           setMessages: (messages) => {

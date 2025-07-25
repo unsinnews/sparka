@@ -6,6 +6,7 @@ import type { GoogleGenerativeAIProviderOptions } from '@ai-sdk/google';
 import { getImageModelDefinition, getModelDefinition } from './all-models';
 import { gateway } from '@ai-sdk/gateway';
 import type { ImageModelId, ModelId } from './model-id';
+import { getModelAndProvider } from '../../providers/utils';
 
 const telemetryConfig = {
   telemetry: {
@@ -13,12 +14,6 @@ const telemetryConfig = {
     functionId: 'get-language-model',
   },
 };
-
-function extractModelIdShort(modelId: ModelId): string {
-  // Extract the short model ID from gateway format (e.g., "openai/gpt-4o-mini" -> "gpt-4o-mini")
-  const parts = modelId.split('/');
-  return parts.length > 1 ? parts[1] : modelId;
-}
 
 export const getLanguageModel = (modelId: ModelId) => {
   const model = getModelDefinition(modelId);
@@ -39,7 +34,7 @@ export const getLanguageModel = (modelId: ModelId) => {
 export const getImageModel = (modelId: ImageModelId) => {
   const model = getImageModelDefinition(modelId);
   const provider = model.owned_by;
-  const modelIdShort = extractModelIdShort(model.id);
+  const { model: modelIdShort } = getModelAndProvider(model.id);
 
   if (provider === 'openai') {
     return openai.image(modelIdShort);

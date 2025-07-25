@@ -85,9 +85,16 @@ export function Chat({
         console.log('onData', dataPart);
         setDataStream((ds) => (ds ? [...ds, dataPart] : []));
       },
-      onError: (error: any) => {
+      onError: (error) => {
         console.error(error);
-        toast.error(error.message ?? 'An error occured, please try again!');
+        const cause = error.cause;
+        if (cause && typeof cause === 'string') {
+          toast.error(error.message ?? 'An error occured, please try again!', {
+            description: cause,
+          });
+        } else {
+          toast.error(error.message ?? 'An error occured, please try again!');
+        }
       },
     });
   }, [id, saveChatMessage, setDataStream, isAuthenticated]);

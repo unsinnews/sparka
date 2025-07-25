@@ -413,14 +413,14 @@ export async function POST(request: NextRequest) {
     const totalTokens = calculateMessagesTokens(
       convertToModelMessages([userMessage]),
     );
-    const MAX_INPUT_TOKENS = 50_000;
+    const MAX_INPUT_TOKENS = 50;
 
     if (totalTokens > MAX_INPUT_TOKENS) {
       console.log(
         `RESPONSE > POST /api/chat: Token limit exceeded: ${totalTokens} > ${MAX_INPUT_TOKENS}`,
       );
       const error = new ChatSDKError(
-        'bad_request:chat',
+        'input_too_long:chat',
         `Message too long: ${totalTokens} tokens (max: ${MAX_INPUT_TOKENS})`,
       );
       return error.toResponse();

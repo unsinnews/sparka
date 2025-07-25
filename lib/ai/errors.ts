@@ -1,6 +1,7 @@
 export type ErrorType =
   | 'bad_request'
   | 'unauthorized'
+  | 'input_too_long'
   | 'forbidden'
   | 'not_found'
   | 'rate_limit'
@@ -89,8 +90,8 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
 
     case 'rate_limit:chat':
       return 'You have exceeded your maximum number of messages for the day. Please try again later.';
-    case 'bad_request:chat':
-      return 'Invalid message format or content. Please check your input and try again.';
+    case 'input_too_long:chat':
+      return 'Your message input is too long. Please shorten your message and try again.';
     case 'not_found:chat':
       return 'The requested chat was not found. Please check the chat ID and try again.';
     case 'forbidden:chat':
@@ -117,6 +118,7 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
 function getStatusCodeByType(type: ErrorType) {
   switch (type) {
     case 'bad_request':
+    case 'input_too_long':
       return 400;
     case 'unauthorized':
       return 401;

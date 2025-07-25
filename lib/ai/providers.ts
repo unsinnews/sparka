@@ -33,13 +33,12 @@ export const getLanguageModel = (modelId: ModelId) => {
 
 export const getImageModel = (modelId: ImageModelId) => {
   const model = getImageModelDefinition(modelId);
-  const provider = model.owned_by;
-  const { model: modelIdShort } = getModelAndProvider(model.id);
+  const { model: modelIdShort, provider } = getModelAndProvider(modelId);
 
-  if (provider === 'openai') {
+  if (model.owned_by === 'openai') {
     return openai.image(modelIdShort);
   }
-  throw new Error(`Provider ${provider} not supported`);
+  throw new Error(`Provider ${model.owned_by} not supported`);
 };
 
 const MODEL_ALIASES = {

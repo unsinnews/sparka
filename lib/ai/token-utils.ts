@@ -1,8 +1,40 @@
 import { RecursiveCharacterTextSplitter } from './text-splitter';
 import { getEncoding } from 'js-tiktoken';
+import type { ModelMessage } from 'ai';
 
 const MinChunkSize = 140;
 const encoder = getEncoding('o200k_base');
+
+// Calculate total tokens from messages
+export function calculateMessagesTokens(messages: ModelMessage[]): number {
+  let totalTokens = 0;
+
+  for (const message of messages) {
+    // Count tokens for role
+    totalTokens += encoder.encode(message.role).length;
+
+    // Count tokens for content - handle both string and array formats
+    if (typeof message.content === 'string') {
+      totalTokens += encoder.encode(message.content).length;
+    } else if (Array.isArray(message.content)) {
+      for (const part of message.content) {
+        if (part.type === 'text') {
+          totalTokens += encoder.encode(part.text).length;
+        }
+        // Add overhead for other part types (image, file, etc.)
+        // Using GPT-4V approximation: ~765 tokens for typical image
+        else {
+          totalTokens += 765;
+        }
+      }
+    }
+
+    // Add overhead for message structure (role, content wrapper, etc.)
+    totalTokens += 5;
+  }
+
+  return totalTokens;
+}
 
 // trim prompt to maximum context size
 export function trimPrompt(

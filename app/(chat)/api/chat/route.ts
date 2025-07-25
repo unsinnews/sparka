@@ -1,5 +1,5 @@
 import {
-  convertToCoreMessages,
+  convertToModelMessages,
   createUIMessageStream,
   JsonToSseTransformStream,
   stepCountIs,
@@ -52,6 +52,8 @@ import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
 import { dbMessageToChatMessage } from '@/lib/message-conversion';
 import { buildThreadFromLeaf } from '@/lib/thread-utils';
 import type { ModelId } from '@/lib/ai/model-id';
+import { calculateMessagesTokens } from '@/lib/ai/token-utils';
+import { ChatSDKError } from '@/lib/ai/errors';
 
 function filterReasoningParts<T extends { parts: any[] }>(messages: T[]): T[] {
   return messages.map((message) => ({
@@ -407,6 +409,23 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Validate input token limit (50k tokens for user message)
+    const totalTokens = calculateMessagesTokens(
+      convertToModelMessages([userMessage]),
+    );
+    const MAX_INPUT_TOKENS = 50_000;
+
+    if (totalTokens > MAX_INPUT_TOKENS) {
+      console.log(
+        `RESPONSE > POST /api/chat: Token limit exceeded: ${totalTokens} > ${MAX_INPUT_TOKENS}`,
+      );
+      const error = new ChatSDKError(
+        'bad_request:chat',
+        `Message too long: ${totalTokens} tokens (max: ${MAX_INPUT_TOKENS})`,
+      );
+      return error.toResponse();
+    }
+
     const messageThreadToParent = isAnonymous
       ? anonymousPreviousMessages
       : await getThreadUpToMessageId(
@@ -420,7 +439,7 @@ export async function POST(request: NextRequest) {
     const messagesWithoutReasoning = filterReasoningParts(messages.slice(-5));
 
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
-    const contextForLLM = convertToCoreMessages(messagesWithoutReasoning);
+    const contextForLLM = convertToModelMessages(messagesWithoutReasoning);
 
     // Extract the last generated image for use as reference (only from the immediately previous message)
     let lastGeneratedImage: { imageUrl: string; name: string } | null = null;

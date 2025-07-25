@@ -223,6 +223,8 @@
 
 [ ] Tokens
     [ ] Protecting against going over token context
+    [ ] Showing context percentage on the multimodal input
+    [ ] Prevent users from sending messages that are too long or ask them to login
 
 
 ## Backlog

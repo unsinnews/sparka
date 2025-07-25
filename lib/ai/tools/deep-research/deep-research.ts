@@ -4,7 +4,7 @@ import pLimit from 'p-limit';
 import { z } from 'zod';
 
 import { getModel } from './providers';
-import { trimPrompt } from '../../trim-prompt';
+import { trimPrompt } from '../../token-utils';
 import { createDocumentInternal } from '../create-document';
 import type { Session } from 'next-auth';
 import { webSearchStep } from '../steps/web-search';

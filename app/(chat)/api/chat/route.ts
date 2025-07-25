@@ -413,7 +413,7 @@ export async function POST(request: NextRequest) {
     const totalTokens = calculateMessagesTokens(
       convertToModelMessages([userMessage]),
     );
-    const MAX_INPUT_TOKENS = 50;
+    const MAX_INPUT_TOKENS = 50_000;
 
     if (totalTokens > MAX_INPUT_TOKENS) {
       console.log(

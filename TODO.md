@@ -229,7 +229,9 @@
 
 ## Backlog
 
-[ ] Anthropic limits are too low. Get from other provider or open-router.
+[x] Anthropic limits are too low. Get from other provider or open-router.
+
+[ ] Combo box of edited message don't fit screen if deploys to the top on mobile
 
 
 [ ] Migrate to Next.js Router for navigation (And get rid of react-router)

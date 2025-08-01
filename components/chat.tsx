@@ -106,6 +106,7 @@ export function Chat({
       experimental_throttle: 100,
     });
 
+  console.log('messages', messages);
   // Auto-resume functionality
   useAutoResume({
     autoResume: true,

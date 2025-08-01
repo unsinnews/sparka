@@ -9,7 +9,7 @@ const app = new FirecrawlApp({
 export const retrieve = tool({
   description: `Fetch structured information from a single URL via Firecrawl.
 
-Usage:
+Use for:
 - Extract content from a specific URL supplied by the user
 
 Avoid:

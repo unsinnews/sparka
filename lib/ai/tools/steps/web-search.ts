@@ -36,33 +36,12 @@ export async function webSearchStep({
   query,
   providerOptions,
   dataStream,
-  stepId,
-  annotate = true,
 }: {
   query: string;
   dataStream: StreamWriter;
-  stepId: string;
   providerOptions: SearchProviderOptions;
-  annotate?: boolean;
 }): Promise<WebSearchResponse> {
   try {
-    // Send running status
-    if (annotate) {
-      dataStream.write({
-        type: 'data-researchUpdate',
-        data: {
-          id: stepId,
-          type: 'web',
-          status: 'running',
-          title: `Searching for "${query}"`,
-          query,
-          subqueries: [query],
-          message: `Searching web sources...`,
-          timestamp: Date.now(),
-        },
-      });
-    }
-
     let results: WebSearchResult[] = [];
 
     if (providerOptions.provider === 'tavily') {
@@ -95,48 +74,18 @@ export async function webSearchStep({
       }));
     }
 
-    // Send completed status
-    if (annotate) {
-      dataStream.write({
-        type: 'data-researchUpdate',
-        data: {
-          id: stepId,
-          type: 'web',
-          status: 'completed',
-          title: `Search complete for "${query}"`,
-          query,
-          subqueries: [query],
-          results,
-          message: `Found ${results.length} results`,
-          timestamp: Date.now(),
-          overwrite: true,
-        },
-      });
-    }
-
     return { results };
   } catch (error: any) {
-    const errorMessage = error?.message || 'Unknown error occurred';
-
-    // Send error status
-    dataStream.write({
-      type: 'data-researchUpdate',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'completed',
-        title: `Search failed for "${query}"`,
-        query,
-        subqueries: [query],
-        message: `Error: ${errorMessage}`,
-        timestamp: Date.now(),
-        overwrite: true,
-      },
+    console.error('Error in webSearchStep:', {
+      error,
+      message: error?.message,
+      stack: error?.stack,
+      query,
+      providerOptions,
     });
-
     return {
       results: [],
-      error: errorMessage,
+      error: error.message,
     };
   }
 }

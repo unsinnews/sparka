@@ -5,7 +5,7 @@ import CodeInterpreter from '@e2b/code-interpreter';
 export const stockChart = tool({
   description: `Generate a line stock chart and fetch price data via Python (yfinance + matplotlib).
 
-Usage:
+Use for:
 - Create line charts for publicly traded stocks
 - Fetch historical price data for investment analysis
 

@@ -5,7 +5,7 @@ import CodeInterpreter from '@e2b/code-interpreter';
 export const codeInterpreter = tool({
   description: `Python-only sandbox for calculations, data analysis & simple visualisations.
 
-Usage:
+Use for:
 - Execute Python (matplotlib, pandas, numpy, sympy, yfinance pre-installed)
 - Produce line / scatter / bar charts (must call 'plt.show()' for line charts)
 - Install extra libs inline with '!pip install pkg'

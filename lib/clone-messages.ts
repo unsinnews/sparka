@@ -64,7 +64,7 @@ function updateDocumentReferencesInMessageParts<
           if (part.state !== 'output-available') {
             return part;
           }
-          if (part.output?.format === 'report') {
+          if (part.output?.format === 'report' && part.output.success) {
             const oldDocId = part.output?.id;
             const newDocId = documentIdMap.get(oldDocId);
             if (newDocId) {

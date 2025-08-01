@@ -33,15 +33,12 @@ export async function academicSearchStep({
     if (annotate) {
       dataStream.write({
         type: 'data-researchUpdate',
+        id: stepId,
         data: {
-          id: stepId,
+          title: `Searching for "${query}"`,
           type: 'web',
           status: 'running',
-          title: `Searching academic papers for "${query}"`,
-          query,
-          subqueries: [query],
-          message: `Searching academic sources...`,
-          timestamp: Date.now(),
+          queries: [query],
         },
       });
     }
@@ -63,17 +60,13 @@ export async function academicSearchStep({
     if (annotate) {
       dataStream.write({
         type: 'data-researchUpdate',
+        id: stepId,
         data: {
-          id: stepId,
+          title: `Searching for "${query}"`,
           type: 'web',
           status: 'completed',
-          title: `Searched academic papers for "${query}"`,
-          query,
-          subqueries: [query],
+          queries: [query],
           results,
-          message: `Found ${results.length} results`,
-          timestamp: Date.now(),
-          overwrite: true,
         },
       });
     }
@@ -87,16 +80,12 @@ export async function academicSearchStep({
     if (annotate) {
       dataStream.write({
         type: 'data-researchUpdate',
+        id: stepId,
         data: {
-          id: stepId,
+          title: `Searching for "${query}"`,
           type: 'web',
           status: 'completed',
-          title: `Error searching academic papers for "${query}"`,
-          query,
-          subqueries: [query],
-          message: `Error: ${errorMessage}`,
-          timestamp: Date.now(),
-          overwrite: true,
+          queries: [query],
         },
       });
     }

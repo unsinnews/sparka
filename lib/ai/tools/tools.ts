@@ -8,28 +8,28 @@ import { webSearch } from '@/lib/ai/tools/web-search';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
-import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
 import { generateImage } from '@/lib/ai/tools/generate-image';
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
+import { deepResearch } from './deep-research-new/deep-research';
 
 export function getTools({
   dataStream,
   session,
-  contextForLLM,
   messageId,
   selectedModel,
   attachments = [],
   lastGeneratedImage = null,
+  contextForLLM,
 }: {
   dataStream: StreamWriter;
   session: Session;
-  contextForLLM?: ModelMessage[];
   messageId: string;
   selectedModel: ModelId;
   attachments: Array<FileUIPart>;
   lastGeneratedImage: { imageUrl: string; name: string } | null;
+  contextForLLM: ModelMessage[];
 }) {
   return {
     getWeather,
@@ -59,10 +59,15 @@ export function getTools({
     //   dataStream,
     // }),
     retrieve,
-    webSearch: webSearch({ session, dataStream }),
+    webSearch: webSearch({ dataStream, writeTopLevelUpdates: true }),
     stockChart,
     codeInterpreter,
     generateImage: generateImage({ attachments, lastGeneratedImage }),
-    deepResearch: deepResearch({ session, dataStream, messageId }),
+    deepResearch: deepResearch({
+      session,
+      dataStream,
+      messageId,
+      messages: contextForLLM,
+    }),
   };
 }

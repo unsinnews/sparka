@@ -1,0 +1,116 @@
+import type { DeepResearchConfig } from './configuration';
+import { runDeepResearcher } from './deep-researcher';
+import { tool, type ModelMessage } from 'ai';
+import { z } from 'zod';
+import type { Session } from 'next-auth';
+import type { StreamWriter } from '../../types';
+import { writeFinalReport } from '../deep-research-old/deep-research';
+
+export const deepResearch = ({
+  session,
+  dataStream,
+  messageId,
+  messages,
+}: {
+  session: Session;
+  dataStream: StreamWriter;
+  messageId: string;
+  messages: ModelMessage[];
+}) =>
+  tool({
+    description: `Conducts deep, autonomous research based on a conversation history. It automatically clarifies the user's intent if the request is ambiguous, breaks down the query into parallel research tasks, scours multiple web sources for information, and then synthesizes the findings into a comprehensive, well-structured report with citations. This is best for complex questions that require in-depth analysis and a detailed answer, not just a simple search.
+
+Important:
+- If a message with role tool and toolname "deepResearch" is found in the conversation history, and this tool has an output with format "clarifying_questions", you must call this tool again to continue the research process.
+
+Use for:
+- Start a research or to continue a research process
+- Perform deep research (also autonomous research, deep search, or similar aliases)
+- Use again if this tool was previously used, produced a clarifying question, and the user has now responded
+`,
+    inputSchema: z.object({}),
+    execute: async () => {
+      const smallConfig: DeepResearchConfig = {
+        // Use faster, cheaper models for demo
+        research_model: 'openai/gpt-4o-mini',
+        compression_model: 'openai/gpt-4o-mini',
+        final_report_model: 'openai/gpt-4o',
+        summarization_model: 'openai/gpt-4o-mini',
+
+        // Limit iterations for faster demo
+        max_researcher_iterations: 1,
+        max_concurrent_research_units: 2, // num concurrent research agents
+
+        // Search configuration
+        search_api: 'tavily',
+        search_api_max_queries: 2,
+
+        // Disable clarification for automated demo
+        allow_clarification: true,
+
+        // Token limits
+        research_model_max_tokens: 4000,
+        compression_model_max_tokens: 4000,
+        final_report_model_max_tokens: 6000,
+        summarization_model_max_tokens: 4000,
+
+        // Other settings
+        max_structured_output_retries: 3,
+      };
+
+      // TODO: create a better query from the messages and decide if user wants a report or not
+      const query = JSON.stringify(messages);
+
+      const researchResult = await runDeepResearcher(
+        {
+          id: messageId,
+          messages: [{ role: 'user', content: query }],
+        },
+        smallConfig,
+        dataStream,
+      );
+
+      if (researchResult.final_report) {
+        // TODO: This should be handled internally by deep-researcher
+        const report = await writeFinalReport({
+          title: 'Research Report', // TODO: This should be generated
+          description: 'Research Report', // TODO: This should be generated
+          dataStream,
+          session,
+          prompt: query,
+          learnings: [researchResult.final_report], // TODO: Extract learnings from researchResult
+          visitedUrls: [], // TODO: Extract visited URLs from researchResult
+          messageId,
+        });
+
+        return {
+          ...researchResult.notes,
+          format: 'report' as const,
+        };
+      }
+
+      // Clarifying questions
+      if (researchResult.messages) {
+        const assistantMessage = researchResult.messages.find(
+          (m) => m.role === 'assistant',
+        );
+        if (assistantMessage) {
+          return {
+            success: true,
+            answer: assistantMessage.content,
+            learnings: [],
+            visitedUrls: [],
+            format: 'clarifying_questions' as const,
+          };
+        }
+      }
+
+      return {
+        success: false as const,
+        answer: 'Deep research failed to produce a result.',
+        learnings: [],
+        visitedUrls: [],
+        format: 'report' as const,
+      };
+    },
+  });

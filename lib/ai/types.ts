@@ -2,7 +2,7 @@ import { z } from 'zod';
 import type { getWeather } from '@/lib/ai/tools/get-weather';
 import type { updateDocument } from '@/lib/ai/tools/update-document';
 import type { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
-import type { deepResearch } from '@/lib/ai/tools/deep-research/tool';
+import type { deepResearch } from '@/lib/ai/tools/deep-research-new/deep-research';
 import type { readDocument } from '@/lib/ai/tools/read-document';
 import type { generateImage } from '@/lib/ai/tools/generate-image';
 import type { webSearch } from '@/lib/ai/tools/web-search';

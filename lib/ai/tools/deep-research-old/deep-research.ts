@@ -307,11 +307,9 @@ export async function deepResearchInternal({
     dataStream.write({
       type: 'data-researchUpdate',
       data: {
-        id: 'research-plan-initial',
         type: 'progress',
         status: 'started',
         title: 'Starting Research',
-        message: 'Starting research...',
         timestamp: Date.now(),
       },
     });
@@ -320,14 +318,10 @@ export async function deepResearchInternal({
   dataStream.write({
     type: 'data-researchUpdate',
     data: {
-      id: `step-${completedSteps}-initial-thoughts`, // unique id for the initial state
       status: 'completed',
       type: 'thoughts',
       title: 'Initial Thoughts',
-      message: 'Creating initial thoughts...',
-      timestamp: Date.now(),
-      overwrite: true,
-      thoughtItems: thoughts,
+      message: `${thoughts.map((t) => `${t.header}: ${t.body}`).join('\n')}`,
     },
   });
   completedSteps++;
@@ -365,14 +359,10 @@ export async function deepResearchInternal({
   dataStream.write({
     type: 'data-researchUpdate',
     data: {
-      id: `step-${completedSteps}-web-search`,
       type: 'web',
       status: 'running',
       title: `Web Search`, // TODO: Include a summary of this step
-      query,
-      subqueries: serpQueries.map((q) => q.query),
-      message: `Searching web sources...`,
-      timestamp: Date.now(),
+      queries: serpQueries.map((q) => q.query),
     },
   });
 
@@ -386,8 +376,6 @@ export async function deepResearchInternal({
             maxResults: 5,
           },
           dataStream,
-          stepId: `step-${completedSteps}-search-${queryIndex}`,
-          annotate: false,
         });
         return { serpQuery, searchResult, queryIndex }; // Return query info along with result
       } catch (e: any) {
@@ -428,14 +416,10 @@ export async function deepResearchInternal({
   dataStream.write({
     type: 'data-researchUpdate',
     data: {
-      id: `step-${completedSteps}-web-search`,
       type: 'web',
       status: 'completed',
       title: `Web Search`,
-      query,
-      subqueries: serpQueries.map((q) => q.query),
-      message: `Web search complete`,
-      timestamp: Date.now(),
+      queries: serpQueries.map((q) => q.query),
       results: successfulResults.flatMap(({ serpQuery, searchResult }) =>
         searchResult.results.map((r) => ({
           title: serpQuery.query,
@@ -522,13 +506,11 @@ export async function deepResearchInternal({
     dataStream.write({
       type: 'data-researchUpdate',
       data: {
-        id: 'research-progress',
+        title: 'Research complete',
         type: 'progress',
         status: 'completed',
-        message: `Research complete`,
         completedSteps: completedSteps,
         totalSteps: serpQueries.length * (depth + 1),
-        overwrite: true,
         timestamp: Date.now(),
       },
     });

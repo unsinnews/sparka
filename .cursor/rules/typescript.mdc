@@ -7,3 +7,31 @@ alwaysApply: false
 
 - Never create index barrel files (index.ts, index.js)    
 - Always use direct imports with named exports
+- Always use inline interfaces with function parameters
+
+
+## Examples
+
+### Good - Inline interface with function:
+```typescript
+export function processData({
+  id,
+  name,
+  options
+}: {
+  id: string;
+  name: string;
+  options: ProcessingOptions;
+}): ProcessedResult {
+  // implementation
+}
+```
+
+### Bad - Separated interface:
+```typescript
+interface ProcessDataParams {
+  id: string;
+  name: string;
+  options: ProcessingOptions;
+}
+

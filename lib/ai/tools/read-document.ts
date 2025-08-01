@@ -13,7 +13,7 @@ export const readDocument = ({ session, dataStream }: ReadDocumentProps) =>
   tool({
     description: `Read the contents of a document created earlier in this chat.
 
-Usage:
+Use for:
 - Retrieve document text for follow-up analysis or questions
 
 Avoid:

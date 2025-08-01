@@ -21,7 +21,7 @@ export const generateImage = ({
   tool({
     description: `Generate images from text descriptions. Can optionally use attached images as reference.
 
-Usage:
+Use for:
 - Create images, artwork, illustrations from descriptive prompts
 - Generate visual content based on user requests
 - Support various art styles and subjects

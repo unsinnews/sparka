@@ -15,7 +15,6 @@ import {
   saveMessage,
   updateMessage,
   getMessageById,
-  getAllMessagesByChatId,
 } from '@/lib/db/queries';
 import { generateUUID } from '@/lib/utils';
 import { generateTitleFromUserMessage } from '../../actions';
@@ -28,10 +27,7 @@ import {
   getBaseModelCostByModelId,
 } from '@/lib/credits/credits-utils';
 import { getLanguageModel, getModelProviderOptions } from '@/lib/ai/providers';
-import {
-  reserveCreditsWithCleanup,
-  type CreditReservation,
-} from '@/lib/credits/credit-reservation';
+import type { CreditReservation } from '@/lib/credits/credit-reservation';
 import { getModelDefinition, type ModelDefinition } from '@/lib/ai/all-models';
 import {
   createResumableStreamContext,
@@ -49,36 +45,14 @@ import type { AnonymousSession } from '@/lib/types/anonymous';
 import { ANONYMOUS_LIMITS } from '@/lib/types/anonymous';
 import { markdownJoinerTransform } from '@/lib/ai/markdown-joiner-transform';
 import { checkAnonymousRateLimit, getClientIP } from '@/lib/utils/rate-limit';
-import { dbMessageToChatMessage } from '@/lib/message-conversion';
-import { buildThreadFromLeaf } from '@/lib/thread-utils';
 import type { ModelId } from '@/lib/ai/model-id';
 import { calculateMessagesTokens } from '@/lib/ai/token-utils';
 import { ChatSDKError } from '@/lib/ai/errors';
-
-function filterReasoningParts<T extends { parts: any[] }>(messages: T[]): T[] {
-  return messages.map((message) => ({
-    ...message,
-    parts: message.parts.filter((part) => {
-      // Filter out reasoning parts to prevent cross-model compatibility issues
-      // https://github.com/vercel/ai/discussions/5480
-      return part.type !== 'reasoning';
-    }),
-  }));
-}
-
-async function getCreditReservation(userId: string, baseModelCost: number) {
-  const reservedCredits = await reserveCreditsWithCleanup(
-    userId,
-    baseModelCost,
-    1, // TODO: Reserving for many steps is not a good model. It will fail often
-  );
-
-  if (!reservedCredits.success) {
-    return { reservation: null, error: reservedCredits.error };
-  }
-
-  return { reservation: reservedCredits.reservation, error: null };
-}
+import { addExplicitToolRequestToMessages } from './addExplicitToolRequestToMessages';
+import { getRecentGeneratedImage } from './getRecentGeneratedImage';
+import { getCreditReservation } from './getCreditReservation';
+import { filterReasoningParts } from './filterReasoningParts';
+import { getThreadUpToMessageId } from './getThreadUpToMessageId';
 
 // Create shared Redis clients for resumable stream and cleanup
 let redisPublisher: any = null;
@@ -401,12 +375,6 @@ export async function POST(request: NextRequest) {
         explicitlyRequestedTools,
       );
       activeTools = explicitlyRequestedTools;
-      // Add context of user selection to the user message
-      // TODO: Consider doing this in the system prompt instead
-      userMessage.parts.push({
-        type: 'text',
-        text: `I want to use the tools ${explicitlyRequestedTools.join(', or ')})`,
-      });
     }
 
     // Validate input token limit (50k tokens for user message)
@@ -435,35 +403,22 @@ export async function POST(request: NextRequest) {
 
     const messages = [...messageThreadToParent, userMessage].slice(-5);
 
+    // Process conversation history
+    const lastGeneratedImage = getRecentGeneratedImage(messages);
+    addExplicitToolRequestToMessages(
+      messages,
+      activeTools,
+      explicitlyRequestedTools,
+    );
+
     // Filter out reasoning parts to ensure compatibility between different models
     const messagesWithoutReasoning = filterReasoningParts(messages.slice(-5));
 
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
     const contextForLLM = convertToModelMessages(messagesWithoutReasoning);
-
+    console.dir(contextForLLM, { depth: null });
     // Extract the last generated image for use as reference (only from the immediately previous message)
-    let lastGeneratedImage: { imageUrl: string; name: string } | null = null;
-
-    // Find the last assistant message (should be the one right before the current user message)
-    const lastAssistantMessage = messages.findLast(
-      (message) => message.role === 'assistant',
-    );
-
-    if (lastAssistantMessage?.parts && lastAssistantMessage?.parts.length > 0) {
-      for (const part of lastAssistantMessage.parts) {
-        if (part.type !== 'tool-generateImage') {
-          continue;
-        }
-
-        if (part.state === 'output-available' && part.output?.imageUrl) {
-          lastGeneratedImage = {
-            imageUrl: part.output.imageUrl,
-            name: `generated-image-${part.toolCallId}.png`,
-          };
-          break;
-        }
-      }
-    }
+    console.log('active tools', activeTools);
 
     // Create AbortController with 55s timeout for credit cleanup
     const abortController = new AbortController();
@@ -729,21 +684,6 @@ export async function POST(request: NextRequest) {
       status: 404,
     });
   }
-}
-
-async function getThreadUpToMessageId(
-  chatId: string,
-  messageId: string | null,
-) {
-  if (!messageId) {
-    return [];
-  }
-
-  const messages = (await getAllMessagesByChatId({ chatId })).map(
-    dbMessageToChatMessage,
-  );
-
-  return buildThreadFromLeaf(messages, messageId);
 }
 
 export async function DELETE(request: Request) {

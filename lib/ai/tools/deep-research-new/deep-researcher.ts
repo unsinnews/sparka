@@ -217,7 +217,6 @@ class ResearcherAgent extends Agent {
 
     const researcherMessages = state.researcher_messages || [];
     const tools = await getAllTools(this.config, this.dataStream, state.id);
-
     if (Object.keys(tools).length === 0) {
       throw new Error(
         'No tools found to conduct research: Please configure either your search API or add MCP tools to your configuration.',

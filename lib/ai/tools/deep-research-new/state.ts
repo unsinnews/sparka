@@ -64,12 +64,12 @@ export type ResearchQuestion = z.infer<typeof ResearchQuestionSchema>;
 //##################
 
 export interface AgentInputState {
-  id: string;
+  requestId: string;
   messages: ModelMessage[];
 }
 
 export interface AgentState {
-  id: string;
+  requestId: string;
   messages: ModelMessage[];
   supervisor_messages: ModelMessage[];
   research_brief?: string;
@@ -97,7 +97,7 @@ export const leadResearcherTools = {
 };
 
 export interface SupervisorState {
-  id: string;
+  requestId: string;
   supervisor_messages: ModelMessage[];
   tool_calls: ToolCall<string, any>[];
   research_brief: string;
@@ -107,7 +107,7 @@ export interface SupervisorState {
 }
 
 export interface ResearcherState {
-  id: string;
+  requestId: string;
   researcher_messages: ModelMessage[];
   tool_calls: ToolCall<string, any>[];
   tool_call_iterations: number;
@@ -126,12 +126,12 @@ export interface ResearcherOutputState {
 //##################
 
 export interface ClarifyWithUserInput {
-  id: string;
+  requestId: string;
   messages: ModelMessage[];
 }
 
 export interface WriteResearchBriefInput {
-  id: string;
+  requestId: string;
   messages: ModelMessage[];
 }
 
@@ -140,7 +140,7 @@ export interface WriteResearchBriefOutput {
 }
 
 export interface SupervisorInput {
-  id: string;
+  requestId: string;
   supervisor_messages: ModelMessage[];
   research_brief: string;
   notes: string[];
@@ -156,7 +156,7 @@ export interface SupervisorOutput {
 }
 
 export interface SupervisorToolsInput {
-  id: string;
+  requestId: string;
   supervisor_messages: ModelMessage[];
   research_brief: string;
   research_iterations: number;
@@ -169,7 +169,7 @@ export interface SupervisorToolsOutput {
 }
 
 export interface ResearcherInput {
-  id: string;
+  requestId: string;
   researcher_messages: ModelMessage[];
   research_topic: string;
   tool_call_iterations: number;
@@ -182,7 +182,7 @@ export interface ResearcherOutput {
 }
 
 export interface CompressResearchInput {
-  id: string;
+  requestId: string;
   researcher_messages: ModelMessage[];
 }
 

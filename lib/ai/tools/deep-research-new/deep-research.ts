@@ -63,7 +63,7 @@ Use for:
 
       const researchResult = await runDeepResearcher(
         {
-          id: messageId,
+          requestId: messageId,
           messages: [{ role: 'user', content: query }],
         },
         smallConfig,

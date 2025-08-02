@@ -105,7 +105,7 @@ async function clarifyWithUser(
       isEnabled: true,
       functionId: 'clarifyWithUser',
       metadata: {
-        requestId: state.id || '',
+        requestId: state.requestId || '',
       },
     },
   });
@@ -172,7 +172,7 @@ async function writeResearchBrief(
         isEnabled: true,
         functionId: 'writeResearchBrief',
         metadata: {
-          requestId: state.id || '',
+          requestId: state.requestId || '',
         },
       },
     });
@@ -199,10 +199,14 @@ async function writeResearchBrief(
 
 // Agent base class
 abstract class Agent {
+  protected agentId: string;
+
   constructor(
     protected config: DeepResearchConfig,
     protected dataStream: StreamWriter,
-  ) {}
+  ) {
+    this.agentId = generateUUID();
+  }
 }
 
 // Researcher Agent class
@@ -216,7 +220,11 @@ class ResearcherAgent extends Agent {
     });
 
     const researcherMessages = state.researcher_messages || [];
-    const tools = await getAllTools(this.config, this.dataStream, state.id);
+    const tools = await getAllTools(
+      this.config,
+      this.dataStream,
+      state.requestId,
+    );
     if (Object.keys(tools).length === 0) {
       throw new Error(
         'No tools found to conduct research: Please configure either your search API or add MCP tools to your configuration.',
@@ -253,7 +261,8 @@ class ResearcherAgent extends Agent {
         isEnabled: true,
         functionId: 'researcher',
         metadata: {
-          requestId: state.id || '',
+          requestId: state.requestId || '',
+          agentId: this.agentId,
         },
       },
     });
@@ -269,7 +278,7 @@ class ResearcherAgent extends Agent {
     });
 
     return {
-      id: state.id,
+      requestId: state.requestId,
       researcher_messages: [...researcherMessages, ...result.response.messages],
     };
   }
@@ -322,7 +331,8 @@ class ResearcherAgent extends Agent {
         isEnabled: true,
         functionId: 'compressResearch',
         metadata: {
-          requestId: state.id || '',
+          requestId: state.requestId || '',
+          agentId: this.agentId,
         },
       },
       maxRetries: 3,
@@ -340,8 +350,9 @@ class ResearcherAgent extends Agent {
     });
 
     return {
-      compressed_research:
-        'Error synthesizing research report: Maximum retries exceeded',
+      compressed_research: response.response.messages
+        .map((m) => getTextContentFromModelMessage(m))
+        .join('\n'),
       raw_notes: [
         filterMessages(researcherMessages, ['tool', 'assistant'])
           .map((m) => String(m.content))
@@ -354,14 +365,14 @@ class ResearcherAgent extends Agent {
     initialState: ResearcherState,
   ): Promise<ResearcherOutputState> {
     const result = await this.research({
-      id: initialState.id,
+      requestId: initialState.requestId,
       researcher_messages: initialState.researcher_messages,
       research_topic: initialState.research_topic,
       tool_call_iterations: initialState.tool_call_iterations,
     });
 
     return await this.compressResearch({
-      id: initialState.id,
+      requestId: initialState.requestId,
       researcher_messages: result.researcher_messages,
     });
   }
@@ -418,7 +429,8 @@ class SupervisorAgent extends Agent {
         isEnabled: true,
         functionId: 'supervisor',
         metadata: {
-          requestId: state.id || '',
+          requestId: state.requestId || '',
+          agentId: this.agentId,
         },
       },
       // TODO: Do we need a stop when?
@@ -464,7 +476,7 @@ class SupervisorAgent extends Agent {
     initialState: SupervisorState,
   ): Promise<SupervisorResult> {
     let supervisorState: SupervisorInput = {
-      id: initialState.id,
+      requestId: initialState.requestId,
       supervisor_messages: initialState.supervisor_messages,
       research_brief: initialState.research_brief,
       notes: initialState.notes,
@@ -478,7 +490,7 @@ class SupervisorAgent extends Agent {
 
       // Create the input for executeTools with all required fields
       const toolsInput: SupervisorToolsInput = {
-        id: supervisorState.id,
+        requestId: supervisorState.requestId,
         supervisor_messages: supervisorResult.supervisor_messages,
         research_brief: supervisorState.research_brief,
         research_iterations: supervisorResult.research_iterations,
@@ -498,7 +510,7 @@ class SupervisorAgent extends Agent {
 
       // Merge the data from toolsResult with the current state to create new SupervisorInput
       supervisorState = {
-        id: supervisorState.id,
+        requestId: supervisorState.requestId,
         research_brief: supervisorState.research_brief,
         notes: supervisorState.notes,
         supervisor_messages: toolsResult.data.supervisor_messages,
@@ -586,7 +598,7 @@ class SupervisorAgent extends Agent {
     // Non parallel execution to avoid streaming race condition and rate limits
     for (const toolCall of conductResearchCalls) {
       const result = await this.researcherAgent.executeResearchSubgraph({
-        id: state.id,
+        requestId: state.requestId,
         researcher_messages: [
           { role: 'system' as const, content: researcherSystemPromptText },
           { role: 'user' as const, content: toolCall.input.research_topic },
@@ -702,7 +714,7 @@ async function finalReportGeneration(
       isEnabled: true,
       functionId: 'finalReportGeneration',
       metadata: {
-        requestId: state.id || '',
+        requestId: state.requestId || '',
       },
     },
     maxRetries: 3,
@@ -736,7 +748,7 @@ export async function runDeepResearcher(
   dataStream: StreamWriter,
 ): Promise<AgentState> {
   let currentState: AgentState = {
-    id: input.id,
+    requestId: input.requestId,
     messages: input.messages,
     supervisor_messages: [],
     raw_notes: [],
@@ -746,7 +758,7 @@ export async function runDeepResearcher(
 
   // Step 1: Clarify with user
   const clarifyResult = await clarifyWithUser(
-    { id: currentState.id, messages: currentState.messages },
+    { requestId: currentState.requestId, messages: currentState.messages },
     config,
     dataStream,
   );
@@ -767,7 +779,7 @@ export async function runDeepResearcher(
 
   // Step 2: Write research brief
   const briefResult = await writeResearchBrief(
-    { id: currentState.id, messages: currentState.messages },
+    { requestId: currentState.requestId, messages: currentState.messages },
     config,
     dataStream,
   );
@@ -777,7 +789,7 @@ export async function runDeepResearcher(
   const supervisorAgent = new SupervisorAgent(config, dataStream);
 
   const supervisorResult = await supervisorAgent.runSupervisorGraph({
-    id: currentState.id,
+    requestId: currentState.requestId,
     supervisor_messages: [
       {
         role: 'system' as const,

@@ -1,114 +1,16 @@
 import type { DeepResearchConfig, SearchAPI } from './configuration';
-import type { ModelMessage, ToolModelMessage, UIMessage } from 'ai';
+import type { ModelMessage, ToolModelMessage } from 'ai';
 import { experimental_createMCPClient } from 'ai';
 
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '@/lib/ai/types';
-import { multiQueryWebSearchStep } from '../steps/multi-query-web-search';
-import { deduplicateByDomainAndUrl } from '../steps/search-utils';
 import { webSearch } from '../web-search';
 import { getModelDefinition } from '../../all-models';
-
-// TODO: verify if these types match langchain types
-type BaseMessage = ModelMessage;
-type HumanMessage = UIMessage;
-
-// Types and interfaces
-interface SearchResult {
-  title: string;
-  content: string;
-  url: string;
-  query?: string;
-}
-
-interface TavilySearchResponse {
-  query: string;
-  results: SearchResult[];
-}
 
 interface TokenData {
   access_token: string;
   expires_in: number;
   created_at: Date;
-}
-
-type TopicType = 'general' | 'news' | 'finance';
-
-const MODEL_TOKEN_LIMITS: Partial<Record<ModelId, number>> = {
-  'openai/gpt-4.1-mini': 1047576,
-  'openai/gpt-4.1-nano': 1047576,
-  'openai/gpt-4.1': 1047576,
-  'openai/gpt-4o-mini': 128000,
-  'openai/gpt-4o': 128000,
-  'openai/o4-mini': 200000,
-  'openai/o3-mini': 200000,
-  'openai/o3': 200000,
-  'openai/o1': 200000,
-  'anthropic/claude-4-opus': 200000,
-  'anthropic/claude-4-sonnet': 200000,
-  'anthropic/claude-3.7-sonnet': 200000,
-  'anthropic/claude-3.5-sonnet': 200000,
-  'anthropic/claude-3.5-haiku': 200000,
-  'cohere/command-r-plus': 128000,
-  'cohere/command-r': 128000,
-  'mistral/mistral-large': 32768,
-  'mistral/mistral-small': 32768,
-};
-
-// Tavily Search Tool Utils
-
-export async function tavilySearch(
-  queries: string[],
-  config: DeepResearchConfig,
-  dataStream: StreamWriter,
-  maxResults = 5,
-  topic: TopicType = 'general',
-  id?: string,
-): Promise<string> {
-  // Use singleQueryWebSearchStep with tavily provider for each query
-  const searchResult = await multiQueryWebSearchStep({
-    queries: queries.map((query, index) => ({
-      query,
-      rationale: '',
-      priority: index,
-    })),
-    options: {
-      baseProviderOptions: {
-        provider: 'tavily',
-        searchDepth: 'basic',
-        includeAnswer: true,
-        includeImages: false,
-        includeImageDescriptions: false,
-      },
-      topics: [topic],
-      excludeDomains: [],
-      maxResultsPerQuery: maxResults,
-    },
-    dataStream,
-  });
-
-  const searchResults = searchResult.searches;
-
-  // Format the search results and deduplicate results by URL
-  let formattedOutput = 'Search results: \n\n';
-
-  const allResults = searchResults.flatMap((result) => result.results);
-  const deduplicatedResults = deduplicateByDomainAndUrl(allResults);
-
-  let i = 0;
-  for (const result of deduplicatedResults) {
-    i++;
-    formattedOutput += `\n\n--- SOURCE ${i}: ${result.title} ---\n`;
-    formattedOutput += `URL: ${result.url}\n\n`;
-    formattedOutput += `CONTENT:\n${result.content}\n\n`;
-    formattedOutput += `\n\n${'-'.repeat(80)}\n`;
-  }
-
-  if (allResults.length > 0) {
-    return formattedOutput;
-  } else {
-    return 'No valid search results found. Please try different search queries or use a different search API.';
-  }
 }
 
 // MCP Utils

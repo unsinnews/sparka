@@ -84,7 +84,8 @@ Use for:
         });
 
         return {
-          ...researchResult.notes,
+          // TODO: This is needed for the toolcall pill. Maybe it can be improved so it's not duplicated with artifact
+          ...report,
           format: 'report' as const,
         };
       }

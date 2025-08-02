@@ -7,6 +7,7 @@ import type { StreamWriter } from '@/lib/ai/types';
 import { multiQueryWebSearchStep } from '../steps/multi-query-web-search';
 import { deduplicateByDomainAndUrl } from '../steps/search-utils';
 import { webSearch } from '../web-search';
+import { getModelDefinition } from '../../all-models';
 
 // TODO: verify if these types match langchain types
 type BaseMessage = ModelMessage;
@@ -364,8 +365,8 @@ function checkGeminiTokenLimit(exception: Error, errorStr: string): boolean {
   return isResourceExhausted;
 }
 
-export function getModelTokenLimit(modelId: ModelId): number | null {
-  return MODEL_TOKEN_LIMITS[modelId] || null;
+export function getModelContextWindow(modelId: ModelId): number {
+  return getModelDefinition(modelId).context_window;
 }
 
 export function removeUpToLastAiMessage(

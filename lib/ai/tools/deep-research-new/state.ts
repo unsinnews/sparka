@@ -137,7 +137,6 @@ export interface WriteResearchBriefInput {
 
 export interface WriteResearchBriefOutput {
   research_brief: string;
-  supervisor_messages: ModelMessage[];
 }
 
 export interface SupervisorInput {

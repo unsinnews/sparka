@@ -71,3 +71,108 @@ export function trimPrompt(
   // recursively trim until the prompt is within the context size
   return trimPrompt(trimmedPrompt, contextSize);
 }
+
+// Truncate messages array to fit within token limit
+export function truncateMessages(
+  messages: ModelMessage[],
+  maxTokens: number,
+  preserveSystemMessage = true,
+): ModelMessage[] {
+  if (messages.length === 0) return messages;
+
+  // Always preserve system message if requested
+  const systemMessage =
+    preserveSystemMessage && messages[0]?.role === 'system'
+      ? messages[0]
+      : null;
+  const otherMessages = systemMessage ? messages.slice(1) : messages;
+
+  // Calculate tokens for system message if it exists
+  const systemTokens = systemMessage
+    ? calculateMessagesTokens([systemMessage])
+    : 0;
+  const availableTokens = maxTokens - systemTokens;
+
+  if (availableTokens <= 0) {
+    // If system message itself exceeds limit, truncate it
+    if (systemMessage && typeof systemMessage.content === 'string') {
+      return [
+        {
+          ...systemMessage,
+          content: trimPrompt(systemMessage.content, maxTokens),
+        },
+      ];
+    }
+    return systemMessage ? [systemMessage] : [];
+  }
+
+  // Start with all other messages and remove from the beginning until we fit
+  const truncatedMessages = [...otherMessages];
+  let currentTokens = calculateMessagesTokens(truncatedMessages);
+
+  while (currentTokens > availableTokens && truncatedMessages.length > 0) {
+    truncatedMessages.shift(); // Remove oldest message first
+    currentTokens = calculateMessagesTokens(truncatedMessages);
+  }
+
+  // If we still don't fit and have messages, truncate the content of the last message
+  if (currentTokens > availableTokens && truncatedMessages.length > 0) {
+    const lastMessage = truncatedMessages[truncatedMessages.length - 1];
+    if (
+      typeof lastMessage.content === 'string' &&
+      lastMessage.role !== 'tool'
+    ) {
+      const tokensToRemove = currentTokens - availableTokens;
+      const charsToRemove = tokensToRemove * 4; // rough estimate
+      const truncatedContent = lastMessage.content.slice(0, -charsToRemove);
+
+      truncatedMessages[truncatedMessages.length - 1] = {
+        ...lastMessage,
+        content: trimPrompt(truncatedContent, availableTokens),
+      };
+    } else if (
+      Array.isArray(lastMessage.content) &&
+      lastMessage.role === 'tool'
+    ) {
+      // Handle tool messages with array content
+      const content = [...lastMessage.content];
+      let remainingTokens = availableTokens;
+
+      // Truncate from the end of the content array
+      for (let i = content.length - 1; i >= 0 && remainingTokens > 0; i--) {
+        const part = content[i];
+        if (
+          part.type === 'tool-result' &&
+          part.output &&
+          typeof part.output === 'object' &&
+          'value' in part.output &&
+          typeof part.output.value === 'string'
+        ) {
+          const partTokens = encoder.encode(part.output.value).length;
+          if (partTokens > remainingTokens) {
+            // Truncate this part's output value
+            content[i] = {
+              ...part,
+              output: {
+                type: 'text' as const,
+                value: trimPrompt(part.output.value, remainingTokens),
+              },
+            };
+            remainingTokens = 0;
+          } else {
+            remainingTokens -= partTokens;
+          }
+        }
+      }
+
+      truncatedMessages[truncatedMessages.length - 1] = {
+        ...lastMessage,
+        content,
+      } as ModelMessage;
+    }
+  }
+
+  return systemMessage
+    ? [systemMessage, ...truncatedMessages]
+    : truncatedMessages;
+}

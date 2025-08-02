@@ -213,25 +213,6 @@ export async function writeFinalReport({
     messageId,
     selectedModel: DEFAULT_ARTIFACT_MODEL,
   });
-
-  // const res = await generateObject({
-  //   model: getModel(),
-  //   system: systemPrompt(),
-  //   prompt: trimPrompt(
-  //     `Given the following prompt from the user, write a final report on the topic using the learnings from research. Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research:\n\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>`,
-  //   ),
-  //   schema: z.object({
-  //     reportMarkdown: z
-  //       .string()
-  //       .describe('Final report on the topic in Markdown'),
-  //   }),
-  //   telemetry: {
-  //     isEnabled: true,
-  //     functionId: 'deep-research-final',
-  //   },
-  // });
-
-  // Append the visited URLs section to the report
 }
 
 export async function writeFinalAnswer({

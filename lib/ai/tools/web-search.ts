@@ -1,7 +1,84 @@
 import { z } from 'zod';
 import { tool } from 'ai';
-import { multiQueryWebSearchStep } from './steps/multi-query-web-search';
+import {
+  multiQueryWebSearchStep,
+  type MultiQuerySearchOptions,
+} from './steps/multi-query-web-search';
 import type { StreamWriter } from '../types';
+
+const DEFAULT_MAX_RESULTS = 5;
+
+// Common search query schema
+const searchQueriesSchema = z
+  .array(
+    z.object({
+      query: z.string(),
+      maxResults: z
+        .number()
+        .min(1)
+        .max(10)
+        .nullable()
+        .describe(
+          `Maximum number of results for this query. Defaults to ${DEFAULT_MAX_RESULTS}.`,
+        ),
+    }),
+  )
+  .max(12);
+
+// Common search execution logic
+async function executeMultiQuerySearch({
+  search_queries,
+  options,
+  dataStream,
+  writeTopLevelUpdates,
+  title,
+  completeTitle,
+}: {
+  search_queries: Array<{ query: string; maxResults: number }>;
+  options: MultiQuerySearchOptions;
+  dataStream: StreamWriter;
+  writeTopLevelUpdates: boolean;
+  title: string;
+  completeTitle: string;
+}) {
+  if (writeTopLevelUpdates) {
+    dataStream.write({
+      type: 'data-researchUpdate',
+      data: {
+        title,
+        timestamp: Date.now(),
+        type: 'progress',
+        status: 'started',
+      },
+    });
+  }
+
+  let completedSteps = 0;
+  const totalSteps = 1;
+
+  const { searches: searchResults } = await multiQueryWebSearchStep({
+    queries: search_queries,
+    options,
+    dataStream,
+  });
+
+  completedSteps++;
+  if (writeTopLevelUpdates) {
+    dataStream.write({
+      type: 'data-researchUpdate',
+      data: {
+        title: completeTitle,
+        timestamp: Date.now(),
+        type: 'progress',
+        status: 'completed',
+        completedSteps,
+        totalSteps,
+      },
+    });
+  }
+
+  return { searches: searchResults };
+}
 
 export const QueryCompletionSchema = z.object({
   type: z.literal('query_completion'),
@@ -15,7 +92,7 @@ export const QueryCompletionSchema = z.object({
   }),
 });
 
-export const webSearch = ({
+export const tavilyWebSearch = ({
   dataStream,
   writeTopLevelUpdates,
 }: {
@@ -31,20 +108,7 @@ Use for:
 Avoid:
 - Pulling content from a single known URL (use retrieve instead)`,
     inputSchema: z.object({
-      search_queries: z
-        .array(
-          z.object({
-            query: z.string(),
-            rationale: z.string().describe('The rationale for the query.'),
-            // source: z.enum(['web', 'academic', 'x', 'all']),
-            priority: z
-              .number()
-              .min(1)
-              .max(5)
-              .describe('The priority of the query. Use from 2 to 4.'),
-          }),
-        )
-        .max(12),
+      search_queries: searchQueriesSchema,
       topics: z
         .array(z.enum(['general', 'news']))
         .describe('Array of topic types to search for.')
@@ -64,7 +128,7 @@ Avoid:
       searchDepth,
       exclude_domains,
     }: {
-      search_queries: { query: string; rationale: string; priority: number }[];
+      search_queries: { query: string; maxResults: number | null }[];
       topics: ('general' | 'news')[] | null;
       searchDepth: 'basic' | 'advanced' | null;
       exclude_domains: string[] | null;
@@ -74,23 +138,11 @@ Avoid:
       const safeSearchDepth = searchDepth ?? 'basic';
       const safeExcludeDomains = exclude_domains ?? [];
 
-      if (writeTopLevelUpdates) {
-        dataStream.write({
-          type: 'data-researchUpdate',
-          data: {
-            title: 'Searching',
-            timestamp: Date.now(),
-            type: 'progress',
-            status: 'started',
-          },
-        });
-      }
-
-      let completedSteps = 0;
-      const totalSteps = 1; // TODO: Web search is very simple for now
-      // Execute searches in parallel using the multi-query step
-      const { searches: searchResults } = await multiQueryWebSearchStep({
-        queries: search_queries,
+      return executeMultiQuerySearch({
+        search_queries: search_queries.map((query) => ({
+          query: query.query,
+          maxResults: query.maxResults ?? DEFAULT_MAX_RESULTS,
+        })),
         options: {
           baseProviderOptions: {
             provider: 'tavily',
@@ -101,29 +153,12 @@ Avoid:
           },
           topics: safeTopics,
           excludeDomains: safeExcludeDomains,
-          maxResultsPerQuery: 10,
         },
         dataStream,
+        writeTopLevelUpdates,
+        title: 'Searching',
+        completeTitle: 'Search complete',
       });
-
-      completedSteps++;
-      // Final progress update
-      if (writeTopLevelUpdates) {
-        dataStream.write({
-          type: 'data-researchUpdate',
-          data: {
-            title: 'Search complete',
-            timestamp: Date.now(),
-            type: 'progress',
-            status: 'completed',
-            completedSteps,
-            totalSteps,
-          },
-        });
-      }
-      return {
-        searches: searchResults,
-      };
     },
   });
 
@@ -144,82 +179,27 @@ Use for:
 Avoid:
 - Pulling content from a single known URL (use retrieve instead)`,
     inputSchema: z.object({
-      search_queries: z
-        .array(
-          z.object({
-            query: z.string(),
-            rationale: z.string().describe('The rationale for the query.'),
-            priority: z
-              .number()
-              .min(1)
-              .max(5)
-              .describe('The priority of the query. Use from 2 to 4.'),
-          }),
-        )
-        .max(12),
-      limit: z
-        .number()
-        .min(1)
-        .max(50)
-        .describe('Maximum number of results per query. Defaults to 10.')
-        .optional(),
+      search_queries: searchQueriesSchema,
     }),
     execute: async ({
       search_queries,
-      limit,
     }: {
-      search_queries: { query: string; rationale: string; priority: number }[];
-      limit?: number;
+      search_queries: { query: string; maxResults: number | null }[];
     }) => {
-      // Handle defaults
-      const safeLimit = limit ?? 10;
-
-      if (writeTopLevelUpdates) {
-        dataStream.write({
-          type: 'data-researchUpdate',
-          data: {
-            title: 'Searching with Firecrawl',
-            timestamp: Date.now(),
-            type: 'progress',
-            status: 'started',
-          },
-        });
-      }
-
-      let completedSteps = 0;
-      const totalSteps = 1;
-
-      // Execute searches in parallel using the multi-query step with firecrawl
-      const { searches: searchResults } = await multiQueryWebSearchStep({
-        queries: search_queries,
+      return executeMultiQuerySearch({
+        search_queries: search_queries.map((query) => ({
+          query: query.query,
+          maxResults: query.maxResults ?? DEFAULT_MAX_RESULTS,
+        })),
         options: {
           baseProviderOptions: {
             provider: 'firecrawl',
-            maxResults: safeLimit,
           },
-          maxResultsPerQuery: safeLimit,
         },
         dataStream,
+        writeTopLevelUpdates,
+        title: 'Searching with Firecrawl',
+        completeTitle: 'Firecrawl search complete',
       });
-
-      completedSteps++;
-      // Final progress update
-      if (writeTopLevelUpdates) {
-        dataStream.write({
-          type: 'data-researchUpdate',
-          data: {
-            title: 'Firecrawl search complete',
-            timestamp: Date.now(),
-            type: 'progress',
-            status: 'completed',
-            completedSteps,
-            totalSteps,
-          },
-        });
-      }
-
-      return {
-        searches: searchResults,
-      };
     },
   });

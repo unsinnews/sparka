@@ -8,10 +8,12 @@ import {
 
 export async function singleQueryWebSearchStep({
   query,
+  maxResults,
   providerOptions,
   dataStream,
 }: {
   query: string;
+  maxResults: number;
   dataStream: StreamWriter;
   providerOptions: SearchProviderOptions;
 }): Promise<WebSearchResponse> {
@@ -32,6 +34,7 @@ export async function singleQueryWebSearchStep({
     // Execute the search without annotations
     const result = await webSearchStep({
       query,
+      maxResults,
       providerOptions,
       dataStream,
     });

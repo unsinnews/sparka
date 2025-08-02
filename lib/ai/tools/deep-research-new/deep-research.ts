@@ -42,7 +42,7 @@ Use for:
         max_concurrent_research_units: 2, // num concurrent research agents
 
         // Search configuration
-        search_api: 'firecrawl',
+        search_api: 'tavily',
         search_api_max_queries: 2,
 
         // Disable clarification for automated demo
@@ -61,57 +61,68 @@ Use for:
       // TODO: create a better query from the messages and decide if user wants a report or not
       const query = JSON.stringify(messages);
 
-      const researchResult = await runDeepResearcher(
-        {
-          requestId: messageId,
-          messages: [{ role: 'user', content: query }],
-        },
-        smallConfig,
-        dataStream,
-      );
-
-      if (researchResult.final_report) {
-        // TODO: This should be handled internally by deep-researcher
-        const report = await writeFinalReport({
-          title: 'Research Report', // TODO: This should be generated
-          description: 'Research Report', // TODO: This should be generated
+      try {
+        const researchResult = await runDeepResearcher(
+          {
+            requestId: messageId,
+            messages: [{ role: 'user', content: query }],
+          },
+          smallConfig,
           dataStream,
-          session,
-          prompt: query,
-          learnings: [researchResult.final_report], // TODO: Extract learnings from researchResult
-          visitedUrls: [], // TODO: Extract visited URLs from researchResult
-          messageId,
-        });
+        );
+
+        if (researchResult.final_report) {
+          // TODO: This should be handled internally by deep-researcher
+          const report = await writeFinalReport({
+            title: 'Research Report', // TODO: This should be generated
+            description: 'Research Report', // TODO: This should be generated
+            dataStream,
+            session,
+            prompt: query,
+            learnings: [researchResult.final_report], // TODO: Extract learnings from researchResult
+            visitedUrls: [], // TODO: Extract visited URLs from researchResult
+            messageId,
+          });
+
+          return {
+            // TODO: This is needed for the toolcall pill. Maybe it can be improved so it's not duplicated with artifact
+            ...report,
+            format: 'report' as const,
+          };
+        }
+
+        // Clarifying questions
+        if (researchResult.messages) {
+          const assistantMessage = researchResult.messages.find(
+            (m) => m.role === 'assistant',
+          );
+          if (assistantMessage) {
+            return {
+              success: true,
+              answer: assistantMessage.content,
+              learnings: [],
+              visitedUrls: [],
+              format: 'clarifying_questions' as const,
+            };
+          }
+        }
 
         return {
-          // TODO: This is needed for the toolcall pill. Maybe it can be improved so it's not duplicated with artifact
-          ...report,
+          success: false as const,
+          answer: 'Deep research failed to produce a result.',
+          learnings: [],
+          visitedUrls: [],
+          format: 'report' as const,
+        };
+      } catch (error) {
+        console.error('Deep research error:', error);
+        return {
+          success: false as const,
+          answer: `Deep research failed with error: ${error instanceof Error ? error.message : String(error)}`,
+          learnings: [],
+          visitedUrls: [],
           format: 'report' as const,
         };
       }
-
-      // Clarifying questions
-      if (researchResult.messages) {
-        const assistantMessage = researchResult.messages.find(
-          (m) => m.role === 'assistant',
-        );
-        if (assistantMessage) {
-          return {
-            success: true,
-            answer: assistantMessage.content,
-            learnings: [],
-            visitedUrls: [],
-            format: 'clarifying_questions' as const,
-          };
-        }
-      }
-
-      return {
-        success: false as const,
-        answer: 'Deep research failed to produce a result.',
-        learnings: [],
-        visitedUrls: [],
-        format: 'report' as const,
-      };
     },
   });

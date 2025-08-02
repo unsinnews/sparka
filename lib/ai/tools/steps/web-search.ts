@@ -7,11 +7,9 @@ export type SearchProvider = 'tavily' | 'firecrawl';
 export type SearchProviderOptions =
   | ({
       provider: 'tavily';
-      maxResults?: number;
     } & Omit<TavilySearchOptions, 'limit'>)
   | ({
       provider: 'firecrawl';
-      maxResults?: number;
     } & SearchParams);
 
 export type WebSearchResult = {
@@ -34,10 +32,12 @@ const firecrawl = new FirecrawlApp({
 
 export async function webSearchStep({
   query,
+  maxResults,
   providerOptions,
   dataStream,
 }: {
   query: string;
+  maxResults: number;
   dataStream: StreamWriter;
   providerOptions: SearchProviderOptions;
 }): Promise<WebSearchResponse> {
@@ -47,7 +47,7 @@ export async function webSearchStep({
     if (providerOptions.provider === 'tavily') {
       const response = await tvly.search(query, {
         searchDepth: providerOptions.searchDepth || 'basic',
-        maxResults: providerOptions.maxResults || 5,
+        maxResults,
         includeAnswer: true,
         ...providerOptions,
       });
@@ -61,7 +61,7 @@ export async function webSearchStep({
     } else if (providerOptions.provider === 'firecrawl') {
       const response = await firecrawl.search(query, {
         timeout: providerOptions.timeout || 15000,
-        limit: providerOptions.maxResults || 5,
+        limit: maxResults,
         scrapeOptions: { formats: ['markdown'] },
         ...providerOptions,
       });

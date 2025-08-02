@@ -6,15 +6,13 @@ import { deduplicateByDomainAndUrl } from './search-utils';
 
 export type SearchQuery = {
   query: string;
-  rationale: string;
-  priority: number;
+  maxResults: number;
 };
 
 export type MultiQuerySearchOptions = {
   baseProviderOptions: SearchProviderOptions;
   topics?: string[];
   excludeDomains?: string[];
-  maxResultsPerQuery?: number;
 };
 
 export type MultiQuerySearchResult = {
@@ -42,12 +40,7 @@ export async function multiQueryWebSearchStep({
 }): Promise<MultiQuerySearchResponse> {
   const updateId = generateUUID();
   try {
-    const {
-      baseProviderOptions,
-      topics = [],
-      excludeDomains = [],
-      maxResultsPerQuery = 10,
-    } = options;
+    const { baseProviderOptions, topics = [], excludeDomains = [] } = options;
 
     // Send initial annotation showing all queries being executed
     dataStream.write({
@@ -71,19 +64,11 @@ export async function multiQueryWebSearchStep({
           ...baseProviderOptions,
           topic: topics[index] || topics[0] || 'general',
           days: topics[index] === 'news' ? 7 : undefined,
-          maxResults: Math.min(
-            maxResultsPerQuery - query.priority,
-            maxResultsPerQuery,
-          ),
           excludeDomains,
         };
       } else if (baseProviderOptions.provider === 'firecrawl') {
         queryProviderOptions = {
           ...baseProviderOptions,
-          maxResults: Math.min(
-            maxResultsPerQuery - query.priority,
-            maxResultsPerQuery,
-          ),
         };
       } else {
         queryProviderOptions = baseProviderOptions;
@@ -91,6 +76,7 @@ export async function multiQueryWebSearchStep({
 
       const data = await webSearchStep({
         query: query.query,
+        maxResults: query.maxResults,
         providerOptions: queryProviderOptions,
         dataStream,
       });

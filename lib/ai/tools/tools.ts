@@ -4,7 +4,7 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { retrieve } from '@/lib/ai/tools/retrieve';
-import { webSearch } from '@/lib/ai/tools/web-search';
+import { tavilyWebSearch } from '@/lib/ai/tools/web-search';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
@@ -59,7 +59,7 @@ export function getTools({
     //   dataStream,
     // }),
     retrieve,
-    webSearch: webSearch({ dataStream, writeTopLevelUpdates: true }),
+    webSearch: tavilyWebSearch({ dataStream, writeTopLevelUpdates: true }),
     stockChart,
     codeInterpreter,
     generateImage: generateImage({ attachments, lastGeneratedImage }),

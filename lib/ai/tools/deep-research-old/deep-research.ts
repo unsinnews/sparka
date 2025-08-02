@@ -371,9 +371,9 @@ export async function deepResearchInternal({
       try {
         const searchResult = await webSearchStep({
           query: serpQuery.query,
+          maxResults: 5,
           providerOptions: {
             provider: 'firecrawl',
-            maxResults: 5,
           },
           dataStream,
         });

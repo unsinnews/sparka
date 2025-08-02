@@ -4,7 +4,7 @@ import { experimental_createMCPClient } from 'ai';
 
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '@/lib/ai/types';
-import { firecrawlWebSearch, webSearch } from '../web-search';
+import { firecrawlWebSearch, tavilyWebSearch } from '../web-search';
 import { getModelDefinition } from '../../all-models';
 
 // MCP Utils
@@ -85,7 +85,7 @@ export function getSearchTool(
 ) {
   if (searchApi === 'tavily') {
     return {
-      webSearch: webSearch({ dataStream, writeTopLevelUpdates: false }),
+      webSearch: tavilyWebSearch({ dataStream, writeTopLevelUpdates: false }),
     };
   } else if (searchApi === 'firecrawl') {
     return {

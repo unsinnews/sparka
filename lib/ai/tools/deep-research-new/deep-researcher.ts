@@ -129,72 +129,66 @@ async function writeResearchBrief(
   dataStream: StreamWriter,
 ): Promise<WriteResearchBriefOutput> {
   const model = getLanguageModel(config.research_model as ModelId);
+  const dataPartId = generateUUID();
+  dataStream.write({
+    id: dataPartId,
+    type: 'data-researchUpdate',
+    data: {
+      title: 'Writing research brief',
+      message: 'Writing research brief...',
+      type: 'thoughts',
+      status: 'running',
+    },
+  });
 
-  try {
-    const dataPartId = generateUUID();
-    dataStream.write({
-      id: dataPartId,
-      type: 'data-researchUpdate',
-      data: {
-        title: 'Writing research brief',
-        message: 'Writing research brief...',
-        type: 'thoughts',
-        status: 'running',
+  // Get model token limit and reserve space for output tokens
+  const briefModelContextWindow = getModelContextWindow(
+    config.research_model as ModelId,
+  );
+
+  // Create messages and truncate to fit within token limit
+  const briefMessages = [
+    {
+      role: 'user' as const,
+      content: transformMessagesIntoResearchTopicPrompt({
+        messages: getBufferString(state.messages || []),
+        date: getTodayStr(),
+      }),
+    },
+  ];
+  const truncatedBriefMessages = truncateMessages(
+    briefMessages,
+    briefModelContextWindow,
+  );
+
+  const result = await generateObject({
+    model,
+    schema: ResearchQuestionSchema,
+    messages: truncatedBriefMessages,
+    maxOutputTokens: config.research_model_max_tokens,
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: 'writeResearchBrief',
+      metadata: {
+        requestId: state.requestId || '',
       },
-    });
+    },
+  });
 
-    // Get model token limit and reserve space for output tokens
-    const briefModelContextWindow = getModelContextWindow(
-      config.research_model as ModelId,
-    );
+  dataStream.write({
+    id: dataPartId,
+    type: 'data-researchUpdate',
+    data: {
+      title: 'Writing research brief',
+      message: result.object.research_brief,
+      type: 'thoughts',
+      status: 'completed',
+    },
+  });
 
-    // Create messages and truncate to fit within token limit
-    const briefMessages = [
-      {
-        role: 'user' as const,
-        content: transformMessagesIntoResearchTopicPrompt({
-          messages: getBufferString(state.messages || []),
-          date: getTodayStr(),
-        }),
-      },
-    ];
-    const truncatedBriefMessages = truncateMessages(
-      briefMessages,
-      briefModelContextWindow,
-    );
-
-    const result = await generateObject({
-      model,
-      schema: ResearchQuestionSchema,
-      messages: truncatedBriefMessages,
-      maxOutputTokens: config.research_model_max_tokens,
-      experimental_telemetry: {
-        isEnabled: true,
-        functionId: 'writeResearchBrief',
-        metadata: {
-          requestId: state.requestId || '',
-        },
-      },
-    });
-
-    dataStream.write({
-      id: dataPartId,
-      type: 'data-researchUpdate',
-      data: {
-        title: 'Writing research brief',
-        message: result.object.research_brief,
-        type: 'thoughts',
-        status: 'completed',
-      },
-    });
-
-    return {
-      research_brief: result.object.research_brief,
-    };
-  } catch (error) {
-    console.error('Error in writeResearchBrief:', error);
-    throw error;
-  }
+  return {
+    research_brief: result.object.research_brief,
+  };
 }
 
 // Agent base class

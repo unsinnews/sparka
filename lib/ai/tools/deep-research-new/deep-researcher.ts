@@ -17,7 +17,9 @@ import {
   type WriteResearchBriefInput,
   type WriteResearchBriefOutput,
   type SupervisorInput,
+  type SupervisorOutput,
   type SupervisorToolsInput,
+  type SupervisorToolsOutput,
   type ResearcherInput,
   type CompressResearchInput,
 } from './state';
@@ -194,9 +196,6 @@ async function writeResearchBrief(
     throw error;
   }
 }
-
-// TODO: Change some of the deferred tool calls for structured outputs
-// TODO: Consider which are the cases to fail when the model has a stop reason != tool-calls
 
 // Agent base class
 abstract class Agent {
@@ -378,9 +377,7 @@ class SupervisorAgent extends Agent {
     this.researcherAgent = new ResearcherAgent(config, dataStream);
   }
 
-  private async supervise(
-    state: SupervisorInput,
-  ): Promise<SupervisorToolsInput> {
+  private async supervise(state: SupervisorInput): Promise<SupervisorOutput> {
     console.log('=== SUPERVISOR START ===', {
       research_iterations: state.research_iterations,
       max_iterations: this.config.max_researcher_iterations,
@@ -455,14 +452,12 @@ class SupervisorAgent extends Agent {
       throw new Error(`Expected tool calls, but got: ${result.finishReason}`);
     }
     return {
-      id: state.id,
       supervisor_messages: [
         ...(state.supervisor_messages || []),
         ...responseMessages,
       ],
       tool_calls: result.toolCalls || [],
       research_iterations: (state.research_iterations || 0) + 1,
-      research_brief: state.research_brief,
     };
   }
 
@@ -481,7 +476,17 @@ class SupervisorAgent extends Agent {
 
     while (true) {
       const supervisorResult = await this.supervise(supervisorState);
-      const toolsResult = await this.executeTools(supervisorResult);
+
+      // Create the input for executeTools with all required fields
+      const toolsInput: SupervisorToolsInput = {
+        id: supervisorState.id,
+        supervisor_messages: supervisorResult.supervisor_messages,
+        research_brief: supervisorState.research_brief,
+        research_iterations: supervisorResult.research_iterations,
+        tool_calls: supervisorResult.tool_calls,
+      };
+
+      const toolsResult = await this.executeTools(toolsInput);
 
       if (toolsResult.status === 'complete') {
         return {
@@ -492,7 +497,19 @@ class SupervisorAgent extends Agent {
         };
       }
 
-      supervisorState = toolsResult.data;
+      // Merge the data from toolsResult with the current state to create new SupervisorInput
+      supervisorState = {
+        id: supervisorState.id,
+        research_brief: supervisorState.research_brief,
+        notes: supervisorState.notes,
+        supervisor_messages: toolsResult.data.supervisor_messages,
+        research_iterations: supervisorResult.research_iterations,
+        raw_notes: [
+          ...supervisorState.raw_notes,
+          ...toolsResult.data.raw_notes,
+        ],
+        tool_calls: [],
+      };
     }
   }
 
@@ -500,7 +517,7 @@ class SupervisorAgent extends Agent {
     state: SupervisorToolsInput,
   ): Promise<
     | { status: 'complete'; data: { notes: string[] } }
-    | { status: 'continue'; data: SupervisorInput }
+    | { status: 'continue'; data: SupervisorToolsOutput }
   > {
     console.log('=== SUPERVISOR TOOLS START ===', {
       research_iterations: state.research_iterations,
@@ -628,13 +645,8 @@ class SupervisorAgent extends Agent {
     return {
       status: 'continue',
       data: {
-        id: state.id,
         supervisor_messages: [...supervisorMessages, ...toolResultsMessages],
-        research_brief: state.research_brief,
-        notes: [],
-        research_iterations: state.research_iterations,
         raw_notes: [rawNotesConcat],
-        tool_calls: [],
       },
     };
   }

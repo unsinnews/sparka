@@ -3,6 +3,7 @@ import {
   createUIMessageStream,
   JsonToSseTransformStream,
   stepCountIs,
+  hasToolCall,
   streamText,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
@@ -473,7 +474,7 @@ export async function POST(request: NextRequest) {
             model: getLanguageModel(selectedModelId),
             system: systemPrompt(),
             messages: contextForLLM,
-            stopWhen: stepCountIs(5),
+            stopWhen: [stepCountIs(5), hasToolCall('deepResearch')],
             activeTools: activeTools,
             experimental_transform: markdownJoinerTransform(),
             experimental_telemetry: {

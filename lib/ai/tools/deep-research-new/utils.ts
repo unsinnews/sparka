@@ -7,47 +7,7 @@ import type { StreamWriter } from '@/lib/ai/types';
 import { webSearch } from '../web-search';
 import { getModelDefinition } from '../../all-models';
 
-interface TokenData {
-  access_token: string;
-  expires_in: number;
-  created_at: Date;
-}
-
 // MCP Utils
-
-export async function getMcpAccessToken(
-  supabaseToken: string,
-  baseMcpUrl: string,
-): Promise<any | null> {
-  try {
-    const formData = new URLSearchParams({
-      client_id: 'mcp_default',
-      subject_token: supabaseToken,
-      grant_type: 'urn:ietf:params:oauth:grant-type:token-exchange',
-      resource: `${baseMcpUrl.replace(/\/$/, '')}/mcp`,
-      subject_token_type: 'urn:ietf:params:oauth:token-type:access_token',
-    });
-
-    const response = await fetch(
-      `${baseMcpUrl.replace(/\/$/, '')}/oauth/token`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData,
-      },
-    );
-
-    if (response.ok) {
-      return await response.json();
-    } else {
-      const responseText = await response.text();
-      console.error(`Token exchange failed: ${responseText}`);
-    }
-  } catch (error) {
-    console.error(`Error during token exchange: ${error}`);
-  }
-  return null;
-}
 
 type McpClient = Awaited<ReturnType<typeof experimental_createMCPClient>>;
 type McpToolSet = Awaited<ReturnType<McpClient['tools']>>;
@@ -102,6 +62,10 @@ export async function loadMcpTools(
     return filteredTools;
   } catch (error) {
     console.error('Failed to load MCP tools:', error);
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return {};
   } finally {
     // Clean up the client connection

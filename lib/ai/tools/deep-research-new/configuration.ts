@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 // Simplified search API enum
-export const SearchAPIEnum = z.enum(['anthropic', 'openai', 'tavily', 'none']);
+export const SearchAPIEnum = z.enum(['firecrawl', 'tavily', 'none']);
 export type SearchAPI = z.infer<typeof SearchAPIEnum>;
 
 // MCP Configuration schema
 export const MCPConfigSchema = z.object({
   url: z.string().optional(),
   tools: z.array(z.string()).optional(),
-  auth_required: z.boolean().default(false).optional(),
+  headers: z.record(z.string(), z.string()).optional(),
 });
 
 export type MCPConfig = z.infer<typeof MCPConfigSchema>;

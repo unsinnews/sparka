@@ -42,7 +42,7 @@ Use for:
         max_concurrent_research_units: 2, // num concurrent research agents
 
         // Search configuration
-        search_api: 'tavily',
+        search_api: 'firecrawl',
         search_api_max_queries: 2,
 
         // Disable clarification for automated demo

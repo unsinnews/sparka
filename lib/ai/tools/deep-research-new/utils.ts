@@ -4,7 +4,7 @@ import { experimental_createMCPClient } from 'ai';
 
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '@/lib/ai/types';
-import { webSearch } from '../web-search';
+import { firecrawlWebSearch, webSearch } from '../web-search';
 import { getModelDefinition } from '../../all-models';
 
 // MCP Utils
@@ -83,9 +83,19 @@ export function getSearchTool(
   dataStream: StreamWriter,
   id?: string,
 ) {
-  return {
-    webSearch: webSearch({ dataStream, writeTopLevelUpdates: false }),
-  };
+  if (searchApi === 'tavily') {
+    return {
+      webSearch: webSearch({ dataStream, writeTopLevelUpdates: false }),
+    };
+  } else if (searchApi === 'firecrawl') {
+    return {
+      webSearch: firecrawlWebSearch({
+        dataStream,
+        writeTopLevelUpdates: false,
+      }),
+    };
+  }
+  throw new Error(`Unsupported search API: ${searchApi}`);
 }
 
 export async function getAllTools(

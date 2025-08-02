@@ -126,3 +126,100 @@ Avoid:
       };
     },
   });
+
+export const firecrawlWebSearch = ({
+  dataStream,
+  writeTopLevelUpdates,
+}: {
+  dataStream: StreamWriter;
+  writeTopLevelUpdates: boolean;
+}) =>
+  tool({
+    description: `Multi-query web search using Firecrawl for enhanced content extraction. Always cite sources inline.
+
+Use for:
+- General information gathering via web search with detailed content extraction
+- When you need high-quality markdown content from web pages
+
+Avoid:
+- Pulling content from a single known URL (use retrieve instead)`,
+    inputSchema: z.object({
+      search_queries: z
+        .array(
+          z.object({
+            query: z.string(),
+            rationale: z.string().describe('The rationale for the query.'),
+            priority: z
+              .number()
+              .min(1)
+              .max(5)
+              .describe('The priority of the query. Use from 2 to 4.'),
+          }),
+        )
+        .max(12),
+      limit: z
+        .number()
+        .min(1)
+        .max(50)
+        .describe('Maximum number of results per query. Defaults to 10.')
+        .optional(),
+    }),
+    execute: async ({
+      search_queries,
+      limit,
+    }: {
+      search_queries: { query: string; rationale: string; priority: number }[];
+      limit?: number;
+    }) => {
+      // Handle defaults
+      const safeLimit = limit ?? 10;
+
+      if (writeTopLevelUpdates) {
+        dataStream.write({
+          type: 'data-researchUpdate',
+          data: {
+            title: 'Searching with Firecrawl',
+            timestamp: Date.now(),
+            type: 'progress',
+            status: 'started',
+          },
+        });
+      }
+
+      let completedSteps = 0;
+      const totalSteps = 1;
+
+      // Execute searches in parallel using the multi-query step with firecrawl
+      const { searches: searchResults } = await multiQueryWebSearchStep({
+        queries: search_queries,
+        options: {
+          baseProviderOptions: {
+            provider: 'firecrawl',
+            maxResults: safeLimit,
+          },
+          maxResultsPerQuery: safeLimit,
+        },
+        dataStream,
+      });
+
+      completedSteps++;
+      // Final progress update
+      if (writeTopLevelUpdates) {
+        dataStream.write({
+          type: 'data-researchUpdate',
+          data: {
+            title: 'Firecrawl search complete',
+            timestamp: Date.now(),
+            type: 'progress',
+            status: 'completed',
+            completedSteps,
+            totalSteps,
+          },
+        });
+      }
+
+      return {
+        searches: searchResults,
+      };
+    },
+  });

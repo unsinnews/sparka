@@ -234,7 +234,7 @@ class ResearcherAgent extends Agent {
     this.dataStream.write({
       type: 'data-researchUpdate',
       data: {
-        title: `Researcher: starting research on topic`,
+        title: `Starting research on topic`,
         message: state.research_topic,
         type: 'thoughts',
         status: 'completed',
@@ -270,7 +270,7 @@ class ResearcherAgent extends Agent {
     this.dataStream.write({
       type: 'data-researchUpdate',
       data: {
-        title: 'Researcher: research completed',
+        title: 'Research completed',
         type: 'thoughts',
         message: 'Research phase completed',
         status: 'completed',
@@ -305,7 +305,7 @@ class ResearcherAgent extends Agent {
       id: compressUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Researcher: Summarizing research',
+        title: 'Summarizing research',
         type: 'thoughts',
         message: 'Summarizing research...',
         status: 'running',
@@ -342,7 +342,7 @@ class ResearcherAgent extends Agent {
       id: compressUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Researcher: Summarizing research',
+        title: 'Summarizing research',
         type: 'thoughts',
         message: 'Research summarized',
         status: 'completed',
@@ -401,7 +401,7 @@ class SupervisorAgent extends Agent {
       id: supervisorUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Supervisor: Evaluating research needs',
+        title: 'Evaluating research needs',
         message:
           'Coordinating investigation efforts and ensuring comprehensive topic coverage',
         type: 'thoughts',
@@ -448,7 +448,7 @@ class SupervisorAgent extends Agent {
       id: supervisorUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Supervisor: Evaluating research needs',
+        title: 'Evaluating research needs',
         message:
           supervisorMessageText ||
           'Coordinating investigation efforts and ensuring comprehensive topic coverage',
@@ -584,7 +584,7 @@ class SupervisorAgent extends Agent {
       id: supervisorUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Supervisor: Assigning research tasks',
+        title: 'Assigning research tasks',
         message:
           conductResearchCalls.length === 1
             ? 'Assigning 1 research task to a researcher.'

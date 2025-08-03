@@ -22,6 +22,7 @@ import {
   type SupervisorToolsOutput,
   type ResearcherInput,
   type CompressResearchInput,
+  type DeepResearchResult,
 } from './state';
 import {
   clarifyWithUserInstructions,
@@ -188,6 +189,7 @@ async function writeResearchBrief(
 
   return {
     research_brief: result.object.research_brief,
+    title: result.object.title,
   };
 }
 
@@ -663,6 +665,7 @@ async function finalReportGeneration(
   dataStream: StreamWriter,
   session: Session,
   requestId: string,
+  reportTitle: string,
 ): Promise<Pick<AgentState, 'final_report' | 'reportResult'>> {
   const notes = state.notes || [];
 
@@ -718,7 +721,7 @@ async function finalReportGeneration(
   const reportResult = await createDocument({
     dataStream,
     kind: 'text',
-    title: 'Final report',
+    title: reportTitle,
     description: '',
     session,
     prompt: finalReportPromptText,
@@ -750,7 +753,7 @@ export async function runDeepResearcher(
   config: DeepResearchConfig,
   dataStream: StreamWriter,
   session: Session,
-): Promise<AgentState> {
+): Promise<DeepResearchResult> {
   let currentState: AgentState = {
     requestId: input.requestId,
     inputMessages: input.messages,
@@ -774,8 +777,8 @@ export async function runDeepResearcher(
 
   if (clarifyResult.needsClarification) {
     return {
-      ...currentState,
-      clarificationMessage: clarifyResult.clarificationMessage,
+      type: 'clarifying_question',
+      data: clarifyResult.clarificationMessage || 'Clarification needed',
     };
   }
 
@@ -796,6 +799,7 @@ export async function runDeepResearcher(
     dataStream,
   );
   currentState.research_brief = briefResult.research_brief;
+  const reportTitle = briefResult.title;
 
   // Step 3: Research supervisor loop
   const supervisorAgent = new SupervisorAgent(config, dataStream);
@@ -834,6 +838,7 @@ export async function runDeepResearcher(
     dataStream,
     session,
     currentState.requestId,
+    reportTitle,
   );
 
   dataStream.write({
@@ -846,7 +851,12 @@ export async function runDeepResearcher(
     },
   });
 
-  currentState = { ...currentState, ...finalResult };
+  // Current state might be useful for logging
+  // currentState = { ...currentState, ...finalResult };
 
-  return currentState;
+  // Check if we have a successful report
+  return {
+    type: 'report',
+    data: finalResult.reportResult,
+  };
 }

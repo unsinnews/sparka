@@ -68,39 +68,23 @@ Use for:
           session,
         );
 
-        if (researchResult.final_report) {
-          return {
-            ...researchResult.reportResult,
-            success: true,
-            format: 'report' as const,
-          };
-        }
+        switch (researchResult.type) {
+          case 'report':
+            return {
+              ...researchResult.data,
+              format: 'report' as const,
+            };
 
-        // Clarifying questions
-        if (researchResult.clarificationMessage) {
-          return {
-            success: true,
-            answer: researchResult.clarificationMessage,
-            learnings: [],
-            visitedUrls: [],
-            format: 'clarifying_questions' as const,
-          };
+          case 'clarifying_question':
+            return {
+              answer: researchResult.data,
+              format: 'clarifying_questions' as const,
+            };
         }
-
-        return {
-          success: false as const,
-          answer: 'Deep research failed to produce a result.',
-          learnings: [],
-          visitedUrls: [],
-          format: 'problem' as const,
-        };
       } catch (error) {
         console.error('Deep research error:', error);
         return {
-          success: false as const,
           answer: `Deep research failed with error: ${error instanceof Error ? error.message : String(error)}`,
-          learnings: [],
-          visitedUrls: [],
           format: 'problem' as const,
         };
       }

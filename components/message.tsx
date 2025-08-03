@@ -570,7 +570,7 @@ const PureAssistantMessage = ({
                 chatStore.getState().messages,
                 toolCallId,
               );
-              if (output.format === 'report' && output.success) {
+              if (output.format === 'report') {
                 return (
                   <div key={toolCallId}>
                     {shouldShowFullPreview ? (

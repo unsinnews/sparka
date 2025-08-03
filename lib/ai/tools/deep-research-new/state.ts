@@ -52,6 +52,7 @@ export const ResearchQuestionSchema = z.object({
   research_brief: z
     .string()
     .describe('A research question that will be used to guide the research.'),
+  title: z.string().describe('The title of the research report.'),
 });
 
 export type ConductResearch = z.infer<typeof ConductResearchSchema>;
@@ -80,6 +81,16 @@ export interface AgentState {
   reportResult: ArtifactToolResult;
   clarificationMessage?: string;
 }
+
+export type DeepResearchResult =
+  | {
+      type: 'clarifying_question';
+      data: string;
+    }
+  | {
+      type: 'report';
+      data: ArtifactToolResult;
+    };
 
 export type ResponseMessage = AssistantModelMessage | ToolModelMessage;
 
@@ -137,6 +148,7 @@ export interface WriteResearchBriefInput {
 
 export interface WriteResearchBriefOutput {
   research_brief: string;
+  title: string;
 }
 
 export interface SupervisorInput {

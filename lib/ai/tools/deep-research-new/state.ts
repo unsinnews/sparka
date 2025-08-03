@@ -71,17 +71,15 @@ export interface AgentInputState {
 
 export interface AgentState {
   requestId: string;
-  messages: ModelMessage[];
+  inputMessages: ModelMessage[];
   supervisor_messages: ModelMessage[];
   research_brief?: string;
   raw_notes: string[];
   notes: string[];
   final_report: string;
   reportResult: ArtifactToolResult;
+  clarificationMessage?: string;
 }
-
-// TODO: Figure out what else we need in MessageLike (from langchain MessageLikeRepresentation)
-export type MessageLike = ModelMessage;
 
 export type ResponseMessage = AssistantModelMessage | ToolModelMessage;
 

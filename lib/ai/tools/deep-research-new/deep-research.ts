@@ -77,19 +77,14 @@ Use for:
         }
 
         // Clarifying questions
-        if (researchResult.messages) {
-          const assistantMessage = researchResult.messages.find(
-            (m) => m.role === 'assistant',
-          );
-          if (assistantMessage) {
-            return {
-              success: true,
-              answer: assistantMessage.content,
-              learnings: [],
-              visitedUrls: [],
-              format: 'clarifying_questions' as const,
-            };
-          }
+        if (researchResult.clarificationMessage) {
+          return {
+            success: true,
+            answer: researchResult.clarificationMessage,
+            learnings: [],
+            visitedUrls: [],
+            format: 'clarifying_questions' as const,
+          };
         }
 
         return {

@@ -46,7 +46,7 @@ import { ReportDocumentWriter } from '@/artifacts/text/reportServer';
 
 // Agent result types (instead of commands)
 type ClarificationResult =
-  | { needsClarification: true; messages: ModelMessage[] }
+  | { needsClarification: true; clarificationMessage: string }
   | { needsClarification: false };
 
 type SupervisorResult = {
@@ -115,10 +115,7 @@ async function clarifyWithUser(
   if (response.object.need_clarification) {
     return {
       needsClarification: true,
-      messages: [
-        ...state.messages,
-        { role: 'assistant' as const, content: response.object.question },
-      ],
+      clarificationMessage: response.object.question,
     };
   } else {
     return { needsClarification: false };
@@ -665,9 +662,8 @@ async function finalReportGeneration(
   dataStream: StreamWriter,
   session: Session,
   requestId: string,
-): Promise<Partial<AgentState>> {
+): Promise<Pick<AgentState, 'final_report' | 'reportResult'>> {
   const notes = state.notes || [];
-  const clearedState = { notes: [] };
 
   const model = getLanguageModel(config.final_report_model as ModelId);
   const findings = notes.join('\n');
@@ -743,14 +739,6 @@ async function finalReportGeneration(
 
   return {
     final_report: reportDocumentHandler.getReportContent(),
-    messages: [
-      ...(state.messages || []),
-      {
-        role: 'assistant' as const,
-        content: reportDocumentHandler.getReportContent(),
-      },
-    ],
-    ...clearedState,
     reportResult,
   };
 }
@@ -764,7 +752,7 @@ export async function runDeepResearcher(
 ): Promise<AgentState> {
   let currentState: AgentState = {
     requestId: input.requestId,
-    messages: input.messages,
+    inputMessages: input.messages,
     supervisor_messages: [],
     raw_notes: [],
     notes: [],
@@ -779,12 +767,15 @@ export async function runDeepResearcher(
 
   // Step 1: Clarify with user
   const clarifyResult = await clarifyWithUser(
-    { requestId: currentState.requestId, messages: currentState.messages },
+    { requestId: currentState.requestId, messages: currentState.inputMessages },
     config,
   );
 
   if (clarifyResult.needsClarification) {
-    return { ...currentState, messages: clarifyResult.messages };
+    return {
+      ...currentState,
+      clarificationMessage: clarifyResult.clarificationMessage,
+    };
   }
 
   dataStream.write({
@@ -799,7 +790,7 @@ export async function runDeepResearcher(
 
   // Step 2: Write research brief
   const briefResult = await writeResearchBrief(
-    { requestId: currentState.requestId, messages: currentState.messages },
+    { requestId: currentState.requestId, messages: currentState.inputMessages },
     config,
     dataStream,
   );

@@ -155,10 +155,10 @@ async function main() {
     }
 
     // Display conversation messages if they exist
-    if (result.messages && result.messages.length > 1) {
+    if (result.inputMessages && result.inputMessages.length > 1) {
       console.log('💬 Conversation History:');
       console.log('='.repeat(50));
-      result.messages.forEach((message, index) => {
+      result.inputMessages.forEach((message, index) => {
         console.log(`${index + 1}. [${message.role}]: ${message.content}`);
       });
     }

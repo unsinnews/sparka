@@ -3,7 +3,6 @@ import {
   createUIMessageStream,
   JsonToSseTransformStream,
   stepCountIs,
-  hasToolCall,
   streamText,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
@@ -474,7 +473,25 @@ export async function POST(request: NextRequest) {
             model: getLanguageModel(selectedModelId),
             system: systemPrompt(),
             messages: contextForLLM,
-            stopWhen: [stepCountIs(5), hasToolCall('deepResearch')],
+            stopWhen: [
+              stepCountIs(5),
+              (options) => {
+                return options.steps.some((step) => {
+                  const toolResults = step.staticToolResults;
+                  if (toolResults.length === 0) {
+                    return false;
+                  }
+
+                  // Don't stop if the tool result is a clarifying question
+                  return toolResults.some(
+                    (toolResult) =>
+                      toolResult.type === 'tool-result' &&
+                      toolResult.toolName === 'deepResearch' &&
+                      toolResult.output.format === 'report',
+                  );
+                });
+              },
+            ],
             activeTools: activeTools,
             experimental_transform: markdownJoinerTransform(),
             experimental_telemetry: {

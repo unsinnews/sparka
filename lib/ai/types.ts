@@ -14,6 +14,7 @@ import type { InferUITool, UIMessage, UIMessageStreamWriter } from 'ai';
 import type { ArtifactKind } from '@/components/artifact';
 import type { Suggestion } from '@/lib/db/schema';
 import type { ResearchUpdate } from './tools/research-updates-schema';
+import type { createDocumentTool as createDocument } from './tools/create-document';
 
 export type DataPart = { type: 'append-message'; message: string };
 
@@ -56,7 +57,7 @@ export const messageMetadataSchema = z.object({
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
 
 type weatherTool = InferUITool<typeof getWeather>;
-type createDocumentTool = InferUITool<ReturnType<typeof createDocumentTool>>;
+type createDocumentTool = InferUITool<ReturnType<typeof createDocument>>;
 type updateDocumentTool = InferUITool<ReturnType<typeof updateDocument>>;
 type requestSuggestionsTool = InferUITool<
   ReturnType<typeof requestSuggestions>

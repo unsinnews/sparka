@@ -54,9 +54,10 @@ type SupervisorResult = {
   data: { notes: string[] };
 };
 
-// Helper function to get message buffer string
-function getBufferString(messages: ModelMessage[]): string {
-  return messages.map((m) => `${m.role}: ${m.content}`).join('\n');
+function messagesToString(messages: ModelMessage[]): string {
+  return messages
+    .map((m) => `${m.role}: ${JSON.stringify(m.content)}`)
+    .join('\n');
 }
 
 // Helper function to filter messages by type
@@ -88,7 +89,7 @@ async function clarifyWithUser(
     {
       role: 'user' as const,
       content: clarifyWithUserInstructions({
-        messages: getBufferString(messages),
+        messages: messagesToString(messages),
         date: getTodayStr(),
       }),
     },
@@ -150,7 +151,7 @@ async function writeResearchBrief(
     {
       role: 'user' as const,
       content: transformMessagesIntoResearchTopicPrompt({
-        messages: getBufferString(state.messages || []),
+        messages: messagesToString(state.messages || []),
         date: getTodayStr(),
       }),
     },

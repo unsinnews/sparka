@@ -92,7 +92,7 @@ Use for:
           answer: 'Deep research failed to produce a result.',
           learnings: [],
           visitedUrls: [],
-          format: 'report' as const,
+          format: 'problem' as const,
         };
       } catch (error) {
         console.error('Deep research error:', error);
@@ -101,7 +101,7 @@ Use for:
           answer: `Deep research failed with error: ${error instanceof Error ? error.message : String(error)}`,
           learnings: [],
           visitedUrls: [],
-          format: 'report' as const,
+          format: 'problem' as const,
         };
       }
     },

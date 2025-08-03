@@ -40,6 +40,9 @@ import {
 } from './utils';
 import type { StreamWriter } from '../../types';
 import { generateUUID, getTextContentFromModelMessage } from '@/lib/utils';
+import { createDocument } from '../create-document';
+import type { Session } from 'next-auth';
+import { ReportDocumentWriter } from '@/artifacts/text/reportServer';
 
 // Agent result types (instead of commands)
 type ClarificationResult =
@@ -661,6 +664,8 @@ async function finalReportGeneration(
   state: AgentState,
   config: DeepResearchConfig,
   dataStream: StreamWriter,
+  session: Session,
+  requestId: string,
 ): Promise<Partial<AgentState>> {
   const notes = state.notes || [];
   const clearedState = { notes: [] };
@@ -700,7 +705,7 @@ async function finalReportGeneration(
     finalReportModelContextWindow,
   );
 
-  const finalReport = await generateText({
+  const reportDocumentHandler = new ReportDocumentWriter({
     model,
     messages: truncatedFinalMessages,
     maxOutputTokens: config.final_report_model_max_tokens,
@@ -712,6 +717,18 @@ async function finalReportGeneration(
       },
     },
     maxRetries: 3,
+  });
+
+  const reportResult = await createDocument({
+    dataStream,
+    kind: 'text',
+    title: 'Final report',
+    description: '',
+    session,
+    prompt: finalReportPromptText,
+    messageId: requestId,
+    selectedModel: config.final_report_model as ModelId,
+    documentHandler: reportDocumentHandler.createDocumentHandler(),
   });
 
   dataStream.write({
@@ -726,12 +743,16 @@ async function finalReportGeneration(
   });
 
   return {
-    final_report: finalReport.text,
+    final_report: reportDocumentHandler.getReportContent(),
     messages: [
       ...(state.messages || []),
-      { role: 'assistant' as const, content: finalReport.text },
+      {
+        role: 'assistant' as const,
+        content: reportDocumentHandler.getReportContent(),
+      },
     ],
     ...clearedState,
+    reportResult,
   };
 }
 
@@ -740,6 +761,7 @@ export async function runDeepResearcher(
   input: AgentInputState,
   config: DeepResearchConfig,
   dataStream: StreamWriter,
+  session: Session,
 ): Promise<AgentState> {
   let currentState: AgentState = {
     requestId: input.requestId,
@@ -748,6 +770,12 @@ export async function runDeepResearcher(
     raw_notes: [],
     notes: [],
     final_report: '',
+    reportResult: {
+      id: '',
+      title: '',
+      kind: 'text',
+      content: '',
+    },
   };
 
   // Step 1: Clarify with user
@@ -814,6 +842,8 @@ export async function runDeepResearcher(
     currentState,
     config,
     dataStream,
+    session,
+    currentState.requestId,
   );
 
   dataStream.write({

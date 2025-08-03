@@ -1,5 +1,5 @@
 import type { ModelMessage, FileUIPart } from 'ai';
-import { createDocument } from '@/lib/ai/tools/create-document';
+import { createDocumentTool } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
@@ -33,7 +33,7 @@ export function getTools({
 }) {
   return {
     getWeather,
-    createDocument: createDocument({
+    createDocument: createDocumentTool({
       session,
       dataStream,
       contextForLLM,

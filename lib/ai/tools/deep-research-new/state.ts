@@ -6,6 +6,7 @@ import {
   type ToolModelMessage,
 } from 'ai';
 import { z } from 'zod';
+import type { ArtifactToolResult } from '../ArtifactToolResult';
 
 //##################
 // Structured Outputs (Zod Schemas)
@@ -76,6 +77,7 @@ export interface AgentState {
   raw_notes: string[];
   notes: string[];
   final_report: string;
+  reportResult: ArtifactToolResult;
 }
 
 // TODO: Figure out what else we need in MessageLike (from langchain MessageLikeRepresentation)

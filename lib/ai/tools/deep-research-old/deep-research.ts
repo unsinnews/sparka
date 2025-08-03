@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import { getModel } from './providers';
 import { trimPrompt } from '../../token-utils';
-import { createDocumentInternal } from '../create-document';
+import { createDocument } from '../create-document';
 import type { Session } from 'next-auth';
 import { webSearchStep } from '../steps/web-search';
 import { DEFAULT_ARTIFACT_MODEL } from '../../all-models';
@@ -201,7 +201,7 @@ export async function writeFinalReport({
 
   const urlsSection = `\n\n## Sources\n\n${visitedUrls.map((url) => `- ${url}`).join('\n')}`;
 
-  return createDocumentInternal({
+  return createDocument({
     title,
     description,
     dataStream,

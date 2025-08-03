@@ -5,11 +5,13 @@ import type { Session } from 'next-auth';
 import {
   artifactKinds,
   documentHandlersByArtifactKind,
+  type DocumentHandler,
 } from '@/lib/artifacts/server';
 import type { ModelMessage } from 'ai';
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
 import type { ArtifactKind } from '@/components/artifact';
+import type { ArtifactToolResult } from './ArtifactToolResult';
 
 interface CreateDocumentProps {
   session: Session;
@@ -19,7 +21,7 @@ interface CreateDocumentProps {
   selectedModel: ModelId;
 }
 
-export const createDocument = ({
+export const createDocumentTool = ({
   session,
   dataStream,
   contextForLLM,
@@ -80,7 +82,16 @@ Avoid:
       `;
       }
 
-      return await createDocumentInternal({
+      const documentHandler = documentHandlersByArtifactKind.find(
+        (documentHandlerByArtifactKind) =>
+          documentHandlerByArtifactKind.kind === kind,
+      );
+
+      if (!documentHandler) {
+        throw new Error(`No document handler found for kind: ${kind}`);
+      }
+
+      const result: ArtifactToolResult = await createDocument({
         dataStream,
         kind,
         title,
@@ -89,11 +100,14 @@ Avoid:
         prompt,
         messageId,
         selectedModel,
+        documentHandler,
       });
+
+      return result;
     },
   });
 
-export async function createDocumentInternal({
+export async function createDocument({
   dataStream,
   kind,
   title,
@@ -102,6 +116,7 @@ export async function createDocumentInternal({
   prompt,
   messageId,
   selectedModel,
+  documentHandler,
 }: {
   dataStream: StreamWriter;
   kind: ArtifactKind;
@@ -111,7 +126,8 @@ export async function createDocumentInternal({
   prompt: string;
   messageId: string;
   selectedModel: ModelId;
-}) {
+  documentHandler: DocumentHandler<ArtifactKind>;
+}): Promise<ArtifactToolResult> {
   const id = generateUUID();
 
   dataStream.write({
@@ -144,15 +160,6 @@ export async function createDocumentInternal({
     transient: true,
   });
 
-  const documentHandler = documentHandlersByArtifactKind.find(
-    (documentHandlerByArtifactKind) =>
-      documentHandlerByArtifactKind.kind === kind,
-  );
-
-  if (!documentHandler) {
-    throw new Error(`No document handler found for kind: ${kind}`);
-  }
-
   await documentHandler.onCreateDocument({
     id,
     title,
@@ -166,11 +173,12 @@ export async function createDocumentInternal({
 
   dataStream.write({ type: 'data-finish', data: null, transient: true });
 
-  return {
+  const result: ArtifactToolResult = {
     id,
     title,
     kind,
     content: 'A document was created and is now visible to the user.',
-    success: true as const,
   };
+
+  return result;
 }

@@ -4,7 +4,6 @@ import { tool, type ModelMessage } from 'ai';
 import { z } from 'zod';
 import type { Session } from 'next-auth';
 import type { StreamWriter } from '../../types';
-import { writeFinalReport } from '../deep-research-old/deep-research';
 
 export const deepResearch = ({
   session,
@@ -69,24 +68,13 @@ Use for:
           },
           smallConfig,
           dataStream,
+          session,
         );
 
         if (researchResult.final_report) {
-          // TODO: This should be handled internally by deep-researcher
-          const report = await writeFinalReport({
-            title: 'Research Report', // TODO: This should be generated
-            description: 'Research Report', // TODO: This should be generated
-            dataStream,
-            session,
-            prompt: query,
-            learnings: [researchResult.final_report], // TODO: Extract learnings from researchResult
-            visitedUrls: [], // TODO: Extract visited URLs from researchResult
-            messageId,
-          });
-
           return {
-            // TODO: This is needed for the toolcall pill. Maybe it can be improved so it's not duplicated with artifact
-            ...report,
+            ...researchResult.reportResult,
+            success: true,
             format: 'report' as const,
           };
         }

@@ -17,11 +17,13 @@ export const deepResearch = ({
   messages: ModelMessage[];
 }) =>
   tool({
-    description: `Conducts deep, autonomous research based on a conversation history. It automatically clarifies the user's intent if the request is ambiguous, breaks down the query into parallel research tasks, scours multiple web sources for information, and then synthesizes the findings into a comprehensive, well-structured report with citations. This is best for complex questions that require in-depth analysis and a detailed answer, not just a simple search.
-
+    description: `Conducts deep, autonomous research based on a conversation history. It automatically clarifies the user's intent if the request is ambiguous, breaks down the query into parallel research tasks, scours multiple web sources for information, and then synthesizes the findings into a comprehensive, well-structured report with citations. This is best for complex questions that require in-depth analysis and a detailed answer, not just a simple search. 
+    
+    
 Important:
 - If a message with role tool and toolname "deepResearch" is found in the conversation history, and this tool has an output with format "clarifying_questions", you must call this tool again to continue the research process.
-
+- If research is successful, a report will be created by this tool and displayed to the user. No need to repeat it in your answer.
+    
 Use for:
 - Start a research or to continue a research process
 - Perform deep research (also autonomous research, deep search, or similar aliases)

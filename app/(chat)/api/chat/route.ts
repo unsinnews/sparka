@@ -2,8 +2,8 @@ import {
   convertToModelMessages,
   createUIMessageStream,
   JsonToSseTransformStream,
-  stepCountIs,
   streamText,
+  stepCountIs,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
 import { systemPrompt } from '@/lib/ai/prompts';
@@ -475,23 +475,20 @@ export async function POST(request: NextRequest) {
             messages: contextForLLM,
             stopWhen: [
               stepCountIs(5),
-              (options) => {
-                return options.steps.some((step) => {
-                  const toolResults = step.staticToolResults;
-                  if (toolResults.length === 0) {
-                    return false;
-                  }
-
+              ({ steps }) => {
+                return steps.some((step) => {
+                  const toolResults = step.content;
                   // Don't stop if the tool result is a clarifying question
                   return toolResults.some(
                     (toolResult) =>
                       toolResult.type === 'tool-result' &&
                       toolResult.toolName === 'deepResearch' &&
-                      toolResult.output.format === 'report',
+                      (toolResult.output as any).format === 'report',
                   );
                 });
               },
             ],
+
             activeTools: activeTools,
             experimental_transform: markdownJoinerTransform(),
             experimental_telemetry: {

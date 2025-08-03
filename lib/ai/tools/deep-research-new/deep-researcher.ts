@@ -70,7 +70,6 @@ function filterMessages(
 async function clarifyWithUser(
   state: ClarifyWithUserInput,
   config: DeepResearchConfig,
-  dataStream: StreamWriter,
 ): Promise<ClarificationResult> {
   if (!config.allow_clarification) {
     return { needsClarification: false };
@@ -782,7 +781,6 @@ export async function runDeepResearcher(
   const clarifyResult = await clarifyWithUser(
     { requestId: currentState.requestId, messages: currentState.messages },
     config,
-    dataStream,
   );
 
   if (clarifyResult.needsClarification) {

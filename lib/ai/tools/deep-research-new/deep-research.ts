@@ -57,14 +57,11 @@ Use for:
         max_structured_output_retries: 3,
       };
 
-      // TODO: create a better query from the messages and decide if user wants a report or not
-      const query = JSON.stringify(messages);
-
       try {
         const researchResult = await runDeepResearcher(
           {
             requestId: messageId,
-            messages: [{ role: 'user', content: query }],
+            messages: messages,
           },
           smallConfig,
           dataStream,

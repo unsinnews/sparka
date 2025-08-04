@@ -325,6 +325,43 @@ Format the report in clear markdown with proper structure and include source ref
 </Citation Rules>`;
 }
 
+export function statusUpdatePrompt({
+  actionType,
+  messagesContent,
+  contextInfo,
+}: {
+  actionType: string;
+  messagesContent: string;
+  contextInfo: string;
+}): string {
+  return `Generate a status update based on the specific action that just completed.
+
+Action type: ${actionType}
+Current state:
+${messagesContent}${contextInfo}
+
+Focus on the CURRENT ACTION, not the overall research topic. Create titles and messages that reflect what specifically just happened:
+
+TITLE REQUIREMENTS:
+- Use "-ing" conjugation consistently (e.g., "Finding 12 relevant sources", "Completing market analysis", "Identifying 3 key trends")
+- Be specific to the action type and vary the language
+- Include concrete details when available (numbers, specific findings, etc.)
+- Keep under 50 characters
+
+MESSAGE REQUIREMENTS:
+- Focus on what was just accomplished in this specific step
+- Include concrete details, findings, or next steps when relevant
+- Vary sentence structure and avoid repetitive phrases
+- Be specific rather than generic
+- Keep under 200 characters
+
+Examples by action type:
+- Web search: Title: "Finding 8 sources on AI ethics", Message: "Located research papers, industry reports, and expert opinions from MIT, Stanford, and leading tech companies."
+- Analysis: Title: "Identifying 3 key market trends", Message: "Cloud adoption accelerating 40% YoY, edge computing gaining traction, and regulatory changes impacting data storage."
+- Research task: Title: "Breaking down into 4 focus areas", Message: "Splitting analysis into market leaders, emerging players, regulatory landscape, and future projections."
+- Final report: Title: "Synthesizing findings", Message: "Combining insights from 15 sources into actionable investment recommendations with risk assessments."`;
+}
+
 export function summarizeWebpagePrompt({
   webpage_content,
   date,

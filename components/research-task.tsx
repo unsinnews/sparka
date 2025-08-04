@@ -3,19 +3,29 @@ import { Loader2, SearchIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { WebSourceBadge } from './source-badge';
+import { TextShimmerLoader } from '@/components/ui/loader';
 
 export const ResearchTask = ({
   update,
   minimal,
+  isRunning,
 }: {
   update: ResearchUpdate;
   minimal: boolean;
+  isRunning: boolean;
 }) => {
   return (
     <div className="group">
       {!minimal && (
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium">{update.title}</p>
+        <div className=" items-center gap-2">
+          {isRunning ? (
+            <TextShimmerLoader
+              text={update.title}
+              className="text-sm font-medium "
+            />
+          ) : (
+            <p className="text-sm font-medium">{update.title}</p>
+          )}
         </div>
       )}
       <motion.div
@@ -75,6 +85,13 @@ export const ResearchTask = ({
           )}
           {/* {Thoughts} */}
           {update.type === 'thoughts' && (
+            <div className="space-y-2">
+              <p className="text-sm text-foreground font-light">
+                {update.message}
+              </p>
+            </div>
+          )}
+          {update.type === 'writing' && update.message && (
             <div className="space-y-2">
               <p className="text-sm text-foreground font-light">
                 {update.message}

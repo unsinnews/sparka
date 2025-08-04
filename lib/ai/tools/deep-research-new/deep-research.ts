@@ -37,6 +37,7 @@ Use for:
         compression_model: 'openai/gpt-4o-mini',
         final_report_model: 'openai/gpt-4o',
         summarization_model: 'openai/gpt-4o-mini',
+        status_update_model: 'openai/gpt-4o-mini',
 
         // Limit iterations for faster demo
         max_researcher_iterations: 1,
@@ -54,6 +55,7 @@ Use for:
         compression_model_max_tokens: 4000,
         final_report_model_max_tokens: 6000,
         summarization_model_max_tokens: 4000,
+        status_update_model_max_tokens: 4000,
 
         // Other settings
         max_structured_output_retries: 3,

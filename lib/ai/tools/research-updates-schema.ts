@@ -43,12 +43,18 @@ const ThoughtsSchema = TaskUpdateSchema.extend({
   message: z.string(),
 });
 
+const WritingSchema = TaskUpdateSchema.extend({
+  type: z.literal('writing'),
+  message: z.string().optional(),
+});
+
 export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
 
 export const ResearchUpdateSchema = z.discriminatedUnion('type', [
   WebSearchSchema,
   ProgressSchema,
   ThoughtsSchema,
+  WritingSchema,
 ]);
 
 export type ResearchUpdate = z.infer<typeof ResearchUpdateSchema>;

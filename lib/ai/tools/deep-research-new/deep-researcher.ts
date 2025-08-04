@@ -2,6 +2,7 @@ import { generateObject, generateText, type ModelMessage } from 'ai';
 import { getLanguageModel } from '@/lib/ai/providers';
 import { truncateMessages } from '@/lib/ai/token-utils';
 import type { ModelId } from '@/lib/ai/model-id';
+import { z } from 'zod';
 import type { DeepResearchConfig } from './configuration';
 import {
   type AgentState,
@@ -32,6 +33,7 @@ import {
   compressResearchSimpleHumanMessage,
   finalReportGenerationPrompt,
   leadResearcherPrompt,
+  statusUpdatePrompt,
 } from './prompts';
 import {
   getTodayStr,
@@ -59,6 +61,44 @@ function messagesToString(messages: ModelMessage[]): string {
   return messages
     .map((m) => `${m.role}: ${JSON.stringify(m.content)}`)
     .join('\n');
+}
+
+async function generateStatusUpdate(
+  actionType: string,
+  messages: ModelMessage[],
+  config: DeepResearchConfig,
+  context?: string,
+): Promise<{ title: string; message: string }> {
+  const model = getLanguageModel(config.research_model as ModelId);
+
+  const messagesContent = messagesToString(messages);
+  const contextInfo = context ? `\n\nAdditional context: ${context}` : '';
+
+  const prompt = statusUpdatePrompt({
+    actionType,
+    messagesContent,
+    contextInfo,
+  });
+
+  const result = await generateObject({
+    model,
+    schema: z.object({
+      title: z
+        .string()
+        .describe(
+          'A specific, action-focused title reflecting what just completed (max 50 characters). Avoid generic "I\'m researching" phrases.',
+        ),
+      message: z
+        .string()
+        .describe(
+          'A concrete description of what was accomplished in this step, including specific details, numbers, or findings when available (max 200 characters)',
+        ),
+    }),
+    messages: [{ role: 'user', content: prompt }],
+    maxOutputTokens: 200,
+  });
+
+  return result.object;
 }
 
 // Helper function to filter messages by type
@@ -136,8 +176,7 @@ async function writeResearchBrief(
     type: 'data-researchUpdate',
     data: {
       title: 'Writing research brief',
-      message: 'Writing research brief...',
-      type: 'thoughts',
+      type: 'writing',
       status: 'running',
     },
   });
@@ -182,7 +221,7 @@ async function writeResearchBrief(
     data: {
       title: 'Writing research brief',
       message: result.object.research_brief,
-      type: 'thoughts',
+      type: 'writing',
       status: 'completed',
     },
   });
@@ -263,12 +302,19 @@ class ResearcherAgent extends Agent {
       },
     });
 
+    const completedUpdate = await generateStatusUpdate(
+      'research_completion',
+      [...researcherMessages, ...result.response.messages],
+      this.config,
+      `Research phase completed with ${result.response.messages.length} new messages`,
+    );
+
     this.dataStream.write({
       type: 'data-researchUpdate',
       data: {
-        title: 'Research completed',
+        title: completedUpdate.title,
         type: 'thoughts',
-        message: 'Research phase completed',
+        message: completedUpdate.message,
         status: 'completed',
       },
     });
@@ -294,18 +340,6 @@ class ResearcherAgent extends Agent {
     researcherMessages.push({
       role: 'user' as const,
       content: compressResearchSimpleHumanMessage,
-    });
-
-    const compressUpdateId = generateUUID();
-    this.dataStream.write({
-      id: compressUpdateId,
-      type: 'data-researchUpdate',
-      data: {
-        title: 'Summarizing research',
-        type: 'thoughts',
-        message: 'Summarizing research...',
-        status: 'running',
-      },
     });
 
     // Get model token limit and reserve space for output tokens
@@ -334,13 +368,19 @@ class ResearcherAgent extends Agent {
       maxRetries: 3,
     });
 
+    const completedUpdate = await generateStatusUpdate(
+      'research_compression',
+      truncatedMessages,
+      this.config,
+      `Compressed ${researcherMessages.length} messages into summary`,
+    );
+
     this.dataStream.write({
-      id: compressUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Summarizing research',
+        title: completedUpdate.title,
         type: 'thoughts',
-        message: 'Research summarized',
+        message: completedUpdate.message,
         status: 'completed',
       },
     });
@@ -392,19 +432,6 @@ class SupervisorAgent extends Agent {
 
     const model = getLanguageModel(this.config.research_model as ModelId);
 
-    const supervisorUpdateId = generateUUID();
-    this.dataStream.write({
-      id: supervisorUpdateId,
-      type: 'data-researchUpdate',
-      data: {
-        title: 'Evaluating research needs',
-        message:
-          'Coordinating investigation efforts and ensuring comprehensive topic coverage',
-        type: 'thoughts',
-        status: 'running',
-      },
-    });
-
     // Get model token limit and reserve space for output tokens
     const supervisorModelContextWindow = getModelContextWindow(
       this.config.research_model as ModelId,
@@ -440,14 +467,19 @@ class SupervisorAgent extends Agent {
     const supervisorMessageText =
       lastAssistantMessage &&
       getTextContentFromModelMessage(lastAssistantMessage);
+
+    const completedUpdate = await generateStatusUpdate(
+      'supervisor_evaluation',
+      truncatedSupervisorMessages,
+      this.config,
+      supervisorMessageText || 'Coordinated investigation efforts',
+    );
+
     this.dataStream.write({
-      id: supervisorUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Evaluating research needs',
-        message:
-          supervisorMessageText ||
-          'Coordinating investigation efforts and ensuring comprehensive topic coverage',
+        title: completedUpdate.title,
+        message: completedUpdate.message,
         type: 'thoughts',
         status: 'completed',
       },
@@ -456,7 +488,7 @@ class SupervisorAgent extends Agent {
     const responseMessages = result.response.messages;
     if (result.finishReason !== 'tool-calls') {
       console.dir(result, { depth: null });
-      throw new Error(`Expected tool calls, but got: ${result.finishReason}`);
+      throw new Error(`Expected tool calls, but got: $result.finishReason`);
     }
     return {
       supervisor_messages: [
@@ -532,7 +564,6 @@ class SupervisorAgent extends Agent {
       tool_calls_count: state.tool_calls?.length || 0,
       tool_names: state.tool_calls?.map((tc) => tc.toolName) || [],
     });
-    const supervisorUpdateId = generateUUID();
 
     const supervisorMessages = state.supervisor_messages || [];
     const researchIterations = state.research_iterations || 0;
@@ -576,15 +607,18 @@ class SupervisorAgent extends Agent {
       max_search_queries: this.config.search_api_max_queries,
     });
 
+    const completedUpdate = await generateStatusUpdate(
+      'continuing_research_tasks',
+      supervisorMessages,
+      this.config,
+      `Need research the research about the topics [${conductResearchCalls.map((c) => c.input.research_topic).join('], [')}]`,
+    );
+
     this.dataStream.write({
-      id: supervisorUpdateId,
       type: 'data-researchUpdate',
       data: {
-        title: 'Assigning research tasks',
-        message:
-          conductResearchCalls.length === 1
-            ? 'Assigning 1 research task to a researcher.'
-            : `Assigning ${conductResearchCalls.length} research tasks to researchers.`,
+        title: completedUpdate.title,
+        message: completedUpdate.message,
         type: 'thoughts',
         status: 'completed',
       },
@@ -683,9 +717,8 @@ async function finalReportGeneration(
     id: finalReportUpdateId,
     type: 'data-researchUpdate',
     data: {
-      title: 'Generating final report',
-      type: 'thoughts',
-      message: 'Generating final report...',
+      title: 'Writing final report',
+      type: 'writing',
       status: 'running',
     },
   });
@@ -734,9 +767,8 @@ async function finalReportGeneration(
     id: finalReportUpdateId,
     type: 'data-researchUpdate',
     data: {
-      title: 'Generating final report',
-      type: 'thoughts',
-      message: 'Final report generated successfully',
+      title: 'Writing final report',
+      type: 'writing',
       status: 'completed',
     },
   });
@@ -785,7 +817,7 @@ export async function runDeepResearcher(
   dataStream.write({
     type: 'data-researchUpdate',
     data: {
-      title: 'Research started',
+      title: 'Starting research',
       type: 'progress',
       timestamp: Date.now(),
       status: 'started',

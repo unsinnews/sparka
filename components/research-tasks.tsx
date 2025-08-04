@@ -1,7 +1,7 @@
 import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import React, { type ReactNode } from 'react';
 import { ResearchTask } from './research-task';
-import { FileText, Sparkles, Loader2 } from 'lucide-react';
+import { FileText, Sparkles, Dot, Pencil } from 'lucide-react';
 
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -16,7 +16,14 @@ export const ResearchTasks = ({ updates }: { updates: ResearchUpdate[] }) => {
             update={update}
             isLast={index === updates.length - 1}
           >
-            <ResearchTask update={update} minimal={false} />
+            <ResearchTask
+              update={update}
+              minimal={false}
+              isRunning={
+                index === updates.length - 1 &&
+                !(update.type === 'progress' && update.status === 'completed')
+              }
+            />
           </StepWrapper>
         );
       })}
@@ -62,8 +69,9 @@ export const StepWrapper = ({ update, children, isLast }: StepWrapperProps) => {
 
 const icons: Record<ResearchUpdate['type'], React.ElementType> = {
   web: FileText,
-  progress: Loader2,
+  progress: Dot,
   thoughts: Sparkles,
+  writing: Pencil,
 } as const;
 
 export const StepTypeIcon = ({ update }: { update: ResearchUpdate }) => {

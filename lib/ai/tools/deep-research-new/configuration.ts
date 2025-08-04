@@ -34,6 +34,8 @@ export const DeepResearchConfigSchema = z.object({
   compression_model_max_tokens: z.number().int().default(8192),
   final_report_model: z.string().default('openai/gpt-4o'),
   final_report_model_max_tokens: z.number().int().default(10000),
+  status_update_model: z.string().default('openai/gpt-4o-mini'),
+  status_update_model_max_tokens: z.number().int().default(10000),
 
   // MCP server configuration
   mcp_config: MCPConfigSchema.optional(),

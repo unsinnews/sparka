@@ -3,7 +3,7 @@ import { Loader2, SearchIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { WebSourceBadge } from './source-badge';
-import { TextShimmerLoader } from '@/components/ui/loader';
+import { UpdateTitle } from '@/components/update-title';
 
 export const ResearchTask = ({
   update,
@@ -18,14 +18,7 @@ export const ResearchTask = ({
     <div className="group">
       {!minimal && (
         <div className="flex items-center gap-2">
-          {isRunning ? (
-            <TextShimmerLoader
-              text={update.title}
-              className="text-sm font-medium "
-            />
-          ) : (
-            <p className="text-sm font-medium">{update.title}</p>
-          )}
+          <UpdateTitle title={update.title} isRunning={isRunning} />
         </div>
       )}
       <motion.div

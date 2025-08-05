@@ -6,6 +6,7 @@ import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 
 import { ResearchTasks } from './research-tasks';
 import { ResearchTask } from './research-task';
+import { UpdateTitle } from '@/components/update-title';
 
 // Add the updateName mapping (consider moving to a shared util later)
 const updateName = {
@@ -83,11 +84,10 @@ export const ResearchProgress = ({
       >
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <div className="flex flex-col sm:flex-row  sm:items-center gap-2">
-            <h3 className="text-sm font-medium">
-              {lastUpdate && lastUpdateTitle}
-            </h3>
-            {isComplete && (
+            {isComplete ? (
               <span className="text-xs text-muted-foreground">{`Researched for ${timeSpent} seconds, ${searchCount} searches, ${sourceCount} sources`}</span>
+            ) : (
+              <UpdateTitle title={lastUpdateTitle} isRunning={!isComplete} />
             )}
           </div>
         </div>

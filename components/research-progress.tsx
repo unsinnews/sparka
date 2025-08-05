@@ -10,8 +10,10 @@ import { ResearchTask } from './research-task';
 // Add the updateName mapping (consider moving to a shared util later)
 const updateName = {
   web: 'Web Search',
-  progress: 'Progress',
+  started: 'Started',
+  completed: 'Completed',
   thoughts: 'Thoughts',
+  writing: 'Writing',
 } as const;
 
 export const ResearchProgress = ({
@@ -46,9 +48,11 @@ export const ResearchProgress = ({
 
   const timeSpent = React.useMemo(() => {
     if (isComplete) {
-      const progressUpdates = updates.filter((u) => u.type === 'progress');
+      const progressUpdates = updates.filter(
+        (u) => u.type === 'started' || u.type === 'completed',
+      );
       const completedUpdate = progressUpdates.find(
-        (u) => u.status === 'completed',
+        (u) => u.type === 'completed',
       );
 
       return completedUpdate?.timestamp
@@ -110,7 +114,8 @@ export const ResearchProgress = ({
         lastUpdate &&
         !isComplete && (
           <div className="px-4 pt-1 pb-3">
-            <ResearchTask update={lastUpdate} minimal={true} />
+            {/* We only show the running step in this component */}
+            <ResearchTask update={lastUpdate} minimal={true} isRunning={true} />
           </div>
         )
       )}

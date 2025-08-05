@@ -28,15 +28,18 @@ export type WebSearchUpdate = z.infer<typeof WebSearchSchema>;
 
 export type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
 
-const ProgressSchema = BaseStreamUpdateSchema.extend({
-  type: z.literal('progress'),
-  status: z.union([z.literal('completed'), z.literal('started')]),
+const StartedSchema = BaseStreamUpdateSchema.extend({
+  type: z.literal('started'),
   timestamp: z.number(),
-  completedSteps: z.number().optional(),
-  totalSteps: z.number().optional(),
 });
 
-export type ProgressUpdate = z.infer<typeof ProgressSchema>;
+const CompletedSchema = BaseStreamUpdateSchema.extend({
+  type: z.literal('completed'),
+  timestamp: z.number(),
+});
+
+export type StartedUpdate = z.infer<typeof StartedSchema>;
+export type CompletedUpdate = z.infer<typeof CompletedSchema>;
 
 const ThoughtsSchema = TaskUpdateSchema.extend({
   type: z.literal('thoughts'),
@@ -52,7 +55,8 @@ export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
 
 export const ResearchUpdateSchema = z.discriminatedUnion('type', [
   WebSearchSchema,
-  ProgressSchema,
+  StartedSchema,
+  CompletedSchema,
   ThoughtsSchema,
   WritingSchema,
 ]);

@@ -13,9 +13,7 @@ export const ReasonSearchResearchProgress = ({
   const totalExpectedSteps = 0;
 
   const isComplete = useMemo(() => {
-    const progressUpdate = updates.find(
-      (u) => u.type === 'progress' && u.status === 'completed',
-    );
+    const progressUpdate = updates.find((u) => u.type === 'completed');
     return Boolean(progressUpdate);
   }, [updates]);
 

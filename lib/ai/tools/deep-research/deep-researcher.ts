@@ -818,9 +818,8 @@ export async function runDeepResearcher(
     type: 'data-researchUpdate',
     data: {
       title: 'Starting research',
-      type: 'progress',
+      type: 'started',
       timestamp: Date.now(),
-      status: 'started',
     },
   });
 
@@ -877,9 +876,8 @@ export async function runDeepResearcher(
     type: 'data-researchUpdate',
     data: {
       title: 'Research complete',
-      type: 'progress',
+      type: 'completed',
       timestamp: Date.now(),
-      status: 'completed',
     },
   });
 

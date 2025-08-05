@@ -47,8 +47,7 @@ async function executeMultiQuerySearch({
       data: {
         title,
         timestamp: Date.now(),
-        type: 'progress',
-        status: 'started',
+        type: 'started',
       },
     });
   }
@@ -69,10 +68,7 @@ async function executeMultiQuerySearch({
       data: {
         title: completeTitle,
         timestamp: Date.now(),
-        type: 'progress',
-        status: 'completed',
-        completedSteps,
-        totalSteps,
+        type: 'completed',
       },
     });
   }

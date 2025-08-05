@@ -14,9 +14,7 @@ export const SourcesAnnotations = ({
 
   if (researchUpdates.length === 0) return null;
 
-  const researchCompleted = researchUpdates.find(
-    (u) => u.type === 'progress' && u.status === 'completed',
-  );
+  const researchCompleted = researchUpdates.find((u) => u.type === 'completed');
 
   if (!researchCompleted) return null;
 

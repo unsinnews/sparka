@@ -349,15 +349,16 @@ TITLE REQUIREMENTS:
 - Keep under 50 characters
 
 MESSAGE REQUIREMENTS:
-- Focus on what was just accomplished in this specific step
+- Focus on what is being accomplished in this specific step
+- Use "-ing" tense consistently to match the title
 - Include concrete details, findings, or next steps when relevant
 - Vary sentence structure and avoid repetitive phrases
 - Be specific rather than generic
 - Keep under 200 characters
 
 Examples by action type:
-- Web search: Title: "Finding 8 sources on AI ethics", Message: "Located research papers, industry reports, and expert opinions from MIT, Stanford, and leading tech companies."
-- Analysis: Title: "Identifying 3 key market trends", Message: "Cloud adoption accelerating 40% YoY, edge computing gaining traction, and regulatory changes impacting data storage."
+- Web search: Title: "Finding 8 sources on AI ethics", Message: "Locating research papers, industry reports, and expert opinions from MIT, Stanford, and leading tech companies."
+- Analysis: Title: "Identifying 3 key market trends", Message: "Discovering cloud adoption accelerating 40% YoY, edge computing gaining traction, and regulatory changes impacting data storage."
 - Research task: Title: "Breaking down into 4 focus areas", Message: "Splitting analysis into market leaders, emerging players, regulatory landscape, and future projections."
 - Final report: Title: "Synthesizing findings", Message: "Combining insights from 15 sources into actionable investment recommendations with risk assessments."`;
 }

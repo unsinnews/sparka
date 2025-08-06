@@ -3,15 +3,15 @@ import { tool } from 'ai';
 import { z } from 'zod';
 import type { Session } from 'next-auth';
 import {
-  artifactKinds,
   documentHandlersByArtifactKind,
   type DocumentHandler,
 } from '@/lib/artifacts/server';
+import { artifactKinds } from '@/lib/artifacts/artifact-kind';
 import type { ModelMessage } from 'ai';
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
-import type { ArtifactKind } from '@/components/artifact';
-import type { ArtifactToolResult } from './ArtifactToolResult';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
+import type { ArtifactToolResult } from './artifact-tool-result';
 
 interface CreateDocumentProps {
   session: Session;

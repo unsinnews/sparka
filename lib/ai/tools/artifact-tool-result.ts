@@ -1,4 +1,4 @@
-import type { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 
 export interface ArtifactToolResult {
   id: string;

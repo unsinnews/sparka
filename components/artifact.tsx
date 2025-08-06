@@ -23,9 +23,9 @@ import { useDocuments, useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import { useTRPC } from '@/trpc/react';
 import { chatStore } from '@/lib/stores/chat-store';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 
 export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
-export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
 
 export interface UIArtifact {
   title: string;

@@ -13,7 +13,7 @@ import {
   vote,
   type DBMessage,
 } from './schema';
-import type { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '../artifacts/artifact-kind';
 import type { Attachment } from '@/lib/ai/types';
 import { db } from './client';
 

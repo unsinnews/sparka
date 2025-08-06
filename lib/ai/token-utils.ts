@@ -136,10 +136,11 @@ export function truncateMessages(
     ) {
       // Handle tool messages with array content
       const content = [...lastMessage.content];
-      let remainingTokens = availableTokens;
+      const currentMessageTokens = calculateMessagesTokens([lastMessage]);
+      let tokensToRemove = currentMessageTokens - availableTokens;
 
       // Truncate from the end of the content array
-      for (let i = content.length - 1; i >= 0 && remainingTokens > 0; i--) {
+      for (let i = content.length - 1; i >= 0 && tokensToRemove > 0; i--) {
         const part = content[i];
         if (
           part.type === 'tool-result' &&
@@ -149,18 +150,21 @@ export function truncateMessages(
           typeof part.output.value === 'string'
         ) {
           const partTokens = encoder.encode(part.output.value).length;
-          if (partTokens > remainingTokens) {
+          if (partTokens > 0) {
             // Truncate this part's output value
+            const targetTokens = Math.max(0, partTokens - tokensToRemove);
             content[i] = {
               ...part,
               output: {
                 type: 'text' as const,
-                value: trimPrompt(part.output.value, remainingTokens),
+                value: trimPrompt(part.output.value, targetTokens),
               },
             };
-            remainingTokens = 0;
+            tokensToRemove -= partTokens - targetTokens;
           } else {
-            remainingTokens -= partTokens;
+            // Remove entire part if needed
+            content.splice(i, 1);
+            tokensToRemove -= partTokens;
           }
         }
       }

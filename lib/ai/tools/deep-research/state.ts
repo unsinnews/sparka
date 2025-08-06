@@ -6,7 +6,7 @@ import {
   type ToolModelMessage,
 } from 'ai';
 import { z } from 'zod';
-import type { ArtifactToolResult } from '../ArtifactToolResult';
+import type { ArtifactToolResult } from '../artifact-tool-result';
 
 //##################
 // Structured Outputs (Zod Schemas)

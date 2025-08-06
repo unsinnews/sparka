@@ -1,12 +1,12 @@
 import { codeDocumentHandler } from '@/artifacts/code/server';
 import { sheetDocumentHandler } from '@/artifacts/sheet/server';
 import { textDocumentHandler } from '@/artifacts/text/server';
-import type { ArtifactKind } from '@/components/artifact';
 import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';
 import type { Session } from 'next-auth';
 import type { ModelId } from '../ai/model-id';
 import type { StreamWriter } from '../ai/types';
+import type { ArtifactKind } from './artifact-kind';
 
 export interface SaveDocumentProps {
   id: string;
@@ -92,5 +92,3 @@ export const documentHandlersByArtifactKind: Array<DocumentHandler> = [
   codeDocumentHandler,
   sheetDocumentHandler,
 ];
-
-export const artifactKinds = ['text', 'code', 'sheet'] as const;

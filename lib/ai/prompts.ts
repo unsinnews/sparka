@@ -1,4 +1,4 @@
-import type { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '../artifacts/artifact-kind';
 
 export const regularPrompt = `You are a friendly assistant!
 

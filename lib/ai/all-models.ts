@@ -33,7 +33,7 @@ export const allModels = modelsData
       disabled,
     };
   })
-  .filter((model) => !model.disabled);
+  .filter((model) => !model.disabled && model.type === 'language');
 
 const allImageModels = imageModelsData.map((model) => {
   const features = imageModelsFeatures[model.id];

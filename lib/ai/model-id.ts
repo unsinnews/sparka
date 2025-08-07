@@ -26,7 +26,10 @@ type GatewayEmbeddingLiteralModelId = GatewayEmbeddingModelId extends infer T
 export type ModelId =
   | GatewayLiteralModelId
   | GatewayEmbeddingLiteralModelId
-  | 'anthropic/claude-4.1-opus';
+  | 'anthropic/claude-4.1-opus'
+  | 'openai/gpt-5-mini'
+  | 'openai/gpt-5-nano'
+  | 'openai/gpt-5';
 
 type OpenAIimageModelId = Parameters<OpenAIProvider['imageModel']>[0];
 

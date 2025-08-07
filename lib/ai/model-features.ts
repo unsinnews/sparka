@@ -320,6 +320,51 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
     },
   },
 
+  'openai/gpt-5': {
+    reasoning: true,
+    functionCalling: true,
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'openai/gpt-5-mini': {
+    reasoning: true,
+    functionCalling: true,
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'openai/gpt-5-nano': {
+    reasoning: false,
+    functionCalling: true,
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
   'openai/gpt-4-turbo': {
     reasoning: false,
     functionCalling: true,

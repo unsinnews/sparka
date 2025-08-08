@@ -1,39 +1,39 @@
 import type { ModelMessage, FileUIPart } from 'ai';
-import { createDocument } from '@/lib/ai/tools/create-document';
+import { createDocumentTool } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { retrieve } from '@/lib/ai/tools/retrieve';
-import { webSearch } from '@/lib/ai/tools/web-search';
+import { tavilyWebSearch } from '@/lib/ai/tools/web-search';
 import { stockChart } from '@/lib/ai/tools/stock-chart';
 import { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { Session } from 'next-auth';
-import { deepResearch } from '@/lib/ai/tools/deep-research/tool';
 import { readDocument } from '@/lib/ai/tools/read-document';
 import { generateImage } from '@/lib/ai/tools/generate-image';
 import type { ModelId } from '@/lib/ai/model-id';
 import type { StreamWriter } from '../types';
+import { deepResearch } from './deep-research/deep-research';
 
 export function getTools({
   dataStream,
   session,
-  contextForLLM,
   messageId,
   selectedModel,
   attachments = [],
   lastGeneratedImage = null,
+  contextForLLM,
 }: {
   dataStream: StreamWriter;
   session: Session;
-  contextForLLM?: ModelMessage[];
   messageId: string;
   selectedModel: ModelId;
   attachments: Array<FileUIPart>;
   lastGeneratedImage: { imageUrl: string; name: string } | null;
+  contextForLLM: ModelMessage[];
 }) {
   return {
     getWeather,
-    createDocument: createDocument({
+    createDocument: createDocumentTool({
       session,
       dataStream,
       contextForLLM,
@@ -59,10 +59,15 @@ export function getTools({
     //   dataStream,
     // }),
     retrieve,
-    webSearch: webSearch({ session, dataStream }),
+    webSearch: tavilyWebSearch({ dataStream, writeTopLevelUpdates: true }),
     stockChart,
     codeInterpreter,
     generateImage: generateImage({ attachments, lastGeneratedImage }),
-    deepResearch: deepResearch({ session, dataStream, messageId }),
+    deepResearch: deepResearch({
+      session,
+      dataStream,
+      messageId,
+      messages: contextForLLM,
+    }),
   };
 }

@@ -1,8 +1,80 @@
 import { z } from 'zod';
 import { tool } from 'ai';
-import type { Session } from 'next-auth';
-import { webSearchStep } from './steps/web-search';
+import {
+  multiQueryWebSearchStep,
+  type MultiQuerySearchOptions,
+} from './steps/multi-query-web-search';
 import type { StreamWriter } from '../types';
+
+const DEFAULT_MAX_RESULTS = 5;
+
+// Common search query schema
+const searchQueriesSchema = z
+  .array(
+    z.object({
+      query: z.string(),
+      maxResults: z
+        .number()
+        .min(1)
+        .max(10)
+        .nullable()
+        .describe(
+          `Maximum number of results for this query. Defaults to ${DEFAULT_MAX_RESULTS}.`,
+        ),
+    }),
+  )
+  .max(12);
+
+// Common search execution logic
+async function executeMultiQuerySearch({
+  search_queries,
+  options,
+  dataStream,
+  writeTopLevelUpdates,
+  title,
+  completeTitle,
+}: {
+  search_queries: Array<{ query: string; maxResults: number }>;
+  options: MultiQuerySearchOptions;
+  dataStream: StreamWriter;
+  writeTopLevelUpdates: boolean;
+  title: string;
+  completeTitle: string;
+}) {
+  if (writeTopLevelUpdates) {
+    dataStream.write({
+      type: 'data-researchUpdate',
+      data: {
+        title,
+        timestamp: Date.now(),
+        type: 'started',
+      },
+    });
+  }
+
+  let completedSteps = 0;
+  const totalSteps = 1;
+
+  const { searches: searchResults } = await multiQueryWebSearchStep({
+    queries: search_queries,
+    options,
+    dataStream,
+  });
+
+  completedSteps++;
+  if (writeTopLevelUpdates) {
+    dataStream.write({
+      type: 'data-researchUpdate',
+      data: {
+        title: completeTitle,
+        timestamp: Date.now(),
+        type: 'completed',
+      },
+    });
+  }
+
+  return { searches: searchResults };
+}
 
 export const QueryCompletionSchema = z.object({
   type: z.literal('query_completion'),
@@ -16,98 +88,23 @@ export const QueryCompletionSchema = z.object({
   }),
 });
 
-const extractDomain = (url: string): string => {
-  const urlPattern = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i;
-  return url.match(urlPattern)?.[1] || url;
-};
-
-const deduplicateByDomainAndUrl = <T extends { url: string }>(
-  items: T[],
-): T[] => {
-  const seenDomains = new Set<string>();
-  const seenUrls = new Set<string>();
-
-  return items.filter((item) => {
-    const domain = extractDomain(item.url);
-    const isNewUrl = !seenUrls.has(item.url);
-    const isNewDomain = !seenDomains.has(domain);
-
-    if (isNewUrl && isNewDomain) {
-      seenUrls.add(item.url);
-      seenDomains.add(domain);
-      return true;
-    }
-    return false;
-  });
-};
-
-function sanitizeUrl(url: string): string {
-  return url.replace(/\s+/g, '%20');
-}
-
-async function isValidImageUrl(url: string): Promise<boolean> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-
-    const response = await fetch(url, {
-      method: 'HEAD',
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeout);
-
-    return (
-      response.ok &&
-      (response.headers.get('content-type')?.startsWith('image/') ?? false)
-    );
-  } catch {
-    return false;
-  }
-}
-
-export const webSearch = ({
-  session,
+export const tavilyWebSearch = ({
   dataStream,
+  writeTopLevelUpdates,
 }: {
-  session: Session;
   dataStream: StreamWriter;
+  writeTopLevelUpdates: boolean;
 }) =>
   tool({
     description: `Multi-query web search (supports depth, topic & result limits). Always cite sources inline.
 
-Usage:
+Use for:
 - General information gathering via web search
-
-Citation rules:
-- Insert citation right after the relevant sentence/paragraph — not in a footer
-- Format exactly: [Source Title](URL)
-- Cite only the most relevant hits and avoid fluff
 
 Avoid:
 - Pulling content from a single known URL (use retrieve instead)`,
     inputSchema: z.object({
-      search_queries: z
-        .array(
-          z.object({
-            query: z.string(),
-            rationale: z.string().describe('The rationale for the query.'),
-            // source: z.enum(['web', 'academic', 'x', 'all']),
-            priority: z
-              .number()
-              .min(1)
-              .max(5)
-              .describe('The priority of the query. Use from 2 to 4.'),
-          }),
-        )
-        .max(12),
-      thinking: z
-        .object({
-          header: z.string().describe('Search plan title.'),
-          body: z.string().describe('Explanation of the search plan.'),
-        })
-        .describe('The thinking process of the search plan.'),
-
+      search_queries: searchQueriesSchema,
       topics: z
         .array(z.enum(['general', 'news']))
         .describe('Array of topic types to search for.')
@@ -126,112 +123,79 @@ Avoid:
       topics,
       searchDepth,
       exclude_domains,
-      thinking,
     }: {
-      search_queries: { query: string; rationale: string; priority: number }[];
+      search_queries: { query: string; maxResults: number | null }[];
       topics: ('general' | 'news')[] | null;
       searchDepth: 'basic' | 'advanced' | null;
       exclude_domains: string[] | null;
-      thinking: { header: string; body: string };
     }) => {
       // Handle nullable arrays with defaults
       const safeTopics = topics ?? ['general'];
       const safeSearchDepth = searchDepth ?? 'basic';
       const safeExcludeDomains = exclude_domains ?? [];
 
-      dataStream.write({
-        type: 'data-researchUpdate',
-        data: {
-          id: 'research-plan-initial',
-          type: 'progress',
-          status: 'started',
-          title: 'Starting Research',
-          message: 'Starting research...',
-          timestamp: Date.now(),
-        },
-      });
-
-      console.log('Queries:', search_queries);
-      console.log('Topics:', safeTopics);
-      console.log('Search Depth:', safeSearchDepth);
-      console.log('Exclude Domains:', safeExcludeDomains);
-      console.log('Search Queries:', search_queries);
-
-      let completedSteps = 0;
-      const totalSteps = 1; // TODO: Web search is very simple for now
-      // Complete plan status
-      dataStream.write({
-        type: 'data-researchUpdate',
-        data: {
-          id: 'research-plan',
-          type: 'thoughts',
-          status: 'completed',
-          title: 'Web search plan',
-          message: 'Search plan created',
-          timestamp: Date.now(),
-          overwrite: true,
-          thoughtItems: [
-            {
-              header: thinking.header,
-              body: thinking.body,
-            },
-          ],
-        },
-      });
-
-      // Execute searches in parallel
-      const searchPromises = search_queries.map(async (query, index) => {
-        const data = await webSearchStep({
-          // TODO: Make compatible with other providers
+      return executeMultiQuerySearch({
+        search_queries: search_queries.map((query) => ({
           query: query.query,
-          providerOptions: {
+          maxResults: query.maxResults ?? DEFAULT_MAX_RESULTS,
+        })),
+        options: {
+          baseProviderOptions: {
             provider: 'tavily',
-            topic: safeTopics[index] || safeTopics[0] || 'general',
-            days: safeTopics[index] === 'news' ? 7 : undefined,
-            maxResults: Math.min(6 - query.priority, 10),
             searchDepth: safeSearchDepth,
             includeAnswer: true,
             includeImages: false,
             includeImageDescriptions: false,
-            excludeDomains: safeExcludeDomains,
           },
-          dataStream,
-          stepId: `web-search-${index}`,
-        });
-
-        return {
-          query,
-          results: deduplicateByDomainAndUrl(data.results).map((obj: any) => ({
-            url: obj.url,
-            title: obj.title,
-            content: obj.content,
-            raw_content: obj.raw_content,
-            published_date:
-              safeTopics[index] === 'news' ? obj.published_date : undefined,
-          })),
-        };
-      });
-      completedSteps++;
-
-      const searchResults = await Promise.all(searchPromises);
-
-      // Final progress update
-      dataStream.write({
-        type: 'data-researchUpdate',
-        data: {
-          id: 'research-progress',
-          type: 'progress',
-          status: 'completed',
-          title: 'Done',
-          message: `Research complete`,
-          completedSteps,
-          totalSteps,
-          overwrite: true,
-          timestamp: Date.now(),
+          topics: safeTopics,
+          excludeDomains: safeExcludeDomains,
         },
+        dataStream,
+        writeTopLevelUpdates,
+        title: 'Searching',
+        completeTitle: 'Search complete',
       });
-      return {
-        searches: searchResults,
-      };
+    },
+  });
+
+export const firecrawlWebSearch = ({
+  dataStream,
+  writeTopLevelUpdates,
+}: {
+  dataStream: StreamWriter;
+  writeTopLevelUpdates: boolean;
+}) =>
+  tool({
+    description: `Multi-query web search using Firecrawl for enhanced content extraction. Always cite sources inline.
+
+Use for:
+- General information gathering via web search with detailed content extraction
+- When you need high-quality markdown content from web pages
+
+Avoid:
+- Pulling content from a single known URL (use retrieve instead)`,
+    inputSchema: z.object({
+      search_queries: searchQueriesSchema,
+    }),
+    execute: async ({
+      search_queries,
+    }: {
+      search_queries: { query: string; maxResults: number | null }[];
+    }) => {
+      return executeMultiQuerySearch({
+        search_queries: search_queries.map((query) => ({
+          query: query.query,
+          maxResults: query.maxResults ?? DEFAULT_MAX_RESULTS,
+        })),
+        options: {
+          baseProviderOptions: {
+            provider: 'firecrawl',
+          },
+        },
+        dataStream,
+        writeTopLevelUpdates,
+        title: 'Searching with Firecrawl',
+        completeTitle: 'Firecrawl search complete',
+      });
     },
   });

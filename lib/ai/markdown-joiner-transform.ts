@@ -87,7 +87,7 @@ export const markdownJoinerTransform =
 
     return new TransformStream<TextStreamPart<TOOLS>, TextStreamPart<TOOLS>>({
       transform(chunk, controller) {
-        if (chunk.type === 'text') {
+        if (chunk.type === 'text-delta') {
           const processedText = joiner.processText(chunk.text);
           if (processedText) {
             controller.enqueue({
@@ -103,7 +103,7 @@ export const markdownJoinerTransform =
         const remaining = joiner.flush();
         if (remaining) {
           controller.enqueue({
-            type: 'text',
+            type: 'text-delta',
             text: remaining,
           } as TextStreamPart<TOOLS>);
         }

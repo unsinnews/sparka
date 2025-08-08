@@ -11,7 +11,7 @@ import {
   saveDocument,
   getSuggestionsByDocumentId,
 } from '@/lib/db/queries';
-import type { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 import { TRPCError } from '@trpc/server';
 
 export const documentRouter = createTRPCRouter({

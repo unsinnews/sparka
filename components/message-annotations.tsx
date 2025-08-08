@@ -1,4 +1,4 @@
-import { ReasonSearchResearchProgress } from './reason-search-research-progress';
+import { ReasonSearchResearchProgress } from './deep-research-progress';
 import type { WebSearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { Sources } from './sources';
 import type { ChatMessage } from '@/lib/ai/types';
@@ -14,9 +14,7 @@ export const SourcesAnnotations = ({
 
   if (researchUpdates.length === 0) return null;
 
-  const researchCompleted = researchUpdates.find(
-    (u) => u.type === 'progress' && u.status === 'completed',
-  );
+  const researchCompleted = researchUpdates.find((u) => u.type === 'completed');
 
   if (!researchCompleted) return null;
 

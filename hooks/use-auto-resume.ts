@@ -6,8 +6,6 @@ import type { ChatMessage } from '@/lib/ai/types';
 import { useDataStream } from '@/components/data-stream-provider';
 import { useSetMessages } from '@/lib/stores/chat-store';
 
-export type DataPart = { type: 'append-message'; message: string };
-
 export interface UseAutoResumeProps {
   autoResume: boolean;
   initialMessages: ChatMessage[];

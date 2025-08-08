@@ -8,7 +8,8 @@ import {
   useMemo,
   useRef,
 } from 'react';
-import type { ArtifactKind, UIArtifact } from './artifact';
+import type { UIArtifact } from './artifact';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 import { FileIcon, FullscreenIcon, LoaderIcon, PencilEditIcon } from './icons';
 import { cn } from '@/lib/utils';
 import type { Document } from '@/lib/db/schema';
@@ -20,7 +21,6 @@ import { useArtifact } from '@/hooks/use-artifact';
 import equal from 'fast-deep-equal';
 import { SpreadsheetEditor } from './sheet-editor';
 import { ImageEditor } from './image-editor';
-import { useTRPC } from '@/trpc/react';
 import { useDocuments } from '@/hooks/chat-sync-hooks';
 
 interface DocumentPreviewProps {
@@ -39,8 +39,6 @@ export function DocumentPreview({
   type = 'create',
 }: DocumentPreviewProps) {
   const { artifact, setArtifact } = useArtifact();
-  const trpc = useTRPC();
-
   const { data: documents, isLoading: isDocumentsFetching } = useDocuments(
     result?.id || '',
     result?.id === 'init' || artifact.status === 'streaming',

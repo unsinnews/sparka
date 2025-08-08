@@ -1,21 +1,16 @@
 import { z } from 'zod';
 
-// TODO: Simplify. Is title / message / override needed?
 const BaseStreamUpdateSchema = z.object({
-  id: z.string(),
-  timestamp: z.number(),
-  message: z.string(),
-  title: z.string().optional(),
-  overwrite: z.boolean().optional(),
+  title: z.string(),
 });
 
 const TaskUpdateSchema = BaseStreamUpdateSchema.extend({
   status: z.enum(['running', 'completed']),
 });
 
-const BaseSearchSchema = TaskUpdateSchema.extend({
-  query: z.string(),
-  subqueries: z.array(z.string()).optional(),
+const WebSearchSchema = TaskUpdateSchema.extend({
+  type: z.literal('web'),
+  queries: z.array(z.string()),
   results: z
     .array(
       z.object({
@@ -29,38 +24,41 @@ const BaseSearchSchema = TaskUpdateSchema.extend({
     .optional(),
 });
 
-export const WebSearchSchema = BaseSearchSchema.extend({
-  type: z.literal('web'),
-});
 export type WebSearchUpdate = z.infer<typeof WebSearchSchema>;
 
 export type SearchResultItem = NonNullable<WebSearchUpdate['results']>[number];
 
-const ProgressSchema = BaseStreamUpdateSchema.extend({
-  type: z.literal('progress'),
-  status: z.union([z.literal('completed'), z.literal('started')]),
-  completedSteps: z.number().optional(),
-  totalSteps: z.number().optional(),
+const StartedSchema = BaseStreamUpdateSchema.extend({
+  type: z.literal('started'),
+  timestamp: z.number(),
 });
 
-export type ProgressUpdate = z.infer<typeof ProgressSchema>;
-
-const ThoughtItemSchema = z.object({
-  header: z.string(),
-  body: z.string(),
+const CompletedSchema = BaseStreamUpdateSchema.extend({
+  type: z.literal('completed'),
+  timestamp: z.number(),
 });
+
+export type StartedUpdate = z.infer<typeof StartedSchema>;
+export type CompletedUpdate = z.infer<typeof CompletedSchema>;
 
 const ThoughtsSchema = TaskUpdateSchema.extend({
   type: z.literal('thoughts'),
-  thoughtItems: z.array(ThoughtItemSchema),
+  message: z.string(),
+});
+
+const WritingSchema = TaskUpdateSchema.extend({
+  type: z.literal('writing'),
+  message: z.string().optional(),
 });
 
 export type ThoughtsUpdate = z.infer<typeof ThoughtsSchema>;
 
 export const ResearchUpdateSchema = z.discriminatedUnion('type', [
   WebSearchSchema,
-  ProgressSchema,
+  StartedSchema,
+  CompletedSchema,
   ThoughtsSchema,
+  WritingSchema,
 ]);
 
 export type ResearchUpdate = z.infer<typeof ResearchUpdateSchema>;

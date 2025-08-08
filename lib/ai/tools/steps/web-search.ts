@@ -7,11 +7,9 @@ export type SearchProvider = 'tavily' | 'firecrawl';
 export type SearchProviderOptions =
   | ({
       provider: 'tavily';
-      maxResults?: number;
     } & Omit<TavilySearchOptions, 'limit'>)
   | ({
       provider: 'firecrawl';
-      maxResults?: number;
     } & SearchParams);
 
 export type WebSearchResult = {
@@ -34,41 +32,22 @@ const firecrawl = new FirecrawlApp({
 
 export async function webSearchStep({
   query,
+  maxResults,
   providerOptions,
   dataStream,
-  stepId,
-  annotate = true,
 }: {
   query: string;
+  maxResults: number;
   dataStream: StreamWriter;
-  stepId: string;
   providerOptions: SearchProviderOptions;
-  annotate?: boolean;
 }): Promise<WebSearchResponse> {
   try {
-    // Send running status
-    if (annotate) {
-      dataStream.write({
-        type: 'data-researchUpdate',
-        data: {
-          id: stepId,
-          type: 'web',
-          status: 'running',
-          title: `Searching for "${query}"`,
-          query,
-          subqueries: [query],
-          message: `Searching web sources...`,
-          timestamp: Date.now(),
-        },
-      });
-    }
-
     let results: WebSearchResult[] = [];
 
     if (providerOptions.provider === 'tavily') {
       const response = await tvly.search(query, {
         searchDepth: providerOptions.searchDepth || 'basic',
-        maxResults: providerOptions.maxResults || 5,
+        maxResults,
         includeAnswer: true,
         ...providerOptions,
       });
@@ -82,7 +61,7 @@ export async function webSearchStep({
     } else if (providerOptions.provider === 'firecrawl') {
       const response = await firecrawl.search(query, {
         timeout: providerOptions.timeout || 15000,
-        limit: providerOptions.maxResults || 5,
+        limit: maxResults,
         scrapeOptions: { formats: ['markdown'] },
         ...providerOptions,
       });
@@ -95,48 +74,18 @@ export async function webSearchStep({
       }));
     }
 
-    // Send completed status
-    if (annotate) {
-      dataStream.write({
-        type: 'data-researchUpdate',
-        data: {
-          id: stepId,
-          type: 'web',
-          status: 'completed',
-          title: `Search complete for "${query}"`,
-          query,
-          subqueries: [query],
-          results,
-          message: `Found ${results.length} results`,
-          timestamp: Date.now(),
-          overwrite: true,
-        },
-      });
-    }
-
     return { results };
   } catch (error: any) {
-    const errorMessage = error?.message || 'Unknown error occurred';
-
-    // Send error status
-    dataStream.write({
-      type: 'data-researchUpdate',
-      data: {
-        id: stepId,
-        type: 'web',
-        status: 'completed',
-        title: `Search failed for "${query}"`,
-        query,
-        subqueries: [query],
-        message: `Error: ${errorMessage}`,
-        timestamp: Date.now(),
-        overwrite: true,
-      },
+    console.error('Error in webSearchStep:', {
+      error,
+      message: error?.message,
+      stack: error?.stack,
+      query,
+      providerOptions,
     });
-
     return {
       results: [],
-      error: errorMessage,
+      error: error.message,
     };
   }
 }

@@ -1,52 +1,24 @@
 import { motion } from 'framer-motion';
-import {
-  Search,
-  FileText,
-  BookA,
-  Sparkles,
-  Loader2,
-  SearchIcon,
-} from 'lucide-react';
+import { Loader2, SearchIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { XLogo } from '@phosphor-icons/react/XLogo';
 import type { ResearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { WebSourceBadge } from './source-badge';
-
-const updateName = {
-  plan: 'Research Plan',
-  web: 'Web Search',
-  academic: 'Academic Search',
-  progress: 'Progress',
-  'gap-search': 'Gap Search',
-  thoughts: 'Thoughts',
-  x: 'X Search',
-} as const;
-const icons = {
-  plan: Search,
-  web: FileText,
-  academic: BookA,
-  progress: Loader2,
-  'gap-search': Search,
-  thoughts: Sparkles,
-  x: XLogo,
-} as const;
+import { UpdateTitle } from '@/components/update-title';
 
 export const ResearchTask = ({
   update,
   minimal,
+  isRunning,
 }: {
   update: ResearchUpdate;
   minimal: boolean;
+  isRunning: boolean;
 }) => {
-  const isGapSearch = update.id.startsWith('gap-search');
-  const Icon = isGapSearch ? icons['gap-search'] : icons[update.type];
-
   return (
     <div className="group">
       {!minimal && (
         <div className="flex items-center gap-2">
-          {/* <Icon className="w-4 h-4 text-neutral-500" /> */}
-          <p className="text-sm font-medium">{updateName[update.type]}</p>
+          <UpdateTitle title={update.title} isRunning={isRunning} />
         </div>
       )}
       <motion.div
@@ -68,10 +40,10 @@ export const ResearchTask = ({
           },
         }}
       >
-        <div className="pl-8 pr-2 py-2 space-y-2">
-          {update.type === 'web' && update.subqueries && (
+        <div className="pr-2 py-2 space-y-2">
+          {update.type === 'web' && update.queries && (
             <div className="flex flex-wrap gap-2">
-              {update.subqueries.map((query, idx) => (
+              {update.queries.map((query, idx) => (
                 <Badge
                   key={`search-query-${idx}`}
                   variant="outline"
@@ -107,16 +79,16 @@ export const ResearchTask = ({
           {/* {Thoughts} */}
           {update.type === 'thoughts' && (
             <div className="space-y-2">
-              {update.thoughtItems.map((thought, idx) => (
-                <div className="space-y-2" key={idx}>
-                  <p className="text-base font-medium">
-                    {thought.header || 'Thought'}
-                  </p>
-                  <p className="text-sm text-foreground font-light">
-                    {thought.body}
-                  </p>
-                </div>
-              ))}
+              <p className="text-sm text-foreground font-light">
+                {update.message}
+              </p>
+            </div>
+          )}
+          {update.type === 'writing' && update.message && (
+            <div className="space-y-2">
+              <p className="text-sm text-foreground font-light">
+                {update.message}
+              </p>
             </div>
           )}
         </div>

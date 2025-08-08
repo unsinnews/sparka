@@ -22,7 +22,7 @@ export const updateDocument = ({
   tool({
     description: `Modify an existing document.
 
-Usage:
+Use for:
 - Rewrite the whole document for major changes
 - Make targeted edits for isolated changes
 - Follow user instructions about which parts to touch

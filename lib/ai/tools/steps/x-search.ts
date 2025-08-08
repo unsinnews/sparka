@@ -45,15 +45,12 @@ export async function xSearchStep({
     if (annotate) {
       dataStream.write({
         type: 'data-researchUpdate',
+        id: stepId,
         data: {
-          id: stepId,
+          title: `Searching for "${query}"`,
           type: 'web',
           status: 'running',
-          title: `Searching X/Twitter for "${query}"`,
-          query,
-          subqueries: [query],
-          message: `Searching X/Twitter sources...`,
-          timestamp: Date.now(),
+          queries: [query],
         },
       });
     }
@@ -87,17 +84,13 @@ export async function xSearchStep({
     if (annotate) {
       dataStream.write({
         type: 'data-researchUpdate',
+        id: stepId,
         data: {
-          id: stepId,
+          title: `Searching for "${query}"`,
           type: 'web',
           status: 'completed',
-          title: `Searched X/Twitter for "${query}"`,
-          query,
-          subqueries: [query],
+          queries: [query],
           results: processedTweets,
-          message: `Found ${processedTweets.length} results`,
-          timestamp: Date.now(),
-          overwrite: true,
         },
       });
     }
@@ -110,16 +103,12 @@ export async function xSearchStep({
     if (annotate) {
       dataStream.write({
         type: 'data-researchUpdate',
+        id: stepId,
         data: {
-          id: stepId,
+          title: `Searching for "${query}"`,
           type: 'web',
           status: 'completed',
-          title: `Search failed for "${query}"`,
-          query,
-          subqueries: [query],
-          message: `Error: ${errorMessage}`,
-          timestamp: Date.now(),
-          overwrite: true,
+          queries: [query],
         },
       });
     }

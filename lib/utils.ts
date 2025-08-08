@@ -1,4 +1,4 @@
-import type { FileUIPart, TextPart } from 'ai';
+import type { FileUIPart, ModelMessage, TextPart } from 'ai';
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -199,4 +199,21 @@ export function getTextContentFromMessage(message: ChatMessage): string {
     .filter<TextPart>((part) => part.type === 'text')
     .map((part) => part.text)
     .join('');
+}
+
+export function getTextContentFromModelMessage(message: ModelMessage): string {
+  const content = message.content;
+
+  if (typeof content === 'string') {
+    return content;
+  }
+
+  return content
+    .map((part) => {
+      if (part.type === 'text') {
+        return part.text;
+      }
+      return '';
+    })
+    .join('\n');
 }

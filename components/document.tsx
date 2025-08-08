@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { FileIcon, LoaderIcon, MessageIcon, PencilEditIcon } from './icons';
 import { useArtifact } from '@/hooks/use-artifact';
-import type { ArtifactKind } from './artifact';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 
 const getActionText = (
   type: 'create' | 'update' | 'request-suggestions',

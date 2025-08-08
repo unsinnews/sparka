@@ -12,9 +12,9 @@ import { ArtifactMessages } from './artifact-messages';
 import { useSidebar } from './ui/sidebar';
 import { ScrollArea } from './ui/scroll-area';
 import { useArtifact } from '@/hooks/use-artifact';
-import { codeArtifact } from '@/artifacts/code/client';
-import { sheetArtifact } from '@/artifacts/sheet/client';
-import { textArtifact } from '@/artifacts/text/client';
+import { codeArtifact } from '@/lib/artifacts/code/client';
+import { sheetArtifact } from '@/lib/artifacts/sheet/client';
+import { textArtifact } from '@/lib/artifacts/text/client';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
@@ -23,9 +23,9 @@ import { useDocuments, useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { CloneChatButton } from '@/components/clone-chat-button';
 import { useTRPC } from '@/trpc/react';
 import { chatStore } from '@/lib/stores/chat-store';
+import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 
 export const artifactDefinitions = [textArtifact, codeArtifact, sheetArtifact];
-export type ArtifactKind = (typeof artifactDefinitions)[number]['kind'];
 
 export interface UIArtifact {
   title: string;

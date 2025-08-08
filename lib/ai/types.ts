@@ -2,21 +2,19 @@ import { z } from 'zod';
 import type { getWeather } from '@/lib/ai/tools/get-weather';
 import type { updateDocument } from '@/lib/ai/tools/update-document';
 import type { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
-import type { deepResearch } from '@/lib/ai/tools/deep-research/tool';
+import type { deepResearch } from '@/lib/ai/tools/deep-research/deep-research';
 import type { readDocument } from '@/lib/ai/tools/read-document';
 import type { generateImage } from '@/lib/ai/tools/generate-image';
-import type { webSearch } from '@/lib/ai/tools/web-search';
+import type { tavilyWebSearch } from '@/lib/ai/tools/web-search';
 import type { stockChart } from '@/lib/ai/tools/stock-chart';
 import type { codeInterpreter } from '@/lib/ai/tools/code-interpreter';
 import type { retrieve } from '@/lib/ai/tools/retrieve';
 import type { InferUITool, UIMessage, UIMessageStreamWriter } from 'ai';
 
-import type { ArtifactKind } from '@/components/artifact';
+import type { ArtifactKind } from '../artifacts/artifact-kind';
 import type { Suggestion } from '@/lib/db/schema';
-import type { createDocument } from './tools/create-document';
 import type { ResearchUpdate } from './tools/research-updates-schema';
-
-export type DataPart = { type: 'append-message'; message: string };
+import type { createDocumentTool as createDocument } from './tools/create-document';
 
 export const toolNameSchema = z.enum([
   'getWeather',
@@ -65,7 +63,7 @@ type requestSuggestionsTool = InferUITool<
 type deepResearchTool = InferUITool<ReturnType<typeof deepResearch>>;
 type readDocumentTool = InferUITool<ReturnType<typeof readDocument>>;
 type generateImageTool = InferUITool<ReturnType<typeof generateImage>>;
-type webSearchTool = InferUITool<ReturnType<typeof webSearch>>;
+type webSearchTool = InferUITool<ReturnType<typeof tavilyWebSearch>>;
 type stockChartTool = InferUITool<typeof stockChart>;
 type codeInterpreterTool = InferUITool<typeof codeInterpreter>;
 type retrieveTool = InferUITool<typeof retrieve>;

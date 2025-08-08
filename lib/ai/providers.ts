@@ -66,11 +66,7 @@ export const getModelProviderOptions = (
   | Record<string, never> => {
   const model = getModelDefinition(providerModelId);
   if (model.owned_by === 'openai') {
-    if (
-      model.id === 'openai/o4-mini' ||
-      model.id === 'openai/o3' ||
-      model.id === 'openai/o3-mini'
-    ) {
+    if (model.features?.reasoning) {
       return {
         openai: {
           reasoningSummary: 'auto',

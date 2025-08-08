@@ -1,4 +1,4 @@
-import type { DeepResearchConfig } from './configuration';
+import { loadConfigFromEnv, type DeepResearchConfig } from './configuration';
 import { runDeepResearcher } from './deep-researcher';
 import { tool, type ModelMessage } from 'ai';
 import { z } from 'zod';
@@ -31,35 +31,7 @@ Use for:
 `,
     inputSchema: z.object({}),
     execute: async () => {
-      const smallConfig: DeepResearchConfig = {
-        // Use faster, cheaper models for demo
-        research_model: 'openai/gpt-4o-mini',
-        compression_model: 'openai/gpt-4o-mini',
-        final_report_model: 'openai/gpt-4o',
-        summarization_model: 'openai/gpt-4o-mini',
-        status_update_model: 'openai/gpt-4o-mini',
-
-        // Limit iterations for faster demo
-        max_researcher_iterations: 1,
-        max_concurrent_research_units: 2, // num concurrent research agents
-
-        // Search configuration
-        search_api: 'tavily',
-        search_api_max_queries: 2,
-
-        // Disable clarification for automated demo
-        allow_clarification: true,
-
-        // Token limits
-        research_model_max_tokens: 4000,
-        compression_model_max_tokens: 4000,
-        final_report_model_max_tokens: 6000,
-        summarization_model_max_tokens: 4000,
-        status_update_model_max_tokens: 4000,
-
-        // Other settings
-        max_structured_output_retries: 3,
-      };
+      const smallConfig: DeepResearchConfig = loadConfigFromEnv();
 
       try {
         const researchResult = await runDeepResearcher(

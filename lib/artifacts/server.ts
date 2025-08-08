@@ -1,6 +1,6 @@
-import { codeDocumentHandler } from '@/artifacts/code/server';
-import { sheetDocumentHandler } from '@/artifacts/sheet/server';
-import { textDocumentHandler } from '@/artifacts/text/server';
+import { codeDocumentHandler } from '@/lib/artifacts/code/server';
+import { sheetDocumentHandler } from '@/lib/artifacts/sheet/server';
+import { textDocumentHandler } from '@/lib/artifacts/text/server';
 import type { Document } from '../db/schema';
 import { saveDocument } from '../db/queries';
 import type { Session } from 'next-auth';

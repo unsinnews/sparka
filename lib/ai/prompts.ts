@@ -1,6 +1,7 @@
 import type { ArtifactKind } from '../artifacts/artifact-kind';
 
-export const regularPrompt = `You are a friendly assistant!
+export const systemPrompt = () => {
+  return `You are a friendly assistant!
 
 ## Your Goals
 - Stay concious and aware of the guidelines.
@@ -24,9 +25,6 @@ export const regularPrompt = `You are a friendly assistant!
 Today's Date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit', weekday: 'short' })}
   
   `;
-
-export const systemPrompt = () => {
-  return regularPrompt;
 };
 
 export const codePrompt = `

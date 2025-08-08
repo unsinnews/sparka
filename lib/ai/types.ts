@@ -16,8 +16,6 @@ import type { Suggestion } from '@/lib/db/schema';
 import type { ResearchUpdate } from './tools/research-updates-schema';
 import type { createDocumentTool as createDocument } from './tools/create-document';
 
-export type DataPart = { type: 'append-message'; message: string };
-
 export const toolNameSchema = z.enum([
   'getWeather',
   'createDocument',

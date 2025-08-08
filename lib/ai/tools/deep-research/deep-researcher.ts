@@ -45,7 +45,7 @@ import type { StreamWriter } from '../../types';
 import { generateUUID, getTextContentFromModelMessage } from '@/lib/utils';
 import { createDocument } from '../create-document';
 import type { Session } from 'next-auth';
-import { ReportDocumentWriter } from '@/artifacts/text/reportServer';
+import { ReportDocumentWriter } from '@/lib/artifacts/text/reportServer';
 
 // Agent result types (instead of commands)
 type ClarificationResult =

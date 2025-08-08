@@ -1,4 +1,4 @@
-import { ReasonSearchResearchProgress } from './reason-search-research-progress';
+import { ReasonSearchResearchProgress } from './deep-research-progress';
 import type { WebSearchUpdate } from '@/lib/ai/tools/research-updates-schema';
 import { Sources } from './sources';
 import type { ChatMessage } from '@/lib/ai/types';

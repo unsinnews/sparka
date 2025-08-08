@@ -18,24 +18,24 @@ export const DeepResearchConfigSchema = z.object({
   // General Configuration
   max_structured_output_retries: z.number().int().min(1).max(10).default(3),
   allow_clarification: z.boolean().default(true),
-  max_concurrent_research_units: z.number().int().min(1).max(20).default(5),
+  max_concurrent_research_units: z.number().int().min(1).max(20).default(2),
 
   // Research Configuration
   search_api: SearchAPIEnum.default('tavily'),
   search_api_max_queries: z.number().int().min(1).max(10).default(2),
-  max_researcher_iterations: z.number().int().min(1).max(10).default(3),
+  max_researcher_iterations: z.number().int().min(1).max(10).default(1),
 
   // Model Configuration
   summarization_model: z.string().default('openai/gpt-4o-mini'),
-  summarization_model_max_tokens: z.number().int().default(8192),
-  research_model: z.string().default('openai/gpt-4o'),
-  research_model_max_tokens: z.number().int().default(10000),
+  summarization_model_max_tokens: z.number().int().default(4000),
+  research_model: z.string().default('openai/gpt-4o-mini'),
+  research_model_max_tokens: z.number().int().default(4000),
   compression_model: z.string().default('openai/gpt-4o-mini'),
-  compression_model_max_tokens: z.number().int().default(8192),
+  compression_model_max_tokens: z.number().int().default(4000),
   final_report_model: z.string().default('openai/gpt-4o'),
-  final_report_model_max_tokens: z.number().int().default(10000),
+  final_report_model_max_tokens: z.number().int().default(6000),
   status_update_model: z.string().default('openai/gpt-4o-mini'),
-  status_update_model_max_tokens: z.number().int().default(10000),
+  status_update_model_max_tokens: z.number().int().default(4000),
 
   // MCP server configuration
   mcp_config: MCPConfigSchema.optional(),

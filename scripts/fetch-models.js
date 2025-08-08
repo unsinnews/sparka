@@ -34,19 +34,22 @@ async function fetchAndConvertModels() {
 // List of unique providers extracted from models data
 export const providers = ${JSON.stringify(providers, null, 2)} as const;
 
-export type Provider = (typeof providers)[number];
+export type ProviderId = (typeof providers)[number];
 
 export interface ModelData {
   id: ModelId;
   object: string;
-  owned_by: Provider;
+  owned_by: ProviderId;
   name: string;
   description: string;
+  type: 'language' | 'embedding'
   context_window: number; // Max input tokens
   max_tokens: number; // Max output tokens
   pricing: {
     input: string; // Input price per token
     output: string; // Output price per token
+    input_cache_read?: string; // Input cache read price per token
+    input_cache_write?: string; // Input cache write price per token
   };
 }
 

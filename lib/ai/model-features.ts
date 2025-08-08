@@ -110,6 +110,22 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
       audio: false,
     },
   },
+  'anthropic/claude-4.1-opus': {
+    reasoning: true,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-04-01'),
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
   'google/gemini-2.5-flash': {
     reasoning: true,
     functionCalling: true,
@@ -303,6 +319,55 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
       audio: false,
     },
   },
+
+  'openai/gpt-5': {
+    reasoning: true,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-10-01'),
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'openai/gpt-5-mini': {
+    reasoning: true,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-05-31'),
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'openai/gpt-5-nano': {
+    reasoning: true,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-05-31'),
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
   'openai/gpt-4-turbo': {
     reasoning: false,
     functionCalling: true,
@@ -339,6 +404,38 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
     reasoning: false,
     functionCalling: false,
     knowledgeCutoff: new Date('2021-09-01'),
+    input: {
+      image: false,
+      text: true,
+      pdf: false,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'openai/gpt-oss-120b': {
+    reasoning: true,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-04-01'),
+    input: {
+      image: false,
+      text: true,
+      pdf: false,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'openai/gpt-oss-20b': {
+    reasoning: false,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-04-01'),
     input: {
       image: false,
       text: true,
@@ -429,6 +526,38 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
   'xai/grok-3-mini-fast': {
     reasoning: true,
     functionCalling: true,
+    input: {
+      image: false,
+      text: true,
+      pdf: false,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'zai/glm-4.5': {
+    reasoning: true,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-04-01'),
+    input: {
+      image: false,
+      text: true,
+      pdf: false,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'zai/glm-4.5-air': {
+    reasoning: true,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2024-04-01'),
     input: {
       image: false,
       text: true,

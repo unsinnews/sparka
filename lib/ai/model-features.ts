@@ -351,7 +351,7 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
     },
   },
   'openai/gpt-5-nano': {
-    reasoning: false,
+    reasoning: true,
     functionCalling: true,
     input: {
       image: true,

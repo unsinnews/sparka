@@ -1109,8 +1109,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-5',
     description:
       "GPT-5 is OpenAI's flagship language model that excels at complex reasoning, broad real-world knowledge, code-intensive, and multi-step agentic tasks.",
-    context_window: 1000000,
-    max_tokens: 1000000,
+    context_window: 400000,
+    max_tokens: 128000,
     type: 'language',
     pricing: {
       input: '0.00000125',
@@ -1126,8 +1126,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-5 mini',
     description:
       'GPT-5 mini is a cost optimized model that excels at reasoning/chat tasks. It offers an optimal balance between speed, cost, and capability.',
-    context_window: 1000000,
-    max_tokens: 1000000,
+    context_window: 400000,
+    max_tokens: 128000,
     type: 'language',
     pricing: {
       input: '0.00000025',
@@ -1143,8 +1143,8 @@ export const modelsData: ModelData[] = [
     name: 'GPT-5 nano',
     description:
       'GPT-5 nano is a high throughput model that excels at simple instruction or classification tasks.',
-    context_window: 1000000,
-    max_tokens: 1000000,
+    context_window: 400000,
+    max_tokens: 128000,
     type: 'language',
     pricing: {
       input: '0.00000005',

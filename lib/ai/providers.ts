@@ -70,6 +70,11 @@ export const getModelProviderOptions = (
       return {
         openai: {
           reasoningSummary: 'auto',
+          ...(model.id === 'openai/gpt-5' ||
+          model.id === 'openai/gpt-5-mini' ||
+          model.id === 'openai/gpt-5-nano'
+            ? { reasoningEffort: 'low' }
+            : {}),
         } satisfies OpenAIResponsesProviderOptions,
       };
     } else {

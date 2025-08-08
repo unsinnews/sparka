@@ -323,6 +323,7 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
   'openai/gpt-5': {
     reasoning: true,
     functionCalling: true,
+    knowledgeCutoff: new Date('2024-10-01'),
     input: {
       image: true,
       text: true,
@@ -338,6 +339,7 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
   'openai/gpt-5-mini': {
     reasoning: true,
     functionCalling: true,
+    knowledgeCutoff: new Date('2024-05-31'),
     input: {
       image: true,
       text: true,
@@ -353,6 +355,7 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
   'openai/gpt-5-nano': {
     reasoning: true,
     functionCalling: true,
+    knowledgeCutoff: new Date('2024-05-31'),
     input: {
       image: true,
       text: true,

@@ -8,6 +8,7 @@ import type { StreamWriter } from '../types';
 
 const DEFAULT_MAX_RESULTS = 5;
 
+const MAX_SEARCH_QUERIES = 12;
 // Common search query schema
 const searchQueriesSchema = z
   .array(
@@ -23,7 +24,8 @@ const searchQueriesSchema = z
         ),
     }),
   )
-  .max(12);
+  .max(MAX_SEARCH_QUERIES)
+  .describe(`Array of search queries. Maximum ${MAX_SEARCH_QUERIES} queries.`);
 
 // Common search execution logic
 async function executeMultiQuerySearch({

@@ -225,7 +225,7 @@ function PureArtifact({
   }
 
   useEffect(() => {
-    if (artifact.documentId !== 'init') {
+    if (artifact.documentId !== 'init' && artifact.status !== 'streaming') {
       if (artifactDefinition.initialize) {
         artifactDefinition.initialize({
           documentId: artifact.documentId,
@@ -243,6 +243,7 @@ function PureArtifact({
     trpc,
     queryClient,
     isAuthenticated,
+    artifact.status,
   ]);
 
   return (

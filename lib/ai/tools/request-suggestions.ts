@@ -53,7 +53,6 @@ export const requestSuggestions = ({
       });
 
       for await (const element of elementStream) {
-        // @ts-ignore todo: fix  type
         const suggestion: Suggestion = {
           originalText: element.originalSentence,
           suggestedText: element.suggestedSentence,
@@ -62,6 +61,8 @@ export const requestSuggestions = ({
           documentId: documentId,
           isResolved: false,
           createdAt: new Date(),
+          userId: session.user?.id ?? '',
+          documentCreatedAt: document.createdAt,
         };
 
         dataStream.write({

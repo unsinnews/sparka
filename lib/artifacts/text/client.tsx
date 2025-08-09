@@ -38,7 +38,6 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
     const suggestions = await queryClient.fetchQuery(
       trpc.document.getSuggestions.queryOptions({ documentId }),
     );
-    console.log('suggestions', suggestions);
 
     setMetadata({
       suggestions,
@@ -48,7 +47,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
     if (streamPart.type === 'data-suggestion') {
       setMetadata((metadata) => {
         return {
-          suggestions: [...metadata.suggestions, streamPart.data as Suggestion],
+          suggestions: [...metadata.suggestions, streamPart.data],
         };
       });
     }
@@ -57,7 +56,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
       setArtifact((draftArtifact) => {
         return {
           ...draftArtifact,
-          content: draftArtifact.content + (streamPart.data as string),
+          content: draftArtifact.content + streamPart.data,
           isVisible:
             draftArtifact.status === 'streaming' &&
             draftArtifact.content.length > 400 &&

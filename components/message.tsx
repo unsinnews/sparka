@@ -252,7 +252,6 @@ const PureAssistantMessage = ({
   const message = useMessageById(messageId);
 
   if (!chatId || !message) return null;
-  console.log(message.parts);
 
   return (
     <div className="w-full">
@@ -273,7 +272,7 @@ const PureAssistantMessage = ({
             return (
               <MessageReasoning
                 key={key}
-                isLoading={isLoading}
+                isLoading={isLoading && index === message.parts.length - 1}
                 reasoning={part.text}
               />
             );

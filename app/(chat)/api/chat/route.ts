@@ -5,6 +5,7 @@ import {
   streamText,
   stepCountIs,
 } from 'ai';
+import { replaceFilePartUrlByBinaryDataInMessages } from '@/lib/utils/download-assets';
 import { auth } from '@/app/(auth)/auth';
 import { systemPrompt } from '@/lib/ai/prompts';
 import {
@@ -413,7 +414,11 @@ export async function POST(request: NextRequest) {
     const messagesWithoutReasoning = filterReasoningParts(messages.slice(-5));
 
     // TODO: Do something smarter by truncating the context to a numer of tokens (maybe even based on setting)
-    const contextForLLM = convertToModelMessages(messagesWithoutReasoning);
+    const modelMessages = convertToModelMessages(messagesWithoutReasoning);
+
+    // TODO: remove this when the gateway provider supports URLs
+    const contextForLLM =
+      await replaceFilePartUrlByBinaryDataInMessages(modelMessages);
     console.dir(contextForLLM, { depth: null });
     // Extract the last generated image for use as reference (only from the immediately previous message)
     console.log('active tools', activeTools);
@@ -501,7 +506,7 @@ export async function POST(request: NextRequest) {
                 },
                 expires: 'noop',
               },
-              contextForLLM,
+              contextForLLM: contextForLLM,
               messageId,
               selectedModel: selectedModelId,
               attachments: userMessage.parts.filter(

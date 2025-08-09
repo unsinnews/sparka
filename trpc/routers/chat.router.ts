@@ -11,6 +11,7 @@ import {
   getDocumentsByMessageIds,
   saveDocuments,
   updateChatIsPinnedById,
+  deleteChatById,
 } from '@/lib/db/queries';
 import {
   createTRPCRouter,
@@ -189,6 +190,25 @@ export const chatRouter = createTRPCRouter({
         isPinned: input.isPinned,
       });
 
+      return { success: true };
+    }),
+
+  deleteChat: protectedProcedure
+    .input(
+      z.object({
+        chatId: z.string().uuid(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const chat = await getChatById({ id: input.chatId });
+      if (!chat || chat.userId !== ctx.user.id) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Chat not found or access denied',
+        });
+      }
+
+      await deleteChatById({ id: input.chatId });
       return { success: true };
     }),
 

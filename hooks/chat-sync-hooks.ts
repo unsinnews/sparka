@@ -165,10 +165,8 @@ export function useDeleteChat() {
     async (chatId: string, options?: ChatMutationOptions) => {
       try {
         if (isAuthenticated) {
-          const response = await fetch(`/api/chat?id=${chatId}`, {
-            method: 'DELETE',
-          });
-          if (!response.ok) throw new Error('Failed to delete chat');
+          const mutation = trpc.chat.deleteChat.mutationOptions();
+          await mutation.mutationFn?.({ chatId });
         } else {
           await deleteAnonymousChat(chatId);
         }
@@ -184,7 +182,7 @@ export function useDeleteChat() {
         });
       }
     },
-    [isAuthenticated, queryClient, getAllChatsQueryKey],
+    [isAuthenticated, queryClient, getAllChatsQueryKey, trpc.chat.deleteChat],
   );
 
   return { deleteChat };

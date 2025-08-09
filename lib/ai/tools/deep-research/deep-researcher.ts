@@ -67,6 +67,8 @@ async function generateStatusUpdate(
   actionType: string,
   messages: ModelMessage[],
   config: DeepResearchConfig,
+  requestId: string,
+  messageId: string,
   context?: string,
 ): Promise<{ title: string; message: string }> {
   const model = getLanguageModel(config.research_model as ModelId);
@@ -96,6 +98,15 @@ async function generateStatusUpdate(
     }),
     messages: [{ role: 'user', content: prompt }],
     maxOutputTokens: 200,
+    experimental_telemetry: {
+      isEnabled: true,
+      functionId: 'statusUpdate',
+      metadata: {
+        messageId,
+        langfuseTraceId: requestId,
+        langfuseUpdateParent: false,
+      },
+    },
   });
 
   return result.object;
@@ -112,6 +123,7 @@ function filterMessages(
 async function clarifyWithUser(
   state: ClarifyWithUserInput,
   config: DeepResearchConfig,
+  messageId: string,
 ): Promise<ClarificationResult> {
   if (!config.allow_clarification) {
     return { needsClarification: false };
@@ -149,7 +161,9 @@ async function clarifyWithUser(
       isEnabled: true,
       functionId: 'clarifyWithUser',
       metadata: {
-        requestId: state.requestId || '',
+        messageId,
+        langfuseTraceId: state.requestId,
+        langfuseUpdateParent: false,
       },
     },
   });
@@ -168,6 +182,7 @@ async function writeResearchBrief(
   state: WriteResearchBriefInput,
   config: DeepResearchConfig,
   dataStream: StreamWriter,
+  messageId: string,
 ): Promise<WriteResearchBriefOutput> {
   const model = getLanguageModel(config.research_model as ModelId);
   const dataPartId = generateUUID();
@@ -210,7 +225,9 @@ async function writeResearchBrief(
       isEnabled: true,
       functionId: 'writeResearchBrief',
       metadata: {
-        requestId: state.requestId || '',
+        messageId,
+        langfuseTraceId: state.requestId,
+        langfuseUpdateParent: false,
       },
     },
   });
@@ -235,12 +252,15 @@ async function writeResearchBrief(
 // Agent base class
 abstract class Agent {
   protected agentId: string;
+  protected messageId: string;
 
   constructor(
     protected config: DeepResearchConfig,
     protected dataStream: StreamWriter,
+    messageId: string,
   ) {
     this.agentId = generateUUID();
+    this.messageId = messageId;
   }
 }
 
@@ -296,8 +316,10 @@ class ResearcherAgent extends Agent {
         isEnabled: true,
         functionId: 'researcher',
         metadata: {
-          requestId: state.requestId || '',
           agentId: this.agentId,
+          messageId: this.messageId,
+          langfuseTraceId: state.requestId,
+          langfuseUpdateParent: false,
         },
       },
     });
@@ -306,6 +328,8 @@ class ResearcherAgent extends Agent {
       'research_completion',
       [...researcherMessages, ...result.response.messages],
       this.config,
+      state.requestId,
+      this.messageId,
       `Research phase completed with ${result.response.messages.length} new messages`,
     );
 
@@ -361,8 +385,10 @@ class ResearcherAgent extends Agent {
         isEnabled: true,
         functionId: 'compressResearch',
         metadata: {
-          requestId: state.requestId || '',
           agentId: this.agentId,
+          messageId: this.messageId,
+          langfuseTraceId: state.requestId,
+          langfuseUpdateParent: false,
         },
       },
       maxRetries: 3,
@@ -372,6 +398,8 @@ class ResearcherAgent extends Agent {
       'research_compression',
       truncatedMessages,
       this.config,
+      state.requestId,
+      this.messageId,
       `Compressed ${researcherMessages.length} messages into summary`,
     );
 
@@ -418,9 +446,13 @@ class ResearcherAgent extends Agent {
 class SupervisorAgent extends Agent {
   private researcherAgent: ResearcherAgent;
 
-  constructor(config: DeepResearchConfig, dataStream: StreamWriter) {
-    super(config, dataStream);
-    this.researcherAgent = new ResearcherAgent(config, dataStream);
+  constructor(
+    config: DeepResearchConfig,
+    dataStream: StreamWriter,
+    messageId: string,
+  ) {
+    super(config, dataStream, messageId);
+    this.researcherAgent = new ResearcherAgent(config, dataStream, messageId);
   }
 
   private async supervise(state: SupervisorInput): Promise<SupervisorOutput> {
@@ -452,8 +484,10 @@ class SupervisorAgent extends Agent {
         isEnabled: true,
         functionId: 'supervisor',
         metadata: {
-          requestId: state.requestId || '',
           agentId: this.agentId,
+          messageId: this.messageId,
+          langfuseTraceId: state.requestId,
+          langfuseUpdateParent: false,
         },
       },
       // TODO: Do we need a stop when?
@@ -472,6 +506,8 @@ class SupervisorAgent extends Agent {
       'supervisor_evaluation',
       truncatedSupervisorMessages,
       this.config,
+      state.requestId,
+      this.messageId,
       supervisorMessageText || 'Coordinated investigation efforts',
     );
 
@@ -611,6 +647,8 @@ class SupervisorAgent extends Agent {
       'continuing_research_tasks',
       supervisorMessages,
       this.config,
+      state.requestId,
+      this.messageId,
       `Need research the research about the topics [${conductResearchCalls.map((c) => c.input.research_topic).join('], [')}]`,
     );
 
@@ -698,7 +736,7 @@ async function finalReportGeneration(
   config: DeepResearchConfig,
   dataStream: StreamWriter,
   session: Session,
-  requestId: string,
+  messageId: string,
   reportTitle: string,
 ): Promise<Pick<AgentState, 'final_report' | 'reportResult'>> {
   const notes = state.notes || [];
@@ -745,7 +783,9 @@ async function finalReportGeneration(
       isEnabled: true,
       functionId: 'finalReportGeneration',
       metadata: {
-        requestId: state.requestId || '',
+        messageId,
+        langfuseTraceId: state.requestId,
+        langfuseUpdateParent: false,
       },
     },
     maxRetries: 3,
@@ -758,7 +798,7 @@ async function finalReportGeneration(
     description: '',
     session,
     prompt: finalReportPromptText,
-    messageId: requestId,
+    messageId,
     selectedModel: config.final_report_model as ModelId,
     documentHandler: reportDocumentHandler.createDocumentHandler(),
   });
@@ -786,6 +826,10 @@ export async function runDeepResearcher(
   dataStream: StreamWriter,
   session: Session,
 ): Promise<DeepResearchResult> {
+  console.log('runDeepResearcher invoked', {
+    requestId: input.requestId,
+    messageId: input.messageId,
+  });
   let currentState: AgentState = {
     requestId: input.requestId,
     inputMessages: input.messages,
@@ -805,6 +849,7 @@ export async function runDeepResearcher(
   const clarifyResult = await clarifyWithUser(
     { requestId: currentState.requestId, messages: currentState.inputMessages },
     config,
+    input.messageId,
   );
 
   if (clarifyResult.needsClarification) {
@@ -828,12 +873,17 @@ export async function runDeepResearcher(
     { requestId: currentState.requestId, messages: currentState.inputMessages },
     config,
     dataStream,
+    input.messageId,
   );
   currentState.research_brief = briefResult.research_brief;
   const reportTitle = briefResult.title;
 
   // Step 3: Research supervisor loop
-  const supervisorAgent = new SupervisorAgent(config, dataStream);
+  const supervisorAgent = new SupervisorAgent(
+    config,
+    dataStream,
+    input.messageId,
+  );
 
   const supervisorResult = await supervisorAgent.runSupervisorGraph({
     requestId: currentState.requestId,
@@ -868,7 +918,7 @@ export async function runDeepResearcher(
     config,
     dataStream,
     session,
-    currentState.requestId,
+    input.messageId,
     reportTitle,
   );
 

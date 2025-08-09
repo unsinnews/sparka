@@ -4,6 +4,8 @@ import { tool, type ModelMessage } from 'ai';
 import { z } from 'zod';
 import type { Session } from 'next-auth';
 import type { StreamWriter } from '../../types';
+import { generateUUID } from '@/lib/utils';
+import { Langfuse } from 'langfuse';
 
 export const deepResearch = ({
   session,
@@ -34,15 +36,26 @@ Use for:
       const smallConfig: DeepResearchConfig = loadConfigFromEnv();
 
       try {
+        const requestId = generateUUID();
+        // Log both requestId and messageId for traceability
+        console.log('DeepResearch start', { requestId, messageId });
+
+        // Open a Langfuse trace with id = requestId before the run
+        const langfuse = new Langfuse();
+        langfuse.trace({ id: requestId, name: 'deep-research' });
         const researchResult = await runDeepResearcher(
           {
-            requestId: messageId,
+            requestId,
+            messageId,
             messages: messages,
           },
           smallConfig,
           dataStream,
           session,
         );
+
+        // Flush the Langfuse trace right after the run
+        await langfuse.flushAsync();
 
         switch (researchResult.type) {
           case 'report':

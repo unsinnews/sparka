@@ -67,6 +67,7 @@ export type ResearchQuestion = z.infer<typeof ResearchQuestionSchema>;
 
 export interface AgentInputState {
   requestId: string;
+  messageId: string;
   messages: ModelMessage[];
 }
 

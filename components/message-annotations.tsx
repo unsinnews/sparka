@@ -1,5 +1,8 @@
 import { ReasonSearchResearchProgress } from './deep-research-progress';
-import type { WebSearchUpdate } from '@/lib/ai/tools/research-updates-schema';
+import type {
+  WebSearchUpdate,
+  ResearchUpdate,
+} from '@/lib/ai/tools/research-updates-schema';
 import { Sources } from './sources';
 import type { ChatMessage } from '@/lib/ai/types';
 
@@ -32,17 +35,12 @@ export const SourcesAnnotations = ({
   return <Sources sources={deduppedSources} />;
 };
 
-export const ResearchUpdateAnnotations = ({
-  parts,
-}: { parts?: ChatMessage['parts'] }) => {
-  if (!parts) return null;
-
-  const researchUpdates = parts
-    .filter((part) => part.type === 'data-researchUpdate')
-    .map((u) => u.data);
-
-  console.log('researchUpdates', researchUpdates);
-  if (researchUpdates.length === 0) return null;
-
-  return <ReasonSearchResearchProgress updates={researchUpdates} />;
+// Render a given list of research updates (already grouped/filtered)
+export const ResearchUpdates = ({
+  updates,
+}: {
+  updates: ResearchUpdate[] | undefined;
+}) => {
+  if (!updates || updates.length === 0) return null;
+  return <ReasonSearchResearchProgress updates={updates} />;
 };

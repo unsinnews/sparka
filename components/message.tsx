@@ -15,10 +15,7 @@ import { MessageReasoning } from './message-reasoning';
 import { Retrieve } from './retrieve';
 import { StockChartMessage } from './stock-chart-message';
 import { CodeInterpreterMessage } from './code-interpreter-message';
-import {
-  SourcesAnnotations,
-  ResearchUpdateAnnotations,
-} from './message-annotations';
+import { SourcesAnnotations, ResearchUpdates } from './message-annotations';
 import { ReadDocument } from './read-document';
 import { AttachmentList } from './attachment-list';
 import { Skeleton } from './ui/skeleton';
@@ -61,6 +58,33 @@ const isLastArtifact = (
   }
 
   return lastArtifact?.toolCallId === currentToolCallId;
+};
+
+// Collect research updates between a tool call input and its output
+const collectResearchUpdates = (
+  parts: ChatMessage['parts'],
+  toolCallId: string,
+  toolType: 'tool-deepResearch' | 'tool-webSearch',
+) => {
+  const startIdx = parts.findIndex(
+    (p) => p.type === toolType && p.toolCallId === toolCallId,
+  );
+
+  if (startIdx === -1) return [];
+
+  // End at the next tool call start (either deepResearch or webSearch)
+  const endIdx = parts.findIndex(
+    (p, i) =>
+      i > startIdx &&
+      (p.type === 'tool-deepResearch' || p.type === 'tool-webSearch'),
+  );
+
+  const sliceEnd = endIdx === -1 ? parts.length : endIdx;
+  const updates = parts
+    .slice(startIdx + 1, sliceEnd)
+    .filter((p) => p.type === 'data-researchUpdate')
+    .map((u: any) => u.data);
+  return updates;
 };
 
 interface BaseMessageProps {
@@ -228,6 +252,7 @@ const PureAssistantMessage = ({
   const message = useMessageById(messageId);
 
   if (!chatId || !message) return null;
+  console.log(message.parts);
 
   return (
     <div className="w-full">
@@ -239,11 +264,6 @@ const PureAssistantMessage = ({
             <Skeleton className="h-4 w-2/5 rounded-full" />
           </div>
         )}
-
-        <ResearchUpdateAnnotations
-          parts={message.parts}
-          key={`research-update-annotations-${message.id}`}
-        />
 
         {message.parts?.map((part, index) => {
           const { type } = part;
@@ -560,8 +580,16 @@ const PureAssistantMessage = ({
             const { toolCallId, state } = part;
 
             if (state === 'input-available') {
-              // Should we place research updates here?
-              return null;
+              const updates = collectResearchUpdates(
+                message.parts,
+                toolCallId,
+                'tool-deepResearch',
+              );
+              return (
+                <div key={toolCallId} className="flex flex-col gap-3">
+                  <ResearchUpdates updates={updates} />
+                </div>
+              );
             }
 
             if (state === 'output-available') {
@@ -570,9 +598,18 @@ const PureAssistantMessage = ({
                 chatStore.getState().messages,
                 toolCallId,
               );
+              const updates = collectResearchUpdates(
+                message.parts,
+                toolCallId,
+                'tool-deepResearch',
+              );
+
               if (output.format === 'report') {
                 return (
                   <div key={toolCallId}>
+                    <div className="mb-2">
+                      <ResearchUpdates updates={updates} />
+                    </div>
                     {shouldShowFullPreview ? (
                       <DocumentPreview
                         isReadonly={isReadonly}
@@ -592,6 +629,36 @@ const PureAssistantMessage = ({
                   </div>
                 );
               }
+            }
+          }
+
+          if (type === 'tool-webSearch') {
+            const { toolCallId, state } = part;
+
+            if (state === 'input-available') {
+              const updates = collectResearchUpdates(
+                message.parts,
+                toolCallId,
+                'tool-webSearch',
+              );
+              return (
+                <div key={toolCallId} className="flex flex-col gap-3">
+                  <ResearchUpdates updates={updates} />
+                </div>
+              );
+            }
+
+            if (state === 'output-available') {
+              const updates = collectResearchUpdates(
+                message.parts,
+                toolCallId,
+                'tool-webSearch',
+              );
+              return (
+                <div key={toolCallId} className="flex flex-col gap-3">
+                  <ResearchUpdates updates={updates} />
+                </div>
+              );
             }
           }
         })}

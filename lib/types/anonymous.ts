@@ -21,6 +21,7 @@ export const ANONYMOUS_LIMITS = {
     'google/gemini-2.0-flash',
     'openai/gpt-5-mini',
     'openai/gpt-5-nano',
+    'openai/gpt-4o-mini',
   ] as const satisfies ModelId[],
   AVAILABLE_TOOLS: ['createDocument', 'updateDocument'] satisfies ToolName[],
   SESSION_DURATION: 2147483647, // Max session time

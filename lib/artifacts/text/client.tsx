@@ -201,7 +201,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
             },
           ],
           metadata: {
-            selectedModel: 'gpt-4o',
+            selectedModel: 'openai/gpt-4o',
             createdAt: new Date(),
             parentMessageId: chatStore.getState().getLastMessageId(),
           },

@@ -25,6 +25,7 @@ const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
         initialMessages={initialMessages}
         isReadonly={isReadonly}
       />
+      <DataStreamHandler id={id} />
     </ChatInputProvider>
   );
 });
@@ -61,7 +62,6 @@ export function ChatPage({ id }: { id: string }) {
         initialMessages={initialThreadMessages}
         isReadonly={false}
       />
-      <DataStreamHandler id={id} />
     </>
   );
 }

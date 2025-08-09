@@ -3,6 +3,11 @@ description:
 globs: 
 alwaysApply: false
 ---
+
+## Typing Guidelines
+- Avoid `any` at all cost. The types should work or they indicate a problem.
+
+
 ## Exports / Imports
 
 - Never create index barrel files (index.ts, index.js)    

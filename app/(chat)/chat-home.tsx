@@ -8,8 +8,8 @@ export function ChatHome({ id }: { id: string }) {
     <>
       <ChatInputProvider localStorageEnabled={true}>
         <Chat key={id} id={id} initialMessages={[]} isReadonly={false} />
+        <DataStreamHandler id={id} />
       </ChatInputProvider>
-      <DataStreamHandler id={id} />
     </>
   );
 }

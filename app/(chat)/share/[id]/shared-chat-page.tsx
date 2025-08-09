@@ -1,6 +1,5 @@
 'use client';
 import { Chat } from '@/components/chat';
-import { DataStreamHandler } from '@/components/data-stream-handler';
 import { getDefaultThread } from '@/lib/thread-utils';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
@@ -73,7 +72,8 @@ export function SharedChatPage({ id }: { id: string }) {
           isReadonly={true}
         />
       </WithSkeleton>
-      <DataStreamHandler id={id} />
+      {/* Shared chats don't need data handler */}
+      {/* <DataStreamHandler id={id} /> */}
     </>
   );
 }

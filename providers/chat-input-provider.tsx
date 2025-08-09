@@ -134,8 +134,8 @@ export function ChatInputProvider({
   }, [setLocalStorageInput]);
 
   const resetData = useCallback(() => {
-    setSelectedTool(initialTool);
-  }, [initialTool]);
+    setSelectedTool(null);
+  }, []);
 
   const clearAttachments = useCallback(() => {
     setAttachments([]);
@@ -171,10 +171,12 @@ export function ChatInputProvider({
         clearInput();
       }
 
-      // Reset data (tools, etc.)
-      resetData();
+      // deepResearch stays active until the research process completes (handled via DataStreamHandler)
+      if (selectedTool !== 'deepResearch') {
+        resetData();
+      }
     },
-    [clearAttachments, clearInput, resetData],
+    [clearAttachments, clearInput, selectedTool, resetData],
   );
 
   return (

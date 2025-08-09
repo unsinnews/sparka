@@ -6,6 +6,7 @@ import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
 import { useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { useSession } from 'next-auth/react';
 import { useDataStream } from './data-stream-provider';
+import { useChatInput } from '@/providers/chat-input-provider';
 
 export type DataStreamDelta = {
   type:
@@ -28,6 +29,7 @@ export function DataStreamHandler({ id }: { id: string }) {
   const { artifact, setArtifact, setMetadata } = useArtifact();
   const lastProcessedIndex = useRef(-1);
   const { data: session } = useSession();
+  const { setSelectedTool } = useChatInput();
   const saveDocumentMutation = useSaveDocument(
     artifact.documentId,
     artifact.messageId,
@@ -41,6 +43,16 @@ export function DataStreamHandler({ id }: { id: string }) {
     lastProcessedIndex.current = dataStream.length - 1;
 
     newDeltas.forEach((delta) => {
+      // Clear deepResearch tool when a research process completes
+      if (delta.type === 'data-researchUpdate') {
+        const update: any = (delta as any).data;
+        if (update?.type === 'completed') {
+          setSelectedTool((current) =>
+            current === 'deepResearch' ? null : current,
+          );
+        }
+      }
+
       const artifactDefinition = artifactDefinitions.find(
         (artifactDefinition) => artifactDefinition.kind === artifact.kind,
       );
@@ -122,6 +134,7 @@ export function DataStreamHandler({ id }: { id: string }) {
     artifact,
     saveDocumentMutation,
     isAuthenticated,
+    setSelectedTool,
   ]);
 
   return null;

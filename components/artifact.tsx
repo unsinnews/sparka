@@ -314,17 +314,15 @@ function PureArtifact({
                 />
 
                 {!isReadonly ? (
-                  <form className="flex flex-row gap-2  relative items-end w-full  p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6">
-                    <MultimodalInput
-                      chatId={chatId}
-                      status={status}
-                      stop={stop}
-                      sendMessage={sendMessage}
-                      className="bg-transparent border-none shadow-none px-0"
-                      isEditMode={isReadonly}
-                      parentMessageId={chatStore.getState().getLastMessageId()}
-                    />
-                  </form>
+                  <MultimodalInput
+                    chatId={chatId}
+                    status={status}
+                    stop={stop}
+                    sendMessage={sendMessage}
+                    className=""
+                    isEditMode={isReadonly}
+                    parentMessageId={chatStore.getState().getLastMessageId()}
+                  />
                 ) : (
                   <CloneChatButton chatId={chatId} />
                 )}

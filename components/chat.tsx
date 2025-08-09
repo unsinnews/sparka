@@ -146,19 +146,17 @@ export function Chat({
           isVisible={!isArtifactVisible}
         />
 
-        <form className="flex mx-auto p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6 bg-background gap-2 w-full md:max-w-3xl">
-          {!isReadonly ? (
-            <MultimodalInput
-              chatId={id}
-              status={status}
-              stop={stop}
-              sendMessage={sendMessage}
-              parentMessageId={chatStore.getState().getLastMessageId()}
-            />
-          ) : (
-            <CloneChatButton chatId={id} className="w-full" />
-          )}
-        </form>
+        {!isReadonly ? (
+          <MultimodalInput
+            chatId={id}
+            status={status}
+            stop={stop}
+            sendMessage={sendMessage}
+            parentMessageId={chatStore.getState().getLastMessageId()}
+          />
+        ) : (
+          <CloneChatButton chatId={id} className="w-full" />
+        )}
       </div>
 
       <Artifact

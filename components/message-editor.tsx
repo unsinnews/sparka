@@ -71,7 +71,7 @@ function MessageEditorContent({
   );
 
   return (
-    <div ref={containerRef} className="flex bg-background w-full">
+    <div ref={containerRef} className="w-full">
       <MultimodalInput
         chatId={chatId}
         status={isSubmitting ? 'submitted' : 'ready'}

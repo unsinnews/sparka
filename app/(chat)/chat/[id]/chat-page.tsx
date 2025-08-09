@@ -7,18 +7,21 @@ import { notFound } from 'next/navigation';
 import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useTRPC } from '@/trpc/react';
+import type { UiToolName } from '@/lib/ai/types';
 
 const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
   id,
   initialMessages,
   isReadonly,
+  initialTool,
 }: {
   id: string;
   initialMessages: any[];
   isReadonly: boolean;
+  initialTool: UiToolName | null;
 }) {
   return (
-    <ChatInputProvider localStorageEnabled={true}>
+    <ChatInputProvider localStorageEnabled={true} initialTool={initialTool}>
       <Chat
         key={id}
         id={id}
@@ -47,6 +50,24 @@ export function ChatPage({ id }: { id: string }) {
     );
   }, [messages]);
 
+  const initialTool = useMemo<UiToolName | null>(() => {
+    const lastAssistantMessage = messages?.findLast(
+      (m) => m.role === 'assistant',
+    );
+    if (!lastAssistantMessage || !Array.isArray(lastAssistantMessage.parts))
+      return null;
+    for (const part of lastAssistantMessage.parts as any[]) {
+      if (
+        part?.type === 'tool-deepResearch' &&
+        part?.state === 'output-available' &&
+        part?.output?.format === 'clarifying_questions'
+      ) {
+        return 'deepResearch';
+      }
+    }
+    return null;
+  }, [messages]);
+
   if (!id) {
     return notFound();
   }
@@ -61,6 +82,7 @@ export function ChatPage({ id }: { id: string }) {
         id={chat.id}
         initialMessages={initialThreadMessages}
         isReadonly={false}
+        initialTool={initialTool}
       />
     </>
   );

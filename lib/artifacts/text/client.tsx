@@ -13,6 +13,10 @@ import {
 import type { Suggestion } from '@/lib/db/schema';
 import { toast } from 'sonner';
 import { chatStore } from '@/lib/stores/chat-store';
+import {
+  DEFAULT_POLISH_TEXT_MODEL,
+  DEFAULT_SUGGESTIONS_MODEL,
+} from '@/lib/ai/all-models';
 
 interface TextArtifactMetadata {
   suggestions: Array<Suggestion>;
@@ -181,7 +185,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
             },
           ],
           metadata: {
-            selectedModel: 'gpt-4o',
+            selectedModel: DEFAULT_POLISH_TEXT_MODEL,
             createdAt: new Date(),
             parentMessageId: chatStore.getState().getLastMessageId(),
           },
@@ -201,7 +205,7 @@ export const textArtifact = new Artifact<'text', TextArtifactMetadata>({
             },
           ],
           metadata: {
-            selectedModel: 'openai/gpt-4o',
+            selectedModel: DEFAULT_SUGGESTIONS_MODEL,
             createdAt: new Date(),
             parentMessageId: chatStore.getState().getLastMessageId(),
           },

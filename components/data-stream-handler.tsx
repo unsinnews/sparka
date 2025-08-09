@@ -2,7 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { artifactDefinitions } from './artifact';
 import type { Suggestion } from '@/lib/db/schema';
-import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
+import { useArtifact } from '@/hooks/use-artifact';
 import { useSaveDocument } from '@/hooks/chat-sync-hooks';
 import { useSession } from 'next-auth/react';
 import { useDataStream } from './data-stream-provider';
@@ -66,10 +66,6 @@ export function DataStreamHandler({ id }: { id: string }) {
       }
 
       setArtifact((draftArtifact) => {
-        if (!draftArtifact) {
-          return { ...initialArtifactData, status: 'streaming' };
-        }
-
         switch (delta.type) {
           case 'data-id':
             return {

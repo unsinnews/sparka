@@ -16,6 +16,7 @@ import {
   type ConsoleOutputContent,
 } from '@/components/console';
 import { chatStore } from '@/lib/stores/chat-store';
+import { DEFAULT_CODE_EDITS_MODEL } from '@/lib/ai/all-models';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
@@ -282,7 +283,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
             },
           ],
           metadata: {
-            selectedModel: 'gpt-4o',
+            selectedModel: DEFAULT_CODE_EDITS_MODEL,
             createdAt: new Date(),
             parentMessageId: chatStore.getState().getLastMessageId(),
           },
@@ -302,7 +303,7 @@ export const codeArtifact = new Artifact<'code', Metadata>({
             },
           ],
           metadata: {
-            selectedModel: 'gpt-4o',
+            selectedModel: DEFAULT_CODE_EDITS_MODEL,
             createdAt: new Date(),
             parentMessageId: chatStore.getState().getLastMessageId(),
           },

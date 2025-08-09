@@ -18,11 +18,27 @@ export const requestSuggestions = ({
   dataStream,
 }: RequestSuggestionsProps) =>
   tool({
-    description: 'Request suggestions for a document',
+    description: `Generate concrete writing-improvement suggestions for an existing document without applying the edits.
+
+Use for:
+- The user asks to improve, tighten, rephrase, or fix grammar/style of an existing document
+- You want critique/suggestions rather than modifying the document content yourself
+- There is a stored document and you know its ID
+
+Avoid:
+- Creating new content (use createDocument)
+- Directly changing the document (use updateDocument)
+- When no document exists or the ID is unknown (read or create the document first)
+
+Behavior:
+- Produces up to 5 suggestions, each with originalSentence, suggestedSentence (a full rewritten sentence), and a short description/rationale
+- Streams suggestions to the UI and persists them for later review`,
     inputSchema: z.object({
       documentId: z
         .string()
-        .describe('The ID of the document to request edits'),
+        .describe(
+          'ID of the existing document to critique and propose rewritten sentences for',
+        ),
     }),
     execute: async ({ documentId }) => {
       const document = await getDocumentById({ id: documentId });

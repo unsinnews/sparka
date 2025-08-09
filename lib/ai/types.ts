@@ -15,6 +15,7 @@ import type { ArtifactKind } from '../artifacts/artifact-kind';
 import type { Suggestion } from '@/lib/db/schema';
 import type { ResearchUpdate } from './tools/research-updates-schema';
 import type { createDocumentTool as createDocument } from './tools/create-document';
+import type { ModelId } from './model-id';
 
 export const toolNameSchema = z.enum([
   'getWeather',
@@ -47,7 +48,7 @@ export type UiToolName = z.infer<typeof frontendToolsSchema>;
 export const messageMetadataSchema = z.object({
   createdAt: z.date(),
   parentMessageId: z.string().nullable(),
-  selectedModel: z.string(),
+  selectedModel: z.custom<ModelId>((val) => typeof val === 'string'),
   isPartial: z.boolean().optional(),
   selectedTool: frontendToolsSchema.optional(),
 });

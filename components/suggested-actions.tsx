@@ -3,13 +3,14 @@
 import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { memo } from 'react';
+import type { ModelId } from '@/lib/ai/model-id';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
 
 interface SuggestedActionsProps {
   chatId: string;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-  selectedModelId: string;
+  selectedModelId: ModelId;
 }
 
 function PureSuggestedActions({

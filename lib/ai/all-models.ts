@@ -122,3 +122,10 @@ export const DEFAULT_IMAGE_MODEL: ImageModelId = 'openai/gpt-image-1';
 export const DEFAULT_CHAT_IMAGE_COMPATIBLE_MODEL: ModelId =
   'openai/gpt-4o-mini';
 export const DEFAULT_SUGGESTIONS_MODEL: ModelId = 'openai/gpt-5-mini';
+export const DEFAULT_POLISH_TEXT_MODEL: ModelId = 'openai/gpt-5-mini';
+export const DEFAULT_FORMAT_AND_CLEAN_SHEET_MODEL: ModelId =
+  'openai/gpt-5-mini';
+export const DEFAULT_ANALYZE_AND_VISUALIZE_SHEET_MODEL: ModelId =
+  'openai/gpt-5-mini';
+
+export const DEFAULT_CODE_EDITS_MODEL: ModelId = 'openai/gpt-5-mini';

@@ -10,7 +10,7 @@ import {
 import type { UIArtifact } from '@/components/artifact';
 import type { ReactNode } from 'react';
 
-export const initialArtifactData: UIArtifact = {
+const initialArtifactData: UIArtifact = {
   documentId: 'init',
   content: '',
   kind: 'text',
@@ -53,7 +53,7 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
   const [metadataStore, setMetadataStore] = useState<Record<
     string,
     any
-  > | null>(null);
+  > | null>(initialArtifactData);
 
   console.log('metadataStore', metadataStore);
 
@@ -138,13 +138,37 @@ export function useArtifact() {
     [artifact.documentId, setMetadataStore],
   );
 
+  const resetArtifact = useCallback(() => {
+    setArtifact(initialArtifactData);
+  }, [setArtifact]);
+
+  const closeArtifact = useCallback(() => {
+    setArtifact((currentArtifact) =>
+      currentArtifact.status === 'streaming'
+        ? {
+            ...currentArtifact,
+            isVisible: false,
+          }
+        : { ...initialArtifactData, status: 'idle' },
+    );
+  }, [setArtifact]);
+
   return useMemo(
     () => ({
       artifact,
       setArtifact,
+      resetArtifact,
+      closeArtifact,
       metadata,
       setMetadata,
     }),
-    [artifact, setArtifact, metadata, setMetadata],
+    [
+      artifact,
+      setArtifact,
+      metadata,
+      setMetadata,
+      resetArtifact,
+      closeArtifact,
+    ],
   );
 }

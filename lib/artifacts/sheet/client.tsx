@@ -7,6 +7,10 @@ import {
   UndoIcon,
 } from '@/components/icons';
 import { SpreadsheetEditor } from '@/components/sheet-editor';
+import {
+  DEFAULT_ANALYZE_AND_VISUALIZE_SHEET_MODEL,
+  DEFAULT_FORMAT_AND_CLEAN_SHEET_MODEL,
+} from '@/lib/ai/all-models';
 import { parse, unparse } from 'papaparse';
 import { toast } from 'sonner';
 import { chatStore } from '@/lib/stores/chat-store';
@@ -103,7 +107,7 @@ export const sheetArtifact = new Artifact<'sheet', Metadata>({
             { type: 'text', text: 'Can you please format and clean the data?' },
           ],
           metadata: {
-            selectedModel: 'gpt-4o',
+            selectedModel: DEFAULT_FORMAT_AND_CLEAN_SHEET_MODEL,
             createdAt: new Date(),
             parentMessageId: chatStore.getState().getLastMessageId(),
           },
@@ -123,7 +127,7 @@ export const sheetArtifact = new Artifact<'sheet', Metadata>({
             },
           ],
           metadata: {
-            selectedModel: 'gpt-4o',
+            selectedModel: DEFAULT_ANALYZE_AND_VISUALIZE_SHEET_MODEL,
             createdAt: new Date(),
             parentMessageId: chatStore.getState().getLastMessageId(),
           },

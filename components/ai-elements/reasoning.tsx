@@ -7,10 +7,11 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { BrainIcon, ChevronDownIcon } from 'lucide-react';
-import type { ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { createContext, memo, useContext, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Response } from './response';
+import { TextShimmerLoader } from '../ui/loader';
 
 type ReasoningContextValue = {
   isStreaming: boolean;
@@ -134,10 +135,15 @@ export const ReasoningTrigger = memo(
         {children ?? (
           <>
             <BrainIcon className="size-4" />
-            {isStreaming || duration === 0 ? (
-              <p>Thinking...</p>
+
+            {/* isStreaming || duration === 0 fails when the apart is empty */}
+            {isStreaming ? (
+              // Note: Modified from AI-Elements by adding shimmer text
+              <TextShimmerLoader text="Thinking..." className="text-base" />
             ) : (
-              <p>Thought for {duration} seconds</p>
+              <p className="text-base font-medium">
+                Thought for {duration} seconds
+              </p>
             )}
             <ChevronDownIcon
               className={cn(
@@ -152,11 +158,32 @@ export const ReasoningTrigger = memo(
   },
 );
 
+export type ReasoningContentContainerProps = ComponentProps<
+  typeof CollapsibleContent
+> & {
+  children: ReactNode;
+};
+
 export type ReasoningContentProps = ComponentProps<
   typeof CollapsibleContent
 > & {
   children: string;
 };
+
+export const ReasoningContentContainer = memo(
+  ({ className, children, ...props }: ReasoningContentContainerProps) => (
+    <CollapsibleContent
+      className={cn(
+        'mt-4 text-sm',
+        'text-popover-foreground outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-top-2 data-[state=open]:slide-in-from-top-2',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </CollapsibleContent>
+  ),
+);
 
 export const ReasoningContent = memo(
   ({ className, children, ...props }: ReasoningContentProps) => (
@@ -173,6 +200,7 @@ export const ReasoningContent = memo(
   ),
 );
 
+ReasoningContentContainer.displayName = 'ReasoningContentWrapper';
 Reasoning.displayName = 'Reasoning';
 ReasoningTrigger.displayName = 'ReasoningTrigger';
 ReasoningContent.displayName = 'ReasoningContent';

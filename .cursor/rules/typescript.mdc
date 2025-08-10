@@ -1,9 +1,8 @@
 ---
-description: 
-globs: 
+description: Typescript rules for the project
+globs: *.tsx,*.ts
 alwaysApply: false
 ---
-
 ## Typing Guidelines
 - Avoid `any` at all cost. The types should work or they indicate a problem.
 

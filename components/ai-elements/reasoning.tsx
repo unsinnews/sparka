@@ -141,9 +141,7 @@ export const ReasoningTrigger = memo(
               // Note: Modified from AI-Elements by adding shimmer text
               <TextShimmerLoader text="Thinking..." className="text-base" />
             ) : (
-              <p className="text-base font-medium">
-                Thought for {duration} seconds
-              </p>
+              <p className="text-base font-medium">Thought for a few seconds</p>
             )}
             <ChevronDownIcon
               className={cn(

@@ -12,10 +12,7 @@ interface MessageReasoningProps {
   reasoning: string[];
 }
 
-export function MessageReasoning({
-  isLoading,
-  reasoning,
-}: MessageReasoningProps) {
+function PureMessageReasoning({ isLoading, reasoning }: MessageReasoningProps) {
   return (
     <Reasoning isStreaming={isLoading} className="mb-0">
       <ReasoningTrigger data-testid="message-reasoning-toggle " />
@@ -42,3 +39,5 @@ const MultiReasoningContent = memo(function MultiReasoningContent({
     </div>
   );
 });
+
+export const MessageReasoning = memo(PureMessageReasoning);

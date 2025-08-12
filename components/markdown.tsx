@@ -16,7 +16,7 @@ function extractLanguage(className?: string): string {
   return match ? match[1] : 'plaintext';
 }
 
-const components: Partial<Components> = {
+export const components: Partial<Components> = {
   code: function CodeComponent({ className, children, ...props }) {
     const isInline =
       !props.node?.position?.start.line ||
@@ -68,9 +68,23 @@ const components: Partial<Components> = {
   },
   ul: ({ node, children, ...props }) => {
     return (
-      <ul className="list-decimal list-outside ml-4" {...props}>
+      <ul className="list-disc list-outside ml-4" {...props}>
         {children}
       </ul>
+    );
+  },
+  blockquote: ({ node, children, ...props }) => {
+    return (
+      <blockquote
+        className={cn(
+          'my-4 border-l-2 border-border pl-4',
+          'text-muted-foreground',
+          '[&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+        )}
+        {...props}
+      >
+        {children}
+      </blockquote>
     );
   },
   strong: ({ node, children, ...props }) => {

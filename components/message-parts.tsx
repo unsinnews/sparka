@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { Markdown } from './markdown';
+import { Response } from './ai-elements/response';
 import { Weather } from './weather';
 import { DocumentPreview } from './document-preview';
 import { DocumentToolCall, DocumentToolResult } from './document';
@@ -133,7 +133,7 @@ export function PureMessageParts({
     if (type === 'text') {
       return (
         <div key={key} className="flex flex-col gap-4 w-full">
-          <Markdown>{part.text}</Markdown>
+          <Response>{part.text}</Response>
         </div>
       );
     }

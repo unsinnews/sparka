@@ -10,7 +10,7 @@ import remarkMath from 'remark-math';
 import { cn } from '@/lib/utils';
 import 'katex/dist/katex.min.css';
 import hardenReactMarkdown from 'harden-react-markdown';
-
+import { components as markdownComponents } from '../markdown';
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering
  * of links, images, bold, and italic formatting during streaming.
@@ -318,3 +318,47 @@ export const Response = memo(
 );
 
 Response.displayName = 'Response';
+
+export const StyledResponse = memo(
+  ({
+    className,
+    options,
+    children,
+    allowedImagePrefixes,
+    allowedLinkPrefixes,
+    defaultOrigin,
+    parseIncompleteMarkdown: shouldParseIncompleteMarkdown = true,
+    ...props
+  }: ResponseProps) => {
+    // Parse the children to remove incomplete markdown tokens if enabled
+    const parsedChildren =
+      typeof children === 'string' && shouldParseIncompleteMarkdown
+        ? parseIncompleteMarkdown(children)
+        : children;
+
+    return (
+      <div
+        className={cn(
+          'size-full [&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+          className,
+        )}
+        {...props}
+      >
+        <HardenedMarkdown
+          components={markdownComponents}
+          rehypePlugins={[rehypeKatex]}
+          remarkPlugins={[remarkGfm, remarkMath]}
+          allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
+          allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
+          defaultOrigin={defaultOrigin}
+          {...options}
+        >
+          {parsedChildren}
+        </HardenedMarkdown>
+      </div>
+    );
+  },
+  (prevProps, nextProps) => prevProps.children === nextProps.children,
+);
+
+StyledResponse.displayName = 'StyedResponse';

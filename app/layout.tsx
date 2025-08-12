@@ -72,13 +72,18 @@ export default async function RootLayout({
       suppressHydrationWarning
       className={`${geist.variable} ${geistMono.variable}`}
     >
-      {/* <ReactScan /> */}
       <head>
         <script
           dangerouslySetInnerHTML={{
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+        {process.env.NODE_ENV !== 'production' ? (
+          <Script
+            src="https://unpkg.com/react-scan/dist/auto.global.js"
+            strategy="beforeInteractive"
+          />
+        ) : null}
       </head>
       <body className="antialiased">
         <Script

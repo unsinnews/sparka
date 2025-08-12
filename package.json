@@ -129,7 +129,6 @@
     "react-hook-form": "^7.55.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.1.7",
-    "react-scan": "^0.4.3",
     "react-syntax-highlighter": "^15.6.1",
     "react-tweet": "^3.2.2",
     "redis": "^5.5.6",

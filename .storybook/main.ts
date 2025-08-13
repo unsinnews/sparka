@@ -10,7 +10,7 @@ const config: StorybookConfig = {
   docs: {},
   typescript: {
     // Use project tsconfig for path aliases
-    reactDocgen: 'react-docgen-typescript',
+    // reactDocgen: 'react-docgen-typescript',
   },
 };
 

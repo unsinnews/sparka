@@ -93,10 +93,57 @@ alert(message);
 
 This web site is using \`markedjs/marked\`.
 
+## Horizontal Rule
+
+Above
+
+---
+
+Below
+
 `;
 
 export const Default: Story = {
   args: {
     children: sampleMarkdown,
+  },
+};
+
+const sampleGfmMarkdown = `
+# GFM extensions demo
+
+## Strikethrough
+
+This is ~~struck through~~ but this is not.
+
+## Task lists
+
+- [x] Completed item
+- [ ] Incomplete item
+  - [x] Nested complete
+  - [ ] Nested incomplete
+
+## Tables with alignment
+
+| Left align | Center align | Right align |
+|:-----------|:------------:|------------:|
+| left       |   center     |       right |
+| foo        |     bar      |         baz |
+
+## Autolink literals
+
+Visit https://example.com or www.example.com and email <user@example.com>.
+
+## Footnotes
+
+Here is a reference to a footnote.[^1] Another one with inline code[^code].
+
+[^1]: This is the footnote definition supporting full markdown.
+[^code]: Footnote with \`inline code\` and a [link](https://example.com).
+`;
+
+export const GFM: Story = {
+  args: {
+    children: sampleGfmMarkdown,
   },
 };

@@ -87,6 +87,17 @@ export const components: Partial<Components> = {
       </blockquote>
     );
   },
+  hr: ({ node, ...props }) => {
+    return (
+      <hr
+        className={cn(
+          'my-6 border-border',
+          (props as { className?: string }).className,
+        )}
+        {...props}
+      />
+    );
+  },
   strong: ({ node, children, ...props }) => {
     return (
       <span className="font-semibold" {...props}>

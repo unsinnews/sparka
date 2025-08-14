@@ -4,20 +4,18 @@ import { motion } from 'motion/react';
 import { Button } from './ui/button';
 import { memo } from 'react';
 import type { ModelId } from '@/lib/ai/model-id';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ChatMessage } from '@/lib/ai/types';
+import { useSendMessage } from '@/lib/stores/chat-store';
 
 interface SuggestedActionsProps {
   chatId: string;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   selectedModelId: ModelId;
 }
 
 function PureSuggestedActions({
   chatId,
-  sendMessage,
   selectedModelId,
 }: SuggestedActionsProps) {
+  const sendMessage = useSendMessage();
   const suggestedActions = [
     {
       title: 'What are the advantages',
@@ -58,6 +56,8 @@ function PureSuggestedActions({
           <Button
             variant="ghost"
             onClick={async () => {
+              if (!sendMessage) return;
+
               window.history.replaceState({}, '', `/chat/${chatId}`);
 
               sendMessage(

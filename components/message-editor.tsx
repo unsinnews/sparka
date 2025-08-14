@@ -2,7 +2,6 @@
 import {
   type Dispatch,
   type SetStateAction,
-  useState,
   useEffect,
   useRef,
   useCallback,
@@ -14,24 +13,22 @@ import {
   getAttachmentsFromMessage,
   getTextContentFromMessage,
 } from '@/lib/utils';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ModelId } from '@/lib/ai/model-id';
+import { useChatStatus } from '@/lib/stores/chat-store';
 
 export type MessageEditorProps = {
   chatId: string;
   message: ChatMessage;
   setMode: Dispatch<SetStateAction<'view' | 'edit'>>;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   parentMessageId: string | null;
 };
 
 function MessageEditorContent({
   chatId,
   setMode,
-  sendMessage,
   parentMessageId,
 }: MessageEditorProps & { onModelChange?: (modelId: string) => void }) {
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const status = useChatStatus();
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -52,31 +49,19 @@ function MessageEditorContent({
     };
   }, [setMode]);
 
-  const handleAppend = useCallback(
-    async (
-      message: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>[0],
-      options?: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>[1],
-    ) => {
-      setIsSubmitting(true);
-
+  const handleOnSendMessage = useCallback(
+    (_: ChatMessage) => {
       setMode('view');
-
-      // Save the message manually to keep local state in sync
-      const res = await sendMessage(message, options);
-
-      setIsSubmitting(false);
-      return res;
     },
-    [setIsSubmitting, setMode, sendMessage],
+    [setMode],
   );
 
   return (
     <div ref={containerRef} className="w-full">
       <MultimodalInput
         chatId={chatId}
-        status={isSubmitting ? 'submitted' : 'ready'}
-        stop={() => setIsSubmitting(false)}
-        sendMessage={handleAppend}
+        status={status}
+        onSendMessage={handleOnSendMessage}
         isEditMode={true}
         parentMessageId={parentMessageId}
       />

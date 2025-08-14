@@ -12,6 +12,7 @@ import {
   chatStore,
   useSetMessages,
   useMessageIds,
+  useSendMessage,
 } from '@/lib/stores/chat-store';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
@@ -44,19 +45,17 @@ import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
 function PureMultimodalInput({
   chatId,
   status,
-  stop,
-  sendMessage,
   className,
   isEditMode = false,
   parentMessageId,
+  onSendMessage,
 }: {
   chatId: string;
   status: UseChatHelpers<ChatMessage>['status'];
-  stop: () => void;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   isEditMode?: boolean;
   parentMessageId: string | null;
+  onSendMessage?: (message: ChatMessage) => void | Promise<void>;
 }) {
   const { width } = useWindowSize();
   const { data: session } = useSession();
@@ -80,6 +79,8 @@ function PureMultimodalInput({
     isEmpty,
     handleSubmit,
   } = useChatInput();
+
+  const sendMessage = useSendMessage();
 
   // Helper function to auto-switch to PDF-compatible model
   const switchToPdfCompatibleModel = useCallback(() => {
@@ -169,6 +170,8 @@ function PureMultimodalInput({
 
   const coreSubmitLogic = useCallback(() => {
     const input = getInputValue();
+    if (!sendMessage) return;
+
     // For new chats, we need to update the url to include the chatId
     if (window.location.pathname === '/') {
       window.history.pushState({}, '', `/chat/${chatId}`);
@@ -221,10 +224,9 @@ function PureMultimodalInput({
       role: 'user',
     };
 
-    saveChatMessage({
-      message,
-      chatId,
-    });
+    void onSendMessage?.(message);
+
+    saveChatMessage({ message, chatId });
 
     sendMessage(message);
 
@@ -245,6 +247,7 @@ function PureMultimodalInput({
     selectedModelId,
     setMessages,
     editorRef,
+    onSendMessage,
   ]);
 
   const submitForm = useCallback(() => {
@@ -430,11 +433,7 @@ function PureMultimodalInput({
         attachments.length === 0 &&
         uploadQueue.length === 0 &&
         !isEditMode && (
-          <SuggestedActions
-            sendMessage={sendMessage}
-            chatId={chatId}
-            selectedModelId={selectedModelId}
-          />
+          <SuggestedActions chatId={chatId} selectedModelId={selectedModelId} />
         )}
 
       {!isEditMode && <CreditLimitDisplay />}
@@ -545,7 +544,7 @@ function PureMultimodalInput({
             <div className="flex gap-2">
               <AttachmentsButton fileInputRef={fileInputRef} status={status} />
               {status !== 'ready' ? (
-                <StopButton stop={stop} />
+                <StopButton />
               ) : (
                 <SendButton
                   isEmpty={isEmpty}
@@ -613,19 +612,14 @@ function PureAttachmentsButton({
 
 const AttachmentsButton = memo(PureAttachmentsButton);
 
-function PureStopButton({
-  stop,
-}: {
-  stop: () => void;
-}) {
+function PureStopButton() {
   return (
     <Button
       data-testid="stop-button"
       className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
-        stop();
-        // No need to call setMessages here as we're just stopping
+        void chatStore.getState().currentChatHelpers?.stop?.();
       }}
     >
       <StopIcon size={14} />

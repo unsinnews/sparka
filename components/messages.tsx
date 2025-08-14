@@ -1,7 +1,6 @@
 import { PreviewMessage } from './message';
 import { memo } from 'react';
 import type { Vote } from '@/lib/db/schema';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import { ResponseErrorMessage } from './response-error-message';
 import { ThinkingMessage } from './thinking-message';
 import { cn } from '@/lib/utils';
@@ -10,7 +9,6 @@ import { useStickToBottom } from 'use-stick-to-bottom';
 import { Button } from './ui/button';
 import { ArrowDown } from 'lucide-react';
 import { Greeting } from './greeting';
-import type { ChatMessage } from '@/lib/ai/types';
 import {
   useChatId,
   useChatStatus,
@@ -19,15 +17,11 @@ import {
 
 interface PureMessagesInternalProps {
   votes: Array<Vote> | undefined;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-  regenerate: (options?: any) => void;
   isReadonly: boolean;
 }
 
 const PureMessagesInternal = memo(function PureMessagesInternal({
   votes,
-  sendMessage,
-  regenerate,
   isReadonly,
 }: PureMessagesInternalProps) {
   const chatId = useChatId();
@@ -56,7 +50,6 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
               : undefined
           }
           parentMessageId={index > 0 ? messageIds[index - 1] : null}
-          sendMessage={sendMessage}
           isReadonly={isReadonly}
         />
       ))}
@@ -66,7 +59,7 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
         <ThinkingMessage />
       )}
 
-      {status === 'error' && <ResponseErrorMessage regenerate={regenerate} />}
+      {status === 'error' && <ResponseErrorMessage />}
 
       <div className="shrink-0 min-w-[24px] min-h-[24px]" />
     </>
@@ -75,20 +68,12 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
 
 export interface MessagesProps {
   votes: Array<Vote> | undefined;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-  regenerate: (options?: any) => void;
   isReadonly: boolean;
   isVisible: boolean;
   onModelChange?: (modelId: string) => void;
 }
 
-function PureMessages({
-  votes,
-  sendMessage,
-  regenerate,
-  isReadonly,
-  isVisible,
-}: MessagesProps) {
+function PureMessages({ votes, isReadonly, isVisible }: MessagesProps) {
   const { scrollRef, contentRef, scrollToBottom, isNearBottom, state } =
     useStickToBottom();
 
@@ -102,12 +87,7 @@ function PureMessages({
         ref={contentRef}
         className="flex flex-col px-2 sm:px-4 min-w-0 gap-6 pt-4 sm:max-w-2xl md:max-w-3xl container mx-auto h-full"
       >
-        <PureMessagesInternal
-          votes={votes}
-          sendMessage={sendMessage}
-          regenerate={regenerate}
-          isReadonly={isReadonly}
-        />
+        <PureMessagesInternal votes={votes} isReadonly={isReadonly} />
       </div>
       {/* Scroll to bottom button */}
       <ScrollToBottomButton
@@ -123,8 +103,6 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
   // NOTE: isVisible avoids re-renders when the messages aren't visible
   if (prevProps.isVisible !== nextProps.isVisible) return false;
-  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
-  if (prevProps.regenerate !== nextProps.regenerate) return false;
 
   return true;
 });

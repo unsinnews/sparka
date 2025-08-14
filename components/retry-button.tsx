@@ -3,18 +3,16 @@ import { RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from './ui/button';
-import type { ChatMessage } from '@/lib/ai/types';
-import { useSetMessages, chatStore } from '@/lib/stores/chat-store';
-import type { UseChatHelpers } from '@ai-sdk/react';
+// ChatMessage type not needed directly here
+import {
+  useSetMessages,
+  chatStore,
+  useSendMessage,
+} from '@/lib/stores/chat-store';
 
-export function RetryButton({
-  messageId,
-  sendMessage,
-}: {
-  messageId: string;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-}) {
+export function RetryButton({ messageId }: { messageId: string }) {
   const setMessages = useSetMessages();
+  const sendMessage = useSendMessage();
 
   const handleRetry = useCallback(() => {
     if (!sendMessage) {

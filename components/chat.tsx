@@ -42,26 +42,7 @@ export function Chat({
       if (!helpers?.stop) return;
       return helpers.stop();
     }, []);
-  const stopSync: () => void = useCallback(() => {
-    const helpers = chatStore.getState().currentChatHelpers;
-    void helpers?.stop?.();
-  }, []);
-  const sendMessage: UseChatHelpers<ChatMessage>['sendMessage'] = useCallback(
-    async (...args: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>) => {
-      const fn = chatStore.getState().currentChatHelpers?.sendMessage;
-      if (!fn) throw new Error('Chat not ready');
-      return fn(...args);
-    },
-    [],
-  );
-  const regenerate: UseChatHelpers<ChatMessage>['regenerate'] = useCallback(
-    async (options?: any) => {
-      const helpers = chatStore.getState().currentChatHelpers;
-      if (!helpers?.regenerate) return;
-      return helpers.regenerate(options as any);
-    },
-    [],
-  );
+  // regenerate no longer needs to be drilled; components call the store directly
 
   const { data: votes } = useQuery({
     ...trpc.vote.getVotes.queryOptions({ chatId: id }),
@@ -89,8 +70,6 @@ export function Chat({
 
         <Messages
           votes={votes}
-          sendMessage={sendMessage}
-          regenerate={regenerate}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
         />
@@ -99,8 +78,6 @@ export function Chat({
           <MultimodalInput
             chatId={id}
             status={status}
-            stop={stopSync}
-            sendMessage={sendMessage}
             parentMessageId={chatStore.getState().getLastMessageId()}
           />
         ) : (
@@ -110,8 +87,6 @@ export function Chat({
 
       <Artifact
         chatId={id}
-        sendMessage={sendMessage}
-        regenerate={regenerate}
         status={status}
         stop={stopAsync}
         votes={votes}

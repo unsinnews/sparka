@@ -2,11 +2,7 @@ import { Button } from './ui/button';
 import { RefreshCcwIcon } from 'lucide-react';
 import { chatStore, useSetMessages } from '@/lib/stores/chat-store';
 
-interface ErrorMessageProps {
-  regenerate: (options?: any) => void;
-}
-
-export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
+export function ResponseErrorMessage() {
   const setMessages = useSetMessages();
 
   return (
@@ -31,7 +27,7 @@ export function ResponseErrorMessage({ regenerate }: ErrorMessageProps) {
             .getState()
             .messages.slice(0, -1);
           setMessages(messagesWithoutLastAssistant);
-          regenerate();
+          void chatStore.getState().currentChatHelpers?.regenerate?.();
         }}
         variant="outline"
         className=" "

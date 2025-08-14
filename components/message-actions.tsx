@@ -16,11 +16,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useMessageTree } from '@/providers/message-tree-provider';
-import type { UseChatHelpers } from '@ai-sdk/react';
 import { RetryButton } from './retry-button';
 import { memo } from 'react';
 import equal from 'fast-deep-equal';
-import type { ChatMessage } from '@/lib/ai/types';
 import { chatStore, useMessageRoleById } from '@/lib/stores/chat-store';
 
 export function PureMessageActions({
@@ -29,14 +27,12 @@ export function PureMessageActions({
   vote,
   isLoading,
   isReadOnly,
-  sendMessage,
 }: {
   chatId: string;
   messageId: string;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -198,13 +194,10 @@ export function PureMessageActions({
               </TooltipTrigger>
               <TooltipContent>Downvote Response</TooltipContent>
             </Tooltip>
-            {!isReadOnly && sendMessage && (
+            {!isReadOnly && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <RetryButton
-                    messageId={messageId}
-                    sendMessage={sendMessage}
-                  />
+                  <RetryButton messageId={messageId} />
                 </TooltipTrigger>
                 <TooltipContent>Retry</TooltipContent>
               </Tooltip>
@@ -238,7 +231,6 @@ export const MessageActions = memo(
     if (prevProps.messageId !== nextProps.messageId) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
-    if (prevProps.sendMessage !== nextProps.sendMessage) return false;
 
     return true;
   },

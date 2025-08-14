@@ -11,7 +11,6 @@ import {
   memo,
   type ReactNode,
   type SetStateAction,
-  useCallback,
   useEffect,
   useRef,
   useState,
@@ -32,9 +31,8 @@ import type { ArtifactKind } from '@/lib/artifacts/artifact-kind';
 import type { ArtifactToolbarItem } from './create-artifact';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { useChatInput } from '@/providers/chat-input-provider';
-import type { ChatRequestOptions } from 'ai';
 import type { ChatMessage } from '@/lib/ai/types';
-import { chatStore } from '@/lib/stores/chat-store';
+import { chatStore, useSendMessage } from '@/lib/stores/chat-store';
 
 type ToolProps = {
   description: string;
@@ -44,7 +42,6 @@ type ToolProps = {
   isToolbarVisible?: boolean;
   setIsToolbarVisible?: Dispatch<SetStateAction<boolean>>;
   isAnimating: boolean;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   onClick: ({
     sendMessage,
   }: {
@@ -60,9 +57,9 @@ const Tool = ({
   isToolbarVisible,
   setIsToolbarVisible,
   isAnimating,
-  sendMessage,
   onClick,
 }: ToolProps) => {
+  const sendMessage = useSendMessage();
   const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
@@ -87,7 +84,7 @@ const Tool = ({
       setSelectedTool(description);
     } else {
       setSelectedTool(null);
-      onClick({ sendMessage });
+      if (sendMessage) onClick({ sendMessage });
     }
   };
 
@@ -140,13 +137,12 @@ const randomArr = [...Array(6)].map((x) => nanoid(5));
 
 const ReadingLevelSelector = ({
   setSelectedTool,
-  sendMessage,
   isAnimating,
 }: {
   setSelectedTool: Dispatch<SetStateAction<string | null>>;
   isAnimating: boolean;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
 }) => {
+  const sendMessage = useSendMessage();
   const LEVELS = [
     'Elementary',
     'Middle School',
@@ -220,7 +216,7 @@ const ReadingLevelSelector = ({
             }}
             onClick={() => {
               if (currentLevel !== 2 && hasUserSelectedLevel) {
-                sendMessage({
+                sendMessage?.({
                   role: 'user',
                   parts: [
                     {
@@ -258,7 +254,6 @@ export const Tools = ({
   isToolbarVisible,
   selectedTool,
   setSelectedTool,
-  sendMessage,
   isAnimating,
   setIsToolbarVisible,
   tools,
@@ -266,7 +261,6 @@ export const Tools = ({
   isToolbarVisible: boolean;
   selectedTool: string | null;
   setSelectedTool: Dispatch<SetStateAction<string | null>>;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   isAnimating: boolean;
   setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
   tools: Array<ArtifactToolbarItem>;
@@ -289,7 +283,6 @@ export const Tools = ({
               icon={secondaryTool.icon}
               selectedTool={selectedTool}
               setSelectedTool={setSelectedTool}
-              sendMessage={sendMessage}
               isAnimating={isAnimating}
               onClick={secondaryTool.onClick}
             />
@@ -303,7 +296,6 @@ export const Tools = ({
         setSelectedTool={setSelectedTool}
         isToolbarVisible={isToolbarVisible}
         setIsToolbarVisible={setIsToolbarVisible}
-        sendMessage={sendMessage}
         isAnimating={isAnimating}
         onClick={primaryTool.onClick}
       />
@@ -314,7 +306,6 @@ export const Tools = ({
 const PureToolbar = ({
   isToolbarVisible,
   setIsToolbarVisible,
-  sendMessage,
   status,
   stop,
   artifactKind,
@@ -322,7 +313,6 @@ const PureToolbar = ({
   isToolbarVisible: boolean;
   setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
   status: UseChatHelpers<ChatMessage>['status'];
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   stop: UseChatHelpers<ChatMessage>['stop'];
   artifactKind: ArtifactKind;
 }) => {
@@ -333,28 +323,6 @@ const PureToolbar = ({
   const [isAnimating, setIsAnimating] = useState(false);
 
   const { selectedModelId } = useChatInput();
-
-  const append = useCallback(
-    (
-      message: Parameters<UseChatHelpers<ChatMessage>['sendMessage']>[0],
-      options?: ChatRequestOptions,
-    ) => {
-      return sendMessage(message, {
-        ...options,
-        // TODO: Data should come from default data
-        body: {
-          data: {
-            deepResearch: false,
-            webSearch: false,
-            reason: false,
-            generateImage: false,
-            writeOrCode: false,
-          },
-        },
-      });
-    },
-    [sendMessage, selectedModelId],
-  );
 
   useOnClickOutside(toolbarRef, () => {
     setIsToolbarVisible(false);
@@ -468,14 +436,12 @@ const PureToolbar = ({
         ) : selectedTool === 'adjust-reading-level' ? (
           <ReadingLevelSelector
             key="reading-level-selector"
-            sendMessage={append}
             setSelectedTool={setSelectedTool}
             isAnimating={isAnimating}
           />
         ) : (
           <Tools
             key="tools"
-            sendMessage={append}
             isAnimating={isAnimating}
             isToolbarVisible={isToolbarVisible}
             selectedTool={selectedTool}

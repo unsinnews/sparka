@@ -1176,6 +1176,10 @@ export const useMarkdownBlockByIndex = (
     state.getMarkdownBlockByIndex(messageId, partIdx, blockIdx),
   );
 
+// Selector for sendMessage helper
+export const useSendMessage = () =>
+  chatStore((state) => state.currentChatHelpers?.sendMessage);
+
 export class ZustandChat<
   UI_MESSAGE extends UIMessage,
 > extends AbstractChat<UI_MESSAGE> {

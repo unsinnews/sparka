@@ -11,8 +11,6 @@ import { SourcesAnnotations } from './message-annotations';
 import { AttachmentList } from './attachment-list';
 import { PartialMessageLoading } from './partial-message-loading';
 import { ImageModal } from './image-modal';
-import type { UseChatHelpers } from '@ai-sdk/react';
-import type { ChatMessage } from '@/lib/ai/types';
 import {
   useChatId,
   useMessageById,
@@ -25,7 +23,6 @@ interface BaseMessageProps {
   vote: Vote | undefined;
   isLoading: boolean;
   isReadonly: boolean;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   parentMessageId: string | null;
 }
 
@@ -34,7 +31,6 @@ const PureUserMessage = ({
   vote,
   isLoading,
   isReadonly,
-  sendMessage,
   parentMessageId,
 }: BaseMessageProps) => {
   const chatId = useChatId();
@@ -134,7 +130,6 @@ const PureUserMessage = ({
               chatId={chatId}
               message={message}
               setMode={setMode}
-              sendMessage={sendMessage}
               parentMessageId={parentMessageId}
             />
           </div>
@@ -148,7 +143,6 @@ const PureUserMessage = ({
             vote={vote}
             isLoading={isLoading}
             isReadOnly={isReadonly}
-            sendMessage={sendMessage}
           />
         </div>
       </div>
@@ -165,7 +159,6 @@ const PureUserMessage = ({
 const UserMessage = memo(PureUserMessage, (prevProps, nextProps) => {
   if (prevProps.messageId !== nextProps.messageId) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
-  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
   if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
   if (!equal(prevProps.vote, nextProps.vote)) return false;
   if (prevProps.isLoading !== nextProps.isLoading) return false;
@@ -178,7 +171,6 @@ const PureAssistantMessage = ({
   vote,
   isLoading,
   isReadonly,
-  sendMessage,
 }: Omit<BaseMessageProps, 'parentMessageId'>) => {
   const chatId = useChatId();
 
@@ -207,7 +199,6 @@ const PureAssistantMessage = ({
           vote={vote}
           isLoading={isLoading}
           isReadOnly={isReadonly}
-          sendMessage={sendMessage}
         />
       </div>
     </div>
@@ -219,7 +210,6 @@ const AssistantMessage = memo(PureAssistantMessage, (prevProps, nextProps) => {
   if (prevProps.vote !== nextProps.vote) return false;
   if (prevProps.isLoading !== nextProps.isLoading) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
-  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
 
   return true;
 });
@@ -229,7 +219,6 @@ const PurePreviewMessage = ({
   vote,
   isLoading,
   isReadonly,
-  sendMessage,
   parentMessageId,
 }: BaseMessageProps) => {
   const role = useMessageRoleById(messageId);
@@ -250,7 +239,6 @@ const PurePreviewMessage = ({
             vote={vote}
             isLoading={isLoading}
             isReadonly={isReadonly}
-            sendMessage={sendMessage}
             parentMessageId={parentMessageId}
           />
         ) : (
@@ -259,7 +247,6 @@ const PurePreviewMessage = ({
             vote={vote}
             isLoading={isLoading}
             isReadonly={isReadonly}
-            sendMessage={sendMessage}
           />
         )}
       </motion.div>
@@ -272,7 +259,6 @@ export const PreviewMessage = memo(
   (prevProps, nextProps) => {
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.messageId !== nextProps.messageId) return false;
-    if (prevProps.sendMessage !== nextProps.sendMessage) return false;
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.parentMessageId !== nextProps.parentMessageId) return false;
 

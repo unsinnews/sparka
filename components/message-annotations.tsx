@@ -4,12 +4,10 @@ import type {
   ResearchUpdate,
 } from '@/lib/ai/tools/research-updates-schema';
 import { Sources } from './sources';
-import type { ChatMessage } from '@/lib/ai/types';
+import { useMessagePartsById } from '@/lib/stores/chat-store';
 
-export const SourcesAnnotations = ({
-  parts,
-}: { parts?: ChatMessage['parts'] }) => {
-  if (!parts) return null;
+export const SourcesAnnotations = ({ messageId }: { messageId: string }) => {
+  const parts = useMessagePartsById(messageId);
 
   const researchUpdates = parts
     .filter((part) => part.type === 'data-researchUpdate')

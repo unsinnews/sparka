@@ -21,12 +21,11 @@ import { RetryButton } from './retry-button';
 import { memo } from 'react';
 import equal from 'fast-deep-equal';
 import type { ChatMessage } from '@/lib/ai/types';
-import { chatStore } from '@/lib/stores/chat-store';
+import { chatStore, useMessageRoleById } from '@/lib/stores/chat-store';
 
 export function PureMessageActions({
   chatId,
   messageId,
-  role,
   vote,
   isLoading,
   isReadOnly,
@@ -34,7 +33,6 @@ export function PureMessageActions({
 }: {
   chatId: string;
   messageId: string;
-  role: string;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
@@ -45,6 +43,7 @@ export function PureMessageActions({
   const [_, copyToClipboard] = useCopyToClipboard();
   const { data: session } = useSession();
   const { getMessageSiblingInfo, navigateToSibling } = useMessageTree();
+  const role = useMessageRoleById(messageId);
 
   const isAuthenticated = !!session?.user;
 
@@ -237,7 +236,6 @@ export const MessageActions = memo(
     if (!equal(prevProps.vote, nextProps.vote)) return false;
     if (prevProps.chatId !== nextProps.chatId) return false;
     if (prevProps.messageId !== nextProps.messageId) return false;
-    if (prevProps.role !== nextProps.role) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
     if (prevProps.sendMessage !== nextProps.sendMessage) return false;

@@ -2,7 +2,7 @@
 
 import { CodeBlock, CodeBlockCopyButton } from './code-block';
 import type { ComponentProps, HTMLAttributes } from 'react';
-import { memo } from 'react';
+import { memo, useId, useMemo } from 'react';
 import ReactMarkdown, { type Options } from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
@@ -11,6 +11,11 @@ import { cn } from '@/lib/utils';
 import 'katex/dist/katex.min.css';
 import hardenReactMarkdown from 'harden-react-markdown';
 import { components as markdownComponents } from '../markdown';
+import { marked } from 'marked';
+import {
+  useMarkdownBlockCountForPart,
+  useMarkdownBlockByIndex,
+} from '@/lib/stores/chat-store';
 /**
  * Parses markdown text and removes incomplete tokens to prevent partial rendering
  * of links, images, bold, and italic formatting during streaming.
@@ -160,7 +165,7 @@ const HardenedMarkdown = hardenReactMarkdown(ReactMarkdown);
 
 export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
   options?: Options;
-  children: Options['children'];
+  children?: Options['children'];
   allowedImagePrefixes?: ComponentProps<
     ReturnType<typeof hardenReactMarkdown>
   >['allowedImagePrefixes'];
@@ -171,7 +176,201 @@ export type ResponseProps = HTMLAttributes<HTMLDivElement> & {
     ReturnType<typeof hardenReactMarkdown>
   >['defaultOrigin'];
   parseIncompleteMarkdown?: boolean;
+  // Optional: drive from store using message/part ids instead of passing raw markdown
+  messageId?: string;
+  partIdx?: number;
 };
+
+function parseMarkdownIntoBlocks(markdown: string): string[] {
+  const tokens = marked.lexer(markdown);
+  return tokens.map((token) => token.raw);
+}
+
+const MemoizedHardenedMarkdownBlock = memo(
+  ({
+    content,
+    options,
+    allowedImagePrefixes,
+    allowedLinkPrefixes,
+    defaultOrigin,
+  }: {
+    content: string;
+    options?: Options;
+    allowedImagePrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedImagePrefixes'];
+    allowedLinkPrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedLinkPrefixes'];
+    defaultOrigin?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['defaultOrigin'];
+  }) => {
+    return (
+      <HardenedMarkdown
+        components={components}
+        rehypePlugins={[rehypeKatex]}
+        remarkPlugins={[remarkGfm, remarkMath]}
+        allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
+        allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
+        defaultOrigin={defaultOrigin}
+        {...options}
+      >
+        {content}
+      </HardenedMarkdown>
+    );
+  },
+  (prevProps, nextProps) => prevProps.content === nextProps.content,
+);
+
+MemoizedHardenedMarkdownBlock.displayName = 'MemoizedHardenedMarkdownBlock';
+
+const MemoizedHardenedMarkdown = memo(
+  ({
+    content,
+    id,
+    options,
+    allowedImagePrefixes,
+    allowedLinkPrefixes,
+    defaultOrigin,
+  }: {
+    content: string;
+    id: string;
+    options?: Options;
+    allowedImagePrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedImagePrefixes'];
+    allowedLinkPrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedLinkPrefixes'];
+    defaultOrigin?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['defaultOrigin'];
+  }) => {
+    const generatedId = useId();
+
+    const blocks = useMemo(() => parseMarkdownIntoBlocks(content), [content]);
+
+    return (
+      <>
+        {blocks.map((block, index) => (
+          <MemoizedHardenedMarkdownBlock
+            key={`${generatedId}-block_${index}`}
+            content={block}
+            options={options}
+            allowedImagePrefixes={allowedImagePrefixes}
+            allowedLinkPrefixes={allowedLinkPrefixes}
+            defaultOrigin={defaultOrigin}
+          />
+        ))}
+      </>
+    );
+  },
+);
+
+MemoizedHardenedMarkdown.displayName = 'MemoizedHardenedMarkdown';
+
+const ResponseBlocks = memo(
+  ({
+    messageId,
+    partIdx,
+    options,
+    allowedImagePrefixes,
+    allowedLinkPrefixes,
+    defaultOrigin,
+  }: {
+    messageId: string;
+    partIdx: number;
+    options?: Options;
+    allowedImagePrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedImagePrefixes'];
+    allowedLinkPrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedLinkPrefixes'];
+    defaultOrigin?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['defaultOrigin'];
+  }) => {
+    const blockCount = useMarkdownBlockCountForPart(messageId, partIdx);
+    return (
+      <>
+        {Array.from({ length: blockCount }, (_, index) => index).map(
+          (index) => (
+            <MarkdownBlockItem
+              key={`response-block-${index}`}
+              messageId={messageId}
+              partIdx={partIdx}
+              index={index}
+              options={options}
+              allowedImagePrefixes={allowedImagePrefixes}
+              allowedLinkPrefixes={allowedLinkPrefixes}
+              defaultOrigin={defaultOrigin}
+            />
+          ),
+        )}
+      </>
+    );
+  },
+  (prev, next) =>
+    prev.messageId === next.messageId &&
+    prev.partIdx === next.partIdx &&
+    prev.options === next.options &&
+    prev.allowedImagePrefixes === next.allowedImagePrefixes &&
+    prev.allowedLinkPrefixes === next.allowedLinkPrefixes &&
+    prev.defaultOrigin === next.defaultOrigin,
+);
+
+ResponseBlocks.displayName = 'ResponseBlocks';
+
+const MarkdownBlockItem = memo(
+  function MarkdownBlockItem({
+    messageId,
+    partIdx,
+    index,
+    options,
+    allowedImagePrefixes,
+    allowedLinkPrefixes,
+    defaultOrigin,
+  }: {
+    messageId: string;
+    partIdx: number;
+    index: number;
+    options?: Options;
+    allowedImagePrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedImagePrefixes'];
+    allowedLinkPrefixes?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['allowedLinkPrefixes'];
+    defaultOrigin?: ComponentProps<
+      ReturnType<typeof hardenReactMarkdown>
+    >['defaultOrigin'];
+  }) {
+    const block = useMarkdownBlockByIndex(messageId, partIdx, index);
+    if (block === null) return null;
+    return (
+      <MemoizedHardenedMarkdownBlock
+        key={`markdown-block-${index}`}
+        content={block}
+        options={options}
+        allowedImagePrefixes={allowedImagePrefixes}
+        allowedLinkPrefixes={allowedLinkPrefixes}
+        defaultOrigin={defaultOrigin}
+      />
+    );
+  },
+  (prev, next) =>
+    prev.messageId === next.messageId &&
+    prev.partIdx === next.partIdx &&
+    prev.index === next.index &&
+    prev.options === next.options &&
+    prev.allowedImagePrefixes === next.allowedImagePrefixes &&
+    prev.allowedLinkPrefixes === next.allowedLinkPrefixes &&
+    prev.defaultOrigin === next.defaultOrigin,
+);
+
+MarkdownBlockItem.displayName = 'MarkdownBlockItem';
 
 const components: Options['components'] = {
   ol: ({ node, children, className, ...props }) => (
@@ -284,11 +483,19 @@ export const Response = memo(
     allowedLinkPrefixes,
     defaultOrigin,
     parseIncompleteMarkdown: shouldParseIncompleteMarkdown = true,
+    messageId,
+    partIdx,
     ...props
   }: ResponseProps) => {
-    // Parse the children to remove incomplete markdown tokens if enabled
+    // Whether to render using store-driven markdown blocks
+    const useStoreBlocks =
+      typeof messageId === 'string' && typeof partIdx === 'number';
+
+    // Parse the children to remove incomplete markdown tokens if enabled (when not using store blocks)
     const parsedChildren =
-      typeof children === 'string' && shouldParseIncompleteMarkdown
+      !useStoreBlocks &&
+      typeof children === 'string' &&
+      shouldParseIncompleteMarkdown
         ? parseIncompleteMarkdown(children)
         : children;
 
@@ -300,21 +507,32 @@ export const Response = memo(
         )}
         {...props}
       >
-        <HardenedMarkdown
-          components={components}
-          rehypePlugins={[rehypeKatex]}
-          remarkPlugins={[remarkGfm, remarkMath]}
-          allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
-          allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
-          defaultOrigin={defaultOrigin}
-          {...options}
-        >
-          {parsedChildren}
-        </HardenedMarkdown>
+        {useStoreBlocks ? (
+          <ResponseBlocks
+            messageId={messageId as string}
+            partIdx={partIdx as number}
+            options={options}
+            allowedImagePrefixes={allowedImagePrefixes}
+            allowedLinkPrefixes={allowedLinkPrefixes}
+            defaultOrigin={defaultOrigin}
+          />
+        ) : (
+          <MemoizedHardenedMarkdown
+            id="response"
+            content={parsedChildren ?? ''}
+            options={options}
+            allowedImagePrefixes={allowedImagePrefixes}
+            allowedLinkPrefixes={allowedLinkPrefixes}
+            defaultOrigin={defaultOrigin}
+          />
+        )}
       </div>
     );
   },
-  (prevProps, nextProps) => prevProps.children === nextProps.children,
+  (prevProps, nextProps) =>
+    prevProps.children === nextProps.children &&
+    prevProps.messageId === nextProps.messageId &&
+    prevProps.partIdx === nextProps.partIdx,
 );
 
 Response.displayName = 'Response';

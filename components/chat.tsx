@@ -103,7 +103,7 @@ export function Chat({
     useChat<ChatMessage>({
       // @ts-expect-error #private property required but not really
       chat: chat,
-      experimental_throttle: 100,
+      experimental_throttle: 50,
     });
 
   console.log('messages', messages);
@@ -165,7 +165,6 @@ export function Chat({
         regenerate={regenerate}
         status={status}
         stop={stop}
-        messages={messages}
         votes={votes}
         isReadonly={isReadonly}
         isAuthenticated={!!session?.user}

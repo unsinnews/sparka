@@ -9,11 +9,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
 import { SourcesAnnotations } from './message-annotations';
 import { AttachmentList } from './attachment-list';
-import { Skeleton } from './ui/skeleton';
+import { PartialMessageLoading } from './partial-message-loading';
 import { ImageModal } from './image-modal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
-import { useChatId, useMessageById } from '@/lib/stores/chat-store';
+import {
+  useChatId,
+  useMessageById,
+  useMessageRoleById,
+} from '@/lib/stores/chat-store';
 import { MessageParts } from './message-parts';
 
 interface BaseMessageProps {
@@ -141,7 +145,6 @@ const PureUserMessage = ({
             key={`action-${message.id}`}
             chatId={chatId}
             messageId={message.id}
-            role={message.role}
             vote={vote}
             isLoading={isLoading}
             isReadOnly={isReadonly}
@@ -178,37 +181,29 @@ const PureAssistantMessage = ({
   sendMessage,
 }: Omit<BaseMessageProps, 'parentMessageId'>) => {
   const chatId = useChatId();
-  const message = useMessageById(messageId);
 
-  if (!chatId || !message) return null;
+  if (!chatId) return null;
 
   return (
     <div className="w-full">
       <div className="flex flex-col gap-4 w-full">
-        {message.metadata?.isPartial && message.parts.length === 0 && (
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-4 w-4/5 rounded-full" />
-            <Skeleton className="h-4 w-3/5 rounded-full" />
-            <Skeleton className="h-4 w-2/5 rounded-full" />
-          </div>
-        )}
+        <PartialMessageLoading messageId={messageId} />
 
         <MessageParts
-          message={message}
+          messageId={messageId}
           isLoading={isLoading}
           isReadonly={isReadonly}
         />
 
         <SourcesAnnotations
-          parts={message.parts}
-          key={`sources-annotations-${message.id}`}
+          key={`sources-annotations-${messageId}`}
+          messageId={messageId}
         />
 
         <MessageActions
-          key={`action-${message.id}`}
+          key={`action-${messageId}`}
           chatId={chatId}
-          messageId={message.id}
-          role={message.role}
+          messageId={messageId}
           vote={vote}
           isLoading={isLoading}
           isReadOnly={isReadonly}
@@ -237,19 +232,19 @@ const PurePreviewMessage = ({
   sendMessage,
   parentMessageId,
 }: BaseMessageProps) => {
-  const message = useMessageById(messageId);
-  if (!message) return null;
+  const role = useMessageRoleById(messageId);
+  if (!role) return null;
 
   return (
     <AnimatePresence>
       <motion.div
-        data-testid={`message-${message.role}`}
+        data-testid={`message-${role}`}
         className="w-full mx-auto max-w-3xl px-4 group/message"
         initial={{ y: 5, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        data-role={message.role}
+        data-role={role}
       >
-        {message.role === 'user' ? (
+        {role === 'user' ? (
           <UserMessage
             messageId={messageId}
             vote={vote}

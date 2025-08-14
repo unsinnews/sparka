@@ -110,19 +110,10 @@ function PureMessages({
         />
       </div>
       {/* Scroll to bottom button */}
-      <div className="absolute bottom-4 flex justify-center items-center w-full">
-        <Button
-          variant="outline"
-          size="icon"
-          className={cn(
-            'rounded-full shadow-lg bg-background/80 hover:bg-muted z-10',
-            isNearBottom && 'hidden',
-          )}
-          onClick={() => scrollToBottom()}
-        >
-          <ArrowDown className="size-4" />
-        </Button>
-      </div>
+      <ScrollToBottomButton
+        isNearButton={isNearBottom}
+        onClick={scrollToBottom}
+      />
     </ScrollArea>
   );
 }
@@ -137,3 +128,30 @@ export const Messages = memo(PureMessages, (prevProps, nextProps) => {
 
   return true;
 });
+
+const ScrollToBottomButton = memo(
+  function ScrollToBottomButton({
+    isNearButton,
+    onClick,
+  }: {
+    isNearButton: boolean;
+    onClick: () => void;
+  }) {
+    return (
+      <div className="absolute bottom-4 flex justify-center items-center w-full">
+        <Button
+          variant="outline"
+          size="icon"
+          className={cn(
+            'rounded-full shadow-lg bg-background/80 hover:bg-muted z-10',
+            isNearButton && 'hidden',
+          )}
+          onClick={onClick}
+        >
+          <ArrowDown className="size-4" />
+        </Button>
+      </div>
+    );
+  },
+  (prevProps, nextProps) => prevProps.isNearButton === nextProps.isNearButton,
+);

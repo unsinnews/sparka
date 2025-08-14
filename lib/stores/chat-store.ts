@@ -7,6 +7,7 @@ import {
   type ChatStatus,
   type UIMessage,
 } from 'ai';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
 import { throttle } from '@/components/throttle';
 import { marked } from 'marked';
@@ -206,6 +207,18 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
     messageId: string,
     partIdx: number,
   ) => UIMessageParts<UI_MESSAGE>[number];
+
+  // Helpers (moved from globals into the store)
+  currentChatHelpers: Pick<
+    UseChatHelpers<UI_MESSAGE>,
+    'stop' | 'sendMessage' | 'regenerate'
+  > | null;
+  setCurrentChatHelpers: (
+    helpers: Pick<
+      UseChatHelpers<UI_MESSAGE>,
+      'stop' | 'sendMessage' | 'regenerate'
+    >,
+  ) => void;
 }
 
 // Throttling configuration
@@ -354,6 +367,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           messages: initialMessages,
           status: 'ready',
           error: undefined,
+          currentChatHelpers: null,
 
           // Initialize cached values
           _cachedMessageIds: initialMessages.map((m) => m.id),
@@ -495,6 +509,10 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               ],
             }));
             throttledMessagesUpdater?.();
+          },
+
+          setCurrentChatHelpers: (helpers) => {
+            set({ currentChatHelpers: helpers });
           },
 
           getLastMessageId: () => {

@@ -49,13 +49,11 @@ function PureArtifact({
   regenerate,
   status,
   stop,
-  messages,
   votes,
   isReadonly,
   isAuthenticated,
 }: {
   chatId: string;
-  messages: Array<ChatMessage>;
   votes: Array<Vote> | undefined;
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   regenerate: UseChatHelpers<ChatMessage>['regenerate'];
@@ -497,7 +495,6 @@ export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
   if (prevProps.status !== nextProps.status) return false;
   if (prevProps.stop !== nextProps.stop) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
-  if (!equal(prevProps.messages, nextProps.messages.length)) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
   if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
 

@@ -134,26 +134,9 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   status: ChatStatus;
   error: Error | undefined;
 
-  // Cached selectors to prevent infinite loops
-  _cachedMessageIds: string[] | null;
   // Throttled messages cache
   _throttledMessages: UI_MESSAGE[] | null;
-  // Cache for derived part types per message id to keep selector snapshots stable
-  _cachedPartTypesById: Record<
-    string,
-    {
-      partsRef: UIMessageParts<UI_MESSAGE>;
-      types: Array<UIMessagePartType<UI_MESSAGE>>;
-    }
-  >;
-  // Cache for contiguous part ranges to stabilize selector snapshots
-  _cachedPartRangesById: Record<
-    string,
-    {
-      partsRef: UIMessageParts<UI_MESSAGE>;
-      ranges: Record<string, UIMessageParts<UI_MESSAGE>>;
-    }
-  >;
+  // Cached selectors to prevent infinite loops
 
   // Cache for markdown blocks per message id, keyed by part index and last-flag
   _cachedMarkdownBlocksById: Record<
@@ -239,37 +222,6 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           throttledMessagesUpdater = throttle(() => {
             const state = get();
             const nextThrottled = [...state.messages];
-            const newMessageIds = nextThrottled.map((msg) => msg.id);
-            const prevMessageIds = state._cachedMessageIds;
-            const idsChanged =
-              !prevMessageIds ||
-              prevMessageIds.length !== newMessageIds.length ||
-              prevMessageIds.some((id, idx) => id !== newMessageIds[idx]);
-            const nextCachedMessageIds = idsChanged
-              ? newMessageIds
-              : prevMessageIds;
-
-            const nextCachedPartTypes: Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                types: Array<UIMessagePartType<UI_MESSAGE>>;
-              }
-            > = { ...state._cachedPartTypesById };
-
-            const nextCachedPartRanges: Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                ranges: Record<string, UIMessageParts<UI_MESSAGE>>;
-              }
-            > = { ...state._cachedPartRangesById } as Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                ranges: Record<string, UIMessageParts<UI_MESSAGE>>;
-              }
-            >;
 
             const nextCachedMarkdownBlocks: Record<
               string,
@@ -299,18 +251,6 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               }
             >;
 
-            for (const existingId of Object.keys(nextCachedPartTypes)) {
-              if (!nextThrottled.some((m) => m.id === existingId)) {
-                delete nextCachedPartTypes[existingId];
-              }
-            }
-
-            for (const existingId of Object.keys(nextCachedPartRanges)) {
-              if (!nextThrottled.some((m) => m.id === existingId)) {
-                delete nextCachedPartRanges[existingId];
-              }
-            }
-
             for (const existingId of Object.keys(nextCachedMarkdownBlocks)) {
               if (!nextThrottled.some((m) => m.id === existingId)) {
                 delete nextCachedMarkdownBlocks[existingId];
@@ -323,24 +263,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             }
 
             for (const msg of nextThrottled) {
-              const current = nextCachedPartTypes[msg.id];
-              const { partsRef, types } = extractPartTypes<UI_MESSAGE>(msg);
-              if (!current) {
-                nextCachedPartTypes[msg.id] = { partsRef, types };
-              } else if (current.partsRef !== partsRef) {
-                nextCachedPartTypes[msg.id] = {
-                  partsRef,
-                  types: areArraysShallowEqual(current.types, types)
-                    ? current.types
-                    : types,
-                };
-              }
-
-              const currentRanges = nextCachedPartRanges[msg.id];
-              if (!currentRanges || currentRanges.partsRef !== partsRef) {
-                nextCachedPartRanges[msg.id] = { partsRef, ranges: {} };
-              }
-
+              const { partsRef } = extractPartTypes<UI_MESSAGE>(msg);
               const currentMarkdown = nextCachedMarkdownBlocks[msg.id];
               if (!currentMarkdown) {
                 nextCachedMarkdownBlocks[msg.id] = { partsRef, entries: {} };
@@ -354,9 +277,6 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
             set({
               _throttledMessages: nextThrottled,
-              _cachedMessageIds: nextCachedMessageIds as string[] | null,
-              _cachedPartTypesById: nextCachedPartTypes,
-              _cachedPartRangesById: nextCachedPartRanges,
               _cachedMarkdownBlocksById: nextCachedMarkdownBlocks,
               _cachedPartByIdxById: nextCachedPartByIdx,
             });
@@ -371,54 +291,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           currentChatHelpers: null,
 
           // Initialize cached values
-          _cachedMessageIds: initialMessages.map((m) => m.id),
           _throttledMessages: [...initialMessages],
-          _cachedPartTypesById: initialMessages.reduce(
-            (
-              acc,
-              msg,
-            ): Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                types: Array<UIMessagePartType<UI_MESSAGE>>;
-              }
-            > => {
-              const { partsRef, types } = extractPartTypes<UI_MESSAGE>(msg);
-              acc[msg.id] = { partsRef, types };
-              return acc;
-            },
-            {} as Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                types: Array<UIMessagePartType<UI_MESSAGE>>;
-              }
-            >,
-          ),
-          _cachedPartRangesById: initialMessages.reduce(
-            (
-              acc,
-              msg,
-            ): Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                ranges: Record<string, UIMessageParts<UI_MESSAGE>>;
-              }
-            > => {
-              const { partsRef } = extractPartTypes<UI_MESSAGE>(msg);
-              acc[msg.id] = { partsRef, ranges: {} };
-              return acc;
-            },
-            {} as Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                ranges: Record<string, UIMessageParts<UI_MESSAGE>>;
-              }
-            >,
-          ),
 
           _cachedMarkdownBlocksById: initialMessages.reduce(
             (
@@ -525,9 +398,8 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
           getMessageIds: () => {
             const state = get();
-            return (
-              state._cachedMessageIds ||
-              (state._throttledMessages || state.messages).map((m) => m.id)
+            return (state._throttledMessages || state.messages).map(
+              (m) => m.id,
             );
           },
 
@@ -543,37 +415,13 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
           getMessagePartTypesById: (messageId) => {
             const state = get();
-            const currentEntry = state._cachedPartTypesById[messageId];
             const message = (state._throttledMessages || state.messages).find(
               (msg) => msg.id === messageId,
             );
             if (!message)
               throw new Error(`Message not found for id: ${messageId}`);
-            const { partsRef, types } = extractPartTypes<UI_MESSAGE>(message);
-            if (!currentEntry) {
-              (
-                state._cachedPartTypesById as ChatStoreState<UI_MESSAGE>['_cachedPartTypesById']
-              )[messageId] = {
-                partsRef,
-                types,
-              } as unknown as ChatStoreState<UI_MESSAGE>['_cachedPartTypesById'][string];
-              return types as Array<UIMessagePartType<UI_MESSAGE>>;
-            }
-            if (currentEntry.partsRef === partsRef) {
-              return currentEntry.types as Array<UIMessagePartType<UI_MESSAGE>>;
-            }
-            const nextTypes = areArraysShallowEqual(currentEntry.types, types)
-              ? (currentEntry.types as Array<UIMessagePartType<UI_MESSAGE>>)
-              : (types as Array<UIMessagePartType<UI_MESSAGE>>);
-            (
-              state._cachedPartTypesById as ChatStoreState<UI_MESSAGE>['_cachedPartTypesById']
-            )[messageId] = {
-              partsRef,
-              types: nextTypes as unknown as Array<
-                UIMessagePartType<UI_MESSAGE>
-              >,
-            } as unknown as ChatStoreState<UI_MESSAGE>['_cachedPartTypesById'][string];
-            return nextTypes;
+            const { types } = extractPartTypes<UI_MESSAGE>(message);
+            return types as Array<UIMessagePartType<UI_MESSAGE>>;
           },
           getMessagePartsRangeCached: (messageId, startIdx, endIdx, type?) => {
             const state = get();
@@ -586,30 +434,8 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             const start = Math.max(0, Math.floor(startIdx));
             const end = Math.min(message.parts.length - 1, Math.floor(endIdx));
 
-            const { partsRef } = extractPartTypes<UI_MESSAGE>(message);
-            const entry = state._cachedPartRangesById[messageId];
-            const key = `${start}:${end}${
-              type !== undefined ? `|${String(type)}` : ''
-            }`;
-
-            if (entry && entry.partsRef === partsRef) {
-              const hit = entry.ranges[key];
-              if (hit)
-                return hit as unknown as ReturnType<
-                  ChatStoreState<UI_MESSAGE>['getMessagePartsRangeCached']
-                >;
-            }
-
             if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
               const empty = [] as unknown as UIMessageParts<UI_MESSAGE>;
-              const nextRanges = { ...(entry?.ranges || {}) } as Record<
-                string,
-                UIMessageParts<UI_MESSAGE>
-              >;
-              nextRanges[key] = empty;
-              (
-                state._cachedPartRangesById as ChatStoreState<UI_MESSAGE>['_cachedPartRangesById']
-              )[messageId] = { partsRef, ranges: nextRanges };
               return empty as unknown as ReturnType<
                 ChatStoreState<UI_MESSAGE>['getMessagePartsRangeCached']
               >;
@@ -623,20 +449,6 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
                     (p) => p.type === type,
                   ) as unknown as UIMessageParts<UI_MESSAGE>)
             ) as UIMessageParts<UI_MESSAGE>;
-
-            const nextRanges = { ...(entry?.ranges || {}) } as Record<
-              string,
-              UIMessageParts<UI_MESSAGE>
-            >;
-            nextRanges[key] = result as UIMessageParts<UI_MESSAGE>;
-
-            (
-              state._cachedPartRangesById as ChatStoreState<UI_MESSAGE>['_cachedPartRangesById']
-            )[messageId] = {
-              partsRef,
-              ranges: nextRanges,
-            };
-
             return result as UIMessageParts<UI_MESSAGE>;
           },
 

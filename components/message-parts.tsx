@@ -56,6 +56,48 @@ const isLastArtifact = (
   return lastArtifact?.toolCallId === currentToolCallId;
 };
 
+function useResearchUpdates(
+  messageId: string,
+  partIdx: number,
+  type: ChatMessage['parts'][number]['type'],
+) {
+  const types = useMessagePartTypesById(messageId);
+  const startIdx = partIdx;
+  const nextIdx = types.findIndex(
+    (t, i) =>
+      i > startIdx && (t === 'tool-deepResearch' || t === 'tool-webSearch'),
+  );
+
+  // If not a research tool, constrain the range to empty to minimize work
+  let sliceEnd = nextIdx === -1 ? types.length - 1 : nextIdx - 1;
+  if (type !== 'tool-deepResearch' && type !== 'tool-webSearch') {
+    sliceEnd = startIdx;
+  }
+
+  const range = useMessagePartsByPartRange(messageId, startIdx + 1, sliceEnd);
+
+  if (type !== 'tool-deepResearch' && type !== 'tool-webSearch') {
+    return [] as Array<
+      Extract<
+        ChatMessage['parts'][number],
+        { type: 'data-researchUpdate' }
+      >['data']
+    >;
+  }
+
+  return range
+    .filter((p) => p.type === 'data-researchUpdate')
+    .map(
+      (u) =>
+        (
+          u as Extract<
+            ChatMessage['parts'][number],
+            { type: 'data-researchUpdate' }
+          >
+        ).data,
+    );
+}
+
 const collectResearchUpdates = (
   parts: ChatMessage['parts'],
   toolCallId: string,
@@ -91,26 +133,7 @@ export function PureMessagePart({
 }) {
   const part = useMessagePartByPartIdx(messageId, partIdx);
   const { type } = part;
-  // Precompute research updates range unconditionally to keep hooks order stable
-  const types = useMessagePartTypesById(messageId);
-  const startIdx = partIdx;
-  const nextIdx = types.findIndex(
-    (t, i) =>
-      i > startIdx && (t === 'tool-deepResearch' || t === 'tool-webSearch'),
-  );
-  const sliceEnd = nextIdx === -1 ? types.length - 1 : nextIdx - 1;
-  const range = useMessagePartsByPartRange(messageId, startIdx + 1, sliceEnd);
-  const researchUpdates = range
-    .filter((p) => p.type === 'data-researchUpdate')
-    .map(
-      (u) =>
-        (
-          u as Extract<
-            ChatMessage['parts'][number],
-            { type: 'data-researchUpdate' }
-          >
-        ).data,
-    );
+  const researchUpdates = useResearchUpdates(messageId, partIdx, type);
 
   if (type === 'tool-getWeather') {
     const { toolCallId, state } = part;

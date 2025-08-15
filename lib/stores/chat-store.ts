@@ -12,6 +12,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
 import { throttle } from '@/components/throttle';
 import { marked } from 'marked';
+import { parseIncompleteMarkdown } from '@/components/ai-elements/parseIncompleteMarkdown';
 
 // Helper types to safely derive the message part and part.type types from UI_MESSAGE
 type UIMessageParts<UI_MSG> = UI_MSG extends { parts: infer P } ? P : never;
@@ -50,84 +51,6 @@ function areArraysShallowEqual<T>(a: readonly T[], b: readonly T[]): boolean {
   return true;
 }
 
-// Helper to sanitize incomplete streaming markdown for block tokenization
-function parseIncompleteMarkdownForStreaming(text: string): string {
-  if (!text || typeof text !== 'string') return text;
-  let result = text;
-  const linkImagePattern = /(!?\[)([^\]]*?)$/;
-  const linkMatch = result.match(linkImagePattern);
-  if (linkMatch) {
-    const startIndex = result.lastIndexOf(linkMatch[1]);
-    result = result.substring(0, startIndex);
-  }
-  const boldPattern = /(\*\*)([^*]*?)$/;
-  const boldMatch = result.match(boldPattern);
-  if (boldMatch) {
-    const asteriskPairs = (result.match(/\*\*/g) || []).length;
-    if (asteriskPairs % 2 === 1) result = `${result}**`;
-  }
-  const italicPattern = /(__)([^_]*?)$/;
-  const italicMatch = result.match(italicPattern);
-  if (italicMatch) {
-    const underscorePairs = (result.match(/__/g) || []).length;
-    if (underscorePairs % 2 === 1) result = `${result}__`;
-  }
-  const singleAsteriskPattern = /(\*)([^*]*?)$/;
-  const singleAsteriskMatch = result.match(singleAsteriskPattern);
-  if (singleAsteriskMatch) {
-    const singleAsterisks = result.split('').reduce((acc, char, index) => {
-      if (char === '*') {
-        const prevChar = result[index - 1];
-        const nextChar = result[index + 1];
-        if (prevChar !== '*' && nextChar !== '*') return acc + 1;
-      }
-      return acc;
-    }, 0);
-    if (singleAsterisks % 2 === 1) result = `${result}*`;
-  }
-  const singleUnderscorePattern = /(_)([^_]*?)$/;
-  const singleUnderscoreMatch = result.match(singleUnderscorePattern);
-  if (singleUnderscoreMatch) {
-    const singleUnderscores = result.split('').reduce((acc, char, index) => {
-      if (char === '_') {
-        const prevChar = result[index - 1];
-        const nextChar = result[index + 1];
-        if (prevChar !== '_' && nextChar !== '_') return acc + 1;
-      }
-      return acc;
-    }, 0);
-    if (singleUnderscores % 2 === 1) result = `${result}_`;
-  }
-  const inlineCodePattern = /(`)([^`]*?)$/;
-  const inlineCodeMatch = result.match(inlineCodePattern);
-  if (inlineCodeMatch) {
-    const allTripleBackticks = (result.match(/```/g) || []).length;
-    const insideIncompleteCodeBlock = allTripleBackticks % 2 === 1;
-    if (!insideIncompleteCodeBlock) {
-      let singleBacktickCount = 0;
-      for (let i = 0; i < result.length; i++) {
-        if (result[i] === '`') {
-          const isTripleStart = result.substring(i, i + 3) === '```';
-          const isTripleMiddle =
-            i > 0 && result.substring(i - 1, i + 2) === '```';
-          const isTripleEnd = i > 1 && result.substring(i - 2, i + 1) === '```';
-          if (!isTripleStart && !isTripleMiddle && !isTripleEnd) {
-            singleBacktickCount++;
-          }
-        }
-      }
-      if (singleBacktickCount % 2 === 1) result = `${result}\``;
-    }
-  }
-  const strikethroughPattern = /(~~)([^~]*?)$/;
-  const strikethroughMatch = result.match(strikethroughPattern);
-  if (strikethroughMatch) {
-    const tildePairs = (result.match(/~~/g) || []).length;
-    if (tildePairs % 2 === 1) result = `${result}~~`;
-  }
-  return result;
-}
-
 interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   id: string | undefined;
   messages: UI_MESSAGE[];
@@ -137,24 +60,6 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   // Throttled messages cache
   _throttledMessages: UI_MESSAGE[] | null;
   // Cached selectors to prevent infinite loops
-
-  // Cache for markdown blocks per message id, keyed by part index and last-flag
-  _cachedMarkdownBlocksById: Record<
-    string,
-    {
-      partsRef: UIMessageParts<UI_MESSAGE>;
-      entries: Record<string, string[]>; // key: `${partIdx}|${isLast?1:0}`
-    }
-  >;
-
-  // Cache for single part selection by part index per message id
-  _cachedPartByIdxById: Record<
-    string,
-    {
-      partsRef: UIMessageParts<UI_MESSAGE>;
-      entries: Record<number, UIMessageParts<UI_MESSAGE>[number]>;
-    }
-  >;
 
   // Actions
   setId: (id: string | undefined) => void;
@@ -223,62 +128,12 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             const state = get();
             const nextThrottled = [...state.messages];
 
-            const nextCachedMarkdownBlocks: Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<string, string[]>;
-              }
-            > = { ...state._cachedMarkdownBlocksById } as Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<string, string[]>;
-              }
-            >;
-
-            const nextCachedPartByIdx: Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<number, UIMessageParts<UI_MESSAGE>[number]>;
-              }
-            > = { ...state._cachedPartByIdxById } as Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<number, UIMessageParts<UI_MESSAGE>[number]>;
-              }
-            >;
-
-            for (const existingId of Object.keys(nextCachedMarkdownBlocks)) {
-              if (!nextThrottled.some((m) => m.id === existingId)) {
-                delete nextCachedMarkdownBlocks[existingId];
-              }
-            }
-            for (const existingId of Object.keys(nextCachedPartByIdx)) {
-              if (!nextThrottled.some((m) => m.id === existingId)) {
-                delete nextCachedPartByIdx[existingId];
-              }
-            }
-
-            for (const msg of nextThrottled) {
-              const { partsRef } = extractPartTypes<UI_MESSAGE>(msg);
-              const currentMarkdown = nextCachedMarkdownBlocks[msg.id];
-              if (!currentMarkdown) {
-                nextCachedMarkdownBlocks[msg.id] = { partsRef, entries: {} };
-              }
-
-              const currentPartByIdx = nextCachedPartByIdx[msg.id];
-              if (!currentPartByIdx) {
-                nextCachedPartByIdx[msg.id] = { partsRef, entries: {} };
-              }
+            for (const _msg of nextThrottled) {
+              // no-op for per-index cache (removed)
             }
 
             set({
               _throttledMessages: nextThrottled,
-              _cachedMarkdownBlocksById: nextCachedMarkdownBlocks,
-              _cachedPartByIdxById: nextCachedPartByIdx,
             });
           }, MESSAGES_THROTTLE_MS);
         }
@@ -292,54 +147,6 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
           // Initialize cached values
           _throttledMessages: [...initialMessages],
-
-          _cachedMarkdownBlocksById: initialMessages.reduce(
-            (
-              acc,
-              msg,
-            ): Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<string, string[]>;
-              }
-            > => {
-              const { partsRef } = extractPartTypes<UI_MESSAGE>(msg);
-              acc[msg.id] = { partsRef, entries: {} };
-              return acc;
-            },
-            {} as Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<string, string[]>;
-              }
-            >,
-          ),
-
-          _cachedPartByIdxById: initialMessages.reduce(
-            (
-              acc,
-              msg,
-            ): Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<number, UIMessageParts<UI_MESSAGE>[number]>;
-              }
-            > => {
-              const { partsRef } = extractPartTypes<UI_MESSAGE>(msg);
-              acc[msg.id] = { partsRef, entries: {} };
-              return acc;
-            },
-            {} as Record<
-              string,
-              {
-                partsRef: UIMessageParts<UI_MESSAGE>;
-                entries: Record<number, UIMessageParts<UI_MESSAGE>[number]>;
-              }
-            >,
-          ),
 
           setId: (id) => set({ id }),
           setMessages: (messages) => {
@@ -481,128 +288,10 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
                 )}`,
               );
 
-            const { partsRef } = extractPartTypes<UI_MESSAGE>(message);
-            const entry = state._cachedMarkdownBlocksById[messageId];
-            const key = `${partIdx}|${isLast ? 1 : 0}`;
-            if (entry && entry.partsRef === partsRef) {
-              const hit = entry.entries[key];
-              if (hit) return hit;
-            }
-
-            function parseIncompleteMarkdown(text: string): string {
-              if (!text || typeof text !== 'string') return text;
-              let result = text;
-              const linkImagePattern = /(!?\[)([^\]]*?)$/;
-              const linkMatch = result.match(linkImagePattern);
-              if (linkMatch) {
-                const startIndex = result.lastIndexOf(linkMatch[1]);
-                result = result.substring(0, startIndex);
-              }
-              const boldPattern = /(\*\*)([^*]*?)$/;
-              const boldMatch = result.match(boldPattern);
-              if (boldMatch) {
-                const asteriskPairs = (result.match(/\*\*/g) || []).length;
-                if (asteriskPairs % 2 === 1) result = `${result}**`;
-              }
-              const italicPattern = /(__)([^_]*?)$/;
-              const italicMatch = result.match(italicPattern);
-              if (italicMatch) {
-                const underscorePairs = (result.match(/__/g) || []).length;
-                if (underscorePairs % 2 === 1) result = `${result}__`;
-              }
-              const singleAsteriskPattern = /(\*)([^*]*?)$/;
-              const singleAsteriskMatch = result.match(singleAsteriskPattern);
-              if (singleAsteriskMatch) {
-                const singleAsterisks = result
-                  .split('')
-                  .reduce((acc, char, index) => {
-                    if (char === '*') {
-                      const prevChar = result[index - 1];
-                      const nextChar = result[index + 1];
-                      if (prevChar !== '*' && nextChar !== '*') return acc + 1;
-                    }
-                    return acc;
-                  }, 0);
-                if (singleAsterisks % 2 === 1) result = `${result}*`;
-              }
-              const singleUnderscorePattern = /(_)([^_]*?)$/;
-              const singleUnderscoreMatch = result.match(
-                singleUnderscorePattern,
-              );
-              if (singleUnderscoreMatch) {
-                const singleUnderscores = result
-                  .split('')
-                  .reduce((acc, char, index) => {
-                    if (char === '_') {
-                      const prevChar = result[index - 1];
-                      const nextChar = result[index + 1];
-                      if (prevChar !== '_' && nextChar !== '_') return acc + 1;
-                    }
-                    return acc;
-                  }, 0);
-                if (singleUnderscores % 2 === 1) result = `${result}_`;
-              }
-              const inlineCodePattern = /(`)([^`]*?)$/;
-              const inlineCodeMatch = result.match(inlineCodePattern);
-              if (inlineCodeMatch) {
-                const allTripleBackticks = (result.match(/```/g) || []).length;
-                const insideIncompleteCodeBlock = allTripleBackticks % 2 === 1;
-                if (!insideIncompleteCodeBlock) {
-                  let singleBacktickCount = 0;
-                  for (let i = 0; i < result.length; i++) {
-                    if (result[i] === '`') {
-                      const isTripleStart =
-                        result.substring(i, i + 3) === '```';
-                      const isTripleMiddle =
-                        i > 0 && result.substring(i - 1, i + 2) === '```';
-                      const isTripleEnd =
-                        i > 1 && result.substring(i - 2, i + 1) === '```';
-                      if (!isTripleStart && !isTripleMiddle && !isTripleEnd) {
-                        singleBacktickCount++;
-                      }
-                    }
-                  }
-                  if (singleBacktickCount % 2 === 1) result = `${result}\``;
-                }
-              }
-              const strikethroughPattern = /(~~)([^~]*?)$/;
-              const strikethroughMatch = result.match(strikethroughPattern);
-              if (strikethroughMatch) {
-                const tildePairs = (result.match(/~~/g) || []).length;
-                if (tildePairs % 2 === 1) result = `${result}~~`;
-              }
-              return result;
-            }
-
             const text = selected.text || '';
-            const prepared = isLast
-              ? parseIncompleteMarkdownForStreaming(text)
-              : text;
+            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
             const tokens = marked.lexer(prepared);
             const blocks = tokens.map((t) => t.raw as string);
-
-            const previous = entry?.entries[key];
-            if (previous && areArraysShallowEqual(previous, blocks)) {
-              const nextEntriesStable = { ...(entry?.entries || {}) } as Record<
-                string,
-                string[]
-              >;
-              nextEntriesStable[key] = previous;
-              (
-                state._cachedMarkdownBlocksById as ChatStoreState<UI_MESSAGE>['_cachedMarkdownBlocksById']
-              )[messageId] = { partsRef, entries: nextEntriesStable };
-              return previous as string[];
-            }
-
-            const nextEntries = { ...(entry?.entries || {}) } as Record<
-              string,
-              string[]
-            >;
-            nextEntries[key] = blocks;
-            (
-              state._cachedMarkdownBlocksById as ChatStoreState<UI_MESSAGE>['_cachedMarkdownBlocksById']
-            )[messageId] = { partsRef, entries: nextEntries };
-
             return blocks as string[];
           },
 
@@ -633,9 +322,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               );
 
             const text = selected.text || '';
-            const prepared = isLast
-              ? parseIncompleteMarkdownForStreaming(text)
-              : text;
+            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
             const tokens = marked.lexer(prepared);
             const blockCount = tokens.length;
             const PREALLOCATED_BLOCKS = 100;
@@ -670,9 +357,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               );
 
             const text = selected.text || '';
-            const prepared = isLast
-              ? parseIncompleteMarkdownForStreaming(text)
-              : text;
+            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
             const tokens = marked.lexer(prepared);
             const blocks = tokens.map((t) => t.raw as string);
             if (blockIdx < 0 || blockIdx >= blocks.length) return null;
@@ -686,30 +371,11 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             );
             if (!message)
               throw new Error(`Message not found for id: ${messageId}`);
-
-            const { partsRef } = extractPartTypes<UI_MESSAGE>(message);
-            const entry = state._cachedPartByIdxById[messageId];
-            if (entry && entry.partsRef === partsRef) {
-              const hit = entry.entries[partIdx];
-              if (hit !== undefined) return hit;
-            }
-
             const selected = message.parts[partIdx];
             if (selected === undefined)
               throw new Error(
                 `Part not found for id: ${messageId} at partIdx: ${partIdx}`,
               );
-
-            const nextEntries = { ...(entry?.entries || {}) } as Record<
-              number,
-              UIMessageParts<UI_MESSAGE>[number]
-            >;
-            nextEntries[partIdx] =
-              selected as UIMessageParts<UI_MESSAGE>[number];
-            (
-              state._cachedPartByIdxById as ChatStoreState<UI_MESSAGE>['_cachedPartByIdxById']
-            )[messageId] = { partsRef, entries: nextEntries };
-
             return selected as UIMessageParts<UI_MESSAGE>[number];
           },
         };

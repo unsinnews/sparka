@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import {
   AbstractChat,
   type ChatInit,
@@ -1015,12 +1016,13 @@ export const chatState = new ZustandChatState(chatStore);
 
 // Selector hooks for cleaner API - these use throttled messages
 export const useChatMessages = () =>
-  chatStore((state) => state.getThrottledMessages());
+  chatStore(useShallow((state) => state.getThrottledMessages()));
 export const useChatStatus = () => chatStore((state) => state.status);
 export const useChatError = () => chatStore((state) => state.error);
 export const useChatId = () => chatStore((state) => state.id);
 
-export const useMessageIds = () => chatStore((state) => state.getMessageIds());
+export const useMessageIds = () =>
+  chatStore(useShallow((state) => state.getMessageIds()));
 
 export const useMessageById = (messageId: string): ChatMessage =>
   chatStore((state) => {
@@ -1042,30 +1044,34 @@ export const useMessageRoleById = (messageId: string): ChatMessage['role'] =>
   });
 
 export const useMessagePartsById = (messageId: string): ChatMessage['parts'] =>
-  chatStore((state) => {
-    const message = state
-      .getThrottledMessages()
-      .find((msg) => msg.id === messageId);
-    if (!message) throw new Error(`Message not found for id: ${messageId}`);
-    return message.parts;
-  });
+  chatStore(
+    useShallow((state) => {
+      const message = state
+        .getThrottledMessages()
+        .find((msg) => msg.id === messageId);
+      if (!message) throw new Error(`Message not found for id: ${messageId}`);
+      return message.parts;
+    }),
+  );
 
 export const useMessageMetadataById = (
   messageId: string,
 ): ChatMessage['metadata'] =>
-  chatStore((state) => {
-    const message = state
-      .getThrottledMessages()
-      .find((msg) => msg.id === messageId);
-    if (!message) throw new Error(`Message not found for id: ${messageId}`);
-    return message.metadata;
-  });
+  chatStore(
+    useShallow((state) => {
+      const message = state
+        .getThrottledMessages()
+        .find((msg) => msg.id === messageId);
+      if (!message) throw new Error(`Message not found for id: ${messageId}`);
+      return message.metadata;
+    }),
+  );
 
 // Selector for only the part types of a message
 export const useMessagePartTypesById = (
   messageId: string,
 ): Array<ChatMessage['parts'][number]['type']> =>
-  chatStore((state) => state.getMessagePartTypesById(messageId));
+  chatStore(useShallow((state) => state.getMessagePartTypesById(messageId)));
 
 // Selector for a specific part by its index within the message parts
 export function useMessagePartByPartIdx(
@@ -1119,13 +1125,15 @@ export function useMessagePartsByPartRange<
   T extends ChatMessage['parts'][number]['type'],
 >(messageId: string, startIdx: number, endIdx: number, type?: T) {
   return chatStore(
-    (state) =>
-      state.getMessagePartsRangeCached(
-        messageId,
-        startIdx,
-        endIdx,
-        type as unknown as string | undefined,
-      ) as unknown as ChatMessage['parts'],
+    useShallow(
+      (state) =>
+        state.getMessagePartsRangeCached(
+          messageId,
+          startIdx,
+          endIdx,
+          type as unknown as string | undefined,
+        ) as unknown as ChatMessage['parts'],
+    ),
   ) as unknown as T extends ChatMessage['parts'][number]['type']
     ? Array<Extract<ChatMessage['parts'][number], { type: T }>>
     : ChatMessage['parts'];
@@ -1133,27 +1141,31 @@ export function useMessagePartsByPartRange<
 
 // Internal messages hook for immediate access (no throttling)
 export const useInternalMessages = () =>
-  chatStore((state) => state.getInternalMessages());
+  chatStore(useShallow((state) => state.getInternalMessages()));
 
 // Action hooks for cleaner API
 export const useChatActions = () =>
-  chatStore((state) => ({
-    setMessages: state.setMessages,
-    pushMessage: state.pushMessage,
-    popMessage: state.popMessage,
-    replaceMessage: state.replaceMessage,
-    setStatus: state.setStatus,
-    setError: state.setError,
-    setId: state.setId,
-    setNewChat: state.setNewChat,
-  }));
+  chatStore(
+    useShallow((state) => ({
+      setMessages: state.setMessages,
+      pushMessage: state.pushMessage,
+      popMessage: state.popMessage,
+      replaceMessage: state.replaceMessage,
+      setStatus: state.setStatus,
+      setError: state.setError,
+      setId: state.setId,
+      setNewChat: state.setNewChat,
+    })),
+  );
 
 // Convenience hook for just setMessages
 export const useSetMessages = () => chatStore((state) => state.setMessages);
 
 // Markdown blocks selector hook for Response/other renderers
 export const useMarkdownBlocksForPart = (messageId: string, partIdx: number) =>
-  chatStore((state) => state.getMarkdownBlocksForPart(messageId, partIdx));
+  chatStore(
+    useShallow((state) => state.getMarkdownBlocksForPart(messageId, partIdx)),
+  );
 
 export const useMarkdownBlockIndexesForPart = (
   messageId: string,

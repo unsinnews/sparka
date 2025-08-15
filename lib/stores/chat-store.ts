@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { subscribeWithSelector, devtools } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import {
   AbstractChat,
   type ChatInit,
@@ -7,8 +8,48 @@ import {
   type ChatStatus,
   type UIMessage,
 } from 'ai';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
 import { throttle } from '@/components/throttle';
+import { marked } from 'marked';
+import { parseIncompleteMarkdown } from '@/components/ai-elements/parseIncompleteMarkdown';
+
+// Helper types to safely derive the message part and part.type types from UI_MESSAGE
+type UIMessageParts<UI_MSG> = UI_MSG extends { parts: infer P } ? P : never;
+type UIMessagePart<UI_MSG> = UIMessageParts<UI_MSG> extends Array<infer I>
+  ? I
+  : never;
+type UIMessagePartType<UI_MSG> = UIMessagePart<UI_MSG> extends { type: infer T }
+  ? T
+  : never;
+
+function extractPartTypes<UI_MESSAGE extends UIMessage>(
+  message: UI_MESSAGE,
+): {
+  partsRef: UIMessageParts<UI_MESSAGE>;
+  types: Array<UIMessagePartType<UI_MESSAGE>>;
+} {
+  const partsRef = (message as unknown as { parts: unknown[] })
+    .parts as UIMessageParts<UI_MESSAGE>;
+  const types = (partsRef as Array<UIMessagePart<UI_MESSAGE>>).map(
+    (part) =>
+      (
+        part as UIMessagePart<UI_MESSAGE> & {
+          type: UIMessagePartType<UI_MESSAGE>;
+        }
+      ).type,
+  ) as Array<UIMessagePartType<UI_MESSAGE>>;
+  return { partsRef, types };
+}
+
+function areArraysShallowEqual<T>(a: readonly T[], b: readonly T[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
 
 interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   id: string | undefined;
@@ -16,10 +57,9 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   status: ChatStatus;
   error: Error | undefined;
 
-  // Cached selectors to prevent infinite loops
-  _cachedMessageIds: string[] | null;
   // Throttled messages cache
   _throttledMessages: UI_MESSAGE[] | null;
+  // Cached selectors to prevent infinite loops
 
   // Actions
   setId: (id: string | undefined) => void;
@@ -36,6 +76,38 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   getMessageIds: () => string[];
   getThrottledMessages: () => UI_MESSAGE[];
   getInternalMessages: () => UI_MESSAGE[];
+  getMessagePartTypesById: (
+    messageId: string,
+  ) => Array<UIMessagePartType<UI_MESSAGE>>;
+  getMessagePartsRangeCached: (
+    messageId: string,
+    startIdx: number,
+    endIdx: number,
+    type?: string,
+  ) => UIMessageParts<UI_MESSAGE>;
+  getMarkdownBlocksForPart: (messageId: string, partIdx: number) => string[];
+  getMarkdownBlockCountForPart: (messageId: string, partIdx: number) => number;
+  getMarkdownBlockByIndex: (
+    messageId: string,
+    partIdx: number,
+    blockIdx: number,
+  ) => string | null;
+  getMessagePartByIdxCached: (
+    messageId: string,
+    partIdx: number,
+  ) => UIMessageParts<UI_MESSAGE>[number];
+
+  // Helpers (moved from globals into the store)
+  currentChatHelpers: Pick<
+    UseChatHelpers<UI_MESSAGE>,
+    'stop' | 'sendMessage' | 'regenerate'
+  > | null;
+  setCurrentChatHelpers: (
+    helpers: Pick<
+      UseChatHelpers<UI_MESSAGE>,
+      'stop' | 'sendMessage' | 'regenerate'
+    >,
+  ) => void;
 }
 
 // Throttling configuration
@@ -54,8 +126,14 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
         if (!throttledMessagesUpdater) {
           throttledMessagesUpdater = throttle(() => {
             const state = get();
+            const nextThrottled = [...state.messages];
+
+            for (const _msg of nextThrottled) {
+              // no-op for per-index cache (removed)
+            }
+
             set({
-              _throttledMessages: [...state.messages],
+              _throttledMessages: nextThrottled,
             });
           }, MESSAGES_THROTTLE_MS);
         }
@@ -65,9 +143,9 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           messages: initialMessages,
           status: 'ready',
           error: undefined,
+          currentChatHelpers: null,
 
           // Initialize cached values
-          _cachedMessageIds: null,
           _throttledMessages: [...initialMessages],
 
           setId: (id) => set({ id }),
@@ -114,6 +192,10 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             throttledMessagesUpdater?.();
           },
 
+          setCurrentChatHelpers: (helpers) => {
+            set({ currentChatHelpers: helpers });
+          },
+
           getLastMessageId: () => {
             const state = get();
             return state.messages.length > 0
@@ -123,23 +205,9 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
           getMessageIds: () => {
             const state = get();
-            const throttledMessages =
-              state._throttledMessages || state.messages;
-            const newMessageIds = throttledMessages.map((msg) => msg.id);
-
-            // Only update cache if IDs actually changed
-            if (
-              state._cachedMessageIds === null ||
-              state._cachedMessageIds.length !== newMessageIds.length ||
-              !state._cachedMessageIds.every(
-                (id, index) => id === newMessageIds[index],
-              )
-            ) {
-              set({ _cachedMessageIds: newMessageIds });
-              return newMessageIds;
-            }
-
-            return state._cachedMessageIds;
+            return (state._throttledMessages || state.messages).map(
+              (m) => m.id,
+            );
           },
 
           getThrottledMessages: () => {
@@ -150,6 +218,165 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           getInternalMessages: () => {
             const state = get();
             return state.messages;
+          },
+
+          getMessagePartTypesById: (messageId) => {
+            const state = get();
+            const message = (state._throttledMessages || state.messages).find(
+              (msg) => msg.id === messageId,
+            );
+            if (!message)
+              throw new Error(`Message not found for id: ${messageId}`);
+            const { types } = extractPartTypes<UI_MESSAGE>(message);
+            return types as Array<UIMessagePartType<UI_MESSAGE>>;
+          },
+          getMessagePartsRangeCached: (messageId, startIdx, endIdx, type?) => {
+            const state = get();
+            const message = (state._throttledMessages || state.messages).find(
+              (msg) => msg.id === messageId,
+            );
+            if (!message)
+              throw new Error(`Message not found for id: ${messageId}`);
+
+            const start = Math.max(0, Math.floor(startIdx));
+            const end = Math.min(message.parts.length - 1, Math.floor(endIdx));
+
+            if (Number.isNaN(start) || Number.isNaN(end) || end < start) {
+              const empty = [] as unknown as UIMessageParts<UI_MESSAGE>;
+              return empty as unknown as ReturnType<
+                ChatStoreState<UI_MESSAGE>['getMessagePartsRangeCached']
+              >;
+            }
+
+            const baseSlice = message.parts.slice(start, end + 1);
+            const result = (
+              type === undefined
+                ? baseSlice
+                : (baseSlice.filter(
+                    (p) => p.type === type,
+                  ) as unknown as UIMessageParts<UI_MESSAGE>)
+            ) as UIMessageParts<UI_MESSAGE>;
+            return result as UIMessageParts<UI_MESSAGE>;
+          },
+
+          getMarkdownBlocksForPart: (
+            messageId: string,
+            partIdx: number,
+          ): string[] => {
+            const state = get();
+            const message = (state._throttledMessages || state.messages).find(
+              (msg) => msg.id === messageId,
+            );
+            if (!message)
+              throw new Error(`Message not found for id: ${messageId}`);
+
+            const isLast = partIdx === message.parts.length - 1;
+            const selected = message.parts[partIdx] as unknown as
+              | {
+                  type: string;
+                  text?: string;
+                }
+              | undefined;
+            if (!selected)
+              throw new Error(
+                `Part not found for id: ${messageId} at partIdx: ${partIdx}`,
+              );
+            if (selected.type !== 'text')
+              throw new Error(
+                `Part type mismatch for id: ${messageId} at partIdx: ${partIdx}. Expected text, got ${String(
+                  selected.type,
+                )}`,
+              );
+
+            const text = selected.text || '';
+            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
+            const tokens = marked.lexer(prepared);
+            const blocks = tokens.map((t) => t.raw as string);
+            return blocks as string[];
+          },
+
+          getMarkdownBlockCountForPart: (
+            messageId: string,
+            partIdx: number,
+          ): number => {
+            const state = get();
+            const message = (state._throttledMessages || state.messages).find(
+              (msg) => msg.id === messageId,
+            );
+            if (!message)
+              throw new Error(`Message not found for id: ${messageId}`);
+
+            const isLast = partIdx === message.parts.length - 1;
+            const selected = message.parts[partIdx] as unknown as
+              | { type: string; text?: string }
+              | undefined;
+            if (!selected)
+              throw new Error(
+                `Part not found for id: ${messageId} at partIdx: ${partIdx}`,
+              );
+            if (selected.type !== 'text')
+              throw new Error(
+                `Part type mismatch for id: ${messageId} at partIdx: ${partIdx}. Expected text, got ${String(
+                  selected.type,
+                )}`,
+              );
+
+            const text = selected.text || '';
+            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
+            const tokens = marked.lexer(prepared);
+            const blockCount = tokens.length;
+            const PREALLOCATED_BLOCKS = 100;
+            return Math.max(PREALLOCATED_BLOCKS, blockCount);
+          },
+
+          getMarkdownBlockByIndex: (
+            messageId: string,
+            partIdx: number,
+            blockIdx: number,
+          ): string | null => {
+            const state = get();
+            const message = (state._throttledMessages || state.messages).find(
+              (msg) => msg.id === messageId,
+            );
+            if (!message)
+              throw new Error(`Message not found for id: ${messageId}`);
+
+            const isLast = partIdx === message.parts.length - 1;
+            const selected = message.parts[partIdx] as unknown as
+              | { type: string; text?: string }
+              | undefined;
+            if (!selected)
+              throw new Error(
+                `Part not found for id: ${messageId} at partIdx: ${partIdx}`,
+              );
+            if (selected.type !== 'text')
+              throw new Error(
+                `Part type mismatch for id: ${messageId} at partIdx: ${partIdx}. Expected text, got ${String(
+                  selected.type,
+                )}`,
+              );
+
+            const text = selected.text || '';
+            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
+            const tokens = marked.lexer(prepared);
+            const blocks = tokens.map((t) => t.raw as string);
+            if (blockIdx < 0 || blockIdx >= blocks.length) return null;
+            return blocks[blockIdx] ?? null;
+          },
+
+          getMessagePartByIdxCached: (messageId: string, partIdx: number) => {
+            const state = get();
+            const message = (state._throttledMessages || state.messages).find(
+              (msg) => msg.id === messageId,
+            );
+            if (!message)
+              throw new Error(`Message not found for id: ${messageId}`);
+            const selected = message.parts[partIdx];
+            if (selected === undefined)
+              throw new Error(
+                `Part not found for id: ${messageId} at partIdx: ${partIdx}`,
+              );
+            return selected as UIMessageParts<UI_MESSAGE>[number];
           },
         };
       }),
@@ -267,37 +494,181 @@ export const chatState = new ZustandChatState(chatStore);
 
 // Selector hooks for cleaner API - these use throttled messages
 export const useChatMessages = () =>
-  chatStore((state) => state.getThrottledMessages());
+  chatStore(useShallow((state) => state.getThrottledMessages()));
 export const useChatStatus = () => chatStore((state) => state.status);
 export const useChatError = () => chatStore((state) => state.error);
 export const useChatId = () => chatStore((state) => state.id);
 
-export const useMessageIds = () => chatStore((state) => state.getMessageIds());
+export const useMessageIds = () =>
+  chatStore(useShallow((state) => state.getMessageIds()));
 
-export const useMessageById = (messageId: string) =>
-  chatStore((state) =>
-    state.getThrottledMessages().find((msg) => msg.id === messageId),
+export const useMessageById = (messageId: string): ChatMessage =>
+  chatStore((state) => {
+    const message = state
+      .getThrottledMessages()
+      .find((msg) => msg.id === messageId);
+    if (!message) throw new Error(`Message not found for id: ${messageId}`);
+    return message;
+  });
+
+// Selector for only the message role; re-renders only when role value changes
+export const useMessageRoleById = (messageId: string): ChatMessage['role'] =>
+  chatStore((state) => {
+    const message = state
+      .getThrottledMessages()
+      .find((msg) => msg.id === messageId);
+    if (!message) throw new Error(`Message not found for id: ${messageId}`);
+    return message.role;
+  });
+
+export const useMessagePartsById = (messageId: string): ChatMessage['parts'] =>
+  chatStore(
+    useShallow((state) => {
+      const message = state
+        .getThrottledMessages()
+        .find((msg) => msg.id === messageId);
+      if (!message) throw new Error(`Message not found for id: ${messageId}`);
+      return message.parts;
+    }),
   );
+
+export const useMessageMetadataById = (
+  messageId: string,
+): ChatMessage['metadata'] =>
+  chatStore(
+    useShallow((state) => {
+      const message = state
+        .getThrottledMessages()
+        .find((msg) => msg.id === messageId);
+      if (!message) throw new Error(`Message not found for id: ${messageId}`);
+      return message.metadata;
+    }),
+  );
+
+// Selector for only the part types of a message
+export const useMessagePartTypesById = (
+  messageId: string,
+): Array<ChatMessage['parts'][number]['type']> =>
+  chatStore(useShallow((state) => state.getMessagePartTypesById(messageId)));
+
+// Selector for a specific part by its index within the message parts
+export function useMessagePartByPartIdx(
+  messageId: string,
+  partIdx: number,
+): ChatMessage['parts'][number];
+export function useMessagePartByPartIdx<
+  T extends ChatMessage['parts'][number]['type'],
+>(
+  messageId: string,
+  partIdx: number,
+  type: T,
+): Extract<ChatMessage['parts'][number], { type: T }>;
+export function useMessagePartByPartIdx<
+  T extends ChatMessage['parts'][number]['type'],
+>(messageId: string, partIdx: number, type?: T) {
+  const part = chatStore((state) =>
+    state.getMessagePartByIdxCached(messageId, partIdx),
+  );
+
+  if (type !== undefined) {
+    if (part.type !== type) {
+      throw new Error(
+        `Part type mismatch for id: ${messageId} at partIdx: ${partIdx}. Expected ${String(
+          type,
+        )}, got ${String(part.type)}`,
+      );
+    }
+  }
+
+  return part as unknown as T extends ChatMessage['parts'][number]['type']
+    ? Extract<ChatMessage['parts'][number], { type: T }>
+    : ChatMessage['parts'][number];
+}
+
+// Selector for a contiguous range of parts (inclusive of startIdx and endIdx)
+export function useMessagePartsByPartRange(
+  messageId: string,
+  startIdx: number,
+  endIdx: number,
+): ChatMessage['parts'];
+export function useMessagePartsByPartRange<
+  T extends ChatMessage['parts'][number]['type'],
+>(
+  messageId: string,
+  startIdx: number,
+  endIdx: number,
+  type: T,
+): Array<Extract<ChatMessage['parts'][number], { type: T }>>;
+export function useMessagePartsByPartRange<
+  T extends ChatMessage['parts'][number]['type'],
+>(messageId: string, startIdx: number, endIdx: number, type?: T) {
+  return chatStore(
+    useShallow(
+      (state) =>
+        state.getMessagePartsRangeCached(
+          messageId,
+          startIdx,
+          endIdx,
+          type as unknown as string | undefined,
+        ) as unknown as ChatMessage['parts'],
+    ),
+  ) as unknown as T extends ChatMessage['parts'][number]['type']
+    ? Array<Extract<ChatMessage['parts'][number], { type: T }>>
+    : ChatMessage['parts'];
+}
 
 // Internal messages hook for immediate access (no throttling)
 export const useInternalMessages = () =>
-  chatStore((state) => state.getInternalMessages());
+  chatStore(useShallow((state) => state.getInternalMessages()));
 
 // Action hooks for cleaner API
 export const useChatActions = () =>
-  chatStore((state) => ({
-    setMessages: state.setMessages,
-    pushMessage: state.pushMessage,
-    popMessage: state.popMessage,
-    replaceMessage: state.replaceMessage,
-    setStatus: state.setStatus,
-    setError: state.setError,
-    setId: state.setId,
-    setNewChat: state.setNewChat,
-  }));
+  chatStore(
+    useShallow((state) => ({
+      setMessages: state.setMessages,
+      pushMessage: state.pushMessage,
+      popMessage: state.popMessage,
+      replaceMessage: state.replaceMessage,
+      setStatus: state.setStatus,
+      setError: state.setError,
+      setId: state.setId,
+      setNewChat: state.setNewChat,
+    })),
+  );
 
 // Convenience hook for just setMessages
 export const useSetMessages = () => chatStore((state) => state.setMessages);
+
+// Markdown blocks selector hook for Response/other renderers
+export const useMarkdownBlocksForPart = (messageId: string, partIdx: number) =>
+  chatStore(
+    useShallow((state) => state.getMarkdownBlocksForPart(messageId, partIdx)),
+  );
+
+export const useMarkdownBlockIndexesForPart = (
+  messageId: string,
+  partIdx: number,
+) =>
+  chatStore((state) => state.getMarkdownBlockCountForPart(messageId, partIdx));
+
+export const useMarkdownBlockCountForPart = (
+  messageId: string,
+  partIdx: number,
+) =>
+  chatStore((state) => state.getMarkdownBlockCountForPart(messageId, partIdx));
+
+export const useMarkdownBlockByIndex = (
+  messageId: string,
+  partIdx: number,
+  blockIdx: number,
+) =>
+  chatStore((state) =>
+    state.getMarkdownBlockByIndex(messageId, partIdx, blockIdx),
+  );
+
+// Selector for sendMessage helper
+export const useSendMessage = () =>
+  chatStore((state) => state.currentChatHelpers?.sendMessage);
 
 export class ZustandChat<
   UI_MESSAGE extends UIMessage,

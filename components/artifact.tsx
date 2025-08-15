@@ -45,20 +45,14 @@ export interface UIArtifact {
 
 function PureArtifact({
   chatId,
-  sendMessage,
-  regenerate,
   status,
   stop,
-  messages,
   votes,
   isReadonly,
   isAuthenticated,
 }: {
   chatId: string;
-  messages: Array<ChatMessage>;
   votes: Array<Vote> | undefined;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-  regenerate: UseChatHelpers<ChatMessage>['regenerate'];
   status: UseChatHelpers<ChatMessage>['status'];
   stop: UseChatHelpers<ChatMessage>['stop'];
   isReadonly: boolean;
@@ -307,8 +301,6 @@ function PureArtifact({
               <div className="flex flex-col h-full justify-between items-center @container">
                 <ArtifactMessages
                   votes={votes}
-                  sendMessage={sendMessage}
-                  regenerate={regenerate}
                   isReadonly={isReadonly}
                   isVisible={true}
                   artifactStatus={artifact.status}
@@ -318,8 +310,6 @@ function PureArtifact({
                   <MultimodalInput
                     chatId={chatId}
                     status={status}
-                    stop={stop}
-                    sendMessage={sendMessage}
                     className=""
                     isEditMode={isReadonly}
                     parentMessageId={chatStore.getState().getLastMessageId()}
@@ -465,7 +455,6 @@ function PureArtifact({
                     <Toolbar
                       isToolbarVisible={isToolbarVisible}
                       setIsToolbarVisible={setIsToolbarVisible}
-                      sendMessage={sendMessage}
                       status={status}
                       stop={stop}
                       artifactKind={artifact.kind}
@@ -492,12 +481,9 @@ function PureArtifact({
 }
 
 export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
-  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
-  if (prevProps.regenerate !== nextProps.regenerate) return false;
   if (prevProps.status !== nextProps.status) return false;
   if (prevProps.stop !== nextProps.stop) return false;
   if (!equal(prevProps.votes, nextProps.votes)) return false;
-  if (!equal(prevProps.messages, nextProps.messages.length)) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
   if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
 

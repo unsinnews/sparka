@@ -27,8 +27,6 @@ function areEqual(
   if (!equal(prevProps.votes, nextProps.votes)) return false;
   if (prevProps.artifactStatus !== nextProps.artifactStatus) return false;
   if (prevProps.isReadonly !== nextProps.isReadonly) return false;
-  if (prevProps.sendMessage !== nextProps.sendMessage) return false;
-  if (prevProps.regenerate !== nextProps.regenerate) return false;
 
   return true;
 }

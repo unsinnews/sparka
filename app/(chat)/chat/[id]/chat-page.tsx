@@ -1,6 +1,7 @@
 'use client';
 import { Chat } from '@/components/chat';
 import { DataStreamHandler } from '@/components/data-stream-handler';
+import { ChatSync } from '@/components/chat-sync';
 import { getDefaultThread } from '@/lib/thread-utils';
 import { useMemo, memo } from 'react';
 import { notFound } from 'next/navigation';
@@ -22,6 +23,7 @@ const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
 }) {
   return (
     <ChatInputProvider localStorageEnabled={true} initialTool={initialTool}>
+      <ChatSync id={id} initialMessages={initialMessages} />
       <Chat
         key={id}
         id={id}

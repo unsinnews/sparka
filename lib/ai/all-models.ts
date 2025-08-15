@@ -10,6 +10,7 @@ import { imageModelsData, type ImageModelData } from '@/providers/image-models';
 
 const disabledModels: Partial<Record<ModelId, true>> = {
   'anthropic/claude-4-opus': true,
+  'anthropic/claude-4.1-opus': true,
   'morph/morph-v3-large': true,
   'morph/morph-v3-fast': true,
 };

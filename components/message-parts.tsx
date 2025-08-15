@@ -1,8 +1,8 @@
 'use client';
 
 import { memo, useMemo } from 'react';
-import { Response } from './ai-elements/response';
 import { Weather } from './weather';
+import { TextMessagePart } from './text-message-part';
 import { DocumentPreview } from './document-preview';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { MessageReasoning } from './message-reasoning';
@@ -13,10 +13,15 @@ import { CodeInterpreterMessage } from './code-interpreter-message';
 import { GeneratedImage } from './generated-image';
 import { ResearchUpdates } from './message-annotations';
 import type { ChatMessage } from '@/lib/ai/types';
-import { chatStore } from '@/lib/stores/chat-store';
+import {
+  chatStore,
+  useMessagePartTypesById,
+  useMessagePartByPartIdx,
+  useMessagePartsByPartRange,
+} from '@/lib/stores/chat-store';
 
 type MessagePartsProps = {
-  message: ChatMessage;
+  messageId: string;
   isLoading: boolean;
   isReadonly: boolean;
 };
@@ -51,6 +56,48 @@ const isLastArtifact = (
   return lastArtifact?.toolCallId === currentToolCallId;
 };
 
+function useResearchUpdates(
+  messageId: string,
+  partIdx: number,
+  type: ChatMessage['parts'][number]['type'],
+) {
+  const types = useMessagePartTypesById(messageId);
+  const startIdx = partIdx;
+  const nextIdx = types.findIndex(
+    (t, i) =>
+      i > startIdx && (t === 'tool-deepResearch' || t === 'tool-webSearch'),
+  );
+
+  // If not a research tool, constrain the range to empty to minimize work
+  let sliceEnd = nextIdx === -1 ? types.length - 1 : nextIdx - 1;
+  if (type !== 'tool-deepResearch' && type !== 'tool-webSearch') {
+    sliceEnd = startIdx;
+  }
+
+  const range = useMessagePartsByPartRange(messageId, startIdx + 1, sliceEnd);
+
+  if (type !== 'tool-deepResearch' && type !== 'tool-webSearch') {
+    return [] as Array<
+      Extract<
+        ChatMessage['parts'][number],
+        { type: 'data-researchUpdate' }
+      >['data']
+    >;
+  }
+
+  return range
+    .filter((p) => p.type === 'data-researchUpdate')
+    .map(
+      (u) =>
+        (
+          u as Extract<
+            ChatMessage['parts'][number],
+            { type: 'data-researchUpdate' }
+          >
+        ).data,
+    );
+}
+
 const collectResearchUpdates = (
   parts: ChatMessage['parts'],
   toolCallId: string,
@@ -74,418 +121,446 @@ const collectResearchUpdates = (
     .map((u) => u.data);
 };
 
-export function PureMessageParts({
-  message,
-  isLoading,
+// Render a single part by index with minimal subscriptions
+export function PureMessagePart({
+  messageId,
+  partIdx,
   isReadonly,
-}: MessagePartsProps) {
-  type ReasoningPart = Extract<
-    ChatMessage['parts'][number],
-    { type: 'reasoning' }
-  >;
+}: {
+  messageId: string;
+  partIdx: number;
+  isReadonly: boolean;
+}) {
+  const part = useMessagePartByPartIdx(messageId, partIdx);
+  const { type } = part;
+  const researchUpdates = useResearchUpdates(messageId, partIdx, type);
 
-  const groups = useMemo(() => {
-    const result: Array<
-      | { kind: 'reasoning'; parts: ReasoningPart[]; endIndex: number }
-      | {
-          kind: 'single';
-          part: Exclude<ChatMessage['parts'][number], ReasoningPart>;
-          index: number;
-        }
-    > = [];
-
-    const parts = message.parts;
-    for (let i = 0; i < parts.length; i++) {
-      const part = parts[i];
-      if (part.type === 'reasoning') {
-        const reasoningParts: ReasoningPart[] = [];
-        while (i < parts.length && parts[i].type === 'reasoning') {
-          reasoningParts.push(parts[i] as ReasoningPart);
-          i++;
-        }
-        const endIndex = i - 1;
-        result.push({ kind: 'reasoning', parts: reasoningParts, endIndex });
-        i = endIndex;
-      } else {
-        result.push({ kind: 'single', part, index: i });
-      }
-    }
-
-    return result;
-  }, [message.parts]);
-
-  return groups.map((group, groupIdx) => {
-    if (group.kind === 'reasoning') {
-      const key = `message-${message.id}-reasoning-${groupIdx}`;
+  if (type === 'tool-getWeather') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
       return (
-        <MessageReasoning
-          key={key}
-          isLoading={isLoading && group.endIndex === message.parts.length - 1}
-          reasoning={group.parts.map((p) => p.text)}
-        />
+        <div key={toolCallId} className="skeleton">
+          <Weather />
+        </div>
       );
     }
-
-    const { part, index } = group;
-    const { type } = part;
-    const key = `message-${message.id}-part-${index}`;
-
-    if (type === 'text') {
+    if (state === 'output-available') {
+      const { output } = part;
       return (
-        <div key={key} className="flex flex-col gap-4 w-full">
-          <Response>{part.text}</Response>
+        <div key={toolCallId}>
+          <Weather weatherAtLocation={output} />
+        </div>
+      );
+    }
+  }
+
+  if (type === 'tool-createDocument') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      const { input } = part;
+      return (
+        <div key={toolCallId}>
+          <DocumentPreview
+            isReadonly={isReadonly}
+            args={input}
+            messageId={messageId}
+          />
         </div>
       );
     }
 
-    if (type === 'tool-getWeather') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        return (
-          <div key={toolCallId} className="skeleton">
-            <Weather />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const { output } = part;
-        return (
-          <div key={toolCallId}>
-            <Weather weatherAtLocation={output} />
-          </div>
-        );
-      }
-    }
+    if (state === 'output-available') {
+      const { output, input } = part;
+      const shouldShowFullPreview = isLastArtifact(
+        chatStore.getState().messages,
+        toolCallId,
+      );
 
-    if (type === 'tool-createDocument') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const { input } = part;
+      if ('error' in output) {
         return (
-          <div key={toolCallId}>
+          <div key={toolCallId} className="text-red-500 p-2 border rounded">
+            Error: {String(output.error)}
+          </div>
+        );
+      }
+
+      return (
+        <div key={toolCallId}>
+          {shouldShowFullPreview ? (
             <DocumentPreview
               isReadonly={isReadonly}
+              result={output}
               args={input}
-              messageId={message.id}
+              messageId={messageId}
+              type="create"
             />
-          </div>
-        );
-      }
-
-      if (state === 'output-available') {
-        const { output, input } = part;
-        const shouldShowFullPreview = isLastArtifact(
-          chatStore.getState().messages,
-          toolCallId,
-        );
-
-        if ('error' in output) {
-          return (
-            <div key={toolCallId} className="text-red-500 p-2 border rounded">
-              Error: {String(output.error)}
-            </div>
-          );
-        }
-
-        return (
-          <div key={toolCallId}>
-            {shouldShowFullPreview ? (
-              <DocumentPreview
-                isReadonly={isReadonly}
-                result={output}
-                args={input}
-                messageId={message.id}
-                type="create"
-              />
-            ) : (
-              <DocumentToolResult
-                type="create"
-                result={output}
-                isReadonly={isReadonly}
-                messageId={message.id}
-              />
-            )}
-          </div>
-        );
-      }
-    }
-
-    if (type === 'tool-updateDocument') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const { input } = part;
-        return (
-          <div key={toolCallId}>
-            <DocumentToolCall
-              type="update"
-              // @ts-expect-error - TODO: fix this
-              args={input}
-              isReadonly={isReadonly}
-            />
-          </div>
-        );
-      }
-
-      if (state === 'output-available') {
-        const { output, input } = part;
-        const shouldShowFullPreview = isLastArtifact(
-          chatStore.getState().messages,
-          toolCallId,
-        );
-
-        if ('error' in output) {
-          return (
-            <div key={toolCallId} className="text-red-500 p-2 border rounded">
-              Error: {String(output.error)}
-            </div>
-          );
-        }
-
-        return (
-          <div key={toolCallId}>
-            {shouldShowFullPreview ? (
-              <DocumentPreview
-                isReadonly={isReadonly}
-                result={output}
-                args={input}
-                messageId={message.id}
-                type="update"
-              />
-            ) : (
-              <DocumentToolResult
-                type="update"
-                result={output}
-                isReadonly={isReadonly}
-                messageId={message.id}
-              />
-            )}
-          </div>
-        );
-      }
-    }
-
-    if (type === 'tool-requestSuggestions') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const { input } = part;
-        return (
-          <div key={toolCallId}>
-            <DocumentToolCall
-              type="request-suggestions"
-              // @ts-expect-error - TODO: fix this
-              args={input}
-              isReadonly={isReadonly}
-            />
-          </div>
-        );
-      }
-
-      if (state === 'output-available') {
-        const { output } = part;
-        if ('error' in output) {
-          return (
-            <div key={toolCallId} className="text-red-500 p-2 border rounded">
-              Error: {String(output.error)}
-            </div>
-          );
-        }
-
-        return (
-          <div key={toolCallId}>
+          ) : (
             <DocumentToolResult
-              type="request-suggestions"
+              type="create"
               result={output}
               isReadonly={isReadonly}
-              messageId={message.id}
+              messageId={messageId}
             />
-          </div>
-        );
-      }
+          )}
+        </div>
+      );
+    }
+  }
+
+  if (type === 'tool-updateDocument') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      const { input } = part;
+      return (
+        <div key={toolCallId}>
+          <DocumentToolCall
+            type="update"
+            // @ts-expect-error - TODO: fix this
+            args={input}
+            isReadonly={isReadonly}
+          />
+        </div>
+      );
     }
 
-    if (type === 'tool-retrieve') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
+    if (state === 'output-available') {
+      const { output, input } = part;
+      const shouldShowFullPreview = isLastArtifact(
+        chatStore.getState().messages,
+        toolCallId,
+      );
+
+      if ('error' in output) {
         return (
-          <div key={toolCallId}>
-            <Retrieve />
+          <div key={toolCallId} className="text-red-500 p-2 border rounded">
+            Error: {String(output.error)}
           </div>
         );
       }
 
-      if (state === 'output-available') {
-        const { output } = part;
-        return (
-          <div key={toolCallId}>
-            {/* @ts-expect-error - TODO: fix this */}
-            <Retrieve result={output} />
-          </div>
-        );
-      }
+      return (
+        <div key={toolCallId}>
+          {shouldShowFullPreview ? (
+            <DocumentPreview
+              isReadonly={isReadonly}
+              result={output}
+              args={input}
+              messageId={messageId}
+              type="update"
+            />
+          ) : (
+            <DocumentToolResult
+              type="update"
+              result={output}
+              isReadonly={isReadonly}
+              messageId={messageId}
+            />
+          )}
+        </div>
+      );
+    }
+  }
+
+  if (type === 'tool-requestSuggestions') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      const { input } = part;
+      return (
+        <div key={toolCallId}>
+          <DocumentToolCall
+            type="request-suggestions"
+            // @ts-expect-error - TODO: fix this
+            args={input}
+            isReadonly={isReadonly}
+          />
+        </div>
+      );
     }
 
-    if (type === 'tool-readDocument') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        return null;
-      }
-      if (state === 'output-available') {
-        const { output } = part;
+    if (state === 'output-available') {
+      const { output } = part;
+      if ('error' in output) {
         return (
-          <div key={toolCallId}>
-            {/* @ts-expect-error - TODO: fix this */}
-            <ReadDocument result={output} />
+          <div key={toolCallId} className="text-red-500 p-2 border rounded">
+            Error: {String(output.error)}
           </div>
         );
       }
+
+      return (
+        <div key={toolCallId}>
+          <DocumentToolResult
+            type="request-suggestions"
+            result={output}
+            isReadonly={isReadonly}
+            messageId={messageId}
+          />
+        </div>
+      );
+    }
+  }
+
+  if (type === 'tool-retrieve') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      return (
+        <div key={toolCallId}>
+          <Retrieve />
+        </div>
+      );
     }
 
-    if (type === 'tool-stockChart') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const { input } = part;
-        return (
-          <div key={toolCallId}>
-            {/* @ts-expect-error - TODO: fix this */}
-            <StockChartMessage result={null} args={input} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const { output, input } = part;
-        return (
-          <div key={toolCallId}>
-            {/* @ts-expect-error - TODO: fix this */}
-            <StockChartMessage result={output} args={input} />
-          </div>
-        );
-      }
+    if (state === 'output-available') {
+      const { output } = part;
+      return (
+        <div key={toolCallId}>
+          {/* @ts-expect-error - TODO: fix this */}
+          <Retrieve result={output} />
+        </div>
+      );
     }
+  }
 
-    if (type === 'tool-codeInterpreter') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const { input } = part;
-        return (
-          <div key={toolCallId}>
-            <CodeInterpreterMessage result={null} args={input} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const { output, input } = part;
-        return (
-          <div key={toolCallId}>
-            {/* @ts-expect-error - TODO: fix this */}
-            <CodeInterpreterMessage result={output} args={input} />
-          </div>
-        );
-      }
+  if (type === 'tool-readDocument') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      return null;
     }
-
-    if (type === 'tool-generateImage') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const { input } = part;
-        return (
-          <div key={toolCallId}>
-            <GeneratedImage args={input} isLoading={true} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const { output, input } = part;
-        return (
-          <div key={toolCallId}>
-            <GeneratedImage result={output} args={input} />
-          </div>
-        );
-      }
+    if (state === 'output-available') {
+      const { output } = part;
+      return (
+        <div key={toolCallId}>
+          {/* @ts-expect-error - TODO: fix this */}
+          <ReadDocument result={output} />
+        </div>
+      );
     }
+  }
 
-    if (type === 'tool-deepResearch') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-deepResearch',
-        );
+  if (type === 'tool-stockChart') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      const { input } = part;
+      return (
+        <div key={toolCallId}>
+          {/* @ts-expect-error - TODO: fix this */}
+          <StockChartMessage result={null} args={input} />
+        </div>
+      );
+    }
+    if (state === 'output-available') {
+      const { output, input } = part;
+      return (
+        <div key={toolCallId}>
+          {/* @ts-expect-error - TODO: fix this */}
+          <StockChartMessage result={output} args={input} />
+        </div>
+      );
+    }
+  }
+
+  if (type === 'tool-codeInterpreter') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      const { input } = part;
+      return (
+        <div key={toolCallId}>
+          <CodeInterpreterMessage result={null} args={input} />
+        </div>
+      );
+    }
+    if (state === 'output-available') {
+      const { output, input } = part;
+      return (
+        <div key={toolCallId}>
+          {/* @ts-expect-error - TODO: fix this */}
+          <CodeInterpreterMessage result={output} args={input} />
+        </div>
+      );
+    }
+  }
+
+  if (type === 'tool-generateImage') {
+    const { toolCallId, state } = part;
+    if (state === 'input-available') {
+      const { input } = part;
+      return (
+        <div key={toolCallId}>
+          <GeneratedImage args={input} isLoading={true} />
+        </div>
+      );
+    }
+    if (state === 'output-available') {
+      const { output, input } = part;
+      return (
+        <div key={toolCallId}>
+          <GeneratedImage result={output} args={input} />
+        </div>
+      );
+    }
+  }
+
+  if (type === 'tool-deepResearch') {
+    const { toolCallId, state } = part;
+
+    if (state === 'input-available') {
+      return (
+        <div key={toolCallId} className="flex flex-col gap-3">
+          <ResearchUpdates updates={researchUpdates} />
+        </div>
+      );
+    }
+    if (state === 'output-available') {
+      const { output, input } = part;
+      const shouldShowFullPreview = isLastArtifact(
+        chatStore.getState().messages,
+        toolCallId,
+      );
+
+      if (output.format === 'report') {
         return (
-          <div key={toolCallId} className="flex flex-col gap-3">
-            <ResearchUpdates updates={updates} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const { output, input } = part;
-        const shouldShowFullPreview = isLastArtifact(
-          chatStore.getState().messages,
-          toolCallId,
-        );
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-deepResearch',
-        );
-
-        if (output.format === 'report') {
-          return (
-            <div key={toolCallId}>
-              <div className="mb-2">
-                <ResearchUpdates updates={updates} />
-              </div>
-              {shouldShowFullPreview ? (
-                <DocumentPreview
-                  isReadonly={isReadonly}
-                  result={output}
-                  args={input}
-                  messageId={message.id}
-                  type="create"
-                />
-              ) : (
-                <DocumentToolResult
-                  type="create"
-                  result={output}
-                  isReadonly={isReadonly}
-                  messageId={message.id}
-                />
-              )}
+          <div key={toolCallId}>
+            <div className="mb-2">
+              <ResearchUpdates updates={researchUpdates} />
             </div>
-          );
-        }
-      }
-    }
-
-    if (type === 'tool-webSearch') {
-      const { toolCallId, state } = part;
-      if (state === 'input-available') {
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-webSearch',
-        );
-        return (
-          <div key={toolCallId} className="flex flex-col gap-3">
-            <ResearchUpdates updates={updates} />
-          </div>
-        );
-      }
-      if (state === 'output-available') {
-        const updates = collectResearchUpdates(
-          message.parts,
-          toolCallId,
-          'tool-webSearch',
-        );
-        return (
-          <div key={toolCallId} className="flex flex-col gap-3">
-            <ResearchUpdates updates={updates} />
+            {shouldShowFullPreview ? (
+              <DocumentPreview
+                isReadonly={isReadonly}
+                result={output}
+                args={input}
+                messageId={messageId}
+                type="create"
+              />
+            ) : (
+              <DocumentToolResult
+                type="create"
+                result={output}
+                isReadonly={isReadonly}
+                messageId={messageId}
+              />
+            )}
           </div>
         );
       }
     }
+  }
 
-    return null;
+  if (type === 'tool-webSearch') {
+    const { toolCallId, state } = part;
+
+    if (state === 'input-available') {
+      return (
+        <div key={toolCallId} className="flex flex-col gap-3">
+          <ResearchUpdates updates={researchUpdates} />
+        </div>
+      );
+    }
+    if (state === 'output-available') {
+      return (
+        <div key={toolCallId} className="flex flex-col gap-3">
+          <ResearchUpdates updates={researchUpdates} />
+        </div>
+      );
+    }
+  }
+
+  return null;
+}
+
+// Render contiguous reasoning parts; subscribes only to the specified range
+export function PureMessageReasoningParts({
+  messageId,
+  startIdx,
+  endIdx,
+  isLoading,
+}: {
+  messageId: string;
+  startIdx: number;
+  endIdx: number;
+  isLoading: boolean;
+}) {
+  const reasoningParts = useMessagePartsByPartRange(
+    messageId,
+    startIdx,
+    endIdx,
+    'reasoning',
+  );
+  return (
+    <MessageReasoning
+      isLoading={isLoading}
+      reasoning={reasoningParts.map((p) => p.text)}
+    />
+  );
+}
+
+export function PureMessageParts({
+  messageId,
+  isLoading,
+  isReadonly,
+}: MessagePartsProps) {
+  const types = useMessagePartTypesById(messageId);
+
+  type NonReasoningPartType = Exclude<
+    ChatMessage['parts'][number]['type'],
+    'reasoning'
+  >;
+
+  const groups = useMemo(() => {
+    const result: Array<
+      | { kind: 'reasoning'; startIndex: number; endIndex: number }
+      | { kind: NonReasoningPartType; index: number }
+    > = [];
+
+    for (let i = 0; i < types.length; i++) {
+      const t = types[i];
+      if (t === 'reasoning') {
+        const start = i;
+        while (i < types.length && types[i] === 'reasoning') i++;
+        const end = i - 1;
+        result.push({ kind: 'reasoning', startIndex: start, endIndex: end });
+        i = end;
+      } else {
+        result.push({ kind: t as NonReasoningPartType, index: i });
+      }
+    }
+    return result;
+  }, [types]);
+
+  return groups.map((group, groupIdx) => {
+    if (group.kind === 'reasoning') {
+      const key = `message-${messageId}-reasoning-${groupIdx}`;
+      const isLast = group.endIndex === types.length - 1;
+      return (
+        <PureMessageReasoningParts
+          key={key}
+          messageId={messageId}
+          startIdx={group.startIndex}
+          endIdx={group.endIndex}
+          isLoading={isLoading && isLast}
+        />
+      );
+    }
+
+    if (group.kind === 'text') {
+      const key = `message-${messageId}-text-${group.index}`;
+      return (
+        <TextMessagePart
+          key={key}
+          messageId={messageId}
+          partIdx={group.index}
+        />
+      );
+    }
+
+    const key = `message-${messageId}-part-${group.index}-${group.kind}`;
+    return (
+      <PureMessagePart
+        key={key}
+        messageId={messageId}
+        partIdx={group.index}
+        isReadonly={isReadonly}
+      />
+    );
   });
 }
 

@@ -1,8 +1,17 @@
 'use client';
-import type { Attachment, ChatMessage } from '@/lib/ai/types';
+import type { Attachment, ChatMessage, UiToolName } from '@/lib/ai/types';
+import type { ModelId } from '@/lib/ai/model-id';
 
 import type React from 'react';
-import { useRef, useState, useCallback, type ChangeEvent, memo } from 'react';
+import {
+  useRef,
+  useState,
+  useCallback,
+  type ChangeEvent,
+  memo,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import { toast } from 'sonner';
 import { useWindowSize } from 'usehooks-ts';
 import { useDropzone } from 'react-dropzone';
@@ -12,6 +21,7 @@ import {
   chatStore,
   useSetMessages,
   useMessageIds,
+  useSendMessage,
 } from '@/lib/stores/chat-store';
 
 import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
@@ -44,19 +54,17 @@ import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
 function PureMultimodalInput({
   chatId,
   status,
-  stop,
-  sendMessage,
   className,
   isEditMode = false,
   parentMessageId,
+  onSendMessage,
 }: {
   chatId: string;
   status: UseChatHelpers<ChatMessage>['status'];
-  stop: () => void;
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
   className?: string;
   isEditMode?: boolean;
   parentMessageId: string | null;
+  onSendMessage?: (message: ChatMessage) => void | Promise<void>;
 }) {
   const { width } = useWindowSize();
   const { data: session } = useSession();
@@ -80,6 +88,8 @@ function PureMultimodalInput({
     isEmpty,
     handleSubmit,
   } = useChatInput();
+
+  const sendMessage = useSendMessage();
 
   // Helper function to auto-switch to PDF-compatible model
   const switchToPdfCompatibleModel = useCallback(() => {
@@ -169,6 +179,8 @@ function PureMultimodalInput({
 
   const coreSubmitLogic = useCallback(() => {
     const input = getInputValue();
+    if (!sendMessage) return;
+
     // For new chats, we need to update the url to include the chatId
     if (window.location.pathname === '/') {
       window.history.pushState({}, '', `/chat/${chatId}`);
@@ -221,10 +233,9 @@ function PureMultimodalInput({
       role: 'user',
     };
 
-    saveChatMessage({
-      message,
-      chatId,
-    });
+    void onSendMessage?.(message);
+
+    saveChatMessage({ message, chatId });
 
     sendMessage(message);
 
@@ -245,13 +256,14 @@ function PureMultimodalInput({
     selectedModelId,
     setMessages,
     editorRef,
+    onSendMessage,
   ]);
 
   const submitForm = useCallback(() => {
     handleSubmit(coreSubmitLogic, isEditMode);
   }, [handleSubmit, coreSubmitLogic, isEditMode]);
 
-  const uploadFile = async (file: File) => {
+  const uploadFile = useCallback(async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
 
@@ -276,7 +288,7 @@ function PureMultimodalInput({
     } catch (error) {
       toast.error('Failed to upload file, please try again!');
     }
-  };
+  }, []);
 
   const handleFileChange = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
@@ -304,7 +316,7 @@ function PureMultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments, processFiles],
+    [setAttachments, processFiles, uploadFile],
   );
 
   const handlePaste = useCallback(
@@ -351,7 +363,7 @@ function PureMultimodalInput({
         setUploadQueue([]);
       }
     },
-    [setAttachments, processFiles, status, session],
+    [setAttachments, processFiles, status, session, uploadFile],
   );
 
   const removeAttachment = useCallback(
@@ -430,11 +442,7 @@ function PureMultimodalInput({
         attachments.length === 0 &&
         uploadQueue.length === 0 &&
         !isEditMode && (
-          <SuggestedActions
-            sendMessage={sendMessage}
-            chatId={chatId}
-            selectedModelId={selectedModelId}
-          />
+          <SuggestedActions chatId={chatId} selectedModelId={selectedModelId} />
         )}
 
       {!isEditMode && <CreditLimitDisplay />}
@@ -529,32 +537,17 @@ function PureMultimodalInput({
             />
           </ScrollArea>
 
-          <ChatInputBottomRow className="flex flex-row justify-between min-w-0 w-full">
-            <div className="flex items-center gap-1 @[400px]:gap-2 min-w-0 flex-0">
-              <ModelSelector
-                selectedModelId={selectedModelId}
-                className="h-fit text-xs @[400px]:text-sm min-w-0 shrink max-w-none px-2 @[400px]:px-3 py-1 @[400px]:py-1.5 truncate flex-1"
-                onModelChange={handleModelChange}
-              />
-              <ResponsiveTools
-                tools={selectedTool}
-                setTools={setSelectedTool}
-                selectedModelId={selectedModelId}
-              />
-            </div>
-            <div className="flex gap-2">
-              <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-              {status !== 'ready' ? (
-                <StopButton stop={stop} />
-              ) : (
-                <SendButton
-                  isEmpty={isEmpty}
-                  submitForm={submitForm}
-                  uploadQueue={uploadQueue}
-                />
-              )}
-            </div>
-          </ChatInputBottomRow>
+          <ChatInputBottomControls
+            selectedModelId={selectedModelId}
+            onModelChange={handleModelChange}
+            selectedTool={selectedTool}
+            setSelectedTool={setSelectedTool}
+            fileInputRef={fileInputRef}
+            status={status}
+            isEmpty={isEmpty}
+            submitForm={submitForm}
+            uploadQueue={uploadQueue}
+          />
         </ChatInputContainer>
       </div>
 
@@ -613,19 +606,14 @@ function PureAttachmentsButton({
 
 const AttachmentsButton = memo(PureAttachmentsButton);
 
-function PureStopButton({
-  stop,
-}: {
-  stop: () => void;
-}) {
+function PureStopButton() {
   return (
     <Button
       data-testid="stop-button"
       className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
       onClick={(event) => {
         event.preventDefault();
-        stop();
-        // No need to call setMessages here as we're just stopping
+        void chatStore.getState().currentChatHelpers?.stop?.();
       }}
     >
       <StopIcon size={14} />
@@ -666,6 +654,74 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   if (prevProps.submitForm !== nextProps.submitForm) return false;
   return true;
 });
+
+function PureChatInputBottomControls({
+  selectedModelId,
+  onModelChange,
+  selectedTool,
+  setSelectedTool,
+  fileInputRef,
+  status,
+  isEmpty,
+  submitForm,
+  uploadQueue,
+}: {
+  selectedModelId: ModelId;
+  onModelChange: (modelId: ModelId) => void;
+  selectedTool: UiToolName | null;
+  setSelectedTool: Dispatch<SetStateAction<UiToolName | null>>;
+  fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
+  status: UseChatHelpers<ChatMessage>['status'];
+  isEmpty: boolean;
+  submitForm: () => void;
+  uploadQueue: Array<string>;
+}) {
+  return (
+    <ChatInputBottomRow className="flex flex-row justify-between min-w-0 w-full">
+      <div className="flex items-center gap-1 @[400px]:gap-2 min-w-0 flex-0">
+        <ModelSelector
+          selectedModelId={selectedModelId}
+          className="h-fit text-xs @[400px]:text-sm min-w-0 shrink max-w-none px-2 @[400px]:px-3 py-1 @[400px]:py-1.5 truncate flex-1"
+          onModelChange={onModelChange}
+        />
+        <ResponsiveTools
+          tools={selectedTool}
+          setTools={setSelectedTool}
+          selectedModelId={selectedModelId}
+        />
+      </div>
+      <div className="flex gap-2">
+        <AttachmentsButton fileInputRef={fileInputRef} status={status} />
+        {status !== 'ready' ? (
+          <StopButton />
+        ) : (
+          <SendButton
+            isEmpty={isEmpty}
+            submitForm={submitForm}
+            uploadQueue={uploadQueue}
+          />
+        )}
+      </div>
+    </ChatInputBottomRow>
+  );
+}
+
+const ChatInputBottomControls = memo(
+  PureChatInputBottomControls,
+  (prevProps, nextProps) => {
+    if (prevProps.selectedModelId !== nextProps.selectedModelId) return false;
+    if (prevProps.onModelChange !== nextProps.onModelChange) return false;
+    if (prevProps.selectedTool !== nextProps.selectedTool) return false;
+    if (prevProps.setSelectedTool !== nextProps.setSelectedTool) return false;
+    if (prevProps.fileInputRef !== nextProps.fileInputRef) return false;
+    if (prevProps.status !== nextProps.status) return false;
+    if (prevProps.isEmpty !== nextProps.isEmpty) return false;
+    if (prevProps.submitForm !== nextProps.submitForm) return false;
+    if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
+      return false;
+    return true;
+  },
+);
 
 export const MultimodalInput = memo(
   PureMultimodalInput,

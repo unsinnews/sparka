@@ -2,7 +2,7 @@
 
 import { CodeBlock, CodeBlockCopyButton } from './code-block';
 import type { ComponentProps, HTMLAttributes } from 'react';
-import { memo, useId, useMemo } from 'react';
+import { isValidElement, memo, useId, useMemo } from 'react';
 import ReactMarkdown, { type Options } from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
@@ -384,9 +384,12 @@ const components: Options['components'] = {
     </li>
   ),
   ul: ({ node, children, className, ...props }) => (
-    <ul className={cn('ml-4 list-outside list-decimal', className)} {...props}>
+    <ul className={cn('ml-4 list-outside list-disc', className)} {...props}>
       {children}
     </ul>
+  ),
+  hr: ({ node, className, ...props }) => (
+    <hr className={cn('my-6 border-border', className)} {...props} />
   ),
   strong: ({ node, children, className, ...props }) => (
     <span className={cn('font-semibold', className)} {...props}>
@@ -442,6 +445,72 @@ const components: Options['components'] = {
       {children}
     </h6>
   ),
+  table: ({ node, children, className, ...props }) => (
+    <div className="my-4 overflow-x-auto">
+      <table
+        className={cn('w-full border-collapse border border-border', className)}
+        {...props}
+      >
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ node, children, className, ...props }) => (
+    <thead className={cn('bg-muted/50', className)} {...props}>
+      {children}
+    </thead>
+  ),
+  tbody: ({ node, children, className, ...props }) => (
+    <tbody className={cn('divide-y divide-border', className)} {...props}>
+      {children}
+    </tbody>
+  ),
+  tr: ({ node, children, className, ...props }) => (
+    <tr className={cn('border-b border-border', className)} {...props}>
+      {children}
+    </tr>
+  ),
+  th: ({ node, children, className, ...props }) => (
+    <th
+      className={cn('px-4 py-2 text-left font-semibold text-sm', className)}
+      {...props}
+    >
+      {children}
+    </th>
+  ),
+  td: ({ node, children, className, ...props }) => (
+    <td className={cn('px-4 py-2 text-sm', className)} {...props}>
+      {children}
+    </td>
+  ),
+  blockquote: ({ node, children, className, ...props }) => (
+    <blockquote
+      className={cn(
+        'my-4 border-l-4 border-muted-foreground/30 pl-4 italic text-muted-foreground',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </blockquote>
+  ),
+  code: ({ node, className, ...props }) => {
+    const inline = node?.position?.start.line === node?.position?.end.line;
+
+    if (!inline) {
+      return <code className={className} {...props} />;
+    }
+
+    return (
+      <code
+        className={cn(
+          'rounded bg-muted px-1.5 py-0.5 font-mono text-sm',
+          className,
+        )}
+        {...props}
+      />
+    );
+  },
   pre: ({ node, className, children }) => {
     let language = 'javascript';
 
@@ -449,20 +518,22 @@ const components: Options['components'] = {
       language = node.properties.className.replace('language-', '');
     }
 
-    const childrenIsCode =
-      typeof children === 'object' &&
-      children !== null &&
-      'type' in children &&
-      children.type === 'code';
-
-    if (!childrenIsCode) {
-      return <pre>{children}</pre>;
+    // Extract code content from children safely
+    let code = '';
+    if (
+      isValidElement(children) &&
+      children.props &&
+      typeof children.props.children === 'string'
+    ) {
+      code = children.props.children;
+    } else if (typeof children === 'string') {
+      code = children;
     }
 
     return (
       <CodeBlock
         className={cn('my-4 h-auto', className)}
-        code={(children.props as { children: string }).children}
+        code={code}
         language={language}
       >
         <CodeBlockCopyButton

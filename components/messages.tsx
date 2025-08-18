@@ -28,9 +28,6 @@ const PureMessagesInternal = memo(function PureMessagesInternal({
   const status = useChatStatus();
   const messageIds = useMessageIds();
 
-  // TODO: Verify if this is needed ai sdk v5
-  // useDataStream();
-
   if (!chatId) {
     return null;
   }

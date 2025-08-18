@@ -32,7 +32,7 @@ export const ConversationContent = ({
   return (
     <ScrollArea
       ref={scrollRef}
-      className={cn('relative flex-1 overflow-y-auto', className)}
+      className={cn('relative flex-1 overflow-y-auto')}
       viewPortClassName=" [&>div]:!block"
     >
       <StickToBottom.Content className={cn('p-4', className)} {...props} />

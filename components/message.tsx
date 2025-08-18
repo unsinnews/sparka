@@ -1,5 +1,4 @@
 'use client';
-import { AnimatePresence, motion } from 'motion/react';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { MessageActions } from './message-actions';
@@ -17,6 +16,10 @@ import {
   useMessageRoleById,
 } from '@/lib/stores/chat-store';
 import { MessageParts } from './message-parts';
+import {
+  Message as AIMessage,
+  MessageContent as AIMessageContent,
+} from '@/components/ai-elements/message';
 
 interface BaseMessageProps {
   messageId: string;
@@ -67,92 +70,93 @@ const PureUserMessage = ({
   if (!textPart || !chatId) return null;
 
   return (
-    <div
-      className={cn(
-        'w-full flex flex-col items-end',
-        mode === 'edit'
-          ? 'max-w-full'
-          : 'group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:w-fit',
-      )}
-    >
-      <div
+    <>
+      <AIMessage
+        from="user"
         className={cn(
-          'flex flex-col gap-4 w-full',
-          message.role === 'user' && mode !== 'edit' && 'items-end',
+          // TODO: Consider not using this max-w class override when editing is cohesive with displaying the message
+          mode === 'edit' ? 'max-w-full [&>div]:max-w-full' : undefined,
         )}
       >
-        {mode === 'view' ? (
-          !isReadonly ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  data-testid="message-content"
-                  className="cursor-pointer hover:opacity-80 transition-opacity"
-                  onClick={() => setMode('edit')}
-                >
-                  <div
+        <div
+          className={cn(
+            'flex flex-col gap-4 w-full',
+            message.role === 'user' && mode !== 'edit' && 'items-end',
+          )}
+        >
+          {mode === 'view' ? (
+            !isReadonly ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
                     data-testid="message-content"
-                    className="flex flex-col gap-4 w-full bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700 text-left"
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setMode('edit')}
                   >
-                    <AttachmentList
-                      attachments={getAttachmentsFromMessage(message)}
-                      onImageClick={handleImageClick}
-                      testId="message-attachments"
-                    />
-                    <pre className="whitespace-pre-wrap font-sans">
-                      {textPart.text}
-                    </pre>
-                  </div>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent>Click to edit message</TooltipContent>
-            </Tooltip>
+                    <AIMessageContent
+                      data-testid="message-content"
+                      className="text-left"
+                    >
+                      <AttachmentList
+                        attachments={getAttachmentsFromMessage(message)}
+                        onImageClick={handleImageClick}
+                        testId="message-attachments"
+                      />
+                      <pre className="whitespace-pre-wrap font-sans">
+                        {textPart.text}
+                      </pre>
+                    </AIMessageContent>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Click to edit message</TooltipContent>
+              </Tooltip>
+            ) : (
+              <AIMessageContent
+                data-testid="message-content"
+                className="text-left"
+              >
+                <AttachmentList
+                  attachments={getAttachmentsFromMessage(message)}
+                  onImageClick={handleImageClick}
+                  testId="message-attachments"
+                />
+                <pre className="whitespace-pre-wrap font-sans">
+                  {textPart.text}
+                </pre>
+              </AIMessageContent>
+            )
           ) : (
-            <div
-              data-testid="message-content"
-              className="flex flex-col gap-4 w-full bg-muted px-3 py-2 rounded-2xl border dark:border-zinc-700 text-left"
-            >
-              <AttachmentList
-                attachments={getAttachmentsFromMessage(message)}
-                onImageClick={handleImageClick}
-                testId="message-attachments"
+            <div className="flex flex-row gap-2 items-start">
+              <MessageEditor
+                key={message.id}
+                chatId={chatId}
+                message={message}
+                setMode={setMode}
+                parentMessageId={parentMessageId}
               />
-              <pre className="whitespace-pre-wrap font-sans">
-                {textPart.text}
-              </pre>
             </div>
-          )
-        ) : (
-          <div className="flex flex-row gap-2 items-start">
-            <MessageEditor
-              key={message.id}
+          )}
+
+          <div className="self-end">
+            <MessageActions
+              key={`action-${message.id}`}
               chatId={chatId}
-              message={message}
-              setMode={setMode}
-              parentMessageId={parentMessageId}
+              messageId={message.id}
+              vote={vote}
+              isLoading={isLoading}
+              isReadOnly={isReadonly}
             />
           </div>
-        )}
-
-        <div className="self-end">
-          <MessageActions
-            key={`action-${message.id}`}
-            chatId={chatId}
-            messageId={message.id}
-            vote={vote}
-            isLoading={isLoading}
-            isReadOnly={isReadonly}
-          />
         </div>
-      </div>
+      </AIMessage>
       <ImageModal
         isOpen={imageModal.isOpen}
         onClose={handleImageModalClose}
         imageUrl={imageModal.imageUrl}
         imageName={imageModal.imageName}
       />
-    </div>
+    </>
   );
 };
 
@@ -177,15 +181,16 @@ const PureAssistantMessage = ({
   if (!chatId) return null;
 
   return (
-    <div className="w-full">
+    <AIMessage from="assistant" className="w-full">
       <div className="flex flex-col gap-4 w-full">
-        <PartialMessageLoading messageId={messageId} />
-
-        <MessageParts
-          messageId={messageId}
-          isLoading={isLoading}
-          isReadonly={isReadonly}
-        />
+        <AIMessageContent className="text-left">
+          <PartialMessageLoading messageId={messageId} />
+          <MessageParts
+            messageId={messageId}
+            isLoading={isLoading}
+            isReadonly={isReadonly}
+          />
+        </AIMessageContent>
 
         <SourcesAnnotations
           key={`sources-annotations-${messageId}`}
@@ -201,7 +206,7 @@ const PureAssistantMessage = ({
           isReadOnly={isReadonly}
         />
       </div>
-    </div>
+    </AIMessage>
   );
 };
 
@@ -225,32 +230,24 @@ const PurePreviewMessage = ({
   if (!role) return null;
 
   return (
-    <AnimatePresence>
-      <motion.div
-        data-testid={`message-${role}`}
-        className="w-full mx-auto max-w-3xl px-4 group/message"
-        initial={{ y: 5, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        data-role={role}
-      >
-        {role === 'user' ? (
-          <UserMessage
-            messageId={messageId}
-            vote={vote}
-            isLoading={isLoading}
-            isReadonly={isReadonly}
-            parentMessageId={parentMessageId}
-          />
-        ) : (
-          <AssistantMessage
-            messageId={messageId}
-            vote={vote}
-            isLoading={isLoading}
-            isReadonly={isReadonly}
-          />
-        )}
-      </motion.div>
-    </AnimatePresence>
+    <>
+      {role === 'user' ? (
+        <UserMessage
+          messageId={messageId}
+          vote={vote}
+          isLoading={isLoading}
+          isReadonly={isReadonly}
+          parentMessageId={parentMessageId}
+        />
+      ) : (
+        <AssistantMessage
+          messageId={messageId}
+          vote={vote}
+          isLoading={isLoading}
+          isReadonly={isReadonly}
+        />
+      )}
+    </>
   );
 };
 

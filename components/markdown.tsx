@@ -16,11 +16,307 @@ function extractLanguage(className?: string): string {
   return match ? match[1] : 'plaintext';
 }
 
-export const components: Partial<Components> = {
-  code: function CodeComponent({ className, children, ...props }) {
+type MarkdownPoint = { line?: number; column?: number };
+type MarkdownPosition = { start?: MarkdownPoint; end?: MarkdownPoint };
+type MarkdownNode = {
+  position?: MarkdownPosition;
+  properties?: { className?: string };
+};
+type WithNode<T> = T & {
+  node?: MarkdownNode;
+  children?: React.ReactNode;
+  className?: string;
+};
+
+function sameNodePosition(a?: MarkdownNode, b?: MarkdownNode) {
+  const as = a?.position?.start;
+  const ae = a?.position?.end;
+  const bs = b?.position?.start;
+  const be = b?.position?.end;
+  return (
+    as?.line === bs?.line &&
+    as?.column === bs?.column &&
+    ae?.line === be?.line &&
+    ae?.column === be?.column
+  );
+}
+
+type OlProps = WithNode<JSX.IntrinsicElements['ol']>;
+const MemoOl = memo<OlProps>(
+  ({ node, children, className, ...props }: OlProps) => (
+    <ol className={cn('list-decimal list-outside ml-4', className)} {...props}>
+      {children}
+    </ol>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoOl.displayName = 'MarkdownOl';
+
+type LiProps = WithNode<JSX.IntrinsicElements['li']>;
+const MemoLi = memo<LiProps>(
+  ({ node, children, className, ...props }: LiProps) => (
+    <li className={cn('py-1', className)} {...props}>
+      {children}
+    </li>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoLi.displayName = 'MarkdownLi';
+
+type UlProps = WithNode<JSX.IntrinsicElements['ul']>;
+const MemoUl = memo<UlProps>(
+  ({ node, children, className, ...props }: UlProps) => (
+    <ul className={cn('list-disc list-outside ml-4', className)} {...props}>
+      {children}
+    </ul>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoUl.displayName = 'MarkdownUl';
+
+type HrProps = WithNode<JSX.IntrinsicElements['hr']>;
+const MemoHr = memo<HrProps>(
+  ({ node, className, ...props }: HrProps) => (
+    <hr className={cn('my-6 border-border', className)} {...props} />
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoHr.displayName = 'MarkdownHr';
+
+type StrongProps = WithNode<JSX.IntrinsicElements['span']>;
+const MemoStrong = memo<StrongProps>(
+  ({ node, children, className, ...props }: StrongProps) => (
+    <span className={cn('font-semibold', className)} {...props}>
+      {children}
+    </span>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoStrong.displayName = 'MarkdownStrong';
+
+type AProps = WithNode<JSX.IntrinsicElements['a']>;
+const MemoA = memo<AProps>(
+  ({ node, children, className, href, ...props }: AProps) => (
+    <LinkMarkdown className={className} href={href || '#'} {...props}>
+      {children}
+    </LinkMarkdown>
+  ),
+  (p, n) =>
+    p.className === n.className &&
+    p.href === n.href &&
+    sameNodePosition(p.node, n.node),
+);
+MemoA.displayName = 'MarkdownA';
+
+type H1Props = WithNode<JSX.IntrinsicElements['h1']>;
+const MemoH1 = memo<H1Props>(
+  ({ node, children, className, ...props }: H1Props) => (
+    <h1
+      className={cn('text-3xl font-semibold mt-6 mb-2', className)}
+      {...props}
+    >
+      {children}
+    </h1>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoH1.displayName = 'MarkdownH1';
+
+type H2Props = WithNode<JSX.IntrinsicElements['h2']>;
+const MemoH2 = memo<H2Props>(
+  ({ node, children, className, ...props }: H2Props) => (
+    <h2
+      className={cn('text-2xl font-semibold mt-6 mb-2', className)}
+      {...props}
+    >
+      {children}
+    </h2>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoH2.displayName = 'MarkdownH2';
+
+type H3Props = WithNode<JSX.IntrinsicElements['h3']>;
+const MemoH3 = memo<H3Props>(
+  ({ node, children, className, ...props }: H3Props) => (
+    <h3 className={cn('text-xl font-semibold mt-6 mb-2', className)} {...props}>
+      {children}
+    </h3>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoH3.displayName = 'MarkdownH3';
+
+type H4Props = WithNode<JSX.IntrinsicElements['h4']>;
+const MemoH4 = memo<H4Props>(
+  ({ node, children, className, ...props }: H4Props) => (
+    <h4 className={cn('text-lg font-semibold mt-6 mb-2', className)} {...props}>
+      {children}
+    </h4>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoH4.displayName = 'MarkdownH4';
+
+type H5Props = WithNode<JSX.IntrinsicElements['h5']>;
+const MemoH5 = memo<H5Props>(
+  ({ node, children, className, ...props }: H5Props) => (
+    <h5
+      className={cn('text-base font-semibold mt-6 mb-2', className)}
+      {...props}
+    >
+      {children}
+    </h5>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoH5.displayName = 'MarkdownH5';
+
+type H6Props = WithNode<JSX.IntrinsicElements['h6']>;
+const MemoH6 = memo<H6Props>(
+  ({ node, children, className, ...props }: H6Props) => (
+    <h6 className={cn('text-sm font-semibold mt-6 mb-2', className)} {...props}>
+      {children}
+    </h6>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoH6.displayName = 'MarkdownH6';
+
+type TableProps = WithNode<JSX.IntrinsicElements['table']>;
+const MemoTable = memo<TableProps>(
+  ({ node, children, className, ...props }: TableProps) => (
+    <div className="overflow-x-auto my-6 rounded border border-border">
+      <table className={cn('w-full border-collapse m-0', className)} {...props}>
+        {children}
+      </table>
+    </div>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoTable.displayName = 'MarkdownTable';
+
+type TrProps = WithNode<JSX.IntrinsicElements['tr']>;
+const MemoTr = memo<TrProps>(
+  ({ node, children, className, ...props }: TrProps) => (
+    <tr
+      className={cn(
+        'border-b border-border last:border-b-0',
+        'hover:bg-muted/50 transition-colors duration-200',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </tr>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoTr.displayName = 'MarkdownTr';
+
+type TheadProps = WithNode<JSX.IntrinsicElements['thead']>;
+const MemoThead = memo<TheadProps>(
+  ({ node, children, className, ...props }: TheadProps) => (
+    <thead className={className} {...props}>
+      {children}
+    </thead>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoThead.displayName = 'MarkdownThead';
+
+type ThProps = WithNode<JSX.IntrinsicElements['th']> & { align?: string };
+const MemoTh = memo<ThProps>(
+  ({ node, children, className, align, ...props }: ThProps) => {
+    const alignClass = align ? `text-${align}` : 'text-left';
+    return (
+      <th
+        className={cn(
+          'px-4 py-3 text-sm font-semibold text-foreground',
+          'bg-muted',
+          'border-b border-border',
+          'break-words',
+          alignClass,
+          className,
+        )}
+        {...props}
+      >
+        <div className="font-medium">{children}</div>
+      </th>
+    );
+  },
+  (p, n) =>
+    p.className === n.className &&
+    p.align === n.align &&
+    sameNodePosition(p.node, n.node),
+);
+MemoTh.displayName = 'MarkdownTh';
+
+type TdProps = WithNode<JSX.IntrinsicElements['td']> & { align?: string };
+const MemoTd = memo<TdProps>(
+  ({ node, children, className, align, ...props }: TdProps) => {
+    const alignClass = align ? `text-${align}` : 'text-left';
+    return (
+      <td
+        className={cn(
+          'px-4 py-3 text-sm text-muted-foreground',
+          'border-r border-border last:border-r-0',
+          'break-words',
+          alignClass,
+          className,
+        )}
+        {...props}
+      >
+        <div className="leading-relaxed">{children}</div>
+      </td>
+    );
+  },
+  (p, n) =>
+    p.className === n.className &&
+    p.align === n.align &&
+    sameNodePosition(p.node, n.node),
+);
+MemoTd.displayName = 'MarkdownTd';
+
+type TbodyProps = WithNode<JSX.IntrinsicElements['tbody']>;
+const MemoTbody = memo<TbodyProps>(
+  ({ node, children, className, ...props }: TbodyProps) => (
+    <tbody className={className} {...props}>
+      {children}
+    </tbody>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoTbody.displayName = 'MarkdownTbody';
+
+type BlockquoteProps = WithNode<JSX.IntrinsicElements['blockquote']>;
+const MemoBlockquote = memo<BlockquoteProps>(
+  ({ node, children, className, ...props }: BlockquoteProps) => (
+    <blockquote
+      className={cn(
+        'my-4 border-l-2 border-border pl-4',
+        'text-muted-foreground',
+        '[&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
+        className,
+      )}
+      {...props}
+    >
+      {children}
+    </blockquote>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoBlockquote.displayName = 'MarkdownBlockquote';
+
+type CodeProps = WithNode<JSX.IntrinsicElements['code']>;
+const MemoCode = memo<CodeProps>(
+  ({ node, className, children, ...props }: CodeProps) => {
+    const startLine = node?.position?.start?.line;
+    const endLine = node?.position?.end?.line;
     const isInline =
-      !props.node?.position?.start.line ||
-      props.node?.position?.start.line === props.node?.position?.end.line;
+      typeof startLine === 'number' && typeof endLine === 'number'
+        ? startLine === endLine
+        : true;
 
     if (isInline) {
       return (
@@ -51,171 +347,39 @@ export const components: Partial<Components> = {
       </CodeBlock>
     );
   },
-  pre: ({ children }) => <>{children}</>,
-  ol: ({ node, children, ...props }) => {
-    return (
-      <ol className="list-decimal list-outside ml-4" {...props}>
-        {children}
-      </ol>
-    );
-  },
-  li: ({ node, children, ...props }) => {
-    return (
-      <li className="py-1" {...props}>
-        {children}
-      </li>
-    );
-  },
-  ul: ({ node, children, ...props }) => {
-    return (
-      <ul className="list-disc list-outside ml-4" {...props}>
-        {children}
-      </ul>
-    );
-  },
-  blockquote: ({ node, children, ...props }) => {
-    return (
-      <blockquote
-        className={cn(
-          'my-4 border-l-2 border-border pl-4',
-          'text-muted-foreground',
-          '[&>*:first-child]:mt-0 [&>*:last-child]:mb-0',
-        )}
-        {...props}
-      >
-        {children}
-      </blockquote>
-    );
-  },
-  hr: ({ node, ...props }) => {
-    return (
-      <hr
-        className={cn(
-          'my-6 border-border',
-          (props as { className?: string }).className,
-        )}
-        {...props}
-      />
-    );
-  },
-  strong: ({ node, children, ...props }) => {
-    return (
-      <span className="font-semibold" {...props}>
-        {children}
-      </span>
-    );
-  },
-  a: ({ node, children, ...props }) => {
-    return (
-      <LinkMarkdown href={props.href || '#'} {...props}>
-        {children}
-      </LinkMarkdown>
-    );
-  },
-  h1: ({ node, children, ...props }) => {
-    return (
-      <h1 className="text-3xl font-semibold mt-6 mb-2" {...props}>
-        {children}
-      </h1>
-    );
-  },
-  h2: ({ node, children, ...props }) => {
-    return (
-      <h2 className="text-2xl font-semibold mt-6 mb-2" {...props}>
-        {children}
-      </h2>
-    );
-  },
-  h3: ({ node, children, ...props }) => {
-    return (
-      <h3 className="text-xl font-semibold mt-6 mb-2" {...props}>
-        {children}
-      </h3>
-    );
-  },
-  h4: ({ node, children, ...props }) => {
-    return (
-      <h4 className="text-lg font-semibold mt-6 mb-2" {...props}>
-        {children}
-      </h4>
-    );
-  },
-  h5: ({ node, children, ...props }) => {
-    return (
-      <h5 className="text-base font-semibold mt-6 mb-2" {...props}>
-        {children}
-      </h5>
-    );
-  },
-  h6: ({ node, children, ...props }) => {
-    return (
-      <h6 className="text-sm font-semibold mt-6 mb-2" {...props}>
-        {children}
-      </h6>
-    );
-  },
-  table({ children }: { children?: React.ReactNode }) {
-    return (
-      <div className="overflow-x-auto my-6 rounded border border-border">
-        <table className="w-full border-collapse m-0">{children}</table>
-      </div>
-    );
-  },
-  tr({ children }: { children?: React.ReactNode }) {
-    return (
-      <tr
-        className={cn(
-          'border-b border-border last:border-b-0',
-          'hover:bg-muted/50 transition-colors duration-200',
-        )}
-      >
-        {children}
-      </tr>
-    );
-  },
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoCode.displayName = 'MarkdownCode';
 
-  thead({ children }: { children?: React.ReactNode }) {
-    return <thead>{children}</thead>;
-  },
+type PreProps = WithNode<JSX.IntrinsicElements['pre']>;
+const MemoPre = memo<PreProps>(
+  ({ children }: PreProps) => <>{children}</>,
+  (p, n) => sameNodePosition(p.node, n.node),
+);
+MemoPre.displayName = 'MarkdownPre';
 
-  th({ children, align }: { children?: React.ReactNode; align?: string }) {
-    const alignClass = align ? `text-${align}` : 'text-left';
-
-    return (
-      <th
-        className={cn(
-          'px-4 py-3 text-sm font-semibold text-foreground',
-          'bg-muted',
-          'border-b border-border',
-          'break-words',
-          alignClass,
-        )}
-      >
-        <div className="font-medium">{children}</div>
-      </th>
-    );
-  },
-
-  td({ children, align }: { children?: React.ReactNode; align?: string }) {
-    const alignClass = align ? `text-${align}` : 'text-left';
-
-    return (
-      <td
-        className={cn(
-          'px-4 py-3 text-sm text-muted-foreground',
-          'border-r border-border last:border-r-0',
-          'break-words',
-          alignClass,
-        )}
-      >
-        <div className="leading-relaxed">{children}</div>
-      </td>
-    );
-  },
-
-  tbody({ children }: { children?: React.ReactNode }) {
-    return <tbody>{children}</tbody>;
-  },
+export const components: Partial<Components> = {
+  ol: MemoOl,
+  li: MemoLi,
+  ul: MemoUl,
+  hr: MemoHr,
+  strong: MemoStrong,
+  a: MemoA,
+  h1: MemoH1,
+  h2: MemoH2,
+  h3: MemoH3,
+  h4: MemoH4,
+  h5: MemoH5,
+  h6: MemoH6,
+  table: MemoTable,
+  tr: MemoTr,
+  thead: MemoThead,
+  th: MemoTh,
+  td: MemoTd,
+  tbody: MemoTbody,
+  blockquote: MemoBlockquote,
+  code: MemoCode,
+  pre: MemoPre,
 };
 
 const remarkPlugins = [remarkGfm];

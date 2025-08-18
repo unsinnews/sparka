@@ -10,7 +10,6 @@ import remarkMath from 'remark-math';
 import { cn } from '@/lib/utils';
 import 'katex/dist/katex.min.css';
 import hardenReactMarkdown from 'harden-react-markdown';
-import { components as markdownComponents } from '../markdown';
 import { marked } from 'marked';
 import {
   useMarkdownBlockCountForPart,
@@ -354,7 +353,7 @@ MemoBlockquote.displayName = 'MarkdownBlockquote';
 
 type CodeProps = WithNode<JSX.IntrinsicElements['code']>;
 const MemoCode = memo<CodeProps>(
-  ({ node, className, ...props }: CodeProps) => {
+  ({ node, className, children, ...props }: CodeProps) => {
     const startLine = node?.position?.start?.line;
     const endLine = node?.position?.end?.line;
     const inline =
@@ -362,34 +361,23 @@ const MemoCode = memo<CodeProps>(
         ? startLine === endLine
         : true;
 
-    if (!inline) {
-      return <code className={className} {...props} />;
+    if (inline) {
+      return (
+        <code
+          className={cn(
+            'rounded bg-muted px-1.5 py-0.5 font-mono text-sm',
+            className,
+          )}
+          {...props}
+        >
+          {children}
+        </code>
+      );
     }
 
-    return (
-      <code
-        className={cn(
-          'rounded bg-muted px-1.5 py-0.5 font-mono text-sm',
-          className,
-        )}
-        {...props}
-      />
-    );
-  },
-  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
-);
-MemoCode.displayName = 'MarkdownCode';
+    const match = className?.match(/language-(\w+)/);
+    const language = match ? match[1] : 'plaintext';
 
-type PreProps = WithNode<JSX.IntrinsicElements['pre']>;
-const MemoPre = memo<PreProps>(
-  ({ node, className, children }: PreProps) => {
-    let language = 'javascript';
-
-    if (typeof node?.properties?.className === 'string') {
-      language = node.properties.className.replace('language-', '');
-    }
-
-    // Extract code content from children safely
     let code = '';
     if (
       isValidElement(children) &&
@@ -402,17 +390,22 @@ const MemoPre = memo<PreProps>(
     }
 
     return (
-      <CodeBlock
-        className={cn('my-4 h-auto', className)}
-        code={code}
-        language={language}
-      >
+      <CodeBlock className={className} code={code} language={language}>
         <CodeBlockCopyButton
           onCopy={() => console.log('Copied code to clipboard')}
           onError={() => console.error('Failed to copy code to clipboard')}
         />
       </CodeBlock>
     );
+  },
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoCode.displayName = 'MarkdownCode';
+
+type PreProps = WithNode<JSX.IntrinsicElements['pre']>;
+const MemoPre = memo<PreProps>(
+  ({ node, className, children }: PreProps) => {
+    return <pre className={cn('my-4 h-auto', className)}>{children}</pre>;
   },
   (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
 );
@@ -565,6 +558,7 @@ const MarkdownBlockItem = memo(
 
 MarkdownBlockItem.displayName = 'MarkdownBlockItem';
 
+// TODO: Should we define these components here or in Markdown.tsx?
 const components: Options['components'] = {
   ol: MemoOl,
   li: MemoLi,
@@ -678,7 +672,7 @@ export const StyledResponse = memo(
         {...props}
       >
         <HardenedMarkdown
-          components={markdownComponents}
+          components={components}
           rehypePlugins={[rehypeKatex]}
           remarkPlugins={[remarkGfm, remarkMath]}
           allowedImagePrefixes={allowedImagePrefixes ?? ['*']}

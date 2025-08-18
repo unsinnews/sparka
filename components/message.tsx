@@ -76,11 +76,12 @@ const PureUserMessage = ({
         className={cn(
           // TODO: Consider not using this max-w class override when editing is cohesive with displaying the message
           mode === 'edit' ? 'max-w-full [&>div]:max-w-full' : undefined,
+          'py-1',
         )}
       >
         <div
           className={cn(
-            'flex flex-col gap-4 w-full',
+            'flex flex-col gap-2 w-full',
             message.role === 'user' && mode !== 'edit' && 'items-end',
           )}
         >
@@ -181,9 +182,9 @@ const PureAssistantMessage = ({
   if (!chatId) return null;
 
   return (
-    <AIMessage from="assistant" className="w-full">
-      <div className="flex flex-col gap-4 w-full">
-        <AIMessageContent className="text-left">
+    <AIMessage from="assistant" className="w-full py-1">
+      <div className="flex flex-col gap-2 w-full">
+        <AIMessageContent className="text-left px-0">
           <PartialMessageLoading messageId={messageId} />
           <MessageParts
             messageId={messageId}

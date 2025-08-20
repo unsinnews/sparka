@@ -32,6 +32,14 @@ const sampleMarkdown = `
 ##### This is a Heading h5
 ###### This is a Heading h6
 
+## Paragraphs
+
+This is a paragraph.
+
+This is another paragraph.
+
+
+
 ## Emphasis
 
 *This text will be italic*  
@@ -39,6 +47,7 @@ _This will also be italic_
 
 **This text will be bold**  
 __This will also be bold__
+
 
 _You **can** combine them_
 
@@ -144,8 +153,35 @@ Here is a reference to a footnote.[^1] Another one with inline code[^code].
 
 `;
 
+const emailExample = `  
+Subject: Quick Update
+
+Hi [Recipient's Name],
+
+I hope this message finds you well. I wanted to share a few quick updates:
+
+- **Project Status**: We are currently on track to meet our deadlines.
+- **Upcoming Meetings**: Please mark your calendars for our next team meeting on [Date and Time].
+- **Action Items**: Don't forget to review the latest documents shared in the drive.
+
+Let me know if you have any questions.
+
+Best regards,
+
+[Your Name]  
+[Your Position]  
+[Your Contact Information]  
+
+`;
+
 export const GFM: Story = {
   args: {
     children: sampleGfmMarkdown,
+  },
+};
+
+export const Email: Story = {
+  args: {
+    children: emailExample,
   },
 };

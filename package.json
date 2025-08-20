@@ -142,6 +142,7 @@
     "resumable-stream": "2.2.0",
     "server-only": "^0.0.1",
     "sonner": "^2.0.5",
+    "streamdown": "^1.0.11",
     "superjson": "^2.2.2",
     "swr": "^2.2.5",
     "tailwind-merge": "^2.5.2",

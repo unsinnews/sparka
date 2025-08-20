@@ -73,7 +73,7 @@ export interface MessagesProps {
 function PureMessages({ votes, isReadonly, isVisible }: MessagesProps) {
   return (
     <Conversation className="flex flex-col flex-1 w-full">
-      <ConversationContent className="flex flex-col px-2 min-w-0 sm:max-w-2xl md:max-w-3xl container mx-auto h-full">
+      <ConversationContent className="flex flex-col min-w-0 sm:max-w-2xl md:max-w-3xl container mx-auto h-full">
         <PureMessagesInternal votes={votes} isReadonly={isReadonly} />
       </ConversationContent>
       <ConversationScrollButton />

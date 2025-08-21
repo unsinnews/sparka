@@ -1,5 +1,6 @@
 'use client';
 import { Chat } from '@/components/chat';
+import { ChatSync } from '@/components/chat-sync';
 import { getDefaultThread } from '@/lib/thread-utils';
 import { useMemo } from 'react';
 import { WithSkeleton } from '@/components/ui/skeleton';
@@ -71,6 +72,7 @@ export function SharedChatPage({ id }: { id: string }) {
           initialMessages={initialThreadMessages}
           isReadonly={true}
         />
+        <ChatSync id={chat.id} initialMessages={initialThreadMessages} />
       </WithSkeleton>
       {/* Shared chats don't need data handler */}
       {/* <DataStreamHandler id={id} /> */}

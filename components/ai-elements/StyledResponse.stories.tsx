@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { StyledResponse } from './response';
+import { StyledResponse } from './response_old';
 
 const meta: Meta<typeof StyledResponse> = {
   title: 'Components/AI/StyledResponse',

@@ -2,7 +2,10 @@
 
 import { memo } from 'react';
 import { Response } from './ai-elements/response';
-import { useMessagePartTypesById } from '@/lib/stores/chat-store';
+import {
+  useMessagePartByPartIdx,
+  useMessagePartTypesById,
+} from '@/lib/stores/chat-store';
 
 export const TextMessagePart = memo(function TextMessagePart({
   messageId,
@@ -12,15 +15,8 @@ export const TextMessagePart = memo(function TextMessagePart({
   partIdx: number;
 }) {
   const types = useMessagePartTypesById(messageId);
+  const part = useMessagePartByPartIdx(messageId, partIdx, 'text');
   const isLast = partIdx === types.length - 1;
 
-  return (
-    <div className="flex flex-col gap-4 w-full">
-      <Response
-        messageId={messageId}
-        partIdx={partIdx}
-        parseIncompleteMarkdown={isLast}
-      />
-    </div>
-  );
+  return <Response>{part.text}</Response>;
 });

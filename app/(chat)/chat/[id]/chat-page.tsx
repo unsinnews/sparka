@@ -1,39 +1,13 @@
 'use client';
-import { Chat } from '@/components/chat';
-import { DataStreamHandler } from '@/components/data-stream-handler';
-import { ChatSync } from '@/components/chat-sync';
 import { getDefaultThread } from '@/lib/thread-utils';
-import { useMemo, memo } from 'react';
+import { useMemo } from 'react';
 import { notFound } from 'next/navigation';
-import { ChatInputProvider } from '@/providers/chat-input-provider';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useTRPC } from '@/trpc/react';
 import type { UiToolName } from '@/lib/ai/types';
+import { ChatSystem } from '@/components/chat-system';
 
-const MemoizedChatWrapper = memo(function MemoizedChatWrapper({
-  id,
-  initialMessages,
-  isReadonly,
-  initialTool,
-}: {
-  id: string;
-  initialMessages: any[];
-  isReadonly: boolean;
-  initialTool: UiToolName | null;
-}) {
-  return (
-    <ChatInputProvider localStorageEnabled={true} initialTool={initialTool}>
-      <ChatSync id={id} initialMessages={initialMessages} />
-      <Chat
-        key={id}
-        id={id}
-        initialMessages={initialMessages}
-        isReadonly={isReadonly}
-      />
-      <DataStreamHandler id={id} />
-    </ChatInputProvider>
-  );
-});
+// moved to components/chat-system
 
 export function ChatPage({ id }: { id: string }) {
   const trpc = useTRPC();
@@ -80,7 +54,7 @@ export function ChatPage({ id }: { id: string }) {
 
   return (
     <>
-      <MemoizedChatWrapper
+      <ChatSystem
         id={chat.id}
         initialMessages={initialThreadMessages}
         isReadonly={false}

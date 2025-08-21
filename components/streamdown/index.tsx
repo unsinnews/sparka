@@ -1,6 +1,4 @@
 'use client';
-
-import type { ComponentProps } from 'react';
 import { memo, useId, useMemo } from 'react';
 import ReactMarkdown, { type Options } from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
@@ -44,13 +42,15 @@ const Block = memo(
         typeof content === 'string' && shouldParseIncompleteMarkdown
           ? parseIncompleteMarkdown(content.trim())
           : content,
-      [content, shouldParseIncompleteMarkdown]
+      [content, shouldParseIncompleteMarkdown],
     );
 
     return <HardenedMarkdown {...props}>{parsedContent}</HardenedMarkdown>;
   },
-  (prevProps, nextProps) => prevProps.content === nextProps.content
+  (prevProps, nextProps) => prevProps.content === nextProps.content,
 );
+
+Block.displayName = 'Block';
 
 export const Streamdown = memo(
   ({
@@ -71,7 +71,7 @@ export const Streamdown = memo(
     const blocks = useMemo(
       () =>
         parseMarkdownIntoBlocks(typeof children === 'string' ? children : ''),
-      [children]
+      [children],
     );
 
     return (
@@ -96,7 +96,7 @@ export const Streamdown = memo(
       </div>
     );
   },
-  (prevProps, nextProps) => prevProps.children === nextProps.children
+  (prevProps, nextProps) => prevProps.children === nextProps.children,
 );
 Streamdown.displayName = 'Streamdown';
 

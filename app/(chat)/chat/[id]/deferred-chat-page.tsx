@@ -23,9 +23,9 @@ export function DeferredChatPage() {
   // Show skeleton when deferred values don't match current values
   if (deferredId !== id || deferredType !== type) {
     return (
-      <div className="flex h-screen w-full">
+      <div className="flex h-dvh w-full">
         <WithSkeleton isLoading={true} className="w-full h-full">
-          <div className="flex h-screen w-full" />
+          <div className="flex h-dvh w-full" />
         </WithSkeleton>
       </div>
     );

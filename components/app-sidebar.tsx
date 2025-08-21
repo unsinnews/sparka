@@ -23,7 +23,7 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-screen"
+      className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-dvh"
     >
       <SidebarHeader>
         <SidebarMenu>

@@ -19,7 +19,7 @@ export default async function ChatPageRoute({
       <Suspense
         fallback={
           <WithSkeleton isLoading={true} className="w-full h-full">
-            <div className="flex h-screen w-full" />
+            <div className="flex h-dvh w-full" />
           </WithSkeleton>
         }
       >

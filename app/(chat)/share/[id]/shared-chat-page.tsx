@@ -50,7 +50,7 @@ export function SharedChatPage({ id }: { id: string }) {
         isLoading={isChatLoading || isMessagesLoading}
         className="w-full h-full"
       >
-        <div className="flex h-screen w-full" />
+        <div className="flex h-dvh w-full" />
       </WithSkeleton>
     );
   }

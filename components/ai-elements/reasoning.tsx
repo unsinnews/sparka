@@ -10,7 +10,7 @@ import { BrainIcon, ChevronDownIcon } from 'lucide-react';
 import type { ComponentProps, ReactNode } from 'react';
 import { createContext, memo, useContext, useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
-import { Response } from './response_old';
+import { Response } from './response';
 import { TextShimmerLoader } from '../ui/loader';
 
 type ReasoningContextValue = {

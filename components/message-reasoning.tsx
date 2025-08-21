@@ -4,7 +4,7 @@ import {
   ReasoningTrigger,
   ReasoningContentContainer,
 } from '@/components/ai-elements/reasoning';
-import { Response } from '@/components/ai-elements/response_old';
+import { Response } from '@/components/ai-elements/response';
 import { memo } from 'react';
 
 interface MessageReasoningProps {

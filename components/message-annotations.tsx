@@ -4,34 +4,39 @@ import type {
   ResearchUpdate,
 } from '@/lib/ai/tools/research-updates-schema';
 import { Sources } from './sources';
-import { useMessagePartsById } from '@/lib/stores/chat-store';
+import { useMessageResearchUpdatePartsById } from '@/lib/stores/chat-store';
+import { memo } from 'react';
 
-export const SourcesAnnotations = ({ messageId }: { messageId: string }) => {
-  const parts = useMessagePartsById(messageId);
+export const SourcesAnnotations = memo(
+  ({ messageId }: { messageId: string }) => {
+    const parts = useMessageResearchUpdatePartsById(messageId);
 
-  const researchUpdates = parts
-    .filter((part) => part.type === 'data-researchUpdate')
-    .map((u) => u.data);
+    const researchUpdates = parts.map((u) => u.data);
 
-  if (researchUpdates.length === 0) return null;
+    if (researchUpdates.length === 0) return null;
 
-  const researchCompleted = researchUpdates.find((u) => u.type === 'completed');
+    const researchCompleted = researchUpdates.find(
+      (u) => u.type === 'completed',
+    );
 
-  if (!researchCompleted) return null;
+    if (!researchCompleted) return null;
 
-  const webSearchUpdates = researchUpdates
-    .filter<WebSearchUpdate>((u) => u.type === 'web')
-    .filter((u) => u.results)
-    .flatMap((u) => u.results)
-    .filter((u) => u !== undefined);
+    const webSearchUpdates = researchUpdates
+      .filter<WebSearchUpdate>((u) => u.type === 'web')
+      .filter((u) => u.results)
+      .flatMap((u) => u.results)
+      .filter((u) => u !== undefined);
 
-  const deduppedSources = webSearchUpdates.filter(
-    (source, index, self) =>
-      index === self.findIndex((t) => t.url === source.url),
-  );
+    const deDuppedSources = webSearchUpdates.filter(
+      (source, index, self) =>
+        index === self.findIndex((t) => t.url === source.url),
+    );
 
-  return <Sources sources={deduppedSources} />;
-};
+    return <Sources sources={deDuppedSources} />;
+  },
+);
+
+SourcesAnnotations.displayName = 'SourcesAnnotations';
 
 // Render a given list of research updates (already grouped/filtered)
 export const ResearchUpdates = ({

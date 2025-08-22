@@ -532,6 +532,21 @@ export const useMessagePartsById = (messageId: string): ChatMessage['parts'] =>
     }),
   );
 
+export const useMessageResearchUpdatePartsById = (
+  messageId: string,
+): Extract<ChatMessage['parts'][number], { type: 'data-researchUpdate' }>[] =>
+  chatStore(
+    useShallow((state) => {
+      const message = state
+        .getThrottledMessages()
+        .find((msg) => msg.id === messageId);
+      if (!message) throw new Error(`Message not found for id: ${messageId}`);
+      return message.parts.filter(
+        (part) => part.type === 'data-researchUpdate',
+      );
+    }),
+  );
+
 export const useMessageMetadataById = (
   messageId: string,
 ): ChatMessage['metadata'] =>

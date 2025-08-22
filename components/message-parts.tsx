@@ -122,7 +122,7 @@ const collectResearchUpdates = (
 };
 
 // Render a single part by index with minimal subscriptions
-export function PureMessagePart({
+function PureMessagePart({
   messageId,
   partIdx,
   isReadonly,
@@ -467,6 +467,8 @@ export function PureMessagePart({
   return null;
 }
 
+const MessagePart = memo(PureMessagePart);
+
 // Render contiguous reasoning parts; subscribes only to the specified range
 export function PureMessageReasoningParts({
   messageId,
@@ -554,7 +556,7 @@ export function PureMessageParts({
 
     const key = `message-${messageId}-part-${group.index}-${group.kind}`;
     return (
-      <PureMessagePart
+      <MessagePart
         key={key}
         messageId={messageId}
         partIdx={group.index}

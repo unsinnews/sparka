@@ -78,7 +78,7 @@ export function ChatSync({
   const helpers = useChat<ChatMessage>({
     // @ts-expect-error private field
     chat,
-    experimental_throttle: 50,
+    experimental_throttle: 100,
   });
 
   useEffect(() => {

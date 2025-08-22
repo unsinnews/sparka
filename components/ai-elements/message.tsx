@@ -30,9 +30,8 @@ export const MessageContent = ({
   <div
     className={cn(
       'flex flex-col gap-2 rounded-2xl px-4 py-3 text-foreground text-sm',
-      'group-[.is-user]:bg-muted group-[.is-user]:text-primary-foreground',
+      'group-[.is-user]:bg-card group-[.is-user]:text-foreground',
       'group-[.is-assistant]:bg-background group-[.is-assistant]:text-foreground',
-      'is-user:dark',
       className,
     )}
     {...props}

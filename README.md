@@ -20,7 +20,7 @@ Access every major AI assistant Claude, GPT-4, Gemini, Grok, and 20+ models thro
 
 ## ✨ Features
 
-- **🤖 Multi-Model Chat** - Access 70+ AI models including Claude, GPT-4, Gemini, and Grok in one interface.
+- **🤖 Multi-Model Chat** - Access 100+ AI models including Claude, GPT-5, Gemini, and Grok in one interface.
 
 - **🔐 Authentication & Sync** - Secure authentication with chat history sync across all devices.
 

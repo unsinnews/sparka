@@ -79,7 +79,7 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'anthropic/claude-4-opus': {
+  'anthropic/claude-opus-4': {
     reasoning: true,
     functionCalling: true,
     input: {
@@ -94,7 +94,7 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'anthropic/claude-4-sonnet': {
+  'anthropic/claude-sonnet-4': {
     reasoning: true,
     functionCalling: true,
     knowledgeCutoff: new Date('2025-03-01'),
@@ -110,7 +110,7 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
       audio: false,
     },
   },
-  'anthropic/claude-4.1-opus': {
+  'anthropic/claude-opus-4.1': {
     reasoning: true,
     functionCalling: true,
     knowledgeCutoff: new Date('2024-04-01'),

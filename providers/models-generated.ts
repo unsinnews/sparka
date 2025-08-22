@@ -262,10 +262,10 @@ export const modelsData: ModelData[] = [
     },
   },
   {
-    id: 'anthropic/claude-4-opus',
+    id: 'anthropic/claude-opus-4',
     object: 'model',
     owned_by: 'anthropic',
-    name: 'Claude 4 Opus',
+    name: 'Claude Opus 4',
     description:
       "Claude Opus 4 is Anthropic's most powerful model yet and the best coding model in the world, leading on SWE-bench (72.5%) and Terminal-bench (43.2%). It delivers sustained performance on long-running tasks that require focused effort and thousands of steps, with the ability to work continuously for several hours—dramatically outperforming all Sonnet models and significantly expanding what AI agents can accomplish.",
     context_window: 200000,
@@ -279,27 +279,10 @@ export const modelsData: ModelData[] = [
     },
   },
   {
-    id: 'anthropic/claude-4-sonnet',
+    id: 'anthropic/claude-opus-4.1',
     object: 'model',
     owned_by: 'anthropic',
-    name: 'Claude 4 Sonnet',
-    description:
-      "Claude Sonnet 4 significantly improves on Sonnet 3.7's industry-leading capabilities, excelling in coding with a state-of-the-art 72.7% on SWE-bench. The model balances performance and efficiency for internal and external use cases, with enhanced steerability for greater control over implementations. While not matching Opus 4 in most domains, it delivers an optimal mix of capability and practicality.",
-    context_window: 200000,
-    max_tokens: 64000,
-    type: 'language',
-    pricing: {
-      input: '0.000003',
-      output: '0.000015',
-      input_cache_read: '0.0000003',
-      input_cache_write: '0.00000375',
-    },
-  },
-  {
-    id: 'anthropic/claude-4.1-opus',
-    object: 'model',
-    owned_by: 'anthropic',
-    name: 'Claude 4.1 Opus',
+    name: 'Claude Opus 4.1',
     description:
       'Claude Opus 4.1 is a drop-in replacement for Opus 4 that delivers superior performance and precision for real-world coding and agentic tasks. Opus 4.1 advances state-of-the-art coding performance to 74.5% on SWE-bench Verified, and handles complex, multi-step problems with more rigor and attention to detail.',
     context_window: 200000,
@@ -310,6 +293,23 @@ export const modelsData: ModelData[] = [
       output: '0.000075',
       input_cache_read: '0.0000015',
       input_cache_write: '0.00001875',
+    },
+  },
+  {
+    id: 'anthropic/claude-sonnet-4',
+    object: 'model',
+    owned_by: 'anthropic',
+    name: 'Claude Sonnet 4',
+    description:
+      "Claude Sonnet 4 significantly improves on Sonnet 3.7's industry-leading capabilities, excelling in coding with a state-of-the-art 72.7% on SWE-bench. The model balances performance and efficiency for internal and external use cases, with enhanced steerability for greater control over implementations. While not matching Opus 4 in most domains, it delivers an optimal mix of capability and practicality.",
+    context_window: 200000,
+    max_tokens: 64000,
+    type: 'language',
+    pricing: {
+      input: '0.000003',
+      output: '0.000015',
+      input_cache_read: '0.0000003',
+      input_cache_write: '0.00000375',
     },
   },
   {
@@ -418,6 +418,36 @@ export const modelsData: ModelData[] = [
     },
   },
   {
+    id: 'deepseek/deepseek-v3.1',
+    object: 'model',
+    owned_by: 'deepseek',
+    name: 'DeepSeek V3.1',
+    description:
+      'DeepSeek-V3.1 is post-trained on the top of DeepSeek-V3.1-Base, which is built upon the original V3 base checkpoint through a two-phase long context extension approach, following the methodology outlined in the original DeepSeek-V3 report. DeepSeek has expanded their dataset by collecting additional long documents and substantially extending both training phases.',
+    context_window: 163840,
+    max_tokens: 8192,
+    type: 'language',
+    pricing: {
+      input: '0.0000001999',
+      output: '0.0000008001',
+    },
+  },
+  {
+    id: 'deepseek/deepseek-v3.1-base',
+    object: 'model',
+    owned_by: 'deepseek',
+    name: 'DeepSeek V3.1 Base',
+    description:
+      'DeepSeek V3.1 Base is an improved version of the DeepSeek V3 model.',
+    context_window: 128000,
+    max_tokens: 8192,
+    type: 'language',
+    pricing: {
+      input: '0.0000001999',
+      output: '0.0000008001',
+    },
+  },
+  {
     id: 'google/gemini-2.0-flash',
     object: 'model',
     owned_by: 'google',
@@ -460,6 +490,21 @@ export const modelsData: ModelData[] = [
     pricing: {
       input: '0.0000003',
       output: '0.0000025',
+    },
+  },
+  {
+    id: 'google/gemini-2.5-flash-lite',
+    object: 'model',
+    owned_by: 'google',
+    name: 'Gemini 2.5 Flash Lite',
+    description:
+      'Gemini 2.5 Flash-Lite is a balanced, low-latency model with configurable thinking budgets and tool connectivity (e.g., Google Search grounding and code execution). It supports multimodal input and offers a 1M-token context window.',
+    context_window: 1048576,
+    max_tokens: 65536,
+    type: 'language',
+    pricing: {
+      input: '0.0000001',
+      output: '0.0000004',
     },
   },
   {
@@ -1518,6 +1563,21 @@ export const modelsData: ModelData[] = [
     pricing: {
       input: '0.0000002',
       output: '0.0000011',
+    },
+  },
+  {
+    id: 'zai/glm-4.5v',
+    object: 'model',
+    owned_by: 'zai',
+    name: 'GLM 4.5V',
+    description:
+      'Built on the GLM-4.5-Air base model, GLM-4.5V inherits proven techniques from GLM-4.1V-Thinking while achieving effective scaling through a powerful 106B-parameter MoE architecture.',
+    context_window: 65536,
+    max_tokens: 66000,
+    type: 'language',
+    pricing: {
+      input: '0.0000006',
+      output: '0.0000018',
     },
   },
 ];

@@ -182,7 +182,7 @@ const PureAssistantMessage = ({
   if (!chatId) return null;
 
   return (
-    <AIMessage from="assistant" className="w-full py-1">
+    <AIMessage from="assistant" className="w-full py-1 ">
       <div className="flex flex-col gap-2 w-full">
         <AIMessageContent className="text-left px-0">
           <PartialMessageLoading messageId={messageId} />

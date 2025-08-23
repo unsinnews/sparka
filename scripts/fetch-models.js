@@ -22,19 +22,32 @@ async function fetchAndConvertModels() {
     fs.writeFileSync(jsonPath, JSON.stringify(jsonData, null, 2));
     console.log('Saved JSON file:', jsonPath);
 
-    // Extract unique providers from owned_by property
+    // Filter out embedding models
+    const nonEmbeddingData = jsonData.data.filter(
+      (model) => model.type !== 'embedding',
+    );
+
+    // Extract unique providers from owned_by property for non-embedding models
     const providers = [
-      ...new Set(jsonData.data.map((model) => model.owned_by)),
+      ...new Set(nonEmbeddingData.map((model) => model.owned_by)),
+    ].sort();
+
+    // Extract all model ids from non-embedding models
+    const models = [
+      ...new Set(nonEmbeddingData.map((model) => model.id)),
     ].sort();
 
     // Generate TypeScript content
     const outputPath = path.join(__dirname, '../providers/models-generated.ts');
-    const tsContent = `import type { ModelId } from '@/lib/ai/model-id';
-
-// List of unique providers extracted from models data
+    const tsContent = `// List of unique providers extracted from models data
 export const providers = ${JSON.stringify(providers, null, 2)} as const;
 
 export type ProviderId = (typeof providers)[number];
+
+// List of all model ids extracted from models data
+export const models = ${JSON.stringify(models, null, 2)} as const;
+
+export type ModelId = (typeof models)[number];
 
 export interface ModelData {
   id: ModelId;
@@ -42,7 +55,7 @@ export interface ModelData {
   owned_by: ProviderId;
   name: string;
   description: string;
-  type: 'language' | 'embedding'
+  type: 'language' | 'embedding';
   context_window: number; // Max input tokens
   max_tokens: number; // Max output tokens
   pricing: {
@@ -55,7 +68,7 @@ export interface ModelData {
 
 // Define the data with proper typing
 export const modelsData: ModelData[] = ${JSON.stringify(
-      jsonData.data.map(({ created, ...model }) => model),
+      nonEmbeddingData.map(({ created, ...model }) => model),
       null,
       2,
     )};

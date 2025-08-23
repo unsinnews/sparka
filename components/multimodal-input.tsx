@@ -13,7 +13,7 @@ import {
   type SetStateAction,
 } from 'react';
 import { toast } from 'sonner';
-import { useWindowSize } from 'usehooks-ts';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useDropzone } from 'react-dropzone';
 import { motion } from 'motion/react';
 import { useSession } from 'next-auth/react';
@@ -66,14 +66,13 @@ function PureMultimodalInput({
   parentMessageId: string | null;
   onSendMessage?: (message: ChatMessage) => void | Promise<void>;
 }) {
-  const { width } = useWindowSize();
   const { data: session } = useSession();
+  const isMobile = useIsMobile();
   const { mutate: saveChatMessage } = useSaveMessageMutation();
   const setMessages = useSetMessages();
   const messageIds = useMessageIds();
 
   // Detect mobile devices
-  const isMobile = width ? width <= 768 : false;
   const {
     editorRef,
     selectedTool,
@@ -240,13 +239,13 @@ function PureMultimodalInput({
     sendMessage(message);
 
     // Refocus after submit
-    if (width && width > 768) {
+    if (!isMobile) {
       editorRef.current?.focus();
     }
   }, [
     attachments,
     sendMessage,
-    width,
+    isMobile,
     chatId,
     selectedTool,
     isEditMode,

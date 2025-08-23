@@ -3,7 +3,7 @@
 import type { WeatherAtLocation } from '@/lib/ai/tools/get-weather';
 import cx from 'classnames';
 import { format, isWithinInterval } from 'date-fns';
-import { useEffect, useState } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const SAMPLE = {
   latitude: 37.763283,
@@ -181,18 +181,7 @@ export function Weather({
     end: new Date(weatherAtLocation.daily.sunset[0]),
   });
 
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    handleResize();
-    window.addEventListener('resize', handleResize);
-
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  const isMobile = useIsMobile();
 
   const hoursToShow = isMobile ? 5 : 6;
 

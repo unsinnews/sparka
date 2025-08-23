@@ -19,6 +19,51 @@ export interface ModelFeatures {
 }
 
 export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
+  'amazon/nova-lite': {
+    reasoning: false,
+    functionCalling: true,
+    input: {
+      image: true,
+      text: true,
+      pdf: false,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'amazon/nova-micro': {
+    reasoning: false,
+    functionCalling: true,
+    input: {
+      image: false,
+      text: true,
+      pdf: false,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'amazon/nova-pro': {
+    reasoning: false,
+    functionCalling: true,
+    input: {
+      image: true,
+      text: true,
+      pdf: false,
+      audio: false,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
   'anthropic/claude-3-opus': {
     reasoning: false,
     functionCalling: true,
@@ -178,6 +223,22 @@ export const modelFeatures: Partial<Record<ModelId, ModelFeatures>> = {
     reasoning: false,
     functionCalling: true,
     knowledgeCutoff: new Date('2024-08-01'),
+    input: {
+      image: true,
+      text: true,
+      pdf: true,
+      audio: true,
+    },
+    output: {
+      image: false,
+      text: true,
+      audio: false,
+    },
+  },
+  'google/gemini-2.5-flash-lite': {
+    reasoning: false,
+    functionCalling: true,
+    knowledgeCutoff: new Date('2025-01-01'),
     input: {
       image: true,
       text: true,

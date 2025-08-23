@@ -2,6 +2,7 @@ import { formatDistance } from 'date-fns';
 import { AnimatePresence, motion } from 'motion/react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useDebounceCallback, useWindowSize } from 'usehooks-ts';
+import { useIsMobile } from '@/hooks/use-mobile';
 import type { Document, Vote } from '@/lib/db/schema';
 import { MultimodalInput } from './multimodal-input';
 import { Toolbar } from './toolbar';
@@ -208,7 +209,7 @@ function PureArtifact({
       : true;
 
   const { width: windowWidth, height: windowHeight } = useWindowSize();
-  const isMobile = windowWidth ? windowWidth < 768 : false;
+  const isMobile = useIsMobile();
 
   const artifactDefinition = artifactDefinitions.find(
     (definition) => definition.kind === artifact.kind,

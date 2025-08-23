@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { RefreshCcw } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Button } from './ui/button';
+import { Action } from '@/components/ai-elements/actions';
 // ChatMessage type not needed directly here
 import {
   useSetMessages,
@@ -10,7 +10,13 @@ import {
   useSendMessage,
 } from '@/lib/stores/chat-store';
 
-export function RetryButton({ messageId }: { messageId: string }) {
+export function RetryButton({
+  messageId,
+  className,
+}: {
+  messageId: string;
+  className?: string;
+}) {
   const setMessages = useSetMessages();
   const sendMessage = useSendMessage();
 
@@ -62,13 +68,14 @@ export function RetryButton({ messageId }: { messageId: string }) {
   }, [sendMessage, messageId, setMessages]);
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
+    <Action
+      tooltip="Retry"
+      className={`text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0${
+        className ? ` ${className}` : ''
+      }`}
       onClick={handleRetry}
     >
       <RefreshCcw className="h-3.5 w-3.5" />
-    </Button>
+    </Action>
   );
 }

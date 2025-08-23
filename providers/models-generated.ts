@@ -1,5 +1,3 @@
-import type { ModelId } from '@/lib/ai/model-id';
-
 // List of unique providers extracted from models data
 export const providers = [
   'alibaba',
@@ -21,6 +19,103 @@ export const providers = [
 ] as const;
 
 export type ProviderId = (typeof providers)[number];
+
+// List of all model ids extracted from models data
+export const models = [
+  'alibaba/qwen-3-14b',
+  'alibaba/qwen-3-235b',
+  'alibaba/qwen-3-30b',
+  'alibaba/qwen-3-32b',
+  'alibaba/qwen3-coder',
+  'amazon/nova-lite',
+  'amazon/nova-micro',
+  'amazon/nova-pro',
+  'anthropic/claude-3-haiku',
+  'anthropic/claude-3-opus',
+  'anthropic/claude-3.5-haiku',
+  'anthropic/claude-3.5-sonnet',
+  'anthropic/claude-3.7-sonnet',
+  'anthropic/claude-opus-4',
+  'anthropic/claude-opus-4.1',
+  'anthropic/claude-sonnet-4',
+  'cohere/command-a',
+  'cohere/command-r',
+  'cohere/command-r-plus',
+  'deepseek/deepseek-r1',
+  'deepseek/deepseek-r1-distill-llama-70b',
+  'deepseek/deepseek-v3',
+  'deepseek/deepseek-v3.1',
+  'deepseek/deepseek-v3.1-base',
+  'deepseek/deepseek-v3.1-thinking',
+  'google/gemini-2.0-flash',
+  'google/gemini-2.0-flash-lite',
+  'google/gemini-2.5-flash',
+  'google/gemini-2.5-flash-lite',
+  'google/gemini-2.5-pro',
+  'google/gemma-2-9b',
+  'inception/mercury-coder-small',
+  'meta/llama-3-70b',
+  'meta/llama-3-8b',
+  'meta/llama-3.1-70b',
+  'meta/llama-3.1-8b',
+  'meta/llama-3.2-11b',
+  'meta/llama-3.2-1b',
+  'meta/llama-3.2-3b',
+  'meta/llama-3.2-90b',
+  'meta/llama-3.3-70b',
+  'meta/llama-4-maverick',
+  'meta/llama-4-scout',
+  'mistral/codestral',
+  'mistral/devstral-small',
+  'mistral/magistral-medium',
+  'mistral/magistral-small',
+  'mistral/ministral-3b',
+  'mistral/ministral-8b',
+  'mistral/mistral-large',
+  'mistral/mistral-saba-24b',
+  'mistral/mistral-small',
+  'mistral/mixtral-8x22b-instruct',
+  'mistral/pixtral-12b',
+  'mistral/pixtral-large',
+  'moonshotai/kimi-k2',
+  'morph/morph-v3-fast',
+  'morph/morph-v3-large',
+  'openai/gpt-3.5-turbo',
+  'openai/gpt-3.5-turbo-instruct',
+  'openai/gpt-4-turbo',
+  'openai/gpt-4.1',
+  'openai/gpt-4.1-mini',
+  'openai/gpt-4.1-nano',
+  'openai/gpt-4o',
+  'openai/gpt-4o-mini',
+  'openai/gpt-5',
+  'openai/gpt-5-mini',
+  'openai/gpt-5-nano',
+  'openai/gpt-oss-120b',
+  'openai/gpt-oss-20b',
+  'openai/o1',
+  'openai/o3',
+  'openai/o3-mini',
+  'openai/o4-mini',
+  'perplexity/sonar',
+  'perplexity/sonar-pro',
+  'perplexity/sonar-reasoning',
+  'perplexity/sonar-reasoning-pro',
+  'vercel/v0-1.0-md',
+  'vercel/v0-1.5-md',
+  'xai/grok-2',
+  'xai/grok-2-vision',
+  'xai/grok-3',
+  'xai/grok-3-fast',
+  'xai/grok-3-mini',
+  'xai/grok-3-mini-fast',
+  'xai/grok-4',
+  'zai/glm-4.5',
+  'zai/glm-4.5-air',
+  'zai/glm-4.5v',
+] as const;
+
+export type ModelId = (typeof models)[number];
 
 export interface ModelData {
   id: ModelId;
@@ -159,21 +254,6 @@ export const modelsData: ModelData[] = [
     pricing: {
       input: '0.0000008',
       output: '0.0000032',
-    },
-  },
-  {
-    id: 'amazon/titan-embed-text-v2',
-    object: 'model',
-    owned_by: 'amazon',
-    name: 'Titan Text Embeddings V2',
-    description:
-      'Amazon Titan Text Embeddings V2 is a light weight, efficient multilingual embedding model supporting 1024, 512, and 256 dimensions.',
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.00000002',
-      output: '0',
     },
   },
   {
@@ -358,33 +438,18 @@ export const modelsData: ModelData[] = [
     },
   },
   {
-    id: 'cohere/embed-v4.0',
-    object: 'model',
-    owned_by: 'cohere',
-    name: 'Embed v4.0',
-    description:
-      'A model that allows for text, images, or mixed content to be classified or turned into embeddings.',
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.00000012',
-      output: '0',
-    },
-  },
-  {
     id: 'deepseek/deepseek-r1',
     object: 'model',
     owned_by: 'deepseek',
     name: 'DeepSeek R1 0528',
     description:
-      'The DeepSeek R1 model has undergone a minor version upgrade, with the current version being DeepSeek-R1-0528. In the latest update, DeepSeek R1 has significantly improved its depth of reasoning and inference capabilities by leveraging increased computational resources and introducing algorithmic optimization mechanisms during post-training. The model has demonstrated outstanding performance across various benchmark evaluations, including mathematics, programming, and general logic. Its overall performance is now approaching that of leading models, such as O3 and Gemini 2.5 Pro.',
-    context_window: 128000,
-    max_tokens: 8192,
+      "The latest revision of DeepSeek's first-generation reasoning model",
+    context_window: 163840,
+    max_tokens: 16384,
     type: 'language',
     pricing: {
-      input: '0.00000055',
-      output: '0.00000219',
+      input: '0.00000079',
+      output: '0.000004',
     },
   },
   {
@@ -445,6 +510,22 @@ export const modelsData: ModelData[] = [
     pricing: {
       input: '0.0000001999',
       output: '0.0000008001',
+    },
+  },
+  {
+    id: 'deepseek/deepseek-v3.1-thinking',
+    object: 'model',
+    owned_by: 'deepseek',
+    name: 'DeepSeek V3.1 Thinking',
+    description:
+      "DeepSeek-V3.1 marks DeepSeek's first step toward the agent era with revolutionary hybrid inference capabilities. Operates in two modes: Think and Non-Think. The Think variant delivers faster reasoning compared to DeepSeek-R1-0528, reaching answers more efficiently while maintaining high-quality outputs. Enhanced through specialized post-training, the model excels at tool usage and complex multi-step agent tasks.",
+    context_window: 128000,
+    max_tokens: 8192,
+    type: 'language',
+    pricing: {
+      input: '0.00000056',
+      output: '0.00000168',
+      input_cache_read: '0.00000007',
     },
   },
   {
@@ -523,21 +604,6 @@ export const modelsData: ModelData[] = [
     },
   },
   {
-    id: 'google/gemini-embedding-001',
-    object: 'model',
-    owned_by: 'google',
-    name: 'Gemini Embedding 001',
-    description:
-      'State-of-the-art embedding model with excellent performance across English, multilingual and code tasks.',
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.00000015',
-      output: '0',
-    },
-  },
-  {
     id: 'google/gemma-2-9b',
     object: 'model',
     owned_by: 'google',
@@ -550,36 +616,6 @@ export const modelsData: ModelData[] = [
     pricing: {
       input: '0.0000002',
       output: '0.0000002',
-    },
-  },
-  {
-    id: 'google/text-embedding-005',
-    object: 'model',
-    owned_by: 'google',
-    name: 'Text Embedding 005',
-    description:
-      'English-focused text embedding model optimized for code and English language tasks.',
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.000000025',
-      output: '0',
-    },
-  },
-  {
-    id: 'google/text-multilingual-embedding-002',
-    object: 'model',
-    owned_by: 'google',
-    name: 'Text Multilingual Embedding 002',
-    description:
-      'Multilingual text embedding model optimized for cross-lingual tasks across many languages.',
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.000000025',
-      output: '0',
     },
   },
   {
@@ -778,21 +814,6 @@ export const modelsData: ModelData[] = [
     },
   },
   {
-    id: 'mistral/codestral-embed',
-    object: 'model',
-    owned_by: 'mistral',
-    name: 'Codestral Embed',
-    description:
-      'Code embedding model that can embed code databases and repositories to power coding assistants.',
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.00000015',
-      output: '0',
-    },
-  },
-  {
     id: 'mistral/devstral-small',
     object: 'model',
     owned_by: 'mistral',
@@ -865,21 +886,6 @@ export const modelsData: ModelData[] = [
     pricing: {
       input: '0.0000001',
       output: '0.0000001',
-    },
-  },
-  {
-    id: 'mistral/mistral-embed',
-    object: 'model',
-    owned_by: 'mistral',
-    name: 'Mistral Embed',
-    description:
-      'General-purpose text embedding model for semantic search, similarity, clustering, and RAG workflows.',
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.0000001',
-      output: '0',
     },
   },
   {
@@ -1294,50 +1300,6 @@ export const modelsData: ModelData[] = [
       output: '0.0000044',
       input_cache_read: '0.000000275',
       input_cache_write: '0',
-    },
-  },
-  {
-    id: 'openai/text-embedding-3-large',
-    object: 'model',
-    owned_by: 'openai',
-    name: 'text-embedding-3-large',
-    description:
-      "OpenAI's most capable embedding model for both english and non-english tasks.",
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.00000013',
-      output: '0',
-    },
-  },
-  {
-    id: 'openai/text-embedding-3-small',
-    object: 'model',
-    owned_by: 'openai',
-    name: 'text-embedding-3-small',
-    description:
-      "OpenAI's improved, more performant version of their ada embedding model.",
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.00000002',
-      output: '0',
-    },
-  },
-  {
-    id: 'openai/text-embedding-ada-002',
-    object: 'model',
-    owned_by: 'openai',
-    name: 'text-embedding-ada-002',
-    description: "OpenAI's legacy text embedding model.",
-    context_window: 0,
-    max_tokens: 0,
-    type: 'embedding',
-    pricing: {
-      input: '0.0000001',
-      output: '0',
     },
   },
   {

@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
-import { useWindowSize } from 'usehooks-ts';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import type { UISuggestion } from '@/lib/editor/suggestions';
 
@@ -21,7 +21,7 @@ export const Suggestion = ({
   artifactKind: ArtifactKind;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { width: windowWidth } = useWindowSize();
+  const isMobile = useIsMobile();
 
   return (
     <AnimatePresence>
@@ -36,7 +36,7 @@ export const Suggestion = ({
           }}
           whileHover={{ scale: 1.1 }}
         >
-          <MessageIcon size={windowWidth && windowWidth < 768 ? 16 : 14} />
+          <MessageIcon size={isMobile ? 16 : 14} />
         </motion.div>
       ) : (
         <motion.div

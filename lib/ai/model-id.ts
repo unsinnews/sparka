@@ -1,5 +1,6 @@
 import type { OpenAIProvider } from '@ai-sdk/openai';
 import type { GatewayModelId, GatewayProvider } from '@ai-sdk/gateway';
+import type { ModelId as GatewayGeneratedModelId } from '@/providers/models-generated';
 
 // Exclude the non-literal model ids
 type GatewayLiteralModelId = GatewayModelId extends infer T
@@ -23,13 +24,7 @@ type GatewayEmbeddingLiteralModelId = GatewayEmbeddingModelId extends infer T
   : never;
 
 // Adds models available in gateway but not yet in the gateway package
-export type ModelId =
-  | GatewayLiteralModelId
-  | GatewayEmbeddingLiteralModelId
-  | 'anthropic/claude-4.1-opus'
-  | 'openai/gpt-5-mini'
-  | 'openai/gpt-5-nano'
-  | 'openai/gpt-5';
+export type ModelId = GatewayGeneratedModelId;
 
 type OpenAIimageModelId = Parameters<OpenAIProvider['imageModel']>[0];
 

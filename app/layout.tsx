@@ -23,6 +23,7 @@ export const metadata: Metadata = {
 
 export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
+  interactiveWidget: 'resizes-content' as const,
 };
 
 const geist = Geist({

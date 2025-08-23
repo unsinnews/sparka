@@ -11,8 +11,64 @@ import {
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/ai/types';
 import { throttle } from '@/components/throttle';
-import { marked } from 'marked';
-import { parseIncompleteMarkdown } from '@/components/ai-elements/parseIncompleteMarkdown';
+import {
+  type MarkdownCacheEntry,
+  getMarkdownFromCache,
+  precomputeMarkdownForAllMessages,
+} from '@/lib/stores/markdown-cache';
+
+// --- Freeze detector (RAF jitter) and action correlation ---
+let __freezeDetectorStarted = false;
+let __freezeRafId = 0;
+let __freezeLastTs = 0;
+let __lastActionLabel: string | undefined;
+let __clearLastActionTimer: ReturnType<typeof setTimeout> | null = null;
+
+function markLastAction(label: string) {
+  __lastActionLabel = label;
+  if (typeof window !== 'undefined') {
+    if (__clearLastActionTimer) clearTimeout(__clearLastActionTimer);
+    __clearLastActionTimer = setTimeout(() => {
+      if (__lastActionLabel === label) __lastActionLabel = undefined;
+    }, 250);
+  }
+}
+
+function startFreezeDetector({
+  thresholdMs = 80,
+}: {
+  thresholdMs?: number;
+} = {}): void {
+  if (typeof window === 'undefined' || __freezeDetectorStarted) return;
+  __freezeDetectorStarted = true;
+  __freezeLastTs = performance.now();
+  const tick = (now: number) => {
+    const expected = __freezeLastTs + 16.7;
+    const blockedMs = now - expected;
+    if (blockedMs > thresholdMs) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[Freeze]',
+        `${Math.round(blockedMs)}ms`,
+        'lastAction=',
+        __lastActionLabel,
+      );
+    }
+    __freezeLastTs = now;
+    __freezeRafId = window.requestAnimationFrame(tick);
+  };
+  __freezeRafId = window.requestAnimationFrame(tick);
+  window.addEventListener('beforeunload', () => {
+    if (__freezeRafId) cancelAnimationFrame(__freezeRafId);
+  });
+}
+
+// Start detector only in the browser (safe during SSR)
+if (typeof window !== 'undefined') {
+  startFreezeDetector({ thresholdMs: 80 });
+}
+
+// --- Markdown tokenization cache computed on throttled updates ---
 
 // Helper types to safely derive the message part and part.type types from UI_MESSAGE
 type UIMessageParts<UI_MSG> = UI_MSG extends { parts: infer P } ? P : never;
@@ -42,15 +98,6 @@ function extractPartTypes<UI_MESSAGE extends UIMessage>(
   return { partsRef, types };
 }
 
-function areArraysShallowEqual<T>(a: readonly T[], b: readonly T[]): boolean {
-  if (a === b) return true;
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
-
 interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   id: string | undefined;
   messages: UI_MESSAGE[];
@@ -60,6 +107,7 @@ interface ChatStoreState<UI_MESSAGE extends UIMessage> {
   // Throttled messages cache
   _throttledMessages: UI_MESSAGE[] | null;
   // Cached selectors to prevent infinite loops
+  _markdownCache: Map<string, MarkdownCacheEntry>;
 
   // Actions
   setId: (id: string | undefined) => void;
@@ -126,18 +174,19 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
         if (!throttledMessagesUpdater) {
           throttledMessagesUpdater = throttle(() => {
             const state = get();
-            const nextThrottled = [...state.messages];
-
-            for (const _msg of nextThrottled) {
-              // no-op for per-index cache (removed)
-            }
-
+            const { cache } = precomputeMarkdownForAllMessages(
+              state.messages,
+              get()._markdownCache,
+            );
+            set({ _markdownCache: cache });
             set({
-              _throttledMessages: nextThrottled,
+              _throttledMessages: [...state.messages],
             });
           }, MESSAGES_THROTTLE_MS);
         }
 
+        const initialPrecompute =
+          precomputeMarkdownForAllMessages(initialMessages);
         return {
           id: undefined,
           messages: initialMessages,
@@ -147,27 +196,49 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
 
           // Initialize cached values
           _throttledMessages: [...initialMessages],
+          _markdownCache: initialPrecompute.cache,
 
-          setId: (id) => set({ id }),
+          setId: (id) => {
+            markLastAction('chat:setId');
+            set({ id });
+          },
           setMessages: (messages) => {
+            markLastAction('chat:setMessages');
+            const { cache } = precomputeMarkdownForAllMessages(
+              messages,
+              get()._markdownCache,
+            );
             set({
               messages: [...messages],
+              _markdownCache: cache,
             });
             throttledMessagesUpdater?.();
           },
-          setStatus: (status) => set({ status }),
-          setError: (error) => set({ error }),
+          setStatus: (status) => {
+            markLastAction('chat:setStatus');
+            set({ status });
+          },
+          setError: (error) => {
+            markLastAction('chat:setError');
+            set({ error });
+          },
           setNewChat: (id, messages) => {
-            set({
-              messages: [...messages],
-              status: 'ready',
-              error: undefined,
-              id,
-            });
+            markLastAction('chat:setNewChat');
+            {
+              const { cache } = precomputeMarkdownForAllMessages(messages);
+              set({
+                messages: [...messages],
+                status: 'ready',
+                error: undefined,
+                id,
+                _markdownCache: cache,
+              });
+            }
             throttledMessagesUpdater?.();
           },
 
           pushMessage: (message) => {
+            markLastAction('chat:pushMessage');
             set((state) => ({
               messages: [...state.messages, message],
             }));
@@ -175,6 +246,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           },
 
           popMessage: () => {
+            markLastAction('chat:popMessage');
             set((state) => ({
               messages: state.messages.slice(0, -1),
             }));
@@ -182,6 +254,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           },
 
           replaceMessage: (index, message) => {
+            markLastAction('chat:replaceMessage');
             set((state) => ({
               messages: [
                 ...state.messages.slice(0, index),
@@ -193,6 +266,7 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
           },
 
           setCurrentChatHelpers: (helpers) => {
+            markLastAction('chat:setCurrentChatHelpers');
             set({ currentChatHelpers: helpers });
           },
 
@@ -264,13 +338,16 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             partIdx: number,
           ): string[] => {
             const state = get();
-            const message = (state._throttledMessages || state.messages).find(
-              (msg) => msg.id === messageId,
-            );
+            const list = state._throttledMessages;
+
+            if (!list) {
+              throw new Error('No messages available');
+            }
+
+            const message = list.find((msg) => msg.id === messageId);
             if (!message)
               throw new Error(`Message not found for id: ${messageId}`);
 
-            const isLast = partIdx === message.parts.length - 1;
             const selected = message.parts[partIdx] as unknown as
               | {
                   type: string;
@@ -289,10 +366,14 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               );
 
             const text = selected.text || '';
-            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
-            const tokens = marked.lexer(prepared);
-            const blocks = tokens.map((t) => t.raw as string);
-            return blocks as string[];
+            const cached = getMarkdownFromCache({
+              cache: get()._markdownCache,
+              messageId,
+              partIdx,
+              text,
+            });
+            if (cached) return cached.blocks;
+            return [];
           },
 
           getMarkdownBlockCountForPart: (
@@ -300,13 +381,11 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             partIdx: number,
           ): number => {
             const state = get();
-            const message = (state._throttledMessages || state.messages).find(
-              (msg) => msg.id === messageId,
-            );
+            const list = state._throttledMessages || state.messages;
+            const message = list.find((msg) => msg.id === messageId);
             if (!message)
               throw new Error(`Message not found for id: ${messageId}`);
 
-            const isLast = partIdx === message.parts.length - 1;
             const selected = message.parts[partIdx] as unknown as
               | { type: string; text?: string }
               | undefined;
@@ -322,11 +401,22 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               );
 
             const text = selected.text || '';
-            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
-            const tokens = marked.lexer(prepared);
-            const blockCount = tokens.length;
+            const cached = getMarkdownFromCache({
+              cache: get()._markdownCache,
+              messageId,
+              partIdx,
+              text,
+            });
+
             const PREALLOCATED_BLOCKS = 100;
-            return Math.max(PREALLOCATED_BLOCKS, blockCount);
+            if (cached)
+              // Reserve by chunks of PREALLOCATED_BLOCKS size
+              return Math.max(
+                PREALLOCATED_BLOCKS,
+                Math.ceil(cached.blocks.length / PREALLOCATED_BLOCKS) *
+                  PREALLOCATED_BLOCKS,
+              );
+            return PREALLOCATED_BLOCKS;
           },
 
           getMarkdownBlockByIndex: (
@@ -335,13 +425,16 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
             blockIdx: number,
           ): string | null => {
             const state = get();
-            const message = (state._throttledMessages || state.messages).find(
-              (msg) => msg.id === messageId,
-            );
+            const list = state._throttledMessages;
+
+            if (!list) {
+              throw new Error('No messages available');
+            }
+
+            const message = list.find((msg) => msg.id === messageId);
             if (!message)
               throw new Error(`Message not found for id: ${messageId}`);
 
-            const isLast = partIdx === message.parts.length - 1;
             const selected = message.parts[partIdx] as unknown as
               | { type: string; text?: string }
               | undefined;
@@ -357,9 +450,13 @@ export function createChatStore<UI_MESSAGE extends UIMessage>(
               );
 
             const text = selected.text || '';
-            const prepared = isLast ? parseIncompleteMarkdown(text) : text;
-            const tokens = marked.lexer(prepared);
-            const blocks = tokens.map((t) => t.raw as string);
+            const cached = getMarkdownFromCache({
+              cache: get()._markdownCache,
+              messageId,
+              partIdx,
+              text,
+            });
+            const blocks = cached ? cached.blocks : [];
             if (blockIdx < 0 || blockIdx >= blocks.length) return null;
             return blocks[blockIdx] ?? null;
           },

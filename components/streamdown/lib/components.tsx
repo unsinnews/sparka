@@ -1,8 +1,45 @@
-import { isValidElement } from 'react';
+import { isValidElement, memo } from 'react';
 import type { Options } from 'react-markdown';
 import type { BundledLanguage } from 'shiki';
 import { CodeBlock, CodeBlockCopyButton } from './code-block';
 import { cn } from './utils';
+
+type MarkdownPoint = { line?: number; column?: number };
+type MarkdownPosition = { start?: MarkdownPoint; end?: MarkdownPoint };
+type MarkdownNode = {
+  position?: MarkdownPosition;
+  properties?: { className?: string };
+};
+
+type WithNode<T> = T & {
+  node?: MarkdownNode;
+  children?: React.ReactNode;
+  className?: string;
+};
+
+function sameNodePosition(a?: MarkdownNode, b?: MarkdownNode) {
+  const as = a?.position?.start;
+  const ae = a?.position?.end;
+  const bs = b?.position?.start;
+  const be = b?.position?.end;
+  return (
+    as?.line === bs?.line &&
+    as?.column === bs?.column &&
+    ae?.line === be?.line &&
+    ae?.column === be?.column
+  );
+}
+
+type LiProps = WithNode<JSX.IntrinsicElements['li']>;
+const MemoLi = memo<LiProps>(
+  ({ node, children, className, ...props }: LiProps) => (
+    <li className={cn('py-1', className)} {...props}>
+      {children}
+    </li>
+  ),
+  (p, n) => p.className === n.className && sameNodePosition(p.node, n.node),
+);
+MemoLi.displayName = 'MarkdownLi';
 
 export const components: Options['components'] = {
   ol: ({ node, children, className, ...props }) => (
@@ -10,11 +47,7 @@ export const components: Options['components'] = {
       {children}
     </ol>
   ),
-  li: ({ node, children, className, ...props }) => (
-    <li className={cn('py-1', className)} {...props}>
-      {children}
-    </li>
-  ),
+  li: MemoLi,
   ul: ({ node, children, className, ...props }) => (
     <ul className={cn('ml-4 list-outside list-disc', className)} {...props}>
       {children}

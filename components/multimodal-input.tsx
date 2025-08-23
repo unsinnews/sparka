@@ -39,7 +39,6 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { useChatInput } from '@/providers/chat-input-provider';
 import { ModelSelector } from './model-selector';
 import { ResponsiveTools } from './chat-tools';
-import { ScrollArea } from './ui/scroll-area';
 import {
   getModelDefinition,
   DEFAULT_PDF_MODEL,
@@ -496,45 +495,43 @@ function PureMultimodalInput({
             </ChatInputTopRow>
           </motion.div>
 
-          <ScrollArea className="max-h-[50vh]">
-            <ChatInputTextArea
-              data-testid="multimodal-input"
-              ref={editorRef}
-              className="min-h-[80px]"
-              placeholder={
-                isMobile
-                  ? 'Send a message... (Ctrl+Enter to send)'
-                  : 'Send a message...'
-              }
-              initialValue={getInitialInput()}
-              onInputChange={handleInputChange}
-              autoFocus
-              onPaste={handlePaste}
-              onEnterSubmit={(event) => {
-                // Different key combinations for mobile vs desktop
-                const shouldSubmit = isMobile
-                  ? event.ctrlKey && !event.isComposing
-                  : !event.shiftKey && !event.isComposing;
+          <ChatInputTextArea
+            data-testid="multimodal-input"
+            ref={editorRef}
+            className="min-h-[80px] overflow-y-scroll max-h-[max(35svh,5rem)]"
+            placeholder={
+              isMobile
+                ? 'Send a message... (Ctrl+Enter to send)'
+                : 'Send a message...'
+            }
+            initialValue={getInitialInput()}
+            onInputChange={handleInputChange}
+            autoFocus
+            onPaste={handlePaste}
+            onEnterSubmit={(event) => {
+              // Different key combinations for mobile vs desktop
+              const shouldSubmit = isMobile
+                ? event.ctrlKey && !event.isComposing
+                : !event.shiftKey && !event.isComposing;
 
-                if (shouldSubmit) {
-                  if (status !== 'ready' && status !== 'error') {
-                    toast.error(
-                      'Please wait for the model to finish its response!',
-                    );
-                  } else if (uploadQueue.length > 0) {
-                    toast.error('Please wait for files to finish uploading!');
-                  } else if (isEmpty) {
-                    toast.error('Please enter a message before sending!');
-                  } else {
-                    submitForm();
-                  }
-                  return true; // Prevent default Enter behavior
+              if (shouldSubmit) {
+                if (status !== 'ready' && status !== 'error') {
+                  toast.error(
+                    'Please wait for the model to finish its response!',
+                  );
+                } else if (uploadQueue.length > 0) {
+                  toast.error('Please wait for files to finish uploading!');
+                } else if (isEmpty) {
+                  toast.error('Please enter a message before sending!');
+                } else {
+                  submitForm();
                 }
+                return true; // Prevent default Enter behavior
+              }
 
-                return false; // Allow default behavior (e.g., Shift+Enter for new line)
-              }}
-            />
-          </ScrollArea>
+              return false; // Allow default behavior (e.g., Shift+Enter for new line)
+            }}
+          />
 
           <ChatInputBottomControls
             selectedModelId={selectedModelId}

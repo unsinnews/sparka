@@ -57,7 +57,7 @@ export function Chat({
     <>
       <div
         className={cn(
-          '@container flex flex-col min-w-0 h-dvh bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
+          '@container flex flex-col min-w-0 h-[var(--app-height,100dvh)] bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
           state === 'collapsed' && 'md:max-w-screen',
         )}
       >

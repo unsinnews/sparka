@@ -6,6 +6,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from 'sonner';
 import { TRPCReactProvider } from '@/trpc/react';
+import { ViewportResizeObserver } from '@/components/viewport-resize-observer';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sparka.ai'),
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 
 export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
-  interactiveWidget: 'resizes-content' as const,
+  // interactiveWidget: 'resizes-content' as const,
 };
 
 const geist = Geist({
@@ -98,6 +99,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Toaster position="top-center" />
+          <ViewportResizeObserver />
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </ThemeProvider>
       </body>

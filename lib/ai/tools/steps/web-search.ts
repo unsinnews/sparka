@@ -1,6 +1,7 @@
 import { tavily, type TavilySearchOptions } from '@tavily/core';
 import FirecrawlApp, { type SearchParams } from '@mendable/firecrawl-js';
 import type { StreamWriter } from '../../types';
+import { createModuleLogger } from '../../../logger';
 
 export type SearchProvider = 'tavily' | 'firecrawl';
 
@@ -29,6 +30,8 @@ const tvly = tavily({ apiKey: process.env.TAVILY_API_KEY as string });
 const firecrawl = new FirecrawlApp({
   apiKey: process.env.FIRECRAWL_API_KEY ?? '',
 });
+
+const log = createModuleLogger('tools/steps/web-search');
 
 export async function webSearchStep({
   query,
@@ -74,18 +77,63 @@ export async function webSearchStep({
       }));
     }
 
+    log.debug(
+      { query, maxResults, provider: providerOptions.provider },
+      'webSearchStep success',
+    );
     return { results };
-  } catch (error: any) {
-    console.error('Error in webSearchStep:', {
-      error,
-      message: error?.message,
-      stack: error?.stack,
-      query,
-      providerOptions,
-    });
+  } catch (error: unknown) {
+    // Best-effort extraction without using `any`
+    let message: string | undefined;
+    let stack: string | undefined;
+    let status: number | undefined;
+    let data: unknown;
+
+    if (typeof error === 'object' && error !== null) {
+      if (
+        'message' in error &&
+        typeof (error as { message: unknown }).message === 'string'
+      ) {
+        message = (error as { message: string }).message;
+      }
+      if (
+        'stack' in error &&
+        typeof (error as { stack: unknown }).stack === 'string'
+      ) {
+        stack = (error as { stack: string }).stack;
+      }
+      const maybeResp = (
+        error as { response?: { status?: number; data?: unknown } }
+      ).response;
+      if (maybeResp) {
+        status = maybeResp.status;
+        data = maybeResp.data;
+      }
+    }
+
+    log.error(
+      {
+        err: error,
+        message,
+        stack,
+        status,
+        data,
+        query,
+        providerOptions,
+      },
+      'Error in webSearchStep',
+    );
     return {
       results: [],
-      error: error.message,
+      error: JSON.stringify(
+        {
+          message,
+          status,
+          data,
+        },
+        null,
+        2,
+      ),
     };
   }
 }

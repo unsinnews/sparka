@@ -5,6 +5,7 @@ import {
   type MultiQuerySearchOptions,
 } from './steps/multi-query-web-search';
 import type { StreamWriter } from '../types';
+import { createModuleLogger } from '../../logger';
 
 const DEFAULT_MAX_RESULTS = 5;
 
@@ -43,6 +44,11 @@ async function executeMultiQuerySearch({
   title: string;
   completeTitle: string;
 }) {
+  const log = createModuleLogger('tools/web-search');
+  log.debug(
+    { queriesCount: search_queries.length, options },
+    'executeMultiQuerySearch start',
+  );
   if (writeTopLevelUpdates) {
     dataStream.write({
       type: 'data-researchUpdate',
@@ -57,11 +63,17 @@ async function executeMultiQuerySearch({
   let completedSteps = 0;
   const totalSteps = 1;
 
-  const { searches: searchResults } = await multiQueryWebSearchStep({
+  const { searches: searchResults, error } = await multiQueryWebSearchStep({
     queries: search_queries,
     options,
     dataStream,
   });
+  if (error) {
+    log.error(
+      { error, queriesCount: search_queries.length },
+      'multiQueryWebSearchStep returned error',
+    );
+  }
 
   completedSteps++;
   if (writeTopLevelUpdates) {
@@ -74,7 +86,10 @@ async function executeMultiQuerySearch({
       },
     });
   }
-
+  log.debug(
+    { completedSteps, totalSteps, resultGroups: searchResults.length },
+    'executeMultiQuerySearch complete',
+  );
   return { searches: searchResults };
 }
 
@@ -131,6 +146,16 @@ Avoid:
       searchDepth: 'basic' | 'advanced' | null;
       exclude_domains: string[] | null;
     }) => {
+      const log = createModuleLogger('tools/web-search');
+      log.debug(
+        {
+          queriesCount: search_queries.length,
+          topics,
+          searchDepth,
+          exclude_domains,
+        },
+        'tavilyWebSearch.execute',
+      );
       // Handle nullable arrays with defaults
       const safeTopics = topics ?? ['general'];
       const safeSearchDepth = searchDepth ?? 'basic';
@@ -184,6 +209,11 @@ Avoid:
     }: {
       search_queries: { query: string; maxResults: number | null }[];
     }) => {
+      const log = createModuleLogger('tools/web-search');
+      log.debug(
+        { queriesCount: search_queries.length },
+        'firecrawlWebSearch.execute',
+      );
       return executeMultiQuerySearch({
         search_queries: search_queries.map((query) => ({
           query: query.query,

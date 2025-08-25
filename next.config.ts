@@ -8,6 +8,8 @@ const nextConfig: NextConfig = {
       'echarts-for-react',
       '@lobehub/icons',
     ],
+    // Enable external packages for server components to allow pino transports
+    serverComponentsExternalPackages: ['pino', 'pino-pretty'],
   },
   images: {
     remotePatterns: [

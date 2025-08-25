@@ -63,14 +63,14 @@ export function ResponsiveTools({
   };
 
   return (
-    <div className="flex items-center gap-1 @[400px]:gap-2">
+    <div className="flex items-center gap-1 @[400px]:gap-2 ">
       {isAnonymous ? (
         <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
-              className="gap-1 @[400px]:gap-2 p-1.5 h-fit rounded-full"
+              className="gap-1 @[400px]:gap-2 p-1.5 h-8 @[400px]:h-10"
             >
               <Settings2 size={14} />
               <span className="hidden @[400px]:inline">Tools</span>
@@ -89,7 +89,7 @@ export function ResponsiveTools({
             <Button
               variant="ghost"
               size="sm"
-              className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit rounded-full"
+              className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-8 @[400px]:h-10"
             >
               <Settings2 size={14} />
               <span className="hidden @[400px]:inline">Tools</span>
@@ -148,7 +148,7 @@ export function ResponsiveTools({
             variant="outline"
             size="sm"
             onClick={() => setTool(null)}
-            className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-fit rounded-full"
+            className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 rounded-full h-8 @[400px]:h-10"
           >
             {React.createElement(toolDefinitions[activeTool].icon, {
               size: 14,

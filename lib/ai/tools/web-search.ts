@@ -9,7 +9,7 @@ import { createModuleLogger } from '../../logger';
 
 const DEFAULT_MAX_RESULTS = 5;
 
-const MAX_SEARCH_QUERIES = 12;
+const MAX_SEARCH_QUERIES = 2; // Tavily has a maximum of 2 queries per request
 // Common search query schema
 const searchQueriesSchema = z
   .array(
@@ -168,11 +168,7 @@ Avoid:
         })),
         options: {
           baseProviderOptions: {
-            provider: 'tavily',
-            searchDepth: safeSearchDepth,
-            includeAnswer: true,
-            includeImages: false,
-            includeImageDescriptions: false,
+            provider: 'firecrawl',
           },
           topics: safeTopics,
           excludeDomains: safeExcludeDomains,

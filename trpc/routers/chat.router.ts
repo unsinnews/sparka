@@ -34,6 +34,7 @@ import {
 import { DEFAULT_TITLE_MODEL } from '@/lib/ai/all-models';
 import type { DBMessage } from '@/lib/db/schema';
 import type { ChatMessage } from '@/lib/ai/types';
+import { MAX_MESSAGE_CHARS } from '@/lib/limits/tokens';
 
 export const chatRouter = createTRPCRouter({
   getAllChats: protectedProcedure.query(async ({ ctx }) => {
@@ -215,7 +216,7 @@ export const chatRouter = createTRPCRouter({
   generateTitle: publicProcedure
     .input(
       z.object({
-        message: z.string().min(1).max(2000),
+        message: z.string().min(1).max(MAX_MESSAGE_CHARS),
       }),
     )
     .mutation(async ({ input }) => {

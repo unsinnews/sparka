@@ -48,6 +48,7 @@ import type { ModelId } from '@/lib/ai/model-id';
 import { calculateMessagesTokens } from '@/lib/ai/token-utils';
 import { ChatSDKError } from '@/lib/ai/errors';
 import { addExplicitToolRequestToMessages } from './addExplicitToolRequestToMessages';
+import { MAX_INPUT_TOKENS } from '@/lib/limits/tokens';
 import { getRecentGeneratedImage } from './getRecentGeneratedImage';
 import { getCreditReservation } from './getCreditReservation';
 import { filterReasoningParts } from './filterReasoningParts';
@@ -368,7 +369,6 @@ export async function POST(request: NextRequest) {
     const totalTokens = calculateMessagesTokens(
       convertToModelMessages([userMessage]),
     );
-    const MAX_INPUT_TOKENS = 50_000;
 
     if (totalTokens > MAX_INPUT_TOKENS) {
       log.warn({ totalTokens, MAX_INPUT_TOKENS }, 'Token limit exceeded');

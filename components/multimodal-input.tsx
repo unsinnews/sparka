@@ -437,12 +437,16 @@ function PureMultimodalInput({
   });
 
   return (
-    <div className="relative flex flex-col w-full gap-4 mx-auto p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6 bg-background md:max-w-3xl">
+    <div className="relative">
       {messageIds.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 &&
         !isEditMode && (
-          <SuggestedActions chatId={chatId} selectedModelId={selectedModelId} />
+          <SuggestedActions
+            className="mb-4"
+            chatId={chatId}
+            selectedModelId={selectedModelId}
+          />
         )}
 
       {!isEditMode && <CreditLimitDisplay />}

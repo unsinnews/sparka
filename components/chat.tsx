@@ -3,14 +3,12 @@ import { useQuery } from '@tanstack/react-query';
 import { ChatHeader } from '@/components/chat-header';
 import { cn } from '@/lib/utils';
 import { Artifact } from './artifact';
-import { MultimodalInput } from './multimodal-input';
-import { Messages } from './messages';
+import { MessagesPane } from './messages-pane';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { useTRPC } from '@/trpc/react';
 import { useSession } from 'next-auth/react';
 
 import { useSidebar } from '@/components/ui/sidebar';
-import { CloneChatButton } from '@/components/clone-chat-button';
 import type { ChatMessage } from '@/lib/ai/types';
 import {
   useChatStatus,
@@ -57,7 +55,7 @@ export function Chat({
     <>
       <div
         className={cn(
-          '@container flex flex-col min-w-0 h-[var(--app-height,100dvh)] bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
+          '@container absolute flex w-full flex-col min-w-0 h-dvh bg-background md:max-w-[calc(100vw-var(--sidebar-width))] max-w-screen',
           state === 'collapsed' && 'md:max-w-screen',
         )}
       >
@@ -68,21 +66,14 @@ export function Chat({
           user={session?.user}
         />
 
-        <Messages
+        <MessagesPane
+          chatId={id}
+          status={status}
           votes={votes}
           isReadonly={isReadonly}
           isVisible={!isArtifactVisible}
+          className="bg-background"
         />
-
-        {!isReadonly ? (
-          <MultimodalInput
-            chatId={id}
-            status={status}
-            parentMessageId={chatStore.getState().getLastMessageId()}
-          />
-        ) : (
-          <CloneChatButton chatId={id} className="w-full" />
-        )}
       </div>
 
       <Artifact

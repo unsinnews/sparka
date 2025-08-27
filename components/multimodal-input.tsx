@@ -660,12 +660,12 @@ function PureChatInputBottomControls({
       <PromptInputSubmit
         className={'shrink-0 size-8 @[400px]:size-10'}
         status={status}
-        disabled={isEmpty || uploadQueue.length > 0 || status === 'error'}
+        disabled={isEmpty || uploadQueue.length > 0}
         onClick={(e) => {
           e.preventDefault();
-          if (status !== 'ready' && status !== 'error') {
+          if (status === 'streaming' || status === 'submitted') {
             void chatStore.getState().currentChatHelpers?.stop?.();
-          } else {
+          } else if (status === 'ready' || status === 'error') {
             submitForm();
           }
         }}

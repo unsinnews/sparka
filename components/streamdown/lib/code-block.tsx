@@ -7,10 +7,11 @@ import {
   type HTMLAttributes,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 import { type BundledLanguage, codeToHtml } from 'shiki';
-import { cn } from './utils';
+import { cn } from '@/lib/utils';
 
 type CodeBlockProps = HTMLAttributes<HTMLDivElement> & {
   code: string;
@@ -26,10 +27,22 @@ const CodeBlockContext = createContext<CodeBlockContextType>({
 });
 
 export async function highlightCode(code: string, language: BundledLanguage) {
-  return await codeToHtml(code, {
-    lang: language,
-    theme: 'github-light',
-  });
+  return Promise.all([
+    await codeToHtml(code, {
+      lang: language,
+      theme: 'github-light',
+      colorReplacements: {
+        '#fff': 'transparent',
+      },
+    }),
+    await codeToHtml(code, {
+      lang: language,
+      theme: 'github-dark',
+      colorReplacements: {
+        '#24292e': 'transparent',
+      },
+    }),
+  ]);
 }
 
 export const CodeBlock = ({
@@ -40,18 +53,20 @@ export const CodeBlock = ({
   ...props
 }: CodeBlockProps) => {
   const [html, setHtml] = useState<string>('');
+  const [darkHtml, setDarkHtml] = useState<string>('');
+  const mounted = useRef(false);
 
   useEffect(() => {
-    let isMounted = true;
-
-    highlightCode(code, language).then((result) => {
-      if (isMounted) {
-        setHtml(result);
+    highlightCode(code, language).then(([light, dark]) => {
+      if (!mounted.current) {
+        setHtml(light);
+        setDarkHtml(dark);
+        mounted.current = true;
       }
     });
 
     return () => {
-      isMounted = false;
+      mounted.current = false;
     };
   }, [code, language]);
 
@@ -59,9 +74,21 @@ export const CodeBlock = ({
     <CodeBlockContext.Provider value={{ code }}>
       <div className="group relative">
         <div
-          className={cn('overflow-x-auto', className)}
+          className={cn(
+            'overflow-x-auto dark:hidden [&>pre]:bg-transparent!',
+            className,
+          )}
           // biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
           dangerouslySetInnerHTML={{ __html: html }}
+          {...props}
+        />
+        <div
+          className={cn(
+            'hidden overflow-x-auto dark:block [&>pre]:bg-transparent!',
+            className,
+          )}
+          // biome-ignore lint/security/noDangerouslySetInnerHtml: "this is needed."
+          dangerouslySetInnerHTML={{ __html: darkHtml }}
           {...props}
         />
         {children}
@@ -110,7 +137,7 @@ export const CodeBlockCopyButton = ({
       className={cn(
         'absolute top-2 right-2 shrink-0 rounded-md p-3 opacity-0 transition-all',
         'hover:bg-secondary group-hover:opacity-100',
-        className
+        className,
       )}
       onClick={copyToClipboard}
       type="button"

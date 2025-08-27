@@ -6,7 +6,6 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from 'sonner';
 import { TRPCReactProvider } from '@/trpc/react';
-import { ViewportResizeObserver } from '@/components/viewport-resize-observer';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://sparka.ai'),
@@ -99,7 +98,6 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Toaster position="top-center" />
-          <ViewportResizeObserver />
           <TRPCReactProvider>{children}</TRPCReactProvider>
         </ThemeProvider>
       </body>

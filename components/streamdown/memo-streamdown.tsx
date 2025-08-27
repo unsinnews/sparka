@@ -12,6 +12,8 @@ import {
   useMarkdownBlockByIndex,
   useMarkdownBlockCountForPart,
 } from '@/lib/stores/chat-store';
+import { ShikiThemeContext } from './index';
+import type { BundledTheme } from 'shiki';
 
 type HardenReactMarkdownProps = Options & {
   defaultOrigin?: string;
@@ -21,6 +23,7 @@ type HardenReactMarkdownProps = Options & {
 
 // Handle both ESM and CJS imports
 const hardenReactMarkdown =
+  // biome-ignore lint/suspicious/noExplicitAny: "this is needed."
   (hardenReactMarkdownImport as any).default || hardenReactMarkdownImport;
 
 // Create a hardened version of ReactMarkdown
@@ -30,6 +33,7 @@ const HardenedMarkdown: ReturnType<typeof hardenReactMarkdown> =
 export type StreamdownProps = HardenReactMarkdownProps & {
   parseIncompleteMarkdown?: boolean;
   className?: string;
+  shikiTheme?: [BundledTheme, BundledTheme];
 };
 
 type BlockProps = HardenReactMarkdownProps & {
@@ -37,7 +41,6 @@ type BlockProps = HardenReactMarkdownProps & {
   partIdx: number;
   index: number;
 };
-
 const Block = memo(
   ({ messageId, partIdx, index, ...props }: BlockProps) => {
     const block = useMarkdownBlockByIndex(messageId, partIdx, index);
@@ -64,6 +67,8 @@ export const Streamdown = memo(
     rehypePlugins,
     remarkPlugins,
     className,
+    shikiTheme = ['github-light', 'github-dark'],
+
     ...props
   }: StreamdownProps & { messageId: string; partIdx: number }) => {
     // Parse the children to remove incomplete markdown tokens if enabled
@@ -72,27 +77,33 @@ export const Streamdown = memo(
     const blockCount = useMarkdownBlockCountForPart(messageId, partIdx);
 
     return (
-      <div className={cn('space-y-4', className)} {...props}>
-        {Array.from({ length: blockCount }, (_, index) => index).map(
-          (index) => (
-            <Block
-              messageId={messageId}
-              partIdx={partIdx}
-              index={index}
-              allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
-              allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
-              components={{
-                ...defaultComponents,
-                ...components,
-              }}
-              defaultOrigin={defaultOrigin}
-              key={`${generatedId}-block_${index}`}
-              rehypePlugins={[rehypeKatex, ...(rehypePlugins ?? [])]}
-              remarkPlugins={[remarkGfm, remarkMath, ...(remarkPlugins ?? [])]}
-            />
-          ),
-        )}
-      </div>
+      <ShikiThemeContext.Provider value={shikiTheme}>
+        <div className={cn('space-y-4', className)} {...props}>
+          {Array.from({ length: blockCount }, (_, index) => index).map(
+            (index) => (
+              <Block
+                messageId={messageId}
+                partIdx={partIdx}
+                index={index}
+                allowedImagePrefixes={allowedImagePrefixes ?? ['*']}
+                allowedLinkPrefixes={allowedLinkPrefixes ?? ['*']}
+                components={{
+                  ...defaultComponents,
+                  ...components,
+                }}
+                defaultOrigin={defaultOrigin}
+                key={`${generatedId}-block_${index}`}
+                rehypePlugins={[rehypeKatex, ...(rehypePlugins ?? [])]}
+                remarkPlugins={[
+                  remarkGfm,
+                  remarkMath,
+                  ...(remarkPlugins ?? []),
+                ]}
+              />
+            ),
+          )}
+        </div>
+      </ShikiThemeContext.Provider>
     );
   },
   (prevProps, nextProps) => prevProps.children === nextProps.children,

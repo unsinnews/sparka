@@ -153,13 +153,13 @@ export function ResponsiveTools({
             variant="ghost"
             size="sm"
             onClick={() => setTool(null)}
-            className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 rounded-full h-8 @[400px]:h-10"
+            className="gap-1 @[400px]:gap-2 rounded-full h-8 @[400px]:h-10 text-primary hover:text-primary/80"
           >
             {createElement(toolDefinitions[activeTool].icon, {
               size: 14,
             })}
             <span className="hidden @[500px]:inline">
-              {toolDefinitions[activeTool].name}
+              {toolDefinitions[activeTool].shortName}
             </span>
             <X size={12} className="opacity-70" />
           </Button>

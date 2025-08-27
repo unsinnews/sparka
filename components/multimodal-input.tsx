@@ -40,7 +40,7 @@ import { SuggestedActions } from './suggested-actions';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { useChatInput } from '@/providers/chat-input-provider';
 import { ModelSelector } from './model-selector';
-import { ResponsiveTools } from './chat-tools';
+import { ResponsiveTools } from './responsive-tools';
 import {
   getModelDefinition,
   DEFAULT_PDF_MODEL,

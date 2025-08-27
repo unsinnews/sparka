@@ -5,15 +5,18 @@ import { Button } from './ui/button';
 import { memo } from 'react';
 import type { ModelId } from '@/lib/ai/model-id';
 import { useSendMessage } from '@/lib/stores/chat-store';
+import { cn } from '@/lib/utils';
 
 interface SuggestedActionsProps {
   chatId: string;
   selectedModelId: ModelId;
+  className?: string;
 }
 
 function PureSuggestedActions({
   chatId,
   selectedModelId,
+  className,
 }: SuggestedActionsProps) {
   const sendMessage = useSendMessage();
   const suggestedActions = [
@@ -42,7 +45,7 @@ function PureSuggestedActions({
   return (
     <div
       data-testid="suggested-actions"
-      className="grid sm:grid-cols-2 gap-2 w-full"
+      className={cn('grid sm:grid-cols-2 gap-2 w-full', className)}
     >
       {suggestedActions.map((suggestedAction, index) => (
         <motion.div

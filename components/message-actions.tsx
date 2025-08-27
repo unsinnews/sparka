@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { useTRPC } from '@/trpc/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSession } from 'next-auth/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Pencil, PencilOff } from 'lucide-react';
 import { useMessageTree } from '@/providers/message-tree-provider';
 import { RetryButton } from './retry-button';
 import { memo } from 'react';
@@ -22,12 +22,18 @@ export function PureMessageActions({
   vote,
   isLoading,
   isReadOnly,
+  isEditing,
+  onStartEdit,
+  onCancelEdit,
 }: {
   chatId: string;
   messageId: string;
   vote: Vote | undefined;
   isLoading: boolean;
   isReadOnly: boolean;
+  isEditing?: boolean;
+  onStartEdit?: () => void;
+  onCancelEdit?: () => void;
 }) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -63,6 +69,25 @@ export function PureMessageActions({
           : 'opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-hover/message:opacity-100 focus-within:opacity-100 hover:opacity-100'
       }
     >
+      {role === 'user' &&
+        !isReadOnly &&
+        (isEditing ? (
+          <Action
+            tooltip="Cancel edit"
+            className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
+            onClick={() => onCancelEdit?.()}
+          >
+            <PencilOff className="h-3.5 w-3.5" />
+          </Action>
+        ) : (
+          <Action
+            tooltip="Edit message"
+            className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
+            onClick={() => onStartEdit?.()}
+          >
+            <Pencil className="h-3.5 w-3.5" />
+          </Action>
+        ))}
       <Action
         tooltip="Copy"
         className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0"
@@ -195,6 +220,9 @@ export const MessageActions = memo(
     if (prevProps.messageId !== nextProps.messageId) return false;
     if (prevProps.isLoading !== nextProps.isLoading) return false;
     if (prevProps.isReadOnly !== nextProps.isReadOnly) return false;
+    if (prevProps.isEditing !== nextProps.isEditing) return false;
+    if (prevProps.onStartEdit !== nextProps.onStartEdit) return false;
+    if (prevProps.onCancelEdit !== nextProps.onCancelEdit) return false;
 
     return true;
   },

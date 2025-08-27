@@ -429,7 +429,7 @@ export function PureModelSelector({
           variant="ghost"
           role="combobox"
           aria-expanded={open}
-          className={cn('w-fit md:px-2 md:h-[34px] gap-0', className)}
+          className={cn('w-fit md:px-2 gap-0', className)}
         >
           <div className="flex items-center gap-2">
             {selectedProviderIcon && (

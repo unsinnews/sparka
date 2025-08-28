@@ -666,7 +666,7 @@ function PureChatInputBottomControls({
       <PromptInputSubmit
         className={'shrink-0 size-8 @[400px]:size-10'}
         status={status}
-        disabled={isEmpty || uploadQueue.length > 0}
+        disabled={status === 'ready' && (isEmpty || uploadQueue.length > 0)}
         onClick={(e) => {
           e.preventDefault();
           if (status === 'streaming' || status === 'submitted') {

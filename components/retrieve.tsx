@@ -22,7 +22,7 @@ export function Retrieve({
 }) {
   if (!result) {
     return (
-      <div className="border border-neutral-200 rounded-xl my-4 p-4 dark:border-neutral-800 bg-gradient-to-b from-white to-neutral-50 dark:from-neutral-900 dark:to-neutral-900/90">
+      <div className="border border-neutral-200 rounded-xl my-4 p-4 dark:border-neutral-800 bg-linear-to-b from-white to-neutral-50 dark:from-neutral-900 dark:to-neutral-900/90">
         <div className="flex items-center gap-4">
           <div className="relative w-10 h-10">
             <div className="absolute inset-0 rounded-full bg-primary/10 animate-pulse" />
@@ -45,7 +45,7 @@ export function Retrieve({
     return (
       <div className="border border-red-200 dark:border-red-500 rounded-xl my-4 p-4 bg-red-50 dark:bg-red-950/50">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center flex-shrink-0">
+          <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center shrink-0">
             <Globe className="h-4 w-4 text-red-600 dark:text-red-300" />
           </div>
           <div>
@@ -66,7 +66,7 @@ export function Retrieve({
     return (
       <div className="border border-amber-200 dark:border-amber-500 rounded-xl my-4 p-4 bg-amber-50 dark:bg-amber-950/50">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+          <div className="h-8 w-8 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shrink-0">
             <Globe className="h-4 w-4 text-amber-600 dark:text-amber-300" />
           </div>
           <div className="text-amber-700 dark:text-amber-300 text-sm font-medium">
@@ -79,11 +79,11 @@ export function Retrieve({
 
   // Existing rendering for successful retrieval:
   return (
-    <div className="border border-neutral-200 rounded-xl my-4 overflow-hidden dark:border-neutral-800 bg-gradient-to-b from-white to-neutral-50 dark:from-neutral-900 dark:to-neutral-900/90">
+    <div className="border border-neutral-200 rounded-xl my-4 overflow-hidden dark:border-neutral-800 bg-linear-to-b from-white to-neutral-50 dark:from-neutral-900 dark:to-neutral-900/90">
       <div className="p-4">
         <div className="flex items-start gap-4">
-          <div className="relative w-10 h-10 flex-shrink-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-lg" />
+          <div className="relative w-10 h-10 shrink-0">
+            <div className="absolute inset-0 bg-linear-to-br from-primary/10 to-transparent rounded-lg" />
             <img
               className="h-5 w-5 absolute inset-0 m-auto"
               src={`https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(result.results[0].url)}`}

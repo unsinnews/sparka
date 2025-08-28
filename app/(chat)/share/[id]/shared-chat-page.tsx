@@ -2,7 +2,7 @@
 import { ChatSystem } from '@/components/chat-system';
 import { getDefaultThread } from '@/lib/thread-utils';
 import { useMemo } from 'react';
-import { WithSkeleton } from '@/components/ui/skeleton';
+import { WithSkeleton } from '@/components/with-skeleton';
 import { usePublicChat, usePublicChatMessages } from '@/hooks/use-shared-chat';
 import { notFound } from 'next/navigation';
 

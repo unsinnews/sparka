@@ -1,6 +1,6 @@
 import { HydrateClient, prefetch, trpc } from '@/trpc/server';
 import { Suspense } from 'react';
-import { WithSkeleton } from '@/components/ui/skeleton';
+import { WithSkeleton } from '@/components/with-skeleton';
 import { DeferredChatPage } from './deferred-chat-page';
 
 export default async function ChatPageRoute({

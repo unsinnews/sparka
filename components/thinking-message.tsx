@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { PulseDotLoader } from './ui/loader';
+import { PulseDotLoader } from './prompt-kit/loader';
 
 export const ThinkingMessage = () => {
   const role = 'assistant';

@@ -1,7 +1,7 @@
 'use client';
 
 import { ChatPage } from '@/app/(chat)/chat/[id]/chat-page';
-import { WithSkeleton } from '@/components/ui/skeleton';
+import { WithSkeleton } from '@/components/with-skeleton';
 import { useChatId } from '@/providers/chat-id-provider';
 import { useDeferredValue } from 'react';
 import { ChatHome } from '../../chat-home';

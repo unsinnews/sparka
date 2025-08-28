@@ -59,7 +59,7 @@ export function InteractiveChart({ chart }: { chart: BaseChart }) {
       borderWidth: 0,
       padding: [6, 10],
       className:
-        'echarts-tooltip !rounded-lg !border !border-neutral-200 dark:!border-neutral-800',
+        'echarts-tooltip rounded-lg! border! border-neutral-200! dark:border-neutral-800!',
       textStyle: {
         color: textColor,
         fontSize: 13,

@@ -27,7 +27,7 @@ import {
 import { AttachmentList } from './attachment-list';
 import { PlusIcon } from 'lucide-react';
 import { ImageModal } from './image-modal';
-import { ChatInputTextArea } from './ui/chat-input';
+import { ChatInputTextArea } from './chat-input';
 import {
   PromptInput,
   PromptInputToolbar,
@@ -650,11 +650,11 @@ function PureChatInputBottomControls({
 }) {
   return (
     <PromptInputToolbar className="flex flex-row justify-between min-w-0 w-full gap-1 @[400px]:gap-2 border-t">
-      <PromptInputTools className="flex items-center gap-1 @[400px]:gap-2 min-w-0 flex-0">
+      <PromptInputTools className="flex items-center gap-1 @[400px]:gap-2 min-w-0">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
         <ModelSelector
           selectedModelId={selectedModelId}
-          className="text-xs @[400px]:text-sm min-w-0 shrink max-w-none px-2 @[400px]:px-3 truncate flex-1 justify-start h-8 @[400px]:h-10"
+          className="text-xs @[400px]:text-sm w-fit shrink max-w-none px-2 @[400px]:px-3 truncate justify-start h-8 @[400px]:h-10"
           onModelChange={onModelChange}
         />
         <ResponsiveTools

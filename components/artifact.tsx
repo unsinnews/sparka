@@ -417,7 +417,7 @@ function PureArtifact({
               />
             </div>
 
-            <ScrollArea className="h-full !max-w-full">
+            <ScrollArea className="h-full max-w-full!">
               <div className="flex flex-col items-center bg-background/80">
                 <artifactDefinition.content
                   title={artifact.title}

@@ -47,7 +47,7 @@ export const StepWrapper = ({ update, children, isLast }: StepWrapperProps) => {
         </div>
         <motion.div
           className={cn(
-            'border-border min-h-full w-[1px] flex-1 border-l border-dashed',
+            'border-border min-h-full w-px flex-1 border-l border-dashed',
             isLast && 'hidden',
           )}
           initial={{ height: 0 }}

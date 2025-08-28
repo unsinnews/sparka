@@ -40,7 +40,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarSeparator />
       <ScrollArea className="h-full">
-        <SidebarContent className="max-w-[var(--sidebar-width)] pr-2">
+        <SidebarContent className="max-w-(--sidebar-width) pr-2">
           {(open || openMobile) && <SidebarHistory />}
         </SidebarContent>
       </ScrollArea>

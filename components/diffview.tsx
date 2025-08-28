@@ -177,7 +177,7 @@ export const DiffView = ({ oldContent, newContent }: DiffEditorProps) => {
       <LexicalComposer initialConfig={initialConfig}>
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none lexical-editor text-left" />
+            <ContentEditable className="outline-hidden lexical-editor text-left" />
           }
           placeholder={null}
           ErrorBoundary={LexicalErrorBoundary}

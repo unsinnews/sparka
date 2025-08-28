@@ -1,4 +1,4 @@
-import { TextShimmerLoader } from '@/components/ui/loader';
+import { TextShimmerLoader } from '@/components/prompt-kit/loader';
 import { cn } from '@/lib/utils';
 
 export const UpdateTitle = ({

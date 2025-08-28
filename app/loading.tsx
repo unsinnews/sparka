@@ -1,4 +1,4 @@
-import { WithSkeleton } from '@/components/ui/skeleton';
+import { WithSkeleton } from '@/components/with-skeleton';
 
 export default function Loading() {
   return (

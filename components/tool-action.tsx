@@ -15,7 +15,7 @@ const ToolActionKind = React.forwardRef<
   return (
     <div
       ref={ref}
-      className={cn('flex-shrink-0 flex gap-1', className)}
+      className={cn('shrink-0 flex gap-1', className)}
       {...props}
     >
       {icon}

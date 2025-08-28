@@ -148,7 +148,7 @@ export function PureMessageActions({
           <Action
             tooltip="Upvote Response"
             data-testid="message-upvote"
-            className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 !pointer-events-auto"
+            className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 pointer-events-auto!"
             disabled={vote?.isUpvoted || !isAuthenticated}
             onClick={() => {
               toast.promise(
@@ -171,7 +171,7 @@ export function PureMessageActions({
           <Action
             tooltip="Downvote Response"
             data-testid="message-downvote"
-            className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 !pointer-events-auto"
+            className="text-muted-foreground hover:text-accent-foreground hover:bg-accent h-7 w-7 p-0 pointer-events-auto!"
             disabled={(vote && !vote.isUpvoted) || !session?.user}
             onClick={() => {
               toast.promise(

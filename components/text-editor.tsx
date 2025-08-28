@@ -162,7 +162,7 @@ function PureEditor({
       <LexicalComposer initialConfig={editorConfig}>
         <RichTextPlugin
           contentEditable={
-            <ContentEditable className="outline-none lexical-editor text-left" />
+            <ContentEditable className="outline-hidden lexical-editor text-left" />
           }
           placeholder={<div className="text-gray-400">Start typing...</div>}
           ErrorBoundary={LexicalErrorBoundary}

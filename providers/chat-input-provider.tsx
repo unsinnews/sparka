@@ -13,7 +13,7 @@ import React, {
 import type { Attachment, UiToolName } from '@/lib/ai/types';
 import { useDefaultModel, useModelChange } from './default-model-provider';
 import { getModelDefinition } from '@/lib/ai/all-models';
-import type { LexicalChatInputRef } from '@/components/ui/lexical-chat-input';
+import type { LexicalChatInputRef } from '@/components/lexical-chat-input';
 import type { ModelId } from '@/lib/ai/model-id';
 
 interface ChatInputContextType {

@@ -24,7 +24,7 @@ export function NewChatButton() {
           setOpenMobile(false);
           refreshChatID();
         }}
-        className="flex items-center gap-2 w-full justify-start px-2 py-2 text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+        className="flex items-center gap-2 w-full"
       >
         <PlusIcon />
         <span>New Chat</span>

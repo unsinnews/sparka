@@ -202,7 +202,7 @@ export function InteractiveStockChart({
                 height: 8px;
                 border-radius: 50%;
                 background-color: ${lineColor};
-                flex-shrink: 0;
+                shrink: 0;
               "></div>
               <span style="
                 font-size: 13px;

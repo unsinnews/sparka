@@ -26,8 +26,8 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "coderabbit.autoReviewMode": "disabled",
-  "cSpell.words": [
-    "firecrawl",
-    "tavily"
-  ]
+  "cSpell.words": ["firecrawl", "tavily"],
+  "[postcss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

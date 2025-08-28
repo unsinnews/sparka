@@ -9,8 +9,8 @@ const nextConfig: NextConfig = {
       '@lobehub/icons',
     ],
     // Enable external packages for server components to allow pino transports
-    serverComponentsExternalPackages: ['pino', 'pino-pretty'],
   },
+  serverExternalPackages: ['pino', 'pino-pretty'],
   images: {
     remotePatterns: [
       {

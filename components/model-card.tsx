@@ -11,8 +11,17 @@ import type { ProviderId } from '@/providers/models-generated';
 import { cn } from '@/lib/utils';
 import { getFeatureConfig, isFeatureEnabled } from '@/lib/features-config';
 import { getProviderIcon } from './get-provider-icon';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardAction,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card';
 
-const PlaceholderIcon = () => <Building className="w-6 h-6" />;
+const PlaceholderIcon = () => <Building className="size-6" />;
 
 const getFeatureIconsForCard = (model: ModelDefinition) => {
   const icons: React.ReactNode[] = [];
@@ -26,7 +35,7 @@ const getFeatureIconsForCard = (model: ModelDefinition) => {
         <Tooltip key="reasoning">
           <TooltipTrigger asChild>
             <div className="p-1.5 bg-muted rounded">
-              <IconComponent className="w-3.5 h-3.5" />
+              <IconComponent className="size-3.5" />
             </div>
           </TooltipTrigger>
           <TooltipContent>
@@ -64,136 +73,140 @@ export function ModelCard({
   // Show placeholder if disabled with reason
   if (isDisabled && disabledReason) {
     return (
-      <div
+      <Card
         className={cn(
-          'group p-4 border rounded-lg cursor-not-allowed transition-all flex flex-col items-start opacity-50',
-          'border-border bg-muted/50',
+          'cursor-not-allowed opacity-50',
+          'bg-muted/50',
           className,
         )}
       >
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3 w-full">
+        <CardHeader>
           <div className="flex items-center gap-2">
             <div className="transition-transform bg-muted rounded-lg p-1">
               <PlaceholderIcon />
             </div>
             <div className="text-left">
-              <h3 className="font-semibold text-sm">{model.name}</h3>
-              <p className="text-xs text-muted-foreground capitalize">
+              <CardTitle className="text-sm font-semibold">
+                {model.name}
+              </CardTitle>
+              <CardDescription className="capitalize">
                 {provider}
-              </p>
+              </CardDescription>
             </div>
           </div>
-        </div>
-
-        <div className="text-xs text-muted-foreground text-center w-full">
-          {disabledReason}
-        </div>
-      </div>
+        </CardHeader>
+        <CardContent>
+          <div className="text-xs text-muted-foreground text-center w-full">
+            {disabledReason}
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   const cardContent = (
-    <div
+    <Card
       className={cn(
-        'group p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md flex flex-col items-start',
-        isSelected
-          ? 'border-primary bg-primary/5 shadow-sm'
-          : 'border-border hover:border-primary/50',
+        'group cursor-pointer transition-all hover:shadow-md',
+        isSelected ? 'border-primary bg-primary/5' : 'hover:border-primary/50',
         isDisabled && 'opacity-50 cursor-not-allowed hover:shadow-none',
         className,
       )}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3 w-full">
+      <CardHeader>
         <div className="flex items-center gap-2">
           <div className="transition-transform bg-muted rounded-lg p-1 group-hover:rotate-12">
             {getProviderIcon(provider, 24)}
           </div>
           <div className="text-left">
-            <h3 className="font-semibold text-sm">{model.name}</h3>
-            <p className="text-xs text-muted-foreground capitalize">
-              {provider}
-            </p>
+            <CardTitle className="text-sm font-semibold">
+              {model.name}
+            </CardTitle>
+            <CardDescription className="capitalize">{provider}</CardDescription>
           </div>
         </div>
-        {isSelected && <CheckCircle className="w-4 h-4 text-primary" />}
-      </div>
+        {isSelected && (
+          <CardAction>
+            <CheckCircle className="size-4 text-primary" />
+          </CardAction>
+        )}
+      </CardHeader>
 
-      {/* Description */}
       {description && (
-        <p className="text-xs text-muted-foreground mb-3 line-clamp-2 text-left">
-          {description}
-        </p>
+        <CardContent>
+          <p className="text-xs text-muted-foreground mb-3 line-clamp-2 text-left">
+            {description}
+          </p>
+        </CardContent>
       )}
 
-      {/* Key Features Row */}
-
-      <div className="flex justify-start items-center gap-3 text-xs text-muted-foreground text-start">
-        {maxTokens && (
-          <div className="flex items-center gap-1">
-            <span className="font-medium">{maxTokens.toLocaleString()}</span>
-            <span>Max out</span>
-          </div>
-        )}
-        {contextLength && (
-          <div className="flex items-center gap-1">
-            <span className="font-medium">
-              {contextLength.toLocaleString()}
-            </span>
-            <span>Max in</span>
-          </div>
-        )}
-      </div>
-
-      {/* Features Row */}
-      {hasFeatures && (
-        <div className="flex flex-wrap gap-1 mt-3 w-full">
-          {model.features?.reasoning && (
-            <Badge variant="outline" className="text-xs">
-              Reasoning
-            </Badge>
+      <CardContent>
+        <div className="flex justify-start items-center gap-3 text-xs text-muted-foreground text-start">
+          {maxTokens && (
+            <div className="flex items-center gap-1">
+              <span className="font-medium">{maxTokens.toLocaleString()}</span>
+              <span>Max out</span>
+            </div>
           )}
-          {model.features?.functionCalling && (
-            <Badge variant="outline" className="text-xs">
-              Function Calling
-            </Badge>
-          )}
-          {model.features?.input?.image && (
-            <Badge variant="outline" className="text-xs">
-              Vision
-            </Badge>
-          )}
-          {model.features?.input?.pdf && (
-            <Badge variant="outline" className="text-xs">
-              PDF
-            </Badge>
+          {contextLength && (
+            <div className="flex items-center gap-1">
+              <span className="font-medium">
+                {contextLength.toLocaleString()}
+              </span>
+              <span>Max in</span>
+            </div>
           )}
         </div>
-      )}
 
-      {/* Pricing */}
+        {hasFeatures && (
+          <div className="flex flex-wrap gap-1 mt-3 w-full">
+            {model.features?.reasoning && (
+              <Badge variant="outline" className="text-xs">
+                Reasoning
+              </Badge>
+            )}
+            {model.features?.functionCalling && (
+              <Badge variant="outline" className="text-xs">
+                Function Calling
+              </Badge>
+            )}
+            {model.features?.input?.image && (
+              <Badge variant="outline" className="text-xs">
+                Vision
+              </Badge>
+            )}
+            {model.features?.input?.pdf && (
+              <Badge variant="outline" className="text-xs">
+                PDF
+              </Badge>
+            )}
+          </div>
+        )}
+      </CardContent>
+
       {model.pricing && (
-        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground w-full">
-          {model.pricing.input && (
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              <span>
-                ${(Number(model.pricing.input) * 1000000).toFixed(2)}/1M in
-              </span>
-            </div>
-          )}
-          {model.pricing.output && (
-            <div className="flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              <span>
-                ${(Number(model.pricing.output) * 1000000).toFixed(2)}/1M out
-              </span>
-            </div>
-          )}
-        </div>
+        <CardFooter>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground w-full">
+            {model.pricing.input && (
+              <div className="flex items-center gap-1">
+                <Calendar className="size-3" />
+                <span>
+                  ${(Number(model.pricing.input) * 1000000).toFixed(2)}/1M in
+                </span>
+              </div>
+            )}
+            {model.pricing.output && (
+              <div className="flex items-center gap-1">
+                <Calendar className="size-3" />
+                <span>
+                  ${(Number(model.pricing.output) * 1000000).toFixed(2)}/1M out
+                </span>
+              </div>
+            )}
+          </div>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
 
   if (isDisabled) {

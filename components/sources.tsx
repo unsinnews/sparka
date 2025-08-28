@@ -38,7 +38,7 @@ const SourcesList = ({
           className="block p-4 rounded-lg bg-neutral-50 dark:bg-neutral-800/50 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
         >
           <div className="flex items-start gap-3">
-            <div className="flex-shrink-0 mt-1">
+            <div className="shrink-0 mt-1">
               <Favicon url={getFaviconUrl(source)} />
             </div>
             <div className="flex flex-col gap-1">

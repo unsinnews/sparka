@@ -34,7 +34,7 @@ function PureMessagesPane({
     >
       <Messages votes={votes} isReadonly={isReadonly} isVisible={isVisible} />
 
-      <div className="sticky bottom-4 w-full ">
+      <div className="relative bottom-4 w-full z-10">
         {!isReadonly ? (
           <div className="w-full mx-auto p-2 @[400px]:px-4 @[400px]:pb-4 @[400px]:md:pb-6 md:max-w-3xl">
             <MultimodalInput

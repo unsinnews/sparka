@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Separator } from './ui/separator';
 import { getModelDefinition } from '@/lib/ai/all-models';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
@@ -71,16 +72,21 @@ export function ResponsiveTools({
     <div className="flex items-center gap-1 @[400px]:gap-2 ">
       {isAnonymous ? (
         <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="gap-1 @[400px]:gap-2 p-1.5 h-8 @[400px]:h-10"
-            >
-              <Settings2 size={14} />
-              <span className="hidden @[400px]:inline">Tools</span>
-            </Button>
-          </PopoverTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="gap-1 @[400px]:gap-2 p-1.5 h-8 @[400px]:h-10"
+                >
+                  <Settings2 size={14} />
+                  <span className="hidden @[400px]:inline">Tools</span>
+                </Button>
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Select Tools</TooltipContent>
+          </Tooltip>
           <PopoverContent className="w-80 p-0" align="start">
             <LoginPrompt
               title="Sign in to use Tools"
@@ -90,16 +96,21 @@ export function ResponsiveTools({
         </Popover>
       ) : (
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-8 @[400px]:h-10"
-            >
-              <Settings2 size={14} />
-              <span className="hidden @[400px]:inline">Tools</span>
-            </Button>
-          </DropdownMenuTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 @[400px]:gap-2 p-1.5 px-2.5 h-8 @[400px]:h-10"
+                >
+                  <Settings2 size={14} />
+                  <span className="hidden @[400px]:inline">Tools</span>
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>Select Tools</TooltipContent>
+          </Tooltip>
           <DropdownMenuContent
             align="start"
             className="w-48"

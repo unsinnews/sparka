@@ -98,7 +98,9 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Toaster position="top-center" />
+          {/* <TooltipProvider delayDuration={0}> */}
           <TRPCReactProvider>{children}</TRPCReactProvider>
+          {/* </TooltipProvider> */}
         </ThemeProvider>
       </body>
     </html>

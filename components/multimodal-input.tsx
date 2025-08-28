@@ -48,6 +48,7 @@ import {
 } from '@/lib/ai/all-models';
 import { CreditLimitDisplay } from './upgrade-cta/credit-limit-display';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { LoginPrompt } from './upgrade-cta/login-prompt';
 import { generateUUID } from '@/lib/utils';
 import { useSaveMessageMutation } from '@/hooks/chat-sync-hooks';
@@ -596,17 +597,22 @@ function PureAttachmentsButton({
 
   return (
     <Popover open={showLoginPopover} onOpenChange={setShowLoginPopover}>
-      <PopoverTrigger asChild>
-        <PromptInputButton
-          data-testid="attachments-button"
-          className="size-8 @[400px]:size-10"
-          onClick={handleClick}
-          disabled={status !== 'ready'}
-          variant="ghost"
-        >
-          <PlusIcon className="size-4" />
-        </PromptInputButton>
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <PromptInputButton
+              data-testid="attachments-button"
+              className="size-8 @[400px]:size-10"
+              onClick={handleClick}
+              disabled={status !== 'ready'}
+              variant="ghost"
+            >
+              <PlusIcon className="size-4" />
+            </PromptInputButton>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Add Files</TooltipContent>
+      </Tooltip>
       <PopoverContent className="w-80 p-0" align="end">
         <LoginPrompt
           title="Sign in to attach files"

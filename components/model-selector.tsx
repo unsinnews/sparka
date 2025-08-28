@@ -384,7 +384,7 @@ export function PureModelSelector({
                       <TooltipContent
                         side="right"
                         align="start"
-                        className=""
+                        className="p-0"
                         variant="base"
                         sideOffset={8}
                       >
@@ -397,7 +397,7 @@ export function PureModelSelector({
                               ? 'Sign in to access this model'
                               : undefined
                           }
-                          className="w-[280px] shadow-lg border"
+                          className="w-[280px] shadow-lg border border-none"
                         />
                       </TooltipContent>
                     </Tooltip>

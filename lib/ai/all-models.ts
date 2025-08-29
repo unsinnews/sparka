@@ -105,8 +105,8 @@ function getImageModelsByIdDict(): Map<string, ImageModelDefinition> {
 
 export function getImageModelDefinition(
   modelId: ImageModelId,
-): ModelDefinition {
-  const modelsByIdDict = getModelsByIdDict();
+): ImageModelDefinition {
+  const modelsByIdDict = getImageModelsByIdDict();
   const model = modelsByIdDict.get(modelId);
   if (!model) {
     throw new Error(`Model ${modelId} not found`);

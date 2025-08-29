@@ -7,10 +7,8 @@ import { cn } from '@/lib/utils';
 
 const ScrollArea = React.forwardRef<
   React.ElementRef<typeof ScrollAreaPrimitive.Root>,
-  React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
-    viewPortClassName?: string;
-  }
->(({ className, viewPortClassName, children, ...props }, ref) => {
+  React.ComponentProps<typeof ScrollAreaPrimitive.Root>
+>(({ className, children, ...props }, ref) => {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -22,7 +20,6 @@ const ScrollArea = React.forwardRef<
         ref={ref} // Changed to the viewport for stick to bottom interaction
         className={cn(
           'focus-visible:ring-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:outline-1',
-          viewPortClassName,
         )}
       >
         {children}

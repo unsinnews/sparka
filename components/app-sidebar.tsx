@@ -25,7 +25,7 @@ export function AppSidebar() {
       collapsible="icon"
       className="group-data-[side=left]:border-r-0 grid grid-rows-[auto_1fr_auto] max-h-dvh"
     >
-      <SidebarHeader>
+      <SidebarHeader className="shrink-0">
         <SidebarMenu>
           <div className="flex flex-row justify-between items-center">
             <SidebarTopRow />
@@ -39,7 +39,7 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarSeparator />
-      <ScrollArea className="h-full">
+      <ScrollArea className="relative flex-1 overflow-y-auto">
         <SidebarContent className="max-w-(--sidebar-width) pr-2">
           {(open || openMobile) && <SidebarHistory />}
         </SidebarContent>
@@ -48,7 +48,7 @@ export function AppSidebar() {
       {(open || openMobile) && (
         <>
           <SidebarSeparator />
-          <SidebarFooter>
+          <SidebarFooter className="shrink-0">
             <SidebarCredits />
           </SidebarFooter>
         </>
